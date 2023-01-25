@@ -1,5 +1,3 @@
-import 'package:mug/mug.dart';
-
 import 'package:hotreloader/hotreloader.dart';
 import 'package:mug/mug_application.dart';
 

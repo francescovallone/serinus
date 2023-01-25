@@ -86,7 +86,7 @@ packages:
     source: hosted
     version: "2.1.1"
   hotreloader:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: hotreloader
       url: "https://pub.dartlang.org"
