@@ -72,22 +72,16 @@ class MugApplication{
               routeData.parameters.where(
                 (element) => element.metadata.isNotEmpty && element.metadata.first.reflectee is Body
               ).map((e){
-                if (
-                  e.type.reflectedType is String || 
-                  e.type.reflectedType is num || 
-                  e.type.reflectedType.runtimeType == {}.runtimeType || 
-                  e.type.reflectedType.runtimeType == [].runtimeType
-                ){
+                if (e.type.reflectedType is! BodyParsable){
                   return MapEntry(
                     "body-${MirrorSystem.getName(e.simpleName)}",
                     body
                   );
-                }else{
-                  return MapEntry(
-                    "body-${MirrorSystem.getName(e.simpleName)}",
-                    Activator.createInstance(e.type.reflectedType, jsonBody)
-                  );
                 }
+                return MapEntry(
+                  "body-${MirrorSystem.getName(e.simpleName)}",
+                  Activator.createInstance(e.type.reflectedType, jsonBody)
+                );
               }
             )));
             print(routeParas);
