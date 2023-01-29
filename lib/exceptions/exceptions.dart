@@ -3,3 +3,4 @@ export 'bad_request_exception.dart';
 export 'forbidden_exception.dart';
 export 'mug_exception.dart';
 export 'unauthorized_exception.dart';
+export 'internal_server_error_exception.dart';

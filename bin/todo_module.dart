@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:mug/mug.dart';
 
+import 'testBody.dart';
+
 class TodoModule implements Module{
   TodoModule();
   
@@ -21,9 +23,22 @@ class TodoController{
 
   TodoController();
 
-  @Route("/")
-  List<String> getAll(){
-    return [];
+  @Route("/",)
+  List<Map<String, dynamic>> getAll(){
+    return todos;
+  }
+
+  @Route("/number/:string", statusCode: 500)
+  Map<String, dynamic> todo(
+    @Query("id") String string,
+    @Query("string", nullable: true) String? lel,
+    @Param("string") String id
+  ){
+    return {
+      "id": string,
+      "lel": lel,
+      "string": id
+    };
   }
 
   @Route("/:id")
@@ -34,15 +49,9 @@ class TodoController{
   }
 
   @Route("/", method: 'POST')
-  Map<String, dynamic> randomTodo(){
-    logger.info("HELLO");
-    todos.add({
-      "id": Random.secure().nextInt(100),
-      "string": Random.secure().hashCode
-    });
-    return {
-      "id": Random.secure().nextInt(100),
-      "string": Random.secure().hashCode
-    };
+  String randomTodo(
+    @Body() String body,
+  ){
+    return body.toString();
   }
 }

@@ -6,6 +6,7 @@ class RouteData{
   final MethodMirror handler;
   final Symbol symbol;
   final String method;
+  final int statusCode;
   final List<ParameterMirror> parameters;
 
   RouteData({
@@ -14,6 +15,7 @@ class RouteData{
     required this.handler,
     required this.symbol,
     required this.method,
-    required this.parameters
+    required this.statusCode,
+    required this.parameters,
   });
 }

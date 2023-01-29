@@ -35,15 +35,21 @@ class RouteUtils {
         if(controllerRoute != null){
           String path = Uri(path: "${ref.type.metadata[0].reflectee.path}${controllerRoute.reflectee.path}").normalizePath().path;
           if(routes.indexWhere((element) => element.path == path && element.method == controllerRoute!.reflectee.method) == -1){
+            if(e.value.parameters.where((element) => element.metadata.isNotEmpty && element.metadata.first.reflectee is Body).length > 1){
+              throw Exception("A route can't have two body parameters.");
+            }
+            routes.add(
+              RouteData(
+                path: path, 
+                controller: ref, 
+                handler: e.value, 
+                symbol: e.key, 
+                method: controllerRoute.reflectee.method,
+                statusCode: controllerRoute.reflectee.statusCode,
+                parameters: e.value.parameters,
+              )
+            );
             routesLoader.info("Added route: ${controllerRoute.reflectee.method} - $path");
-            routes.add(RouteData(
-              path: path, 
-              controller: ref, 
-              handler: e.value, 
-              symbol: e.key, 
-              method: controllerRoute.reflectee.method, 
-              parameters: e.value.parameters
-            ));
           }
         }
       }

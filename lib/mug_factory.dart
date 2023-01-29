@@ -18,9 +18,13 @@ class MugFactory{
     }
   );
 
-  void serve() async {
-    _application = MugApplication.create(module);
-    _application.serve();
+  Future<void> serve() async {
+    _application = MugApplication.create(
+      module, 
+      port: port, 
+      address: address
+    );
+    await _application.serve();
     if(developmentMode){
       await HotReloader.create(
         onAfterReload: (ctx) {
@@ -29,6 +33,10 @@ class MugFactory{
         }
       );
     }
+  }
+
+  Future<void> close() async {
+    await _application.close();
   }
   
 }
