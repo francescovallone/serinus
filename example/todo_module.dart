@@ -1,13 +1,13 @@
-import 'dart:math';
 import 'package:mug/mug.dart';
 
-import 'testBody.dart';
-
 class TodoModule implements Module{
+
   TodoModule();
   
   @override
-  dynamic controller = TodoController();
+  List<dynamic> controllers = [
+    TodoController()
+  ];
   
   @override
   List? imports = [];

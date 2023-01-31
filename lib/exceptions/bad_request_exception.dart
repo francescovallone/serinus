@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:mug/exceptions/mug_exception.dart';
+import 'mug_exception.dart';
 
 class BadRequestException extends MugException{
   const BadRequestException({String message = "Bad Request!", Uri? uri }) : super(

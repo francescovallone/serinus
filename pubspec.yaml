@@ -1,5 +1,5 @@
 name: mug
-description: A simple HTTP Server written in Dart
+description: Backend framework written in dart
 version: 0.0.1
 # homepage: https://www.example.com
 

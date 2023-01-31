@@ -1,11 +1,11 @@
 class Module{
 
   final List<dynamic>? imports;
-  final dynamic controller;
+  final List<dynamic> controllers;
 
   const Module({
     this.imports = const [],
-    this.controller
+    this.controllers = const []
   });
 
 }

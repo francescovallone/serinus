@@ -7,12 +7,26 @@ class AppModule implements Module{
   AppModule();
   
   @override
-  dynamic controller = AppController();
+  List<dynamic> controllers = [
+    AppController(),
+  ];
   
   @override
   List? imports = [
+    TestModule(),
     TodoModule()
   ];
+}
+
+@Controller(path: "/test")
+class TestController{
+  @Route("/")
+  Map<String, dynamic> helloWorld(@RequestInfo() Request req){
+    return {
+      "body": "Hello World! ${req.path}",
+      "statusCode": 200
+    };
+  }
 }
 
 @Controller(
@@ -37,4 +51,18 @@ class AppController{
     };
   }
   
+}
+
+class TestModule implements Module{
+  TestModule();
+  
+  @override
+  List<dynamic> controllers = [
+    TestController()
+  ];
+  
+  @override
+  List? imports = [
+    TodoModule()
+  ];
 }

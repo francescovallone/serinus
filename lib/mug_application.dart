@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:mirrors';
 
+import 'package:mug/exceptions/method_not_allowed.dart';
 import 'package:mug/models/models.dart';
 import 'package:mug/mug.dart';
 import 'package:mug/catcher.dart';
 import 'package:logging/logging.dart' as logging;
-import 'package:mug/utils/activator.dart';
 import 'package:mug/utils/utils.dart';
 
 
@@ -31,7 +31,7 @@ class MugApplication{
     logging.Logger.root.onRecord.listen((record) {
       print(
         '[Mug] ${io.pid}\t'
-        '${record.time.toIso8601String()}\t${record.level.name} [${record.loggerName}] ' 
+        '${record.time}\t${record.level.name} [${record.loggerName}] ' 
         '${record.message}'
       );
     });
@@ -41,7 +41,7 @@ class MugApplication{
   }
 
   Future<io.HttpServer> serve({
-    String? poweredByHeader = 'Mug',
+    String? poweredByHeader = 'Powered by Mug',
     io.SecurityContext? securityContext,
   }) async{
     _httpServer = await (
@@ -49,9 +49,8 @@ class MugApplication{
         ? io.HttpServer.bind(_address, _port)
         : io.HttpServer.bindSecure(_address, _port, securityContext)
     );
-    
     applicationLogger.info("Starting http server on $_address:$_port...");
-    _routes = RouteUtils().discoverRoutes(_mainModule, true);
+    _routes = RouteUtils().discoverRoutes(_mainModule);
     applicationLogger.info("Started http server successfully!");
     catchTopLevelErrors(
       (){
@@ -64,31 +63,9 @@ class MugApplication{
             if(routeParas.isEmpty){
               throw BadRequestException(uri: request.uri);
             }
-            dynamic jsonBody = await request.json();
-            dynamic body = await request.body();
-            routeParas.remove(routeParas.keys.first);
-            routeParas.addAll(Map<String, dynamic>.fromEntries(request.queryParameters.entries.map((e) => MapEntry("query-${e.key}", e.value))));
-            routeParas.addAll(Map<String, dynamic>.fromEntries(
-              routeData.parameters.where(
-                (element) => element.metadata.isNotEmpty && element.metadata.first.reflectee is Body
-              ).map((e){
-                if (e.type.reflectedType is! BodyParsable){
-                  return MapEntry(
-                    "body-${MirrorSystem.getName(e.simpleName)}",
-                    body
-                  );
-                }
-                return MapEntry(
-                  "body-${MirrorSystem.getName(e.simpleName)}",
-                  Activator.createInstance(e.type.reflectedType, jsonBody)
-                );
-              }
-            )));
-            print(routeParas);
+            routeParas = await RouteUtils().addParameters(routeParas, request, routeData);
             _transformRouteParametersValue(routeData, routeParas);
             InstanceMirror controller = routeData.controller;
-            print(routeParas);
-            print(routeParas.values.toList());
             InstanceMirror c = controller.invoke(routeData.symbol, routeParas.values.toList());
             req.response.statusCode = routeData.statusCode;
             Response response = Response.from(req.response, c.reflectee, poweredByHeader);
@@ -96,12 +73,11 @@ class MugApplication{
             requestLogger.info("${request.method} ${request.path} ${response.contentLengthString}");
           }on MugException catch(e){
             e.response(req.response);
-            requestLogger.info("Exception: ${e.toString()}");
+            requestLogger.info("Exception: $e");
           }
         });
       },
       (error, stackTrace) {
-        print(stackTrace);
         applicationLogger.error(error);
       }
     );
@@ -143,13 +119,12 @@ class MugApplication{
       Map<String, dynamic> sorted = {};
       for(int i = 0; i<dataToPass.length; i++){
         ParameterMirror d = dataToPass[i];
-        print(d.metadata);
         if(d.metadata.isNotEmpty){
           for(InstanceMirror meta in d.metadata){
             String type = meta.reflectee.runtimeType.toString().toLowerCase();
             String name = "";
             print(meta.reflectee is Body);
-            if(meta.reflectee is Body){
+            if(meta.reflectee is Body || meta.reflectee is RequestInfo){
               name = MirrorSystem.getName(d.simpleName);
             }else{
               name = meta.reflectee.name;
@@ -176,7 +151,6 @@ class MugApplication{
         }
         
       }
-      print(routeParas);
       routeParas.clear();
       routeParas.addAll(sorted);
     }
@@ -185,22 +159,25 @@ class MugApplication{
   Set<Object> getRoute(Request request) {
     Map<String, dynamic> routeParas = {};
     try{
+      final possibileRoutes = _routes.where(
+        (element) {
+          routeParas.clear();
+          routeParas.addAll(_checkIfRequestedRoute(element.path, request));
+          return (routeParas.isNotEmpty);
+        }
+      );
+      if(possibileRoutes.isEmpty){
+        throw NotFoundException();
+      }
+      if(possibileRoutes.every((element) => element.method != request.method)){
+        throw MethodNotAllowedException(message: "Can't ${request.method} ${request.path}", uri: request.uri);
+      } 
       return {
-        _routes.firstWhere(
-          (element) {
-            routeParas.clear();
-            routeParas.addAll(_checkIfRequestedRoute(element.path, request));
-            return (routeParas.isNotEmpty && element.method == request.method);
-          }
-        ),
+        possibileRoutes.firstWhere((element) => element.method == request.method),
         routeParas
       };
     }catch(e){
-      throw NotFoundException();
+      rethrow;
     }
-  }
-  
-  void _transformQueryParametersValue(Map<String, String> queryParameters) {
-    
   }
 }

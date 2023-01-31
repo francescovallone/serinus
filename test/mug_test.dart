@@ -67,7 +67,7 @@ class AppModule implements Module{
   AppModule();
   
   @override
-  dynamic controller = AppController();
+  List<dynamic> controllers = [AppController()];
   
   @override
   List? imports = [];

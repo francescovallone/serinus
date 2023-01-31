@@ -24,5 +24,5 @@ class MugException implements HttpException{
   }
 
   @override
-  String toString() => "$statusCode $message";
+  String toString() => "$runtimeType $statusCode $message";
 }

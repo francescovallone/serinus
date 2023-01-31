@@ -26,12 +26,18 @@ class Request{
 
   Future<String> body() async {
     final data = await bytes();
+    if(data.isEmpty){
+      return "";
+    }
     String stringData = Utf8Decoder().convert(data);
     return stringData;
   }
 
   Future<dynamic> json() async {
     final data = await body();
+    if(data.isEmpty){
+      return {};
+    }
     try{
       dynamic jsonData = JsonDecoder().convert(data);
       contentType = ContentType('application', 'json');
@@ -42,7 +48,11 @@ class Request{
   }
 
   Future<Uint8List> bytes() async {
-    _bytes ??= await _httpRequest.firstWhere((element) => element.isNotEmpty);
-    return _bytes!;
+    try{
+      _bytes ??= await _httpRequest.firstWhere((element) => element.isNotEmpty);
+      return _bytes!;
+    }catch(e){
+      return Uint8List(0);
+    }
   }
 }
