@@ -11,7 +11,6 @@ class Activator{
       try{
         return typeMirror.newInstance(Symbol(''), []).reflectee;
       }catch(_){}
-      print(typeMirror.hasReflectedType);
       return typeMirror.reflectedType;
     } else {
       throw ArgumentError("Cannot create the instance of the type '$type'.");

@@ -1,8 +1,11 @@
 import 'package:mug/mug.dart';
 
-import 'app_module.dart';
+import 'app.module.dart';
 
 void main(List<String> arguments) {
-  MugFactory application = MugFactory.createApp(AppModule());
+  MugFactory application = MugFactory.createApp(
+    AppModule(), 
+    address: '0.0.0.0'
+  );
   application.serve();
 }

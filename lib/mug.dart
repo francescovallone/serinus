@@ -5,3 +5,4 @@ export 'request.dart';
 export 'utils/logger.dart';
 export 'response.dart';
 export 'commons/commons.dart';
+export 'enums/method.dart';

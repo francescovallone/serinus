@@ -10,15 +10,18 @@ class Response{
   late dynamic _result;
   late HttpResponse _response;
   late int contentLength = -1;
-  String get contentLengthString => _stringifyContentLength();
+  String get contentLengthString => ResponseDecoder.formatContentLength(contentLength);
   HttpHeaders get headers => _response.headers;
   late dynamic _data;
 
-  Response.from(HttpResponse response, dynamic data, [String? poweredByHeader]){
+  Response.from(HttpResponse response, [String? poweredByHeader]){
     _response = response;
     if(poweredByHeader != null && poweredByHeader.isNotEmpty){
       headers.add("X-Powered-by", poweredByHeader);
     }
+  }
+
+  void setData(dynamic data){
     _data = data;
     _setResponseData();
   }
@@ -42,7 +45,7 @@ class Response{
       _response.headers.contentType = ContentType('application', 'json');
     }else if(_data is Map){
       try{
-        _result = JsonEncoder().convert(ResponseDecoder().convertMap(_data));
+        _result = JsonEncoder().convert(ResponseDecoder.convertMap(_data));
         _response.headers.contentType = ContentType('application', 'json');
       }catch(_){
         throw InternalServerError(message: "Can't convert the response to json");
@@ -51,14 +54,5 @@ class Response{
       _result = _data;
     }
     contentLength = Utf8Encoder().convert(_result.toString()).buffer.lengthInBytes;
-  }
-
-  String _stringifyContentLength(){
-    if(contentLength >= 1024 * 1024){
-      return "$contentLength MB";
-    }else if(contentLength >= 1024){
-      return "$contentLength KB";
-    }
-    return "$contentLength B";
   }
 }
