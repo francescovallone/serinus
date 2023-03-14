@@ -1,4 +1,4 @@
-
+// coverage:ignore-file
 import 'package:mug/mug.dart';
 
 import '../data/data.service.dart';

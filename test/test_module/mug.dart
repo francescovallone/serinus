@@ -4,6 +4,7 @@ import 'package:mug/mug.dart';
 import 'app/app.module.dart';
 import 'app/app2.module.dart';
 import 'app/app3.module.dart';
+import 'app/app4.module.dart';
 
 class Mug{
 
@@ -30,6 +31,15 @@ class Mug{
       AppWrongControllerModule(), 
       developmentMode: false, 
       port: 3002,
+      loggingLevel: Logging.noLogs
+    );
+  }
+
+  static MugFactory createModuleWrongApp(){
+    return MugFactory.createApp(
+      AppWrongModule(), 
+      developmentMode: false, 
+      port: 3003,
       loggingLevel: Logging.noLogs
     );
   }

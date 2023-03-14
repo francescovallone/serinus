@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:mug/mug.dart';
 
 import 'app.controller.dart';

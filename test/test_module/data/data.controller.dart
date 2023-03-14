@@ -1,4 +1,4 @@
-
+// coverage:ignore-file
 import 'package:mug/mug.dart';
 
 import 'data.service.dart';
@@ -15,8 +15,15 @@ class DataController extends MugController{
     @Body() body,
   ){
     return {
-      "hello": dataService.printHello("god")
+      "key": "value"
     };
+  }
+
+  @Route("/data", method: Method.get)
+  String queryRoute(
+    @Query('id') String id
+  ){
+    return id;
   }
 
   @Route("/data", method: Method.get)
@@ -24,6 +31,13 @@ class DataController extends MugController{
     return {
       "hello": "HELLO"
     };
+  }
+
+  @Route("/data/:id", method: Method.get)
+  String paramRoute(
+    @Param('id') String id
+  ){
+    return id;
   }
 
 }
