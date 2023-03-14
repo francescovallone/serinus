@@ -1,0 +1,22 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Mug
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches: 
+      - main
+
+jobs:
+  build:
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/dart_package.yml@v1
+    with:
+      concurrency: 1,
+      min_coverage: 75
