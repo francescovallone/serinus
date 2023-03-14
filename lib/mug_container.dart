@@ -160,7 +160,7 @@ class MugContainer {
   Module? _getModule(dynamic module){
     final moduleRef = reflect(module);
     if(moduleRef.type.metadata.isEmpty){
-      throw Exception("It seems ${moduleRef.type.reflectedType} doesn't have the @Module decorator");
+      throw StateError("It seems ${moduleRef.type.reflectedType} doesn't have the @Module decorator");
     }
     int index = moduleRef.type.metadata.indexWhere((element) => element.reflectee is Module);
     if(index == -1){

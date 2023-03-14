@@ -12,7 +12,6 @@ class MiddlewareConsumer{
   List<ConsumerRoute> get excludedRoutes => _excludedRoutes;
 
   MiddlewareConsumer apply(MugMiddleware middleware){
-    print(middleware);
     _middleware = middleware;
     return this;
   }
