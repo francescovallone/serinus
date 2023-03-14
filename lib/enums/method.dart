@@ -4,7 +4,12 @@ enum Method{
   delete,
   put,
   options,
-  head
+  head;
+
+  @override
+  String toString() {
+    return this.name.toUpperCase();
+  }
 }
 
 extension StringMethod on String {

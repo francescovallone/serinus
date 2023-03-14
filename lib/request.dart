@@ -21,6 +21,7 @@ class Request{
     method = request.method;
     queryParameters = request.requestedUri.queryParameters;
     segments = Uri(path: request.requestedUri.path).pathSegments;
+    contentType = request.headers.contentType ?? ContentType('text', 'plain');
     _httpRequest = request;
   }
 

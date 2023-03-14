@@ -1,11 +1,7 @@
 import 'dart:mirrors';
 
-import 'package:mug/commons/commons.dart';
-import 'package:mug/commons/middleware/middleware_consumer.dart';
-import 'package:mug/exceptions/exceptions.dart';
 import 'package:mug/models/models.dart';
 import 'package:mug/mug.dart';
-import 'package:mug/request.dart';
 import 'package:mug/utils/utils.dart';
 
 class RequestedRoute{
@@ -41,14 +37,14 @@ class RequestedRoute{
         InstanceMirror moduleInstance = reflect(data.module);
         MiddlewareConsumer consumer = MiddlewareConsumer();
         moduleInstance.invoke(configure, [consumer]);
-        if(!consumer.excludedRoutes.any((element) => (
+        if(consumer.middleware != null && !consumer.excludedRoutes.any((element) => (
             (
               (element.method != null && element.method == data.method) || element.method == null) 
               && (element.uri.path == data.path || element.uri.path == "*")
             )
           )
         ){
-          consumer.middleware.use(_request, _response, ()  {
+          consumer.middleware!.use(_request, _response, ()  {
             result = invoke();
           });
         }
@@ -58,6 +54,7 @@ class RequestedRoute{
       result = invoke();
     }
     _response.setData(result!.reflectee);
+    _response.sendData();
   }
 
   InstanceMirror invoke(){

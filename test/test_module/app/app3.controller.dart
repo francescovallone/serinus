@@ -1,19 +1,20 @@
-
 import 'package:mug/mug.dart';
 
-import 'data/data.service.dart';
+class AppControllerWrong extends MugController{
 
-@Controller(path: '')
-class AppController extends MugController{
-
-  final DataService dataService;
-
-  const AppController(this.dataService);
+  const AppControllerWrong();
 
   @Route("/", method: Method.get)
   Map<String, dynamic> ping(){
     return {
-      "hello": "HELLO ${dataService.printHello("value")}"
+      "hello": "hello world"
+    };
+  }
+
+  @Route("/test", method: Method.post)
+  Map<String, dynamic> test(){
+    return {
+      "hello": "HELLO"
     };
   }
 

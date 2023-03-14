@@ -1,7 +1,7 @@
 
 import 'package:mug/mug.dart';
 
-import 'data/data.service.dart';
+import '../data/data.service.dart';
 
 @Controller(path: '')
 class AppController extends MugController{
@@ -13,7 +13,14 @@ class AppController extends MugController{
   @Route("/", method: Method.get)
   Map<String, dynamic> ping(){
     return {
-      "hello": "HELLO ${dataService.printHello("value")}"
+      "hello": "hello world"
+    };
+  }
+
+  @Route("/test", method: Method.post)
+  Map<String, dynamic> test(){
+    return {
+      "hello": "HELLO"
     };
   }
 

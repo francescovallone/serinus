@@ -3,15 +3,16 @@ import 'package:mug/commons/middleware/consumer_route.dart';
 
 class MiddlewareConsumer{
 
-  late MugMiddleware _middleware;
+  MugMiddleware? _middleware;
 
-  MugMiddleware get middleware => _middleware;
+  MugMiddleware? get middleware => _middleware;
 
   List<ConsumerRoute> _excludedRoutes = [];
 
   List<ConsumerRoute> get excludedRoutes => _excludedRoutes;
 
   MiddlewareConsumer apply(MugMiddleware middleware){
+    print(middleware);
     _middleware = middleware;
     return this;
   }

@@ -14,10 +14,13 @@ class Response{
   HttpHeaders get headers => _response.headers;
   late dynamic _data;
 
-  Response.from(HttpResponse response, [String? poweredByHeader]){
+  Response.from(HttpResponse response, [String? poweredByHeader, int? statusCode]){
     _response = response;
     if(poweredByHeader != null && poweredByHeader.isNotEmpty){
       headers.add("X-Powered-by", poweredByHeader);
+    }
+    if(statusCode != null){
+      _response.statusCode = statusCode;
     }
   }
 

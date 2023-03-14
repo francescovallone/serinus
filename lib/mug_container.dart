@@ -1,5 +1,6 @@
 import 'dart:mirrors';
 
+import 'package:get_it/get_it.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:mug/models/models.dart';
 import 'package:mug/mug.dart';
@@ -7,9 +8,11 @@ import 'package:mug/mug.dart';
 import 'utils/activator.dart';
 
 class MugContainer {
-  logging.Logger routesLoader = logging.Logger("RoutesLoader");
+  logging.Logger routesLoader = logging.Logger("MugContainer");
+  GetIt _getIt = GetIt.instance;
   final List<RouteData> _routes = [];
   final Map<String, dynamic> _discoveredModules = {};
+  final Map<MugModule, List<Type>> _controllers = {};
   static final MugContainer instance = MugContainer._internal();
 
   factory MugContainer() {
@@ -21,22 +24,64 @@ class MugContainer {
   }
 
   List<RouteData> discoverRoutes(dynamic module){
+    _getIt.reset();
     _routes.clear();
     _discoveredModules.clear();
-    _loadRoutes(module);
+    _controllers.clear();
+    _loadModuleDependencies(module);
+    _loadRoutes();
     return _routes;
   }
 
-  void _loadRoutes(dynamic m){
+  void _loadModuleDependencies(dynamic m){
     final module = _getModule(m);
+    routesLoader.info("Injecting dependencies for ${m.runtimeType}");
     if(module == null){
       return;
     }
-    if(module.controllers.isNotEmpty){
-      final controllers = _getDecoretedControllers(module.controllers);
-      for(dynamic controller in controllers){
+    for(dynamic import in module.imports){
+      if(!_getIt.isRegistered(instance: m, instanceName: m.toString())){
+        _loadModuleDependencies(import);
+        _getIt.registerSingleton<MugModule>(m, instanceName: m.toString());
+      }
+    }
+    for(Type t in module.providers){
+      MethodMirror constructor = (reflectClass(t).declarations[Symbol(t.toString())] as MethodMirror);
+      List<dynamic> parameters = [];
+      for(ParameterMirror p in constructor.parameters){
+        if(_getIt.isRegistered<MugService>(instanceName: p.type.reflectedType.toString())){
+          parameters.add(_getIt.call<MugService>(instanceName: p.type.reflectedType.toString()));
+        }
+      }
+      _getIt.registerSingleton<MugService>(reflectClass(t).newInstance(Symbol.empty, parameters).reflectee, instanceName: t.toString());
+    }
+    if(!_controllers.containsKey(m)){
+      for(Type c in module.controllers){
+        MethodMirror constructor = (reflectClass(c).declarations[Symbol(c.toString())] as MethodMirror);
+        List<dynamic> parameters = [];
+        for(ParameterMirror p in constructor.parameters){
+          if(_getIt.isRegistered<MugService>(instanceName: p.type.reflectedType.toString())){
+            parameters.add(_getIt.call<MugService>(instanceName: p.type.reflectedType.toString()));
+          }
+        }
+        _getIt.registerSingleton<MugController>(reflectClass(c).newInstance(Symbol.empty, parameters).reflectee, instanceName: c.toString());
+      }
+      _controllers[m] = module.controllers;
+
+    }
+    if(module.imports.isEmpty){
+      _getIt.registerSingletonWithDependencies<MugModule>(() => m, dependsOn: [], instanceName: m.toString());
+      return;
+    }
+  }
+
+  void _loadRoutes(){
+    for(MugModule module in _controllers.keys){
+      for(Type c in _controllers[module]!){
+        var controller = _getIt.call<MugController>(instanceName: c.toString());
         var ref = reflect(controller);
-        routesLoader.info("Discovered Controller: ${ref.type.reflectedType} (${ref.type.metadata[0].reflectee.path.isNotEmpty ? ref.type.metadata[0].reflectee.path : '/'})");
+        _isController(ref);
+        routesLoader.info("Loading routes from ${ref.type.reflectedType} (${ref.type.metadata[0].reflectee.path.isNotEmpty ? ref.type.metadata[0].reflectee.path : '/'})");
         final routes = _getDecoratedRoutes(ref.type.instanceMembers);
         routes.entries.forEach((e) { 
           InstanceMirror? controllerRoute;
@@ -58,19 +103,13 @@ class MugContainer {
                   method: controllerRoute.reflectee.method,
                   statusCode: controllerRoute.reflectee.statusCode,
                   parameters: e.value.parameters,
-                  module: m
+                  module: module
                 )
               );
               routesLoader.info("Added route: ${controllerRoute.reflectee.method} - $path");
             }
           }
         });
-      }
-    }
-    for(Object import in module.imports){
-      if(!_discoveredModules.containsKey(import.runtimeType.toString())){
-        _discoveredModules[import.runtimeType.toString()] = import;
-        _loadRoutes(import);
       }
     }
   }
@@ -140,8 +179,13 @@ class MugContainer {
   }
 
   Future<Map<String, dynamic>> addParameters(Map<String, dynamic> routeParas, Request request, RouteData routeData) async {
-    dynamic jsonBody = await request.json();
-    dynamic body = await request.body();
+    dynamic jsonBody, body, file;
+    if(request.contentType.mimeType == "multipart/form-data"){
+      file = await request.bytes();
+    }else{
+      jsonBody = await request.json();
+      body = await request.body();
+    }
     routeParas.remove(routeParas.keys.first);
     routeParas.addAll(
       Map<String, dynamic>.fromEntries(
@@ -156,15 +200,21 @@ class MugContainer {
           (element) => element.metadata.isNotEmpty && element.metadata.first.reflectee is Body || element.metadata.first.reflectee is RequestInfo
         ).map((e){
           if(e.metadata.first.reflectee is Body){
-            if (e.type.reflectedType is! BodyParsable){
+            if(request.contentType.mimeType != "multipart/form-data"){
+              if (e.type.reflectedType is! BodyParsable){
+                return MapEntry(
+                  "body-${MirrorSystem.getName(e.simpleName)}",
+                  body
+                );
+              }
               return MapEntry(
                 "body-${MirrorSystem.getName(e.simpleName)}",
-                body
+                Activator.createInstance(e.type.reflectedType, jsonBody)
               );
             }
             return MapEntry(
               "body-${MirrorSystem.getName(e.simpleName)}",
-              Activator.createInstance(e.type.reflectedType, jsonBody)
+              file
             );
           }
           return MapEntry(
@@ -178,23 +228,67 @@ class MugContainer {
     return routeParas;
   }
   
-  List<dynamic> _getDecoretedControllers(List<dynamic> controllers) {
-    List<dynamic> decoratedControllers = [];
-    for(dynamic controller in controllers){
-      var ref = reflect(controller);
-      int index = ref.type.metadata.indexWhere((element) => element.reflectee is Controller);
-      if(index != -1){
-        decoratedControllers.add(controller);
-      }else{
-        routesLoader.warning("${ref.type.reflectedType} is in the controllers list of the module but doesn't have the @Controller decorator");
-      }
-    }
-    return decoratedControllers;
+  void _isController(InstanceMirror controller) {
+    int index = controller.type.metadata.indexWhere((element) => element.reflectee is Controller);
+    if(index == -1) throw StateError("${controller.type.reflectedType} is in the controllers list of the module but doesn't have the @Controller decorator");
   }
 
   Map<Symbol, MethodMirror> _getDecoratedRoutes(Map<Symbol, MethodMirror> instanceMembers){
     Map<Symbol, MethodMirror> map = Map<Symbol, MethodMirror>.from(instanceMembers);
     map.removeWhere((key, value) => value.metadata.indexWhere((element) => element.reflectee is Route) == -1);
     return map; 
+  }
+
+  void dispose() {
+    _routes.clear();
+    _discoveredModules.clear();
+    _controllers.clear();
+  }
+
+  Map<String, dynamic> _checkIfRequestedRoute(String element, Request request) {
+    String reqUriNoAddress = request.path;
+    if(element == reqUriNoAddress || element.substring(0, element.length - 1) == reqUriNoAddress){
+      return {element: true};
+    }
+    List<String> pathSegments = Uri(path: reqUriNoAddress).pathSegments.where((element) => element.isNotEmpty).toList();
+    List<String> elementSegments = Uri(path: element).pathSegments.where((element) => element.isNotEmpty).toList();
+    if(pathSegments.length != elementSegments.length){
+      return {};
+    }
+    Map<String, dynamic> toReturn = {};
+    for(int i = 0; i < pathSegments.length; i++){
+      if(elementSegments[i].contains(r':') && pathSegments[i].isNotEmpty){
+        toReturn["param-${elementSegments[i].replaceFirst(':', '')}"] = pathSegments[i];
+      }
+    }
+    return toReturn.isEmpty ? {} : {
+      element: true, 
+      ...toReturn
+    };
+  }
+  
+  RequestedRoute getRoute(Request request) {
+    Map<String, dynamic> routeParas = {};
+    try{
+      final possibileRoutes = _routes.where(
+        (element) {
+          routeParas.clear();
+          routeParas.addAll(_checkIfRequestedRoute(element.path, request));
+          return (routeParas.isNotEmpty);
+        }
+      );
+      if(possibileRoutes.isEmpty){
+        throw NotFoundException(uri: request.uri);
+      }
+      if(possibileRoutes.every((element) => element.method != request.method.toMethod())){
+        throw MethodNotAllowedException(message: "Can't ${request.method} ${request.path}", uri: request.uri);
+      } 
+      return RequestedRoute(
+        data: possibileRoutes.firstWhere((element) => element.method == request.method.toMethod()),
+        params: routeParas
+      );
+    }catch(e){
+      rethrow;
+    }
   }
 }
