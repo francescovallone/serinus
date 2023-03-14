@@ -1,6 +1,7 @@
 class Param{
 
-  final String paramName;
+  final String name;
+  final bool nullable;
 
-  const Param(this.paramName);
+  const Param(this.name, { this.nullable = false });
 }

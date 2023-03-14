@@ -1,7 +1,5 @@
 import 'package:logging/logging.dart' as logging;
 
-
-
 class Logger{
 
   final String name;

@@ -1,8 +1,11 @@
+import 'package:mug/mug.dart';
+
 class Route{
 
   final String path;
-  final String method;
+  final Method method;
+  final int statusCode;
 
-  const Route(this.path, {this.method = "GET"});
+  const Route(this.path, {this.method = Method.get, this.statusCode = 200});
 
 }
