@@ -1,0 +1,16 @@
+name: mug
+description: Dart backend framework
+version: 0.0.1
+
+environment:
+  sdk: '>=2.19.0 <3.0.0'
+
+dependencies:
+  get_it: ^7.2.0
+  hotreloader: ^3.0.5
+  intl: ^0.18.0
+  logging: ^1.1.0
+
+dev_dependencies:
+  test: ^1.16.0
+  mockito: ^5.3.2
