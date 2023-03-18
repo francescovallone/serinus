@@ -14,7 +14,9 @@ class Response{
   HttpHeaders get headers => _response.headers;
   late dynamic _data;
 
-  Response.from(HttpResponse response, [String? poweredByHeader, int? statusCode]){
+  int get statusCode => _response.statusCode;
+
+  Response.from(HttpResponse response, {int? statusCode, String? poweredByHeader}){
     _response = response;
     if(poweredByHeader != null && poweredByHeader.isNotEmpty){
       headers.add("X-Powered-by", poweredByHeader);
@@ -39,17 +41,18 @@ class Response{
     if(_data is String){
       try{
         _result = JsonEncoder().convert(JsonDecoder().convert("$_data"));
-        _response.headers.contentType = ContentType('application', 'json');
+        _response.headers.contentType = ContentType.json;
       }catch(e){
         _result = _data;
+        _response.headers.contentType = ContentType.text;
       }
     } else if(_data is List<dynamic> || _data is Map<String, dynamic>){
       _result = JsonEncoder().convert(_data);
-      _response.headers.contentType = ContentType('application', 'json');
+      _response.headers.contentType = ContentType.json;
     }else if(_data is Map){
       try{
         _result = JsonEncoder().convert(ResponseDecoder.convertMap(_data));
-        _response.headers.contentType = ContentType('application', 'json');
+        _response.headers.contentType = ContentType.json;
       }catch(_){
         throw InternalServerError(message: "Can't convert the response to json");
       }

@@ -40,10 +40,10 @@ class MugContainer {
       return;
     }
     for(dynamic import in module.imports){
-      if(!_getIt.isRegistered(instance: m, instanceName: m.toString())){
-        _loadModuleDependencies(import);
-        _getIt.registerSingleton<MugModule>(m, instanceName: m.toString());
-      }
+      _loadModuleDependencies(import);
+    }
+    if(!_getIt.isRegistered<MugModule>(instanceName: m.runtimeType.toString())){
+      _getIt.registerSingleton<MugModule>(m, instanceName: m.runtimeType.toString());
     }
     for(Type t in module.providers){
       MethodMirror constructor = (reflectClass(t).declarations[Symbol(t.toString())] as MethodMirror);
@@ -68,10 +68,6 @@ class MugContainer {
       }
       _controllers[m] = module.controllers;
 
-    }
-    if(module.imports.isEmpty){
-      _getIt.registerSingletonWithDependencies<MugModule>(() => m, dependsOn: [], instanceName: m.toString());
-      return;
     }
   }
 

@@ -9,6 +9,8 @@ import 'data/data.module.dart';
   controllers: [AppController]
 )
 class AppModule extends MugModule{
+
+  const AppModule();
   
   @override
   configure(MiddlewareConsumer consumer) {

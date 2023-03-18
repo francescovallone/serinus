@@ -3,7 +3,7 @@ import 'package:mug/mug.dart';
 
 import 'data.service.dart';
 
-@Controller(path: '/data')
+@Controller('/data')
 class DataController extends MugController{
 
   final DataService dataService;

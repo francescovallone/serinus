@@ -2,7 +2,7 @@ import 'dart:mirrors';
 
 import 'package:mug/models/models.dart';
 import 'package:mug/mug.dart';
-import 'package:mug/utils/utils.dart';
+import 'package:mug/mug_container.dart';
 
 class RequestedRoute{
 
