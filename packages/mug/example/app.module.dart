@@ -1,23 +1,13 @@
-import '../lib/mug.dart';
+import 'package:mug/mug.dart';
 
 import 'app.controller.dart';
-import 'app.middleware.dart';
-import 'data/data.module.dart';
 
 @Module(
-  imports: [DataModule()],
+  imports: [],
   controllers: [AppController]
 )
 class AppModule extends MugModule{
 
   const AppModule();
-  
-  @override
-  configure(MiddlewareConsumer consumer) {
-    consumer.apply(AppMiddleware());
-    consumer.excludeRoutes([
-      // ConsumerRoute(Uri.parse(''))
-    ]);
-  }
 
 }

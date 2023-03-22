@@ -1,4 +1,4 @@
-import '../lib/mug.dart';
+import 'package:mug/mug.dart';
 
 import 'app.module.dart';
 

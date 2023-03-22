@@ -33,11 +33,8 @@ class RequestedRoute{
   void execute(){
     InstanceMirror? result;
     if(data.module is MugModule){
-      Symbol configure = MugContainer.instance.getMiddlewareConsumer(data.module);
-      if(Symbol.empty != configure){
-        InstanceMirror moduleInstance = reflect(data.module);
-        MiddlewareConsumer consumer = MiddlewareConsumer();
-        moduleInstance.invoke(configure, [consumer]);
+      List<MiddlewareConsumer> consumers = MugContainer.instance.getMiddlewareConsumers(data.module);
+      for(MiddlewareConsumer consumer in consumers){
         if(consumer.middleware != null && !consumer.excludedRoutes.any((element) => (
             (
               (element.method != null && element.method == data.method) || element.method == null) 
@@ -45,9 +42,13 @@ class RequestedRoute{
             )
           )
         ){
-          consumer.middleware!.use(_request, _response, ()  {
-            result = invoke();
-          });
+          if(consumer == consumers.last){
+            consumer.middleware!.use(_request, _response, ()  {
+              result = invoke();
+            });
+          }else{
+            consumer.middleware!.use(_request, _response, () => {});
+          }
         }
       }
     }
@@ -64,5 +65,7 @@ class RequestedRoute{
       params.values.toList()
     );
   }
+
+
 
 }

@@ -1,6 +1,7 @@
-import '../../lib/mug.dart';
+import 'package:mug/mug.dart';
 
 import 'data.controller.dart';
+import 'data.middleware.dart';
 import 'data.service.dart';
 
 @Module(
@@ -11,4 +12,12 @@ import 'data.service.dart';
 class DataModule extends MugModule{
 
   const DataModule();
+
+  @override
+  configure(MiddlewareConsumer consumer) {
+    consumer.apply(DataMiddleware());
+    consumer.excludeRoutes([
+      // ConsumerRoute(Uri.parse(''))
+    ]);
+  }
 }

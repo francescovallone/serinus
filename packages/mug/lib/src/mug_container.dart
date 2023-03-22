@@ -11,8 +11,8 @@ class MugContainer {
   logging.Logger routesLoader = logging.Logger("MugContainer");
   GetIt _getIt = GetIt.instance;
   final List<RouteData> _routes = [];
-  final Map<String, dynamic> _discoveredModules = {};
   final Map<MugModule, List<Type>> _controllers = {};
+  final Map<MugModule, List<MiddlewareConsumer>> _moduleMiddlewares = {};
   static final MugContainer instance = MugContainer._internal();
 
   factory MugContainer() {
@@ -26,26 +26,44 @@ class MugContainer {
   List<RouteData> discoverRoutes(dynamic module){
     _getIt.reset();
     _routes.clear();
-    _discoveredModules.clear();
     _controllers.clear();
-    _loadModuleDependencies(module);
+    _moduleMiddlewares.clear();
+    _loadModuleDependencies(module, []);
     _loadRoutes();
     return _routes;
   }
 
-  void _loadModuleDependencies(dynamic m){
+  void _loadModuleDependencies(dynamic m, List<MiddlewareConsumer> middlewares){
     final module = _getModule(m);
+    List<MiddlewareConsumer> _middlewares = [];
     routesLoader.info("Injecting dependencies for ${m.runtimeType}");
     if(module == null){
       return;
     }
+    Symbol configure = this._getMiddlewareConfigurer(m);
+    if(configure != Symbol.empty){
+      MiddlewareConsumer consumer = MiddlewareConsumer();
+      reflect(m).invoke(configure, [consumer]);
+      _middlewares.add(consumer);
+      _middlewares.addAll(middlewares);
+    }
     for(dynamic import in module.imports){
-      _loadModuleDependencies(import);
+      _loadModuleDependencies(import, _middlewares);
     }
     if(!_getIt.isRegistered<MugModule>(instanceName: m.runtimeType.toString())){
       _getIt.registerSingleton<MugModule>(m, instanceName: m.runtimeType.toString());
     }
-    for(Type t in module.providers){
+    _istantiateInjectable<MugService>(module.providers);
+    if(!_controllers.containsKey(m)){
+      _istantiateInjectable<MugController>(module.controllers);
+      _checkControllerPath([...module.controllers, ..._controllers.values.expand((element) => element).toList()]);
+      _controllers[m] = module.controllers;
+    }
+    _moduleMiddlewares[m] = _middlewares;
+  }
+
+  void _istantiateInjectable<T extends Object>(List<Type> injectable){
+    for(Type t in injectable){
       MethodMirror constructor = (reflectClass(t).declarations[Symbol(t.toString())] as MethodMirror);
       List<dynamic> parameters = [];
       for(ParameterMirror p in constructor.parameters){
@@ -53,21 +71,7 @@ class MugContainer {
           parameters.add(_getIt.call<MugService>(instanceName: p.type.reflectedType.toString()));
         }
       }
-      _getIt.registerSingleton<MugService>(reflectClass(t).newInstance(Symbol.empty, parameters).reflectee, instanceName: t.toString());
-    }
-    if(!_controllers.containsKey(m)){
-      for(Type c in module.controllers){
-        MethodMirror constructor = (reflectClass(c).declarations[Symbol(c.toString())] as MethodMirror);
-        List<dynamic> parameters = [];
-        for(ParameterMirror p in constructor.parameters){
-          if(_getIt.isRegistered<MugService>(instanceName: p.type.reflectedType.toString())){
-            parameters.add(_getIt.call<MugService>(instanceName: p.type.reflectedType.toString()));
-          }
-        }
-        _getIt.registerSingleton<MugController>(reflectClass(c).newInstance(Symbol.empty, parameters).reflectee, instanceName: c.toString());
-      }
-      _controllers[m] = module.controllers;
-
+      _getIt.registerSingleton<T>(reflectClass(t).newInstance(Symbol.empty, parameters).reflectee, instanceName: t.toString());
     }
   }
 
@@ -165,13 +169,17 @@ class MugContainer {
     return moduleRef.type.metadata[index].reflectee;
   }
 
-  Symbol getMiddlewareConsumer(MugModule module){
+  Symbol _getMiddlewareConfigurer(MugModule module){
     final moduleRef = reflect(module);
     final configure = moduleRef.type.instanceMembers[Symbol("configure")];
     if(configure != null){
       return configure.simpleName;
     }
     return Symbol.empty;
+  }
+
+  List<MiddlewareConsumer> getMiddlewareConsumers(MugModule module){
+    return _moduleMiddlewares[module] ?? [];
   }
 
   Future<Map<String, dynamic>> addParameters(Map<String, dynamic> routeParas, Request request, RouteData routeData) async {
@@ -224,9 +232,10 @@ class MugContainer {
     return routeParas;
   }
   
-  void _isController(InstanceMirror controller) {
+  Controller _isController(InstanceMirror controller) {
     int index = controller.type.metadata.indexWhere((element) => element.reflectee is Controller);
     if(index == -1) throw StateError("${controller.type.reflectedType} is in the controllers list of the module but doesn't have the @Controller decorator");
+    return controller.type.metadata[index].reflectee;
   }
 
   Map<Symbol, MethodMirror> _getDecoratedRoutes(Map<Symbol, MethodMirror> instanceMembers){
@@ -237,7 +246,6 @@ class MugContainer {
 
   void dispose() {
     _routes.clear();
-    _discoveredModules.clear();
     _controllers.clear();
   }
 
@@ -285,6 +293,18 @@ class MugContainer {
       );
     }catch(e){
       rethrow;
+    }
+  }
+  
+  void _checkControllerPath(List<Type> controllers) {
+    List<String> controllersPaths = [];
+    for(Type c in controllers){
+      MugController controller = _getIt.call<MugController>(instanceName: c.toString());
+      Controller controllerMetadata = _isController(reflect(controller));
+      controllersPaths.add(controllerMetadata.path);
+    }
+    if(controllersPaths.toSet().length != controllersPaths.length){
+      throw new StateError("There can't be two controllers with the same path");
     }
   }
 }
