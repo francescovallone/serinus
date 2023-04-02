@@ -31,13 +31,13 @@ class Response{
     _setResponseData();
   }
 
-  void sendData(){
+  Future<void> sendData() async {
     _response.contentLength = contentLength;
     _response.write(_result);
-    _response.close();
+    await _response.close();
   }
   
-  void _setResponseData() {
+  void _setResponseData() async {
     if(_data is String){
       try{
         _result = JsonEncoder().convert(JsonDecoder().convert("$_data"));
@@ -47,7 +47,7 @@ class Response{
         _response.headers.contentType = ContentType.text;
       }
     } else if(_data is List<dynamic> || _data is Map<String, dynamic>){
-      _result = JsonEncoder().convert(_data);
+      _result = JsonEncoder().convert(ResponseDecoder.convertMap(_data));
       _response.headers.contentType = ContentType.json;
     }else if(_data is Map){
       try{

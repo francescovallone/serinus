@@ -15,7 +15,7 @@ class DataController extends MugController{
     @Body() body,
   ){
     return {
-      "hello": dataService.printHello("god")
+      "hello": body.values
     };
   }
 

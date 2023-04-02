@@ -39,7 +39,7 @@ class MugApplication{
       }
       print(
         '[Mug] ${io.pid}\t'
-        '${DateFormat('d/MM/yyyy HH:mm:ss').format(record.time)}'
+        '${DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time)}'
         '\t${record.level.name} [${record.loggerName}] ' 
         '${record.message}'
       );
@@ -59,14 +59,13 @@ class MugApplication{
       _httpServer = await io.HttpServer.bindSecure(_address, _port, securityContext);
     }
 
-    applicationLogger.info('Starting http server on $_address:$_port...');
+    applicationLogger.info('Starting Mug application on $_address:$_port...');
     MugContainer.instance.discoverRoutes(_mainModule);
-    applicationLogger.info('Started http server successfully!');
+    applicationLogger.info('Started Mug application successfully!');
     
     catchTopLevelErrors(
       () => _httpServer.listen((req) => _handler(req, poweredByHeader)),
       (error, stackTrace) {
-        applicationLogger.error(error);
         throw error;
       }
     );
@@ -83,10 +82,10 @@ class MugApplication{
         statusCode: route.data.statusCode
       );
       await route.init(request, response);
-      route.execute();
+      await route.execute();
       requestLogger.info('${route.data.statusCode} ${request.method} ${request.path} ${response.contentLengthString}');
     }on MugException catch(e){
-      String contentLength = e.response(httpRequest.response);
+      String contentLength = await e.response(httpRequest.response);
       requestLogger.error('${e.statusCode} ${request.method} ${request.path} ${contentLength}');
     }
   }

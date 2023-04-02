@@ -21,7 +21,6 @@ class AppController extends MugController{
   Map<String, dynamic> data(
     @Body() dynamic body
   ){
-    print(body);
     return {
       "hello": "HELLO"
     };

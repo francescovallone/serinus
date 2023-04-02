@@ -14,7 +14,7 @@ class MugException implements HttpException{
 
   const MugException({required this.message, required this.statusCode, this.uri});
 
-  String response(HttpResponse res){
+  Future<String> response(HttpResponse res) async {
     res.headers.contentType = ContentType("application", "json");
     res.statusCode = statusCode;
     String content = jsonEncode({
@@ -22,10 +22,11 @@ class MugException implements HttpException{
       "statusCode": statusCode,
       "uri": uri != null ? uri!.path : "No Uri"
     });
-    res.writeln(content);
-    res.close();
+    res.contentLength = Utf8Encoder().convert(content).buffer.lengthInBytes;
+    res.write(content);
+    await res.close();
     return ResponseDecoder.formatContentLength(
-      Utf8Encoder().convert(content).buffer.lengthInBytes
+      res.contentLength
     );
   }
 

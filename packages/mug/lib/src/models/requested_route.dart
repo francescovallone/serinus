@@ -7,7 +7,7 @@ import 'package:mug/mug.dart';
 
 class RequestedRoute{
 
-  final RouteData data;
+  final RouteContext data;
   Map<String, dynamic> params;
   late Request _request;
   late Response _response;
@@ -30,7 +30,16 @@ class RequestedRoute{
     _response = response;
   }
 
-  void execute(){
+  Future<void> execute() async {
+    InstanceMirror? result = _consumeMiddlewares();
+    if(result == null){
+      result = invoke();
+    }
+    _response.setData(result.reflectee);
+    await _response.sendData();
+  }
+
+  InstanceMirror? _consumeMiddlewares(){
     InstanceMirror? result;
     if(data.module is MugModule){
       List<MiddlewareConsumer> consumers = MugContainer.instance.getMiddlewareConsumers(data.module);
@@ -52,11 +61,7 @@ class RequestedRoute{
         }
       }
     }
-    if(result == null){
-      result = invoke();
-    }
-    _response.setData(result!.reflectee);
-    _response.sendData();
+    return result;
   }
 
   InstanceMirror invoke(){

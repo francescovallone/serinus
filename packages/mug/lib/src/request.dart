@@ -11,9 +11,11 @@ class Request{
   late String method;
   late List<String> segments;
   late HttpRequest _httpRequest;
+  Map<String, dynamic> headers = {};
   Uint8List? _bytes;
   late Map<String, String> queryParameters;
   ContentType contentType = ContentType('text', 'plain');
+  HttpRequest get httpRequest => _httpRequest;
 
   Request.fromHttpRequest(HttpRequest request){
     path = request.requestedUri.path;
@@ -23,6 +25,10 @@ class Request{
     segments = Uri(path: request.requestedUri.path).pathSegments;
     contentType = request.headers.contentType ?? ContentType('text', 'plain');
     _httpRequest = request;
+    _httpRequest.headers.forEach((name, values) {
+      headers[name] = values.join(';');
+    });
+    headers.remove(HttpHeaders.transferEncodingHeader);
   }
 
   Future<String> body() async {
@@ -50,10 +56,25 @@ class Request{
 
   Future<Uint8List> bytes() async {
     try{
-      _bytes ??= await _httpRequest.firstWhere((element) => element.isNotEmpty);
+      if(_bytes == null){
+        _bytes = await _httpRequest.firstWhere((element) => element.isNotEmpty);
+      }
       return _bytes!;
-    }catch(e){
+    }catch(_){
       return Uint8List(0);
+    }
+  }
+
+  Future<Stream<List<int>>> stream() async {
+    try{
+      await bytes();
+      return Stream.value(
+        List<int>.from(_bytes!)
+      );
+    }catch(_){
+      return Stream.value(
+        List<int>.from(Uint8List(0))
+      );
     }
   }
 }

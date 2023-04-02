@@ -2,7 +2,7 @@ import 'dart:mirrors';
 
 import 'package:mug/mug.dart';
 
-class RouteData{
+class RouteContext{
   final String path;
   final InstanceMirror controller;
   final MethodMirror handler;
@@ -12,7 +12,7 @@ class RouteData{
   final List<ParameterMirror> parameters;
   final dynamic module;
 
-  RouteData({
+  RouteContext({
     required this.path,
     required this.controller,
     required this.handler,

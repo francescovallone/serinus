@@ -1,3 +1,5 @@
+import 'package:mug/src/commons/form_data.dart';
+
 class ResponseDecoder{
 
   static Map<String, dynamic> convertMap(Map<dynamic, dynamic> map) {
@@ -5,6 +7,8 @@ class ResponseDecoder{
     for (var key in map.keys) {
       if (map[key] is Map) {
         convertedMap[key.toString()] = convertMap(map[key]);
+      }else if(map[key] is UploadedFile){
+        convertedMap[key.toString()] = map[key].toString();
       }else{
         convertedMap[key.toString()] = map[key];
       }

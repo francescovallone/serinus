@@ -3,6 +3,8 @@ import 'dart:mirrors';
 import 'package:get_it/get_it.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:mug/mug.dart';
+import 'package:mug/src/commons/form_data.dart';
+import 'package:mug/src/utils/body_decoder.dart';
 
 import 'models/models.dart';
 import 'utils/activator.dart';
@@ -10,7 +12,7 @@ import 'utils/activator.dart';
 class MugContainer {
   logging.Logger routesLoader = logging.Logger("MugContainer");
   GetIt _getIt = GetIt.instance;
-  final List<RouteData> _routes = [];
+  final List<RouteContext> _routes = [];
   final Map<MugModule, List<Type>> _controllers = {};
   final Map<MugModule, List<MiddlewareConsumer>> _moduleMiddlewares = {};
   static final MugContainer instance = MugContainer._internal();
@@ -23,7 +25,7 @@ class MugContainer {
     _routes.clear();
   }
 
-  List<RouteData> discoverRoutes(dynamic module){
+  List<RouteContext> discoverRoutes(dynamic module){
     _getIt.reset();
     _routes.clear();
     _controllers.clear();
@@ -95,7 +97,7 @@ class MugContainer {
                 throw Exception("A route can't have two body parameters.");
               }
               _routes.add(
-                RouteData(
+                RouteContext(
                   path: path, 
                   controller: ref, 
                   handler: e.value, 
@@ -114,9 +116,9 @@ class MugContainer {
     }
   }
 
-  Map<String, dynamic> _getParametersValues(RouteData routeData, Map<String, dynamic> routeParas){
-    if(routeData.parameters.isNotEmpty){
-      List<ParameterMirror> dataToPass = routeData.parameters;
+  Map<String, dynamic> _getParametersValues(RouteContext context, Map<String, dynamic> routeParas){
+    if(context.parameters.isNotEmpty){
+      List<ParameterMirror> dataToPass = context.parameters;
       Map<String, dynamic> sorted = {};
       for(int i = 0; i < dataToPass.length; i++){
         ParameterMirror d = dataToPass[i];
@@ -182,10 +184,14 @@ class MugContainer {
     return _moduleMiddlewares[module] ?? [];
   }
 
-  Future<Map<String, dynamic>> addParameters(Map<String, dynamic> routeParas, Request request, RouteData routeData) async {
-    dynamic jsonBody, body, file;
-    if(request.contentType.mimeType == "multipart/form-data"){
-      file = await request.bytes();
+  Future<Map<String, dynamic>> addParameters(Map<String, dynamic> routeParas, Request request, RouteContext context) async {
+    dynamic jsonBody, body;
+    if(isMultipartFormData(request.contentType)){
+      body = await FormData.parseMultipart(
+        request: request.httpRequest
+      );
+    }else if(isUrlEncodedFormData(request.contentType)){
+      body = FormData.parseUrlEncoded(await request.body());
     }else{
       jsonBody = await request.json();
       body = await request.body();
@@ -200,11 +206,11 @@ class MugContainer {
     );
     routeParas.addAll(
       Map<String, dynamic>.fromEntries(
-        routeData.parameters.where(
+        context.parameters.where(
           (element) => element.metadata.isNotEmpty && element.metadata.first.reflectee is Body || element.metadata.first.reflectee is RequestInfo
         ).map((e){
           if(e.metadata.first.reflectee is Body){
-            if(request.contentType.mimeType != "multipart/form-data"){
+            if(!isMultipartFormData(request.contentType) && !isUrlEncodedFormData(request.contentType)){
               if (e.type.reflectedType is! BodyParsable){
                 return MapEntry(
                   "body-${MirrorSystem.getName(e.simpleName)}",
@@ -218,7 +224,7 @@ class MugContainer {
             }
             return MapEntry(
               "body-${MirrorSystem.getName(e.simpleName)}",
-              file
+              body
             );
           }
           return MapEntry(
@@ -228,7 +234,7 @@ class MugContainer {
         })
       )
     );
-    routeParas = _getParametersValues(routeData, routeParas);
+    routeParas = _getParametersValues(context, routeParas);
     return routeParas;
   }
   

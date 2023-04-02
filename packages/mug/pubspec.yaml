@@ -8,8 +8,10 @@ environment:
 dependencies:
   get_it: ^7.2.0
   hotreloader: ^3.0.5
+  http_parser: ^4.0.2
   intl: ^0.18.0
   logging: ^1.1.0
+  mime: ^1.0.4
 
 dev_dependencies:
   test: ^1.16.0
