@@ -1,5 +1,5 @@
 <!-- docs/_sidebar.md -->
 
-* [Introduction](/ "Documentation | Mug - Dart Backend Framework")
+* [Introduction](/ "Documentation | Serinus - Dart Backend Framework")
 * Overview
 	- [Module](overview/module.md)
