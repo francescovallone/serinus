@@ -57,11 +57,11 @@ class SerinusApplication{
     }else{
       _httpServer = await io.HttpServer.bindSecure(_address, _port, securityContext);
     }
-
-    applicationLogger.info('Starting Serinus application on $_address:$_port...');
+    final stopwatch = Stopwatch()..start();
+    applicationLogger.info('Starting Serinus application on http://$_address:$_port...');
     SerinusContainer.instance.discoverRoutes(_mainModule);
-    applicationLogger.info('Started Serinus application successfully!');
-    
+    applicationLogger.info('Started Serinus application successfully in ${stopwatch.elapsedMilliseconds}ms!');
+    stopwatch.stop();
     catchTopLevelErrors(
       () => _httpServer.listen((req) => _handler(req, poweredByHeader)),
       (error, stackTrace) {
@@ -90,10 +90,10 @@ class SerinusApplication{
   }
 
   Future<void> close() async {
-    applicationLogger.info('Closing the http server...');
+    applicationLogger.info('Shutting down the application...');
     SerinusContainer.instance.dispose();
     await _httpServer.close();
-    applicationLogger.info('Http server closed!');
+    applicationLogger.info('Serinus application shutted down successfully!');
   }
 
 }

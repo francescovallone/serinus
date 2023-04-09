@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
@@ -59,10 +58,8 @@ class FormData{
           fields[name] = utf8.decode(bytes);
         }
       }
-      
       return FormData(fields: fields, files: files);
     }catch(e){
-      print(e);
       throw NotAcceptableException();
     }
   }

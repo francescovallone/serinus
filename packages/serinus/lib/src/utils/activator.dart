@@ -12,7 +12,13 @@ class Activator{
         return typeMirror.newInstance(Symbol(''), []).reflectee;
       }catch(_){}
       return typeMirror.reflectedType;
-    } else {
+    }else {
+      try{
+        return Map.of(data);
+      }catch(_){}
+      try{
+        return List.of(data.map((e) => Map.of(e)));
+      }catch(_){}
       throw ArgumentError("Cannot create the instance of the type '$type'.");
     }
   }
