@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:get_it/get_it.dart';

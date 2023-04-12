@@ -16,7 +16,7 @@ class SerinusFactory{
     {
       this.address = "127.0.0.1",
       this.port = 3000,
-      this.developmentMode = true,
+      this.developmentMode = false,
       this.loggingLevel = Logging.all
     }
   );

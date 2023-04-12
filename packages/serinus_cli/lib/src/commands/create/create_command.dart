@@ -42,7 +42,7 @@ class CreateCommand extends Command<int> {
       createApplicationTemplate,
     );
     final progress = _logger?.progress(
-      'Generation new Serinus Application [$projectName]',
+      'Generation a new Serinus Application [$projectName]',
     );
     final vars = <String, dynamic>{
       'name': projectName,
