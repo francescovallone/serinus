@@ -3,7 +3,6 @@ import 'dart:mirrors';
 import 'package:get_it/get_it.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/commons/form_data.dart';
 import 'package:serinus/src/utils/body_decoder.dart';
 
 import 'models/models.dart';

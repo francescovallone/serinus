@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'exceptions/internal_server_error_exception.dart';
 import 'utils/response_decoder.dart';
 
 
@@ -12,7 +11,6 @@ class Response{
   late int contentLength = -1;
   String get contentLengthString => ResponseDecoder.formatContentLength(contentLength);
   HttpHeaders get headers => _response.headers;
-  late dynamic _data;
 
   int get statusCode => _response.statusCode;
 
@@ -26,9 +24,8 @@ class Response{
     }
   }
 
-  void setData(dynamic data){
-    _data = data;
-    _setResponseData();
+  void set data(dynamic data){
+    _setResponseData(data);
   }
 
   Future<void> sendData() async {
@@ -37,27 +34,13 @@ class Response{
     await _response.close();
   }
   
-  void _setResponseData() async {
-    if(_data is String){
-      try{
-        _result = JsonEncoder().convert(JsonDecoder().convert("$_data"));
-        _response.headers.contentType = ContentType.json;
-      }catch(e){
-        _result = _data;
-        _response.headers.contentType = ContentType.text;
-      }
-    } else if(_data is List<dynamic> || _data is Map<String, dynamic>){
-      _result = JsonEncoder().convert(ResponseDecoder.convertMap(_data));
-      _response.headers.contentType = ContentType.json;
-    }else if(_data is Map){
-      try{
-        _result = JsonEncoder().convert(ResponseDecoder.convertMap(_data));
-        _response.headers.contentType = ContentType.json;
-      }catch(_){
-        throw InternalServerError(message: "Can't convert the response to json");
-      }
+  void _setResponseData(dynamic data) async {
+    if(data is String){
+      _result = ResponseDecoder.convertStringToJson(_response, data);
+    } else if(data is List || data is Map){
+      _result = ResponseDecoder.tryToParseJson(_response, data);
     }else{
-      _result = _data;
+      _result = data;
     }
     contentLength = Utf8Encoder().convert(_result.toString()).buffer.lengthInBytes;
   }

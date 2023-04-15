@@ -35,7 +35,7 @@ class RequestedRoute{
     if(result == null){
       result = invoke();
     }
-    _response.setData(result.reflectee);
+    _response.data = result.reflectee;
     await _response.sendData();
   }
 

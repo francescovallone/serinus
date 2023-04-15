@@ -1,4 +1,7 @@
-import 'package:serinus/src/commons/form_data.dart';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:serinus/serinus.dart';
 
 class ResponseDecoder{
 
@@ -24,6 +27,27 @@ class ResponseDecoder{
       return "${(contentLength/1024).floorToDouble()} KB";
     }
     return "$contentLength B";
+  }
+
+  static convertStringToJson(HttpResponse response, String data){
+    try{
+      final result = jsonEncode(jsonDecode("$data"));
+      response.headers.contentType = ContentType.json;
+      return result;
+    }catch(e){
+      response.headers.contentType = ContentType.text;
+      return data;
+    }
+  }
+
+  static tryToParseJson(HttpResponse response, dynamic data){
+    try{
+      final result = jsonEncode(ResponseDecoder.convertMap(data));
+      response.headers.contentType = ContentType.json;
+      return result;
+    }catch(e){
+      throw InternalServerError(message: "Error while parsing json");
+    }
   }
 
 }

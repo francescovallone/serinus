@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
@@ -35,8 +34,10 @@ class FormData{
       final files = <String, UploadedFile>{};
       await for (MimeMultipart part in parts){
         final contentDisposition = part.headers['content-disposition'];
-        if (contentDisposition == null) continue;
-        if (!contentDisposition.startsWith('form-data;')) continue;
+        if (
+          contentDisposition == null || 
+          !contentDisposition.startsWith('form-data;')
+        ) continue;
 
         final values = regex
             .allMatches(contentDisposition)
@@ -67,7 +68,7 @@ class FormData{
     }
   }
 
-  static FormData parseUrlEncoded(String body) {
+  factory FormData.parseUrlEncoded(String body) {
     return FormData(fields: Uri.splitQueryString(body), files: {});
   }
 

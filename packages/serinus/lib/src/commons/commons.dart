@@ -5,3 +5,4 @@ export 'middleware/middleware_consumer.dart';
 export 'middleware/consumer_route.dart';
 export 'controller.dart';
 export 'service.dart';
+export 'form_data.dart';

@@ -36,7 +36,7 @@ class Request{
     if(data.isEmpty){
       return "";
     }
-    String stringData = Utf8Decoder().convert(data);
+    String stringData = utf8.decode(data);
     return stringData;
   }
 
@@ -46,7 +46,7 @@ class Request{
       return {};
     }
     try{
-      dynamic jsonData = JsonDecoder().convert(data);
+      dynamic jsonData = jsonDecode(data);
       contentType = ContentType('application', 'json');
       return jsonData;
     }catch(e){
