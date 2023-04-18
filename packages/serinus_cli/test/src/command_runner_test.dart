@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:mason_logger/mason_logger.dart';
+import 'package:mason/mason.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:serinus_cli/src/command_runner.dart';
-import 'package:serinus_cli/src/version.dart';
 import 'package:pub_updater/pub_updater.dart';
+import 'package:serinus_cli/src/command_runner.dart';
+import 'package:serinus_cli/src/version.dart' as version;
 import 'package:test/test.dart';
 
 class _MockLogger extends Mock implements Logger {}
@@ -20,7 +20,7 @@ class _MockPubUpdater extends Mock implements PubUpdater {}
 const latestVersion = '0.0.0';
 
 final updatePrompt = '''
-${lightYellow.wrap('Update available!')} ${lightCyan.wrap(packageVersion)} \u2192 ${lightCyan.wrap(latestVersion)}
+${lightYellow.wrap('Update available!')} ${lightCyan.wrap(version.packageVersion)} \u2192 ${lightCyan.wrap(latestVersion)}
 Run ${lightCyan.wrap('$executableName update')} to update''';
 
 void main() {
@@ -35,7 +35,7 @@ void main() {
 
       when(
         () => pubUpdater.getLatestVersion(any()),
-      ).thenAnswer((_) async => packageVersion);
+      ).thenAnswer((_) async => version.packageVersion);
 
       logger = _MockLogger();
 
@@ -143,7 +143,7 @@ void main() {
       test('outputs current version', () async {
         final result = await commandRunner.run(['--version']);
         expect(result, equals(ExitCode.success.code));
-        verify(() => logger.info(packageVersion)).called(1);
+        verify(() => logger.info(version.packageVersion)).called(1);
       });
     });
 

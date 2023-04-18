@@ -1,10 +1,10 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:mason_logger/mason_logger.dart';
-import 'package:serinus_cli/src/commands/commands.dart';
-import 'package:serinus_cli/src/version.dart';
+import 'package:mason/mason.dart';
 import 'package:pub_updater/pub_updater.dart';
+import 'package:serinus_cli/src/commands/commands.dart';
+import 'package:serinus_cli/src/version.dart' as version;
 
 const executableName = 'serinus_cli';
 const packageName = 'serinus_cli';
@@ -109,7 +109,7 @@ class SerinusCliCommandRunner extends CompletionCommandRunner<int> {
     // Run the command or show version
     final int? exitCode;
     if (topLevelResults['version'] == true) {
-      _logger.info(packageVersion);
+      _logger.info(version.packageVersion);
       exitCode = ExitCode.success.code;
     } else {
       exitCode = await super.runCommand(topLevelResults);
@@ -129,13 +129,13 @@ class SerinusCliCommandRunner extends CompletionCommandRunner<int> {
   Future<void> _checkForUpdates() async {
     try {
       final latestVersion = await _pubUpdater.getLatestVersion(packageName);
-      final isUpToDate = packageVersion == latestVersion;
+      final isUpToDate = version.packageVersion == latestVersion;
       if (!isUpToDate) {
         _logger
           ..info('')
           ..info(
             '''
-${lightYellow.wrap('Update available!')} ${lightCyan.wrap(packageVersion)} \u2192 ${lightCyan.wrap(latestVersion)}
+${lightYellow.wrap('Update available!')} ${lightCyan.wrap(version.packageVersion)} \u2192 ${lightCyan.wrap(latestVersion)}
 Run ${lightCyan.wrap('$executableName update')} to update''',
           );
       }

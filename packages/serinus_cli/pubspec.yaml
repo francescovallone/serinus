@@ -1,6 +1,8 @@
 name: serinus_cli
-description: A Very Good Project created by Very Good CLI.
+description: CLI tool to manage serinus applications.
 version: 0.0.1-dev.1
+homepage: https://github.com/francescovallone/serinus
+repository: https://github.com/francescovallone/serinus
 
 environment:
   sdk: ">=2.19.0 <3.0.0"

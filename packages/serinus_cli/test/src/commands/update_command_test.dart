@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:mason_logger/mason_logger.dart';
+import 'package:mason/mason.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:pub_updater/pub_updater.dart';
 import 'package:serinus_cli/src/command_runner.dart';
 import 'package:serinus_cli/src/commands/commands.dart';
-import 'package:serinus_cli/src/version.dart';
-import 'package:pub_updater/pub_updater.dart';
+import 'package:serinus_cli/src/version.dart' as version;
 import 'package:test/test.dart';
 
 class _MockLogger extends Mock implements Logger {}
@@ -38,7 +38,7 @@ void main() {
 
       when(
         () => pubUpdater.getLatestVersion(any()),
-      ).thenAnswer((_) async => packageVersion);
+      ).thenAnswer((_) async => version.packageVersion);
       when(
         () => pubUpdater.update(
           packageName: packageName,
@@ -168,7 +168,7 @@ void main() {
       () async {
         when(
           () => pubUpdater.getLatestVersion(any()),
-        ).thenAnswer((_) async => packageVersion);
+        ).thenAnswer((_) async => version.packageVersion);
         when(() => logger.progress(any())).thenReturn(_MockProgress());
         final result = await commandRunner.run(['update']);
         expect(result, equals(ExitCode.success.code));

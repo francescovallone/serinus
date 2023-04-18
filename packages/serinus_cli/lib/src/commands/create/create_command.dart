@@ -1,11 +1,9 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:mason_logger/mason_logger.dart';
 import 'package:mason/mason.dart';
 import 'package:path/path.dart' as path;
-
-import 'create_template.dart';
+import 'package:serinus_cli/src/commands/create/create_template.dart';
 
 final RegExp _identifierRegExp = RegExp('[a-z_][a-z0-9_]*');
 
@@ -53,10 +51,6 @@ class CreateCommand extends Command<int> {
       vars: vars,
     );
     progress?.complete();
-    await generator.hooks.postGen(
-      vars: vars, 
-      workingDirectory: Directory.current.path,
-    );
     return ExitCode.success.code;
   }
 
