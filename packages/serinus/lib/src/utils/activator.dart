@@ -3,16 +3,14 @@ import 'dart:mirrors';
 class Activator{
 
   static createInstance(Type type, dynamic data){
-    var typeMirror = reflectType(type);
-    if (typeMirror is ClassMirror) {
-      try{
+    ClassMirror typeMirror = reflectClass(type);
+    try{
+      if(typeMirror.declarations.containsKey(Symbol('$type.fromJson'))){
         return typeMirror.newInstance(Symbol('fromJson'), [data]).reflectee;
-      }catch(_){}
-      try{
+      }else{
         return typeMirror.newInstance(Symbol(''), []).reflectee;
-      }catch(_){}
-      return typeMirror.reflectedType;
-    } else {
+      }
+    }catch(e){
       throw ArgumentError("Cannot create the instance of the type '$type'.");
     }
   }

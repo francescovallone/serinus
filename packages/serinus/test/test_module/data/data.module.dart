@@ -2,6 +2,7 @@
 import 'package:serinus/serinus.dart';
 
 import 'data.controller.dart';
+import 'data.middleware.dart';
 import 'data.service.dart';
 
 @Module(
@@ -12,4 +13,9 @@ import 'data.service.dart';
 class DataModule extends SerinusModule{
 
   const DataModule();
+
+  @override
+  configure(MiddlewareConsumer consumer) {
+    consumer.apply(DataMiddleware());
+  }
 }

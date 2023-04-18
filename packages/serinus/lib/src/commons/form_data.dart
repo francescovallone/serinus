@@ -62,8 +62,7 @@ class FormData{
       }
       
       return FormData(fields: fields, files: files);
-    }catch(e){
-      print(e);
+    }catch(_){
       throw NotAcceptableException();
     }
   }
