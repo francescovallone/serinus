@@ -4,7 +4,8 @@ enum Method{
   delete,
   put,
   options,
-  head;
+  head,
+  patch;
 
   @override
   String toString() {
@@ -25,6 +26,8 @@ extension StringMethod on String {
         return Method.options;
       case 'head':
         return Method.head;
+      case 'patch':
+        return Method.patch;
       default:
         return Method.get;
     }

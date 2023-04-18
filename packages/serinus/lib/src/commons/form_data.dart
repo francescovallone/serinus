@@ -60,7 +60,6 @@ class FormData{
           fields[name] = utf8.decode(bytes);
         }
       }
-      
       return FormData(fields: fields, files: files);
     }catch(_){
       throw NotAcceptableException();

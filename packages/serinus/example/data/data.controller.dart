@@ -10,7 +10,7 @@ class DataController extends SerinusController{
 
   const DataController(this.dataService);
 
-  @Route("/", method: Method.post)
+  @Post("/")
   Map<String, dynamic> ping(
     @Body() body,
   ){
@@ -19,7 +19,7 @@ class DataController extends SerinusController{
     };
   }
 
-  @Route("/data", method: Method.get)
+  @Get("/data")
   Map<String, dynamic> data(){
     return {
       "hello": "HELLO"

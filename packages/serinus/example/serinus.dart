@@ -4,8 +4,7 @@ import 'app.module.dart';
 
 void main(List<String> arguments) {
   SerinusFactory application = SerinusFactory.createApp(
-    AppModule(), 
-    address: '0.0.0.0'
+    AppModule()
   );
   application.serve();
 }

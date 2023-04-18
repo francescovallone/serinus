@@ -1,6 +1,6 @@
 import 'package:serinus/serinus.dart';
 
-class Route{
+abstract class Route{
 
   final String path;
   final Method method;

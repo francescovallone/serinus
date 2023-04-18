@@ -12,6 +12,8 @@ class ResponseDecoder{
         convertedMap[key.toString()] = convertMap(map[key]);
       }else if(map[key] is UploadedFile){
         convertedMap[key.toString()] = map[key].toString();
+      }else if(map[key] is FormData){
+        convertedMap[key.toString()] = convertMap(map[key].values);
       }else{
         convertedMap[key.toString()] = map[key];
       }
