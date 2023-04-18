@@ -244,9 +244,10 @@ packages:
   serinus:
     dependency: "direct main"
     description:
-      path: "../../packages/serinus"
-      relative: true
-    source: path
+      name: serinus
+      sha256: db3ab5ea906baa6860127a4675b46a9774a11f9dc671d898284bef604c968c52
+      url: "https://pub.dev"
+    source: hosted
     version: "0.0.1-dev.1"
   shelf:
     dependency: transitive
@@ -417,4 +418,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.19.6 <3.0.0"
+  dart: ">=2.19.4 <3.0.0"
