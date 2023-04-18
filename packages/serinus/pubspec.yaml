@@ -1,6 +1,9 @@
 name: serinus
-description: Dart backend framework
-version: 0.0.1
+description: Serinus is a modular backend framework written in dart.
+documentation: https://francescovallone.github.io/serinus/#/
+homepage: https://github.com/francescovallone/serinus
+repository: https://github.com/francescovallone/serinus
+version: 0.0.1-dev.1
 
 environment:
   sdk: '>=2.19.0 <3.0.0'
@@ -11,6 +14,7 @@ dependencies:
   http_parser: ^4.0.2
   intl: ^0.18.0
   logging: ^1.1.0
+  meta: ^1.9.1
   mime: ^1.0.4
 
 dev_dependencies:

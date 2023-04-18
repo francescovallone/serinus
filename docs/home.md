@@ -4,7 +4,7 @@ Serinus is a backend framework written in Dart heavily inspired by [NestJS](http
 
 ## Installation
 
-!> The package will be published on [pub.dev](https://pub.dev) after the 0.2 version of Serinus
+!> The package will be published on [pub.dev](https://pub.dev) after the 0.1.0 version of Serinus
 
 ### From the repository
 

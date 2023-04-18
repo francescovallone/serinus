@@ -1,4 +1,4 @@
-<img src="packages/serinus/assets/Serinus-bird.png" width="200">
+<img src="assets/Serinus-bird.png" width="200">
 
 # Serinus
 

@@ -6,6 +6,6 @@ import 'app.service.dart';
 @Module(
   imports: [],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [AppService],
 )
 class AppModule extends SerinusModule{}
