@@ -9,17 +9,24 @@ import 'catcher.dart';
 import 'models/models.dart';
 import 'serinus_container.dart';
 
- 
+/// The class SerinusApplication is used to create a Serinus application
 class SerinusApplication{
 
   late io.HttpServer _httpServer;
+  /// The address of the server
   late String _address;
+  /// The port of the server
   late int _port;
+  /// The main module of the application
   late dynamic _mainModule;
+  /// The logger of the application
   final Logger applicationLogger = Logger('SerinusApplication');
+  /// The logger of the request that the application receives
   final Logger requestLogger = Logger('RequestLogger');
+  /// The logging level of the application
   late Logging _loggingLevel;
 
+  /// The [SerinusApplication.create] constructor is used to create a [SerinusApplication] object
   SerinusApplication.create(
     dynamic module, 
     {
@@ -48,10 +55,12 @@ class SerinusApplication{
     _port = port;
   }
 
+  /// The [SerinusApplication.serve] method is used to start the server
   Future<io.HttpServer> serve({
     String? poweredByHeader = 'Powered by Serinus',
     io.SecurityContext? securityContext,
   }) async{
+    /// If the securityContext is null, the server will be started without https
     if(securityContext == null){
       _httpServer = await io.HttpServer.bind(_address, _port);
     }else{
@@ -71,6 +80,8 @@ class SerinusApplication{
     return _httpServer;
   }
 
+  /// The [_handler] method is used to handle the request
+  /// and send the response
   void _handler(io.HttpRequest httpRequest, [String? poweredByHeader]) async {
     Request request = Request.fromHttpRequest(httpRequest);
     try{
@@ -89,6 +100,8 @@ class SerinusApplication{
     }
   }
 
+  /// The [close] method is used to close the server
+  /// and dispose the [SerinusContainer]
   Future<void> close() async {
     applicationLogger.info('Shutting down the application...');
     SerinusContainer.instance.dispose();

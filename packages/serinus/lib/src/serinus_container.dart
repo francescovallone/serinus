@@ -9,28 +9,36 @@ import 'package:serinus/src/utils/container_utils.dart';
 import 'models/models.dart';
 import 'utils/activator.dart';
 
+/// The class SerinusContainer is used to manage the routes and the dependencies
 class SerinusContainer {
+  /// The logger of the container
   Logger containerLogger = Logger("SerinusContainer");
   GetIt _getIt = GetIt.instance;
   final List<RouteContext> _routes = [];
   final Map<Type, SerinusModule> _controllers = {};
   final Map<SerinusModule, List<MiddlewareConsumer>> _moduleMiddlewares = {};
+  /// The instance of the container (singleton)
   static final SerinusContainer instance = SerinusContainer._internal();
 
+  /// The factory constructor returns the singleton of the container
   factory SerinusContainer() {
     return instance;
   }
 
+  /// The private constructor of the container
   SerinusContainer._internal(){
     _routes.clear();
   }
 
+  /// The method discoverRoutes is used to discover the routes of a module
   List<RouteContext> discoverRoutes(SerinusModule module){
     _getIt.reset();
     _routes.clear();
     _controllers.clear();
     _moduleMiddlewares.clear();
+    /// Load the dependencies of the modules
     _loadModuleDependencies(module, []);
+    /// Load the routes of the modules
     _loadRoutes();
     return _routes;
   }

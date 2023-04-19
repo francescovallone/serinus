@@ -5,11 +5,13 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'package:serinus/serinus.dart';
 
+/// The class FormData is used to parse multipart/form-data and application/x-www-form-urlencoded
 class FormData{
 
   final Map<String, dynamic> _fields;
   final Map<String, UploadedFile> _files;
 
+  /// The [FormData] constructor is used to create a [FormData] object
   const FormData({
     Map<String, dynamic> fields = const {},
     Map<String, UploadedFile> files = const {}
@@ -22,6 +24,7 @@ class FormData{
   Map<String, dynamic> get fields => Map.unmodifiable(_fields);
   Map<String, UploadedFile> get files => Map.unmodifiable(_files);
 
+  /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
   static Future<FormData> parseMultipart({
     required HttpRequest request
   }) async {
@@ -66,6 +69,7 @@ class FormData{
     }
   }
 
+  /// This method is used to parse the request body as a [FormData] if the content type is application/x-www-form-urlencoded
   factory FormData.parseUrlEncoded(String body) {
     return FormData(fields: Uri.splitQueryString(body), files: {});
   }
@@ -80,6 +84,14 @@ class FormData{
   }
 
 }
+
+/// The class [UploadedFile] is used to represent a file uploaded by the user
+/// It is used to parse the file and store it in a string
+/// The string can be accessed by calling the [toString] method
+/// The [readAsString] method is used to parse the file and store it in the string
+/// The [stream] property is used to get the stream of the file
+/// The [contentType] property is used to get the content type of the file
+/// The [name] property is used to get the name of the file
 class UploadedFile{
 
   final ContentType contentType;
@@ -106,22 +118,4 @@ class UploadedFile{
     return _data;
   }
 
-}
-
-class Multipart extends MimeMultipart{
-
-  final MimeMultipart _inner;
-
-  Multipart(this._inner);
-
-  @override
-  StreamSubscription<List<int>> listen(void Function(List<int> event)? onData, {Function? onError, void Function()? onDone, bool? cancelOnError}) {
-    return _inner.listen(onData,
-        onDone: onDone, onError: onError, cancelOnError: cancelOnError);
-  }
-  
-  @override
-  // TODO: implement headers
-  Map<String, String> get headers => throw UnimplementedError();
-  
 }

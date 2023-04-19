@@ -11,6 +11,7 @@ class SerinusFactory{
   dynamic module;
   Logging loggingLevel;
   
+  /// The [SerinusFactory.createApp] constructor is used to create a [SerinusFactory] object
   SerinusFactory.createApp(
     this.module,
     {
@@ -21,6 +22,7 @@ class SerinusFactory{
     }
   );
 
+  /// The [serve] method is used to start the server
   Future<void> serve() async {
     _application = SerinusApplication.create(
       module, 
@@ -30,6 +32,7 @@ class SerinusFactory{
     );
     if(_application != null){
       await _application?.serve();
+      /// If the development mode is enabled, the hotreloader is started
       if(developmentMode){
         await HotReloader.create(
           onAfterReload: (ctx) {
@@ -41,6 +44,7 @@ class SerinusFactory{
     }
   }
 
+  /// The [close] method is used to close the server
   Future<void> close() async {
     await _application?.close();
   }

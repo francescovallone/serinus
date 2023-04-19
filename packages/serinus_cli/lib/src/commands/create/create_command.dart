@@ -1,7 +1,9 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:serinus_cli/src/commands/create/create_template.dart';
 
@@ -23,6 +25,20 @@ class CreateCommand extends Command<int> {
         'This must be a valid dart package name.',
     );
   }
+
+  /// [ArgResults] used for testing purposes only.
+  @visibleForTesting
+  ArgResults? testArgResults;
+
+  /// [String] used for testing purposes only.
+  @visibleForTesting
+  String? testUsage;
+
+  @override
+  ArgResults get argResults => super.argResults ?? testArgResults!;
+
+  @override
+  String get usageString => testUsage ?? usage;
 
   @override
   String get description => 'Creates a new Serinus application';
@@ -56,15 +72,15 @@ class CreateCommand extends Command<int> {
 
 
   String get _projectName {
-    final projectName = argResults?['project-name'] as String? ??
+    final projectName = argResults['project-name'] as String? ??
         path.basename(path.normalize(_outputDirectory.absolute.path));
     _validateProjectName(projectName);
     return projectName;
   }
 
   Directory get _outputDirectory {
-    final rest = argResults?.rest;
-    _validateOutputDirectoryArg(rest!);
+    final rest = argResults.rest;
+    _validateOutputDirectoryArg(rest);
     return Directory(rest.first);
   }
 
@@ -72,14 +88,14 @@ class CreateCommand extends Command<int> {
     if (args.isEmpty) {
       throw UsageException(
         'No option specified for the output directory.',
-        usage,
+        usageString,
       );
     }
 
     if (args.length > 1) {
       throw UsageException(
         'Multiple output directories specified.',
-        usage,
+        usageString,
       );
     }
   }
@@ -90,7 +106,7 @@ class CreateCommand extends Command<int> {
       throw UsageException(
         '"$name" is not a valid package name.\n\n'
         'See https://dart.dev/tools/pub/pubspec#name for more information.',
-        usage,
+        usageString,
       );
     }
   }

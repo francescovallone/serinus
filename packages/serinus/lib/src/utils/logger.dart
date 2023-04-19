@@ -1,5 +1,6 @@
 import 'package:logging/logging.dart' as logging;
 
+/// The class Logger is used to create a logger
 class Logger{
 
   final String name;

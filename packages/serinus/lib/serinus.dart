@@ -1,3 +1,4 @@
+/// Serinus is a modular backend framework for Dart
 library serinus;
 
 export 'src/exceptions/exceptions.dart';
