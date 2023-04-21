@@ -10,7 +10,7 @@ class AppController extends SerinusController{
 
   const AppController(this.appService);
 
-  @Get("/")
+  @Get()
   String ping(){
     return appService.ping();
   }
