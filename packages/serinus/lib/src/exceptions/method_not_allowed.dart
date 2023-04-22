@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'serinus_exception.dart';
+import 'package:serinus/src/exceptions/serinus_exception.dart';
 
 /// The class MethodNotAllowedException is used to throw a method not allowed exception
 /// 

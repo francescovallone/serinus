@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:intl/intl.dart';
-import 'package:serinus/serinus.dart';
 import 'package:logging/logging.dart' as logging;
-
-import 'catcher.dart';
-import 'models/models.dart';
-import 'serinus_container.dart';
+import 'package:serinus/serinus.dart';
+import 'package:serinus/src/catcher.dart';
+import 'package:serinus/src/models/models.dart';
+import 'package:serinus/src/serinus_container.dart';
 
 /// The class SerinusApplication is used to create a Serinus application
 class SerinusApplication{

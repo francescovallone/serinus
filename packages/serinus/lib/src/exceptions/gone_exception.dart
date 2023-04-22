@@ -1,4 +1,4 @@
-import 'serinus_exception.dart';
+import 'package:serinus/src/exceptions/serinus_exception.dart';
 
 /// The class GoneException is used to throw a gone exception
 /// 

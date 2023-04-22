@@ -5,21 +5,21 @@ class AppControllerWrong extends SerinusController{
 
   const AppControllerWrong();
 
-  @Get("/")
+  @Get()
   Map<String, dynamic> ping(){
     return {
       "hello": "hello world"
     };
   }
 
-  @Post("/test")
+  @Post(path: "/test")
   Map<String, dynamic> test(){
     return {
       "hello": "HELLO"
     };
   }
 
-  @Get("/")
+  @Get()
   Map<String, dynamic> data(){
     return {
       "hello": "HELLO"

@@ -31,7 +31,7 @@ class ResponseDecoder{
     return "$contentLength B";
   }
 
-  static convertStringToJson(HttpResponse response, String data){
+  static String convertStringToJson(HttpResponse response, String data){
     try{
       final result = jsonEncode(jsonDecode("$data"));
       response.headers.contentType = ContentType.json;
@@ -42,7 +42,7 @@ class ResponseDecoder{
     }
   }
 
-  static tryToParseJson(HttpResponse response, dynamic data){
+  static String tryToParseJson(HttpResponse response, dynamic data){
     try{
       final result = jsonEncode(ResponseDecoder.convertMap(data));
       response.headers.contentType = ContentType.json;

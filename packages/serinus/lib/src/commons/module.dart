@@ -1,5 +1,5 @@
-import 'package:serinus/serinus.dart';
 import 'package:meta/meta.dart';
+import 'package:serinus/serinus.dart';
 import 'package:serinus/src/utils/container_utils.dart';
 
 /// The class SerinusModule is used to define a module

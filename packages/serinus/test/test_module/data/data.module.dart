@@ -15,7 +15,7 @@ class DataModule extends SerinusModule{
   const DataModule();
 
   @override
-  configure(MiddlewareConsumer consumer) {
+  void configure(MiddlewareConsumer consumer) {
     consumer.apply(DataMiddleware());
   }
 }

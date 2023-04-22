@@ -3,11 +3,10 @@ import 'dart:mirrors';
 import 'package:get_it/get_it.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/decorators/route.dart';
+import 'package:serinus/src/models/models.dart';
+import 'package:serinus/src/utils/activator.dart';
 import 'package:serinus/src/utils/body_decoder.dart';
 import 'package:serinus/src/utils/container_utils.dart';
-
-import 'models/models.dart';
-import 'utils/activator.dart';
 
 /// The class SerinusContainer is used to manage the routes and the dependencies
 class SerinusContainer {
@@ -108,7 +107,7 @@ class SerinusContainer {
           InstanceMirror controllerRoute = e.value.metadata.firstWhere((element) => element.reflectee is Route);
           String path = Uri(path: "${ref.type.metadata[0].reflectee.path}${controllerRoute.reflectee.path}").normalizePath().path;
           if(!_isDuplicateRoute(path, controllerRoute.reflectee.method)){
-            assert(e.value.parameters.where((element) => element.metadata.isNotEmpty && element.metadata.first.reflectee is Body).length == 1);
+            assert(e.value.parameters.where((element) => element.metadata.isNotEmpty && element.metadata.first.reflectee is Body).length <= 1);
             _routes.add(
               RouteContext(
                 path: path, 
@@ -198,9 +197,8 @@ class SerinusContainer {
     Map<String, dynamic> routeParameters = {};
     final possibileRoutes = _routes.where(
       (element) {
-        routeParameters.clear();
-        routeParameters.addAll(getRequestParameters(element.path, request));
-        return (routeParameters.isNotEmpty);
+        routeParameters["${element.method.name} ${element.path}"] = getRequestParameters(element.path, request);
+        return (routeParameters["${element.method.name} ${element.path}"].isNotEmpty);
       }
     ).toList();
     if(possibileRoutes.isEmpty){
@@ -212,7 +210,7 @@ class SerinusContainer {
     }
     return RequestedRoute(
       data: possibileRoutes[index],
-      params: routeParameters
+      params: routeParameters["${possibileRoutes[index].method.name} ${possibileRoutes[index].path}"]
     );
   }
   

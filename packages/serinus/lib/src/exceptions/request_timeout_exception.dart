@@ -1,4 +1,4 @@
-import 'serinus_exception.dart';
+import 'package:serinus/src/exceptions/serinus_exception.dart';
 
 /// The class RequestTimeoutException is used to throw a request timeout exception
 /// 

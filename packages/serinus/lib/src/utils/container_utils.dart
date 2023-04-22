@@ -8,7 +8,9 @@ import 'package:serinus/src/models/models.dart';
 
 Controller isController(InstanceMirror controller) {
   int index = controller.type.metadata.indexWhere((element) => element.reflectee is Controller);
-  if(index == -1) throw StateError("${controller.type.reflectedType} is in the controllers list of the module but doesn't have the @Controller decorator");
+  if(index == -1) {
+    throw StateError("${controller.type.reflectedType} is in the controllers list of the module but doesn't have the @Controller decorator");
+  }
   return controller.type.metadata[index].reflectee;
 }
 

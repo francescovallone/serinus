@@ -6,25 +6,25 @@ import '../data/data.service.dart';
 @Controller()
 class AppController extends SerinusController{
 
-  final DataService dataService;
+  final DataService appService;
 
-  const AppController(this.dataService);
+  const AppController(this.appService);
 
-  @Get("/")
+  @Get()
   Map<String, dynamic> ping(){
     return {
       "hello": "hello world"
     };
   }
 
-  @Post("/test")
+  @Post(path: "/test")
   Map<String, dynamic> test(){
     return {
       "hello": "HELLO"
     };
   }
 
-  @Get("/")
+  @Post()
   Map<String, dynamic> data(){
     return {
       "hello": "HELLO"

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'serinus_exception.dart';
+import 'package:serinus/src/exceptions/serinus_exception.dart';
 
 /// The class InternalServerError is used to throw a internal server error exception
 /// 

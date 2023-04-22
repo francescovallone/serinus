@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'serinus_exception.dart';
+import 'package:serinus/src/exceptions/serinus_exception.dart';
 
 /// The class NotAcceptableException is used to throw a not acceptable exception
 /// 

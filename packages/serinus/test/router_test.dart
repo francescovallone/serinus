@@ -99,7 +99,7 @@ void main() {
     final client = HttpClient();
     final request = await client.postUrl(Uri.parse("http://localhost:3001/"));
     final response = await request.close();
-    expect(response.statusCode, 200);
+    expect(response.statusCode, 201);
     List<String> headers = [];
     response.headers.forEach((name, values) => headers.add(name));
     expect(headers.every((element) => element != "testHeader"), true);
@@ -111,7 +111,7 @@ void main() {
     final client = HttpClient();
     final request = await client.postUrl(Uri.parse("http://localhost:3001/test"));
     final response = await request.close();
-    expect(response.statusCode, 200);
+    expect(response.statusCode, 201);
     List<String> headers = [];
     response.headers.forEach((name, values) => headers.add(name));
     expect(headers.every((element) => element != "testHeader"), true);

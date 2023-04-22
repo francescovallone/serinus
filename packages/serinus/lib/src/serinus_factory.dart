@@ -1,6 +1,5 @@
-import 'package:hotreloader/hotreloader.dart';
-import 'enums/logging.dart';
-import 'serinus_application.dart';
+import 'package:serinus/src/enums/logging.dart';
+import 'package:serinus/src/serinus_application.dart';
 
 class SerinusFactory{
 
@@ -33,14 +32,6 @@ class SerinusFactory{
     if(_application != null){
       await _application?.serve();
       /// If the development mode is enabled, the hotreloader is started
-      if(developmentMode){
-        await HotReloader.create(
-          onAfterReload: (ctx) {
-            _application?.close();
-            _application?.serve();
-          }
-        );
-      }
     }
   }
 

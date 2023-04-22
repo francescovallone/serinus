@@ -161,14 +161,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
-  hotreloader:
-    dependency: "direct main"
-    description:
-      name: hotreloader
-      sha256: "66b78edf340352fcdd2043ab6116e58ec018c5968cab6485cde0f1769d28e0b8"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.0.5"
   http_multi_server:
     dependency: transitive
     description:
@@ -369,14 +361,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
-  stream_transform:
-    dependency: transitive
-    description:
-      name: stream_transform
-      sha256: "14a00e794c7c11aa145a170587321aedce29769c08d7f58b1d141da75e3b1c6f"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   string_scanner:
     dependency: transitive
     description:

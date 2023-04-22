@@ -1,9 +1,8 @@
 import 'dart:mirrors';
 
-import 'package:serinus/src/serinus_container.dart';
-
-import 'package:serinus/src/models/models.dart';
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/models/models.dart';
+import 'package:serinus/src/serinus_container.dart';
 
 class RequestedRoute{
 

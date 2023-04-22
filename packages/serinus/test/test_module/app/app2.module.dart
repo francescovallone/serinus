@@ -1,9 +1,9 @@
 // coverage:ignore-file
 import 'package:serinus/serinus.dart';
 
+import '../data/data.module.dart';
 import 'app.controller.dart';
 import 'app.middleware.dart';
-import '../data/data.module.dart';
 
 @Module(
   imports: [DataModule()],
@@ -12,7 +12,7 @@ import '../data/data.module.dart';
 class AppMiddlewareModule extends SerinusModule{
   
   @override
-  configure(MiddlewareConsumer consumer) {
+  void configure(MiddlewareConsumer consumer) {
     consumer.apply(AppMiddleware());
     consumer.excludeRoutes([
       ConsumerRoute(Uri.parse('/test')),

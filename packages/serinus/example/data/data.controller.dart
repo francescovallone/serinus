@@ -15,7 +15,7 @@ class DataController extends SerinusController{
     @Body() body,
   ){
     return {
-      "hello": body.values
+      "hello": "body.values"
     };
   }
 

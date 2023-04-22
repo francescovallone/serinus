@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'utils/response_decoder.dart';
+import 'package:serinus/src/utils/response_decoder.dart';
 
 /// The class Response is used to create a response object
 class Response{

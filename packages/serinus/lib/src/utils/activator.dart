@@ -2,7 +2,7 @@ import 'dart:mirrors';
 
 class Activator{
 
-  static createInstance(Type type, dynamic data){
+  static dynamic createInstance(Type type, dynamic data){
     ClassMirror typeMirror = reflectClass(type);
     try{
       if(typeMirror.declarations.containsKey(Symbol('$type.fromJson'))){
