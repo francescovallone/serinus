@@ -1,5 +1,0 @@
-class RequestInfo{
-
-  const RequestInfo();
-
-}
