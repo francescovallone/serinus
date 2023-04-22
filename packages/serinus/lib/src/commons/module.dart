@@ -17,7 +17,7 @@ abstract class SerinusModule{
 
   /// The method configure is used to configure the module middleware
   /// that will be shared by all the imported modules
-  configure(MiddlewareConsumer consumer){}
+  void configure(MiddlewareConsumer consumer){}
 
   @nonVirtual
   Module get annotation => getModule(this);

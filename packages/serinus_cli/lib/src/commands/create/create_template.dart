@@ -26,7 +26,7 @@ final MasonBundle createApplicationTemplate = MasonBundle.fromJson({
     },
     {
       'path': 'pubspec.yaml',
-      'data': 'bmFtZToge3tuYW1lLnNuYWtlQ2FzZSgpfX0KZGVzY3JpcHRpb246IEEgU2VyaW51cyBhcHBsaWNhdGlvbi4KdmVyc2lvbjogMS4wLjAKcHVibGlzaF90bzogbm9uZQoKZW52aXJvbm1lbnQ6CiAgc2RrOiAnPj0yLjE5LjYgPDMuMC4wJwoKZGVwZW5kZW5jaWVzOgogIHNlcmludXM6IF4wLjAuMS1kZXYuMQoKZGV2X2RlcGVuZGVuY2llczoKICBsaW50czogXjIuMC4wCiAgdGVzdDogXjEuMjEuMA==',
+      'data': 'bmFtZToge3tuYW1lLnNuYWtlQ2FzZSgpfX0KZGVzY3JpcHRpb246IEEgU2VyaW51cyBhcHBsaWNhdGlvbi4KdmVyc2lvbjogMS4wLjAKcHVibGlzaF90bzogbm9uZQoKZW52aXJvbm1lbnQ6CiAgc2RrOiAnPj0yLjE5LjYgPDMuMC4wJwoKZGVwZW5kZW5jaWVzOgogIHNlcmludXM6IF4wLjAuMS1kZXYuMgoKZGV2X2RlcGVuZGVuY2llczoKICBsaW50czogXjIuMC4wCiAgdGVzdDogXjEuMjEuMA==',
       'type': 'text'
     },
     {

@@ -10,5 +10,5 @@ abstract class SerinusMiddleware {
   /// The [response] parameter is the response object
   /// 
   /// The [next] parameter is the function that will be executed after the middleware
-  use(Request request, Response response, void Function() next);
+  void use(Request request, Response response, void Function() next);
 }
