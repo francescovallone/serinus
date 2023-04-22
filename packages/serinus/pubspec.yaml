@@ -3,7 +3,7 @@ description: Serinus is a modular backend framework written in dart.
 documentation: https://francescovallone.github.io/serinus/#/
 homepage: https://github.com/francescovallone/serinus
 repository: https://github.com/francescovallone/serinus
-version: 0.0.1-dev.1
+version: 0.0.1-dev.2
 
 environment:
   sdk: '>=2.19.0 <3.0.0'
