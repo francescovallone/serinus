@@ -37,7 +37,6 @@ class CreateCommand extends Command<int> {
   @override
   ArgResults get argResults => super.argResults ?? testArgResults!;
 
-  @override
   String get usageString => testUsage ?? usage;
 
   @override

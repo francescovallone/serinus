@@ -8,3 +8,4 @@ build/
 **/**/coverage.json
 **/**/*_test*.json
 **/**/lcov.info
+**/**/*.code-workspace

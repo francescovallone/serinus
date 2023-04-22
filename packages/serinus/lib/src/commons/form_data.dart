@@ -40,7 +40,9 @@ class FormData{
         if (
           contentDisposition == null || 
           !contentDisposition.startsWith('form-data;')
-        ) continue;
+        ) {
+          continue;
+        }
 
         final values = regex
             .allMatches(contentDisposition)

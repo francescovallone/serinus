@@ -1,6 +1,7 @@
 name: serinus_cli
 description: CLI tool to manage serinus applications.
-version: 0.0.1-dev.2
+version: 0.0.1-dev.3
+documentation: https://docs.serinus.app
 homepage: https://github.com/francescovallone/serinus
 repository: https://github.com/francescovallone/serinus
 
