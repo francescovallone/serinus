@@ -10,21 +10,21 @@ class AppController extends SerinusController{
 
   const AppController(this.dataService);
 
-  @Get("/")
+  @Get()
   Map<String, dynamic> ping(){
     return {
       "hello": "hello world"
     };
   }
 
-  @Post("/test")
+  @Post(path: "/test")
   Map<String, dynamic> test(){
     return {
       "hello": "HELLO"
     };
   }
 
-  @Get("/")
+  @Post()
   Map<String, dynamic> data(){
     return {
       "hello": "HELLO"
