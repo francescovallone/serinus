@@ -6,6 +6,7 @@ import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:watcher/watcher.dart';
 
 
 /// {@template create_command}
@@ -19,7 +20,28 @@ class RunCommand extends Command<int> {
     Logger? logger,
     bool? isWindows,
   }) : _logger = logger,
-       _isWindows = isWindows ?? Platform.isWindows;
+    _isWindows = isWindows ?? Platform.isWindows {
+    argParser..addFlag(
+      'dev',
+      help: 'Run your application in development mode',
+      abbr: 'd',
+    )..addOption(
+      'port',
+      help: 'Set your application port',
+      abbr: 'p',
+    )..addOption(
+      'address', 
+      help: 'Set your application address',
+      abbr: 'a'
+    )..addOption(
+      'directory', 
+      help: 'Set your application directory',
+      abbr: 'w',
+    );
+
+  }
+
+  final DirectoryWatcher _watcher = DirectoryWatcher('example');
 
   @override
   String get description => 'Run your Serinus application';
@@ -33,29 +55,66 @@ class RunCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    // final pubspec = File(path.join('.', 'pubspec.yaml'));
-    // if (!pubspec.existsSync()){
-    //   _logger?.err('No pubspec.yaml file found');
-    //   return ExitCode.noInput.code;
-    // }
+    final pubspec = File(path.join('example', 'pubspec.yaml'));
+    if (!pubspec.existsSync()){
+      _logger?.err('No pubspec.yaml file found');
+      return ExitCode.noInput.code;
+    }
+    var process = await serve();
+    if (_isWindows){
+      ProcessSignal.sigint.watch().listen(
+        (event) {
+          _killProcess(process);
+        }
+      );
+    }
+    if(_developmentMode){
+      _watcher.events.listen((event) async {
+        if (event.type == ChangeType.MODIFY){
+          await _killProcess(process, restarting: true);
+          _logger?.info('Restarting your application...');
+          process = await serve();
+        }
+      });
+    }
+    return ExitCode.success.code;
+  }
+
+  Future<Process> serve() async{
     final progress = _logger?.progress(
       'Starting your application...',
     );
-    progress?.complete();
-    final mainFile = File(path.join('lib', 'main.dart'));
+    final mainFile = File(path.join('example', 'lib', 'serinus.dart'));
     final process = await Process.start(
       'dart', 
       ['--enable-vm-service', mainFile.absolute.path],
-      workingDirectory: '.',
+      runInShell: true,
     );
-    if (_isWindows){
-
-    }
-
     process.stdout.listen((data) => _logger?.info(
       utf8.decode(data).replaceAll('\n', ''),
     ),);
-    return ExitCode.success.code;
+    process.stderr.listen((data) => _logger?.info(
+      utf8.decode(data).replaceAll('\n', ''),
+    ),);
+    progress?.complete();
+
+    return process;
+  }
+
+  Future<void> _killProcess(Process process, {bool restarting = false}) async {
+    if (_isWindows){
+      await Process.run('taskkill', ['/F', '/T', '/PID', '${process.pid}']);
+      if(!restarting){
+        exit(0);
+      }
+    } else {
+      process.kill();
+    }
+  }
+
+  bool get _developmentMode {
+    print(argResults?.command);
+    return argResults?['dev'] as bool? ?? false;
   }
 
 }

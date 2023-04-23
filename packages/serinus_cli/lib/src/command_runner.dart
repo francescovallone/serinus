@@ -41,6 +41,7 @@ class SerinusCliCommandRunner extends CompletionCommandRunner<int> {
     // Add sub commands
     addCommand(CreateCommand(logger: _logger));
     addCommand(UpdateCommand(logger: _logger, pubUpdater: _pubUpdater));
+    addCommand(RunCommand(logger: _logger));
   }
 
   @override
