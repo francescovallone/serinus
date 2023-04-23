@@ -12,7 +12,7 @@ class DataController extends SerinusController{
 
   @Post()
   Map<String, dynamic> ping(
-    @RequestInfo() Request request,
+    @Req() Request request,
     @Body() body,
   ){
     return {

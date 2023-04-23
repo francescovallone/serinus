@@ -48,7 +48,7 @@ class ResponseDecoder{
       response.headers.contentType = ContentType.json;
       return result;
     }catch(e){
-      throw InternalServerError(message: "Error while parsing json");
+      throw InternalServerErrorException(message: "Error while parsing json");
     }
   }
 

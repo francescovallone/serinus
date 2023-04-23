@@ -1,11 +1,13 @@
 /// Enum for logging
 /// 
 /// [all] - all logs
-/// [noSerinus] - no logs from serinus
-/// [noLogs] - no logs
+/// [blockSerinusLogs] - no logs from serinus
+/// [blockRequestLogs] - no request logs
+/// [blockAllLogs] - no logs
 /// 
 enum Logging{
   all,
-  noSerinus,
-  noLogs
+  blockSerinusLogs,
+  blockRequestLogs,
+  blockAllLogs
 }

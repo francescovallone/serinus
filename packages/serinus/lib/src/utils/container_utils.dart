@@ -2,7 +2,7 @@
 import 'dart:mirrors';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/decorators/route.dart';
+import 'package:serinus/src/decorators/http/route.dart';
 import 'package:serinus/src/models/models.dart';
 
 
@@ -63,7 +63,7 @@ Map<String, dynamic> getParametersValues(RouteContext context, Map<String, dynam
     for(InstanceMirror meta in d.metadata){
       String type = meta.reflectee.runtimeType.toString().toLowerCase();
       String name = '';
-      if(meta.reflectee is Body || meta.reflectee is RequestInfo){
+      if(meta.reflectee is Body || meta.reflectee is Req){
         name = MirrorSystem.getName(d.simpleName);
       }else{
         name = meta.reflectee.name;
