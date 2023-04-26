@@ -32,7 +32,7 @@ class RunCommand extends Command<int> {
     )..addOption(
       'address', 
       help: 'Set your application address',
-      abbr: 'a'
+      abbr: 'a',
     )..addOption(
       'directory', 
       help: 'Set your application directory',
@@ -41,7 +41,7 @@ class RunCommand extends Command<int> {
 
   }
 
-  final DirectoryWatcher _watcher = DirectoryWatcher('example');
+  final DirectoryWatcher _watcher = DirectoryWatcher(Directory.current.path);
 
   @override
   String get description => 'Run your Serinus application';
@@ -55,7 +55,7 @@ class RunCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final pubspec = File(path.join('example', 'pubspec.yaml'));
+    final pubspec = File(path.join(Directory.current.path, 'pubspec.yaml'));
     if (!pubspec.existsSync()){
       _logger?.err('No pubspec.yaml file found');
       return ExitCode.noInput.code;
@@ -84,20 +84,25 @@ class RunCommand extends Command<int> {
     final progress = _logger?.progress(
       'Starting your application...',
     );
-    final mainFile = File(path.join('example', 'lib', 'serinus.dart'));
+    final mainFile = File(
+      path.join(Directory.current.path, 'lib', 'main.dart'),
+    );
     final process = await Process.start(
       'dart', 
       ['--enable-vm-service', mainFile.absolute.path],
       runInShell: true,
     );
-    process.stdout.listen((data) => _logger?.info(
-      utf8.decode(data).replaceAll('\n', ''),
-    ),);
-    process.stderr.listen((data) => _logger?.info(
-      utf8.decode(data).replaceAll('\n', ''),
-    ),);
+    process.stdout.transform(utf8.decoder).listen(
+      (data) => _logger?.info(
+        data.replaceAll('\n', ''),
+      ),
+    );
+    process.stderr.transform(utf8.decoder).listen(
+      (data) => _logger?.info(
+        data.replaceAll('\n', ''),
+      ),
+    );
     progress?.complete();
-
     return process;
   }
 
@@ -113,15 +118,7 @@ class RunCommand extends Command<int> {
   }
 
   bool get _developmentMode {
-    print(argResults?.command);
     return argResults?['dev'] as bool? ?? false;
   }
 
 }
-
-void main(){
-  RunCommand(logger: Logger()).run();
-}
-
-
-
