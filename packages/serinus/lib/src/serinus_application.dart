@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/catcher.dart';
+import 'package:serinus/src/core/core.dart';
 import 'package:serinus/src/models/models.dart';
-import 'package:serinus/src/serinus_container.dart';
 
 /// The class SerinusApplication is used to create a Serinus application
 class SerinusApplication{
@@ -37,8 +37,13 @@ class SerinusApplication{
     _loggingLevel = loggingLevel;
     logging.Logger.root.onRecord.listen((record) {
       if(
-        _loggingLevel == Logging.noLogs ||
-        (_loggingLevel == Logging.noSerinus && ["SerinusApplication", "SerinusContainer"].indexOf(record.loggerName) != -1)
+        _loggingLevel == Logging.blockAllLogs ||
+        (
+          _loggingLevel == Logging.blockSerinusLogs && ["SerinusApplication", "SerinusContainer"].indexOf(record.loggerName) != -1
+        ) ||
+        (
+          _loggingLevel == Logging.blockRequestLogs && record.loggerName == "RequestLogger"
+        )
       ){
         return;
       }
@@ -68,8 +73,8 @@ class SerinusApplication{
     final stopwatch = Stopwatch()..start();
     applicationLogger.info('Starting Serinus application on http://$_address:$_port...');
     SerinusContainer.instance.discoverRoutes(_mainModule);
-    applicationLogger.info('Started Serinus application successfully in ${stopwatch.elapsedMilliseconds}ms!');
     stopwatch.stop();
+    applicationLogger.info('Started Serinus application successfully in ${stopwatch.elapsedMilliseconds}ms!');
     catchTopLevelErrors(
       () => _httpServer.listen((req) => _handler(req, poweredByHeader)),
       (error, stackTrace) {
@@ -84,15 +89,15 @@ class SerinusApplication{
   void _handler(io.HttpRequest httpRequest, [String? poweredByHeader]) async {
     Request request = Request.fromHttpRequest(httpRequest);
     try{
-      RequestedRoute route = SerinusContainer.instance.getRoute(request);
+      RequestContext requestContext = SerinusContainer.instance.getRequestContext(request);
       Response response = Response.from(
         httpRequest.response,  
         poweredByHeader: poweredByHeader,
-        statusCode: route.data.statusCode
+        statusCode: requestContext.data.statusCode
       );
-      await route.init(request, response);
-      await route.execute();
-      requestLogger.info('${route.data.statusCode} ${request.method} ${request.path} ${response.contentLengthString}');
+      await requestContext.init(request, response);
+      await requestContext.handle();
+      requestLogger.info('${requestContext.data.statusCode} ${request.method} ${request.path} ${response.contentLengthString}');
     }on SerinusException catch(e){
       String contentLength = await e.response(httpRequest.response);
       requestLogger.error('${e.statusCode} ${request.method} ${request.path} ${contentLength}');

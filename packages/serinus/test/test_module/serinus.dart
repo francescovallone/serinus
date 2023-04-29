@@ -12,7 +12,7 @@ class Serinus{
       AppModule(), 
       developmentMode: false, 
       port: 3000,
-      loggingLevel: Logging.noLogs
+      loggingLevel: Logging.blockAllLogs
     );
   }
 
@@ -21,7 +21,7 @@ class Serinus{
       AppMiddlewareModule(), 
       developmentMode: false, 
       port: 3001,
-      loggingLevel: Logging.noLogs
+      loggingLevel: Logging.blockAllLogs
     );
   }
   
@@ -30,7 +30,7 @@ class Serinus{
       AppWrongControllerModule(), 
       developmentMode: false, 
       port: 3002,
-      loggingLevel: Logging.noLogs
+      loggingLevel: Logging.blockAllLogs
     );
   }
 
@@ -39,7 +39,7 @@ class Serinus{
       AppWrongModule(), 
       developmentMode: false, 
       port: 3003,
-      loggingLevel: Logging.noLogs
+      loggingLevel: Logging.blockAllLogs
     );
   }
 

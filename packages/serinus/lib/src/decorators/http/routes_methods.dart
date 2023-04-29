@@ -1,4 +1,4 @@
-import 'package:serinus/src/decorators/route.dart';
+import 'package:serinus/src/decorators/http/route.dart';
 import 'package:serinus/src/enums/method.dart';
 
 /// The class Get is used to mark a method as a route with GET method

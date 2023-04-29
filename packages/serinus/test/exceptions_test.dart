@@ -37,7 +37,7 @@ void main() {
   });
 
   test("should instantiate a InternalServerError with custom message", (){
-    InternalServerError exception = InternalServerError(
+    final exception = InternalServerErrorException(
       message: "Custom message!"
     );
     expect(exception.statusCode, 500);

@@ -10,17 +10,17 @@ final MasonBundle createApplicationTemplate = MasonBundle.fromJson({
       'type': 'text'
     },
     {
-      'path': 'lib/app.service.dart',
+      'path': 'lib/app_service.dart',
       'data': 'aW1wb3J0ICdwYWNrYWdlOnNlcmludXMvc2VyaW51cy5kYXJ0JzsKCmNsYXNzIEFwcFNlcnZpY2UgZXh0ZW5kcyBTZXJpbnVzU2VydmljZXsKCiAgU3RyaW5nIHBpbmcoKXsKICAgIHJldHVybiAiUG9uZyEiOwogIH0KCn0=',
       'type': 'text'
     },
     {
-      'path': 'lib/app.controller.dart',
+      'path': 'lib/app_controller.dart',
       'data': 'aW1wb3J0ICdwYWNrYWdlOnNlcmludXMvc2VyaW51cy5kYXJ0JzsKCmltcG9ydCAnYXBwLnNlcnZpY2UuZGFydCc7CgpAQ29udHJvbGxlcigpCmNsYXNzIEFwcENvbnRyb2xsZXIgZXh0ZW5kcyBTZXJpbnVzQ29udHJvbGxlcnsKCiAgZmluYWwgQXBwU2VydmljZSBhcHBTZXJ2aWNlOwoKICBjb25zdCBBcHBDb250cm9sbGVyKHRoaXMuYXBwU2VydmljZSk7CgogIEBHZXQoIi8iKQogIFN0cmluZyBwaW5nKCl7CiAgICByZXR1cm4gYXBwU2VydmljZS5waW5nKCk7CiAgfQoKfQ==',
       'type': 'text'
     },
     {
-      'path': 'lib/app.module.dart',
+      'path': 'lib/app_module.dart',
       'data': 'aW1wb3J0ICdwYWNrYWdlOnNlcmludXMvc2VyaW51cy5kYXJ0JzsKCmltcG9ydCAnYXBwLmNvbnRyb2xsZXIuZGFydCc7CmltcG9ydCAnYXBwLnNlcnZpY2UuZGFydCc7CgpATW9kdWxlKAogIGltcG9ydHM6IFtdLAogIGNvbnRyb2xsZXJzOiBbQXBwQ29udHJvbGxlcl0sCiAgcHJvdmlkZXJzOiBbQXBwU2VydmljZV0sCikKY2xhc3MgQXBwTW9kdWxlIGV4dGVuZHMgU2VyaW51c01vZHVsZXt9',
       'type': 'text'
     },

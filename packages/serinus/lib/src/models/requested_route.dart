@@ -1,17 +1,17 @@
 import 'dart:mirrors';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/core/core.dart';
 import 'package:serinus/src/models/models.dart';
-import 'package:serinus/src/serinus_container.dart';
 
-class RequestedRoute{
+class RequestContext{
 
   final RouteContext data;
   Map<String, dynamic> params;
   late Request _request;
   late Response _response;
 
-  RequestedRoute({
+  RequestContext({
     required this.data,
     required this.params
   });
@@ -29,7 +29,7 @@ class RequestedRoute{
     _response = response;
   }
 
-  Future<void> execute() async {
+  Future<void> handle() async {
     InstanceMirror? result = _consumeMiddlewares();
     if(result == null){
       result = invoke();

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:serinus/src/enums/logging.dart';
 import 'package:serinus/src/serinus_application.dart';
 
@@ -23,6 +25,8 @@ class SerinusFactory{
 
   /// The [serve] method is used to start the server
   Future<void> serve() async {
+    port = int.tryParse(Platform.environment['PORT'] ?? Platform.environment['port'] ?? '') ?? port;
+    address = Platform.environment['ADDRESS'] ?? Platform.environment['address'] ?? address;
     _application = SerinusApplication.create(
       module, 
       port: port, 
@@ -31,7 +35,6 @@ class SerinusFactory{
     );
     if(_application != null){
       await _application?.serve();
-      /// If the development mode is enabled, the hotreloader is started
     }
   }
 
