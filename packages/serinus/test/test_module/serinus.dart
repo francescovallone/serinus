@@ -4,6 +4,7 @@ import 'app/app.module.dart';
 import 'app/app2.module.dart';
 import 'app/app3.module.dart';
 import 'app/app4.module.dart';
+import 'app/app5.module.dart';
 
 class Serinus{
 
@@ -39,6 +40,24 @@ class Serinus{
       AppWrongModule(), 
       developmentMode: false, 
       port: 3003,
+      loggingLevel: Logging.blockAllLogs
+    );
+  }
+
+  static SerinusFactory createControllerSameRouteApp(){
+    return SerinusFactory.createApp(
+      AppControllerSameRoute(), 
+      developmentMode: false, 
+      port: 3004,
+      loggingLevel: Logging.blockAllLogs
+    );
+  }
+
+  static SerinusFactory createFormDataApp(){
+    return SerinusFactory.createApp(
+      AppModule(), 
+      developmentMode: false, 
+      port: 3005,
       loggingLevel: Logging.blockAllLogs
     );
   }

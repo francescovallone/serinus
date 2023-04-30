@@ -30,6 +30,7 @@ class SerinusContainer {
     _explorer.loadDependencies(module, []);
     _router = Router();
     _router.loadRoutes(_explorer);
+    _explorer.startupInjectables();
     return _router.routes;
   }
 
@@ -69,7 +70,7 @@ class SerinusContainer {
               !isMultipartFormData(request.contentType) && 
               !isUrlEncodedFormData(request.contentType) && 
               (
-                e.type.reflectedType is BodyParsable || 
+                reflectType(e.type.reflectedType).isSubtypeOf(reflectType(BodyParsable)) || 
                 request.contentType.mimeType == "application/json"
               )
             ){

@@ -72,10 +72,10 @@ Map<String, dynamic> getParametersValues(RouteContext context, Map<String, dynam
         if(d.type.reflectedType is! String){
           switch(d.type.reflectedType){
             case int:
-              routeParameters['$type-$name'] = int.tryParse(routeParameters['$type-$name']);
+              routeParameters['$type-$name'] = int.tryParse(routeParameters['$type-$name'] ?? '');
               break;
             case double:
-              routeParameters['$type-$name'] = double.tryParse(routeParameters['$type-$name']);
+              routeParameters['$type-$name'] = double.tryParse(routeParameters['$type-$name'] ?? '');
               break;
             default:
               break;

@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
@@ -63,13 +65,21 @@ void main() {
   test('should populate the path parameter', () async {
     await serinus!.serve();
     final client = HttpClient();
-    final request = await client.getUrl(Uri.parse("http://localhost:3000/data/data/param"));
+    final request = await client.getUrl(Uri.parse("http://localhost:3000/data/data/param?value=1"));
     final response = await request.close();
     expect(response.statusCode, 200);
     response.listen((event) {
       String text = Utf8Decoder().convert(event);
       expect(text, "param");
     });
+  });
+
+  test('should throw BadRequest because query parameter not nullable', () async {
+    await serinus!.serve();
+    final client = HttpClient();
+    final request = await client.getUrl(Uri.parse("http://localhost:3000/data/data/param"));
+    final response = await request.close();
+    expect(response.statusCode, 400);
   });
 
   test('should populate the query parameter', () async {
@@ -82,6 +92,14 @@ void main() {
       String text = Utf8Decoder().convert(event);
       expect(text, "query");
     });
+  });
+
+  test('should throw 404 because the route is missing', () async {
+    await serinus!.serve();
+    final client = HttpClient();
+    final request = await client.getUrl(Uri.parse("http://localhost:3000/notExistRoute"));
+    final response = await request.close();
+    expect(response.statusCode, 404);
   });
 
   test('should middleware add testHeader to the headers of the response', () async {
@@ -118,5 +136,34 @@ void main() {
     await serinusMiddleware!.close();
   });
 
+  test("should throw NotAcceptableException when header is multipart/form-data but wrong body ", () async {
+    await serinus?.serve();
+    final res = await http.post(
+      Uri.parse('http://localhost:3000/formdata'),
+      headers: <String, String>{
+        'Content-Type': 'multipart/form-data; charset=utf-8',
+      },
+      body: "hello",
+    );
+    expect(res.statusCode, 406);
+  });
+
+  test("should parse the form data body correctly", () async {
+    await serinus?.serve();
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://localhost:3000/formdata'),
+    )..files.add(http.MultipartFile(
+      'test-file',
+      Stream.value(utf8.encode("hello world")),
+      11,
+      filename: 'test-file.txt',
+      contentType: MediaType.parse(ContentType.text.toString()))
+    )..fields.addEntries([MapEntry('test-field', 'value-hello')]);
+    final res = await request.send();
+    String body = await res.stream.bytesToString();
+    expect(body, '{"body":{"fields":{"test-field":"value-hello"},"files":{"test-file":"hello world"}}}');
+    expect(res.statusCode, 201);
+  });
   
 }

@@ -10,6 +10,7 @@ class Explorer {
 
   final Map<Type, SerinusModule> _controllers = {};
   final Map<SerinusModule, List<MiddlewareConsumer>> _moduleMiddlewares = {};
+  final List<Type> _startupInjectables = [];
   final GetIt _getIt = GetIt.instance;
   List<SerinusController> get controllers => _controllers.keys.map(
     (e) => _getIt.call<SerinusController>(instanceName: e.toString())).toList();
@@ -45,7 +46,7 @@ class Explorer {
     if(!_getIt.isRegistered<SerinusModule>(instanceName: m.runtimeType.toString())){
       _getIt.registerSingleton<SerinusModule>(m, instanceName: m.runtimeType.toString());
     }
-    _istantiateInjectables<SerinusService>(module.providers);
+    _istantiateInjectables<SerinusProvider>(module.providers);
     if(!_controllers.containsKey(m)){
       _istantiateInjectables<SerinusController>(module.controllers);
       _checkControllerPath([...module.controllers, ..._controllers.keys.toList()]);
@@ -61,9 +62,12 @@ class Explorer {
       MethodMirror constructor = (reflectClass(t).declarations[Symbol(t.toString())] as MethodMirror);
       List<dynamic> parameters = [];
       for(ParameterMirror p in constructor.parameters){
-        if(_getIt.isRegistered<SerinusService>(instanceName: p.type.reflectedType.toString())){
-          parameters.add(_getIt.call<SerinusService>(instanceName: p.type.reflectedType.toString()));
+        if(_getIt.isRegistered<SerinusProvider>(instanceName: p.type.reflectedType.toString())){
+          parameters.add(_getIt.call<SerinusProvider>(instanceName: p.type.reflectedType.toString()));
         }
+      }
+      if(reflectType(t).isSubtypeOf(reflectType(ApplicationInit))){
+        _startupInjectables.add(t);
       }
       _getIt.registerSingleton<T>(reflectClass(t).newInstance(Symbol.empty, parameters).reflectee, instanceName: t.toString());
     }
@@ -80,5 +84,10 @@ class Explorer {
     }
   }
 
+  void startupInjectables(){
+    for(Type t in _startupInjectables){
+      (_getIt.call<SerinusProvider>(instanceName: t.toString()) as ApplicationInit).onInit();
+    }
+  }
 
 }

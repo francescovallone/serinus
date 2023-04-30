@@ -36,9 +36,37 @@ class DataController extends SerinusController{
 
   @Get(path: "/data/:id")
   String paramRoute(
-    @Param('id') String id
+    @Param('id') String id,
+    @Query('num', nullable: true) int? number1,
+    @Query('num2', nullable: true) double? number2,
+    @Query('value') int number3
   ){
     return id;
+  }
+
+  @Put(path: "/data")
+  String putRoute(){
+    return "PUT";
+  }
+
+  @Delete(path: "/data")
+  String deleteRoute(){
+    return "DELETE";
+  }
+
+  @Head(path: "/data")
+  String headRoute(){
+    return "HEAD";
+  }
+
+  @Options(path: "/data")
+  String optionsRoute(){
+    return "OPTIONS";
+  }
+
+  @Patch(path: "/data")
+  String patchRoute(){
+    return "PATCH";
   }
 
 }

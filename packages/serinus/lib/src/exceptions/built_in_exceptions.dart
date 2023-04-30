@@ -81,6 +81,26 @@ class ForbiddenException extends SerinusException{
   );
 }
 
+/// The class GatewayTimeoutException is used to throw a gone exception
+/// 
+/// Example:
+/// ``` dart
+/// throw GatewayTimeoutException();
+/// ```
+/// 
+/// The [message] parameter is optional and is used to define the message of the exception
+/// 
+/// The [uri] parameter is optional and is used to define the uri of the exception
+/// 
+/// The [statusCode] is 504
+class GatewayTimeoutException extends SerinusException{
+  const GatewayTimeoutException({String message = "Gateway Timeout!", Uri? uri }) : super(
+    message: message, 
+    uri: uri, 
+    statusCode: 504
+  );
+}
+
 /// The class GoneException is used to throw a gone exception
 /// 
 /// Example:
@@ -318,6 +338,26 @@ class UnauthorizedException extends SerinusException{
     message: message, 
     uri: uri, 
     statusCode: 401
+  );
+}
+
+/// The class UnprocessableEntityException is used to throw a unsupported media type exception
+/// 
+/// Example:
+/// ``` dart
+/// throw UnprocessableEntityException();
+/// ```
+/// 
+/// The [message] parameter is optional and is used to define the message of the exception
+/// 
+/// The [uri] parameter is optional and is used to define the uri of the exception
+/// 
+/// The [statusCode] is 422
+class UnprocessableEntityException extends SerinusException {
+  const UnprocessableEntityException({String message = "Unprocessable entity!", Uri? uri }) : super(
+    message: message, 
+    uri: uri, 
+    statusCode: 422
   );
 }
 

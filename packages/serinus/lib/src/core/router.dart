@@ -65,7 +65,7 @@ class Router{
             containerLogger.info("Added ${controllerRoute.reflectee.method} route $path");
           }
         }catch(error){
-          containerLogger.warning("Route ${e.key} in ${ref.type.reflectedType} is not decorated with @Route annotation.");
+          containerLogger.warning("Route ${e.key} in ${ref.type.reflectedType} is not decorated with a route annotation.\n(@Get, @Post, @Put, @Delete, @Head, @Patch, @Options)");
         }
       });
     }
