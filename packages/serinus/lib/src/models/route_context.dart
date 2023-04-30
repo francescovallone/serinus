@@ -10,7 +10,8 @@ class RouteContext{
   final Method method;
   final int statusCode;
   final List<ParameterMirror> parameters;
-  final dynamic module;
+  final SerinusModule module;
+  final List<MiddlewareConsumer> middlewares;
 
   RouteContext({
     required this.path,
@@ -20,7 +21,8 @@ class RouteContext{
     required this.method,
     required this.statusCode,
     required this.parameters,
-    required this.module
+    required this.module,
+    required this.middlewares,
   });
 
 

@@ -40,25 +40,16 @@ class RequestContext{
 
   InstanceMirror? _consumeMiddlewares(){
     InstanceMirror? result;
-    if(data.module is SerinusModule){
-      List<MiddlewareConsumer> consumers = SerinusContainer.instance.getMiddlewareConsumers(data.module);
-      for(MiddlewareConsumer consumer in consumers){
-        if(consumer.middleware != null && !consumer.excludedRoutes.any((element) => (
-            (
-              (element.method != null && element.method == data.method) || element.method == null) 
-              && (element.uri.path == data.path || element.uri.path == "*")
-            )
-          )
-        ){
-          if(consumer == consumers.last){
-            consumer.middleware!.use(_request, _response, ()  {
-              result = invoke();
-            });
-          }else{
-            consumer.middleware!.use(_request, _response, () => {});
-          }
-        }
-      }
+    for(MiddlewareConsumer consumer in data.middlewares){
+      consumer.middleware?.use(
+        _request, 
+        _response, 
+        consumer == data.middlewares.last 
+          ? () {
+            result = invoke();
+          } 
+          : () => {}
+      );
     }
     return result;
   }

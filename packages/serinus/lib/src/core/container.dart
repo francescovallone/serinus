@@ -37,10 +37,6 @@ class SerinusContainer {
     _router.clear();
   }
 
-  List<MiddlewareConsumer> getMiddlewareConsumers(SerinusModule module){
-    return _explorer.getMiddlewaresByModule(module);
-  }
-
   Future<Map<String, dynamic>> addParameters(Map<String, dynamic> parameters, Request request, RouteContext context) async {
     dynamic jsonBody, body;
     if(isMultipartFormData(request.contentType)){

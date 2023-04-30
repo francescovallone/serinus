@@ -39,6 +39,7 @@ class Router{
                 (element) => element.metadata.isNotEmpty && element.metadata.first.reflectee is Body
               ).length <= 1
             );
+            final module = explorer.getModuleByController(controller.runtimeType).first;
             _routes.add(
               RouteContext(
                 path: path, 
@@ -48,7 +49,17 @@ class Router{
                 method: controllerRoute.reflectee.method,
                 statusCode: controllerRoute.reflectee.statusCode,
                 parameters: e.value.parameters,
-                module: explorer.getModuleByController(controller.runtimeType).first
+                module: module,
+                middlewares: explorer.getMiddlewaresByModule(module).where(
+                  (consumer) => consumer.middleware != null && !consumer.excludedRoutes.any(
+                    (element) => (
+                      (
+                        (element.method != null && element.method == controllerRoute.reflectee.method) || element.method == null
+                      ) && 
+                      (element.uri.path == path || element.uri.path == "*")
+                    )
+                  )
+                ).toList()
               )
             );
             containerLogger.info("Added ${controllerRoute.reflectee.method} route $path");
