@@ -21,7 +21,11 @@ class SerinusFactory{
       this.developmentMode = false,
       this.loggingLevel = Logging.all
     }
-  );
+  ){
+    if(Platform.executableArguments.contains("--dev")){
+      developmentMode = true;
+    };
+  }
 
   /// The [serve] method is used to start the server
   Future<void> serve() async {
