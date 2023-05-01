@@ -35,7 +35,7 @@ jobs:
       - name: 📊 Check Code Coverage
         uses: VeryGoodOpenSource/very_good_coverage@v2
         with:
-          path: ./coverage/lcov.info
+          path: ./packages/serinus/coverage/lcov.info
           min_coverage: 70
       
       - name: Upload coverage reports to Codecov
