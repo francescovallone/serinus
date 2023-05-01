@@ -1,14 +1,12 @@
 // coverage:ignore-file
 import 'package:serinus/serinus.dart';
 
-import '../data/data.service.dart';
 
 @Controller()
-class AppController extends SerinusController{
+class AppControllerSame extends SerinusController{
 
-  final DataService appService;
 
-  const AppController(this.appService);
+  const AppControllerSame();
 
   @Get()
   Map<String, dynamic> ping(){
@@ -28,15 +26,6 @@ class AppController extends SerinusController{
   Map<String, dynamic> data(){
     return {
       "hello": "HELLO"
-    };
-  }
-
-  @Post(path: '/formdata')
-  Map<String, dynamic> formData(
-    @Body() dynamic body
-  ){
-    return {
-      "body": body
     };
   }
 

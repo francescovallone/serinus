@@ -34,7 +34,6 @@ class ResponseDecoder{
   static String convertStringToJson(HttpResponse response, String data){
     try{
       final result = jsonEncode(jsonDecode("$data"));
-      response.headers.contentType = ContentType.json;
       return result;
     }catch(e){
       response.headers.contentType = ContentType.text;
@@ -48,7 +47,7 @@ class ResponseDecoder{
       response.headers.contentType = ContentType.json;
       return result;
     }catch(e){
-      throw InternalServerError(message: "Error while parsing json");
+      throw InternalServerErrorException(message: "Error while parsing json");
     }
   }
 

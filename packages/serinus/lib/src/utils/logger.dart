@@ -5,9 +5,13 @@ class Logger{
 
   final String name;
   late logging.Logger _logger;
+  static final Map<String, Logger> _loggers = {};
   
+  factory Logger(String name){
+    return _loggers.putIfAbsent(name, () => Logger._internal(name));
+  }
 
-  Logger(this.name){
+  Logger._internal(this.name){
     _logger = logging.Logger(name);
   }
 

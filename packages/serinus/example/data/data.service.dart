@@ -1,6 +1,6 @@
 import 'package:serinus/serinus.dart';
 
-class DataService extends SerinusService{
+class DataService extends SerinusProvider{
 
   String printHello(String value){
     return "HELLO $value";

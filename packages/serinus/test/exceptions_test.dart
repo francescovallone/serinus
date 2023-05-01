@@ -37,7 +37,7 @@ void main() {
   });
 
   test("should instantiate a InternalServerError with custom message", (){
-    InternalServerError exception = InternalServerError(
+    final exception = InternalServerErrorException(
       message: "Custom message!"
     );
     expect(exception.statusCode, 500);
@@ -81,6 +81,88 @@ void main() {
       message: "Custom message!"
     );
     expect(exception.statusCode, 401);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a UnprocessableEntityException with custom message", (){
+    UnprocessableEntityException exception = UnprocessableEntityException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 422);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a UnsupportedMediaTypeException with custom message", (){
+    UnsupportedMediaTypeException exception = UnsupportedMediaTypeException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 415);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a SerinusException with custom message", (){
+    SerinusException exception = SerinusException(
+      message: "Custom message!", 
+      statusCode: 500
+    );
+    expect(exception.statusCode, 500);
+    expect(exception.message, "Custom message!");
+    expect(exception.toString(), exception.runtimeType.toString());
+  });
+
+  test("should instantiate a BadGatewayException with custom message", (){
+    BadGatewayException exception = BadGatewayException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 502);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a GatewayTimeoutException with custom message", (){
+    GatewayTimeoutException exception = GatewayTimeoutException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 504);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a ServiceUnavailableException with custom message", (){
+    ServiceUnavailableException exception = ServiceUnavailableException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 503);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a HttpVersionNotSupportedException with custom message", () {
+    HttpVersionNotSupportedException exception = HttpVersionNotSupportedException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 505);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a NotImplementedException with custom message", () {
+    NotImplementedException exception = NotImplementedException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 501);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a PayloadTooLargeException with custom message", () {
+    PayloadTooLargeException exception = PayloadTooLargeException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 413);
+    expect(exception.message, "Custom message!");
+  });
+
+  test("should instantiate a PreconditionFailedException with custom message", () {
+    PreconditionFailedException exception = PreconditionFailedException(
+      message: "Custom message!"
+    );
+    expect(exception.statusCode, 412);
     expect(exception.message, "Custom message!");
   });
 
