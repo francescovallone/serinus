@@ -26,7 +26,7 @@ final MasonBundle createApplicationTemplate = MasonBundle.fromJson({
     },
     {
       'path': 'pubspec.yaml',
-      'data': 'bmFtZToge3tuYW1lLnNuYWtlQ2FzZSgpfX0KZGVzY3JpcHRpb246IEEgU2VyaW51cyBhcHBsaWNhdGlvbi4KdmVyc2lvbjogMS4wLjAKcHVibGlzaF90bzogbm9uZQoKZW52aXJvbm1lbnQ6CiAgc2RrOiAnPj0yLjE5LjYgPDMuMC4wJwoKZGVwZW5kZW5jaWVzOgogIHNlcmludXM6IF4wLjAuMS1kZXYuMgoKZGV2X2RlcGVuZGVuY2llczoKICBsaW50czogXjIuMC4wCiAgdGVzdDogXjEuMjEuMA==',
+      'data': 'bmFtZToge3tuYW1lLnNuYWtlQ2FzZSgpfX0KZGVzY3JpcHRpb246IEEgU2VyaW51cyBhcHBsaWNhdGlvbi4KdmVyc2lvbjogMS4wLjAKcHVibGlzaF90bzogbm9uZQoKZW52aXJvbm1lbnQ6CiAgc2RrOiAnPj0yLjE5LjYgPDMuMC4wJwoKZGVwZW5kZW5jaWVzOgogIHNlcmludXM6IF4wLjAuMS1kZXYuMwoKZGV2X2RlcGVuZGVuY2llczoKICBsaW50czogXjIuMC4wCiAgdGVzdDogXjEuMjEuMA==',
       'type': 'text'
     },
     {
@@ -46,7 +46,7 @@ final MasonBundle createApplicationTemplate = MasonBundle.fromJson({
     },
   ],
   'name': 'create_serinus_app',
-  'version': '0.0.1-dev.1',
+  'version': '0.0.1-dev.3',
   'environment': {'mason': '>=0.1.0-dev <0.1.0'},
   'changelog': {
     'path': 'CHANGELOG.md',
