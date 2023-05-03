@@ -30,13 +30,17 @@ class RunCommand extends Command<int> {
       help: 'Set your application port',
       abbr: 'p',
     )..addOption(
-      'address', 
-      help: 'Set your application address',
+      'host', 
+      help: 'Set your application host',
       abbr: 'a',
     )..addOption(
       'directory', 
       help: 'Set your application directory',
       abbr: 'w',
+    )..addOption(
+      'entrypoint',
+      help: 'Set your application entrypoint',
+      abbr: 'e',
     );
 
   }
@@ -47,7 +51,11 @@ class RunCommand extends Command<int> {
   String get description => 'Run your Serinus application';
 
   @override
-  String get name => 'Run';
+  String get name => 'run';
+
+  String get _entrypoint {
+    return argResults?['entrypoint'] as String? ?? 'lib/main.dart';
+  }
 
   final Logger? _logger;
 
@@ -67,31 +75,40 @@ class RunCommand extends Command<int> {
           _killProcess(process);
         }
       );
-    }
-    if(_developmentMode){
-      _watcher.events.listen((event) async {
+    }    
+    final subscription = _watcher.events
+      .where((_) => _developmentMode)
+      .listen((event) async {
         if (event.type == ChangeType.MODIFY){
           await _killProcess(process, restarting: true);
-          _logger?.info('Restarting your application...');
-          process = await serve();
+          // ignore: avoid_print
+          print('\x1B[2J\x1B[0;0H');
+          process = await serve(restarting: true);
         }
       });
-    }
+
+    await subscription.asFuture<void>();
+    await subscription.cancel();
     return ExitCode.success.code;
   }
 
-  Future<Process> serve() async{
+  Future<Process> serve({bool restarting = false}) async{
     final progress = _logger?.progress(
-      'Starting your application...',
+      '${restarting ? 'Res' : 'S'}tarting your application...',
     );
     final mainFile = File(
-      path.join(Directory.current.path, 'lib', 'main.dart'),
+      path.join(Directory.current.path, _entrypoint),
     );
     final process = await Process.start(
       'dart', 
       ['--enable-vm-service', mainFile.absolute.path],
       runInShell: true,
+      environment: {
+        'PORT': argResults?['port'] as String? ?? '3000',
+        'ADDRESS': argResults?['host'] as String? ?? 'localhost'
+      },
     );
+    progress?.complete();
     process.stdout.transform(utf8.decoder).listen(
       (data) => _logger?.info(
         data.replaceAll('\n', ''),
@@ -102,7 +119,6 @@ class RunCommand extends Command<int> {
         data.replaceAll('\n', ''),
       ),
     );
-    progress?.complete();
     return process;
   }
 

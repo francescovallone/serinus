@@ -4,9 +4,10 @@ import 'package:cli_completion/cli_completion.dart';
 import 'package:mason/mason.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:serinus_cli/src/commands/commands.dart';
+import 'package:serinus_cli/src/commands/generate/generate_command.dart';
 import 'package:serinus_cli/src/version.dart' as version;
 
-const executableName = 'serinus_cli';
+const executableName = 'serinus';
 const packageName = 'serinus_cli';
 const description = 'A Very Good Project created by Very Good CLI.';
 
@@ -42,6 +43,7 @@ class SerinusCliCommandRunner extends CompletionCommandRunner<int> {
     addCommand(CreateCommand(logger: _logger));
     addCommand(UpdateCommand(logger: _logger, pubUpdater: _pubUpdater));
     addCommand(RunCommand(logger: _logger));
+    addCommand(GenerateCommand(logger: _logger));
   }
 
   @override
@@ -112,16 +114,13 @@ class SerinusCliCommandRunner extends CompletionCommandRunner<int> {
     if (topLevelResults['version'] == true) {
       _logger.info(version.packageVersion);
       exitCode = ExitCode.success.code;
-    } else {
-      exitCode = await super.runCommand(topLevelResults);
     }
-
     // Check for updates
-    if (topLevelResults.command?.name != UpdateCommand.commandName) {
-      await _checkForUpdates();
-    }
+    // if (topLevelResults.command?.name != UpdateCommand.commandName) {
+    //   await _checkForUpdates();
+    // }
 
-    return exitCode;
+    return super.runCommand(topLevelResults);
   }
 
   /// Checks if the current version (set by the build runner on the
