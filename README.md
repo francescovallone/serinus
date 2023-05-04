@@ -15,26 +15,26 @@ dart pub global activate serinus_cli
 ## Create a new project
 
 ```bash
-serinus_cli create <project_name>
+serinus create <project_name>
 ```
 
 ## Run the project
 
 ```bash
 cd <project_name>
-serinus_cli run
+serinus run
 ```
 
-By default the server will run on port 3000 and will listen for requests on localhost. You can change these settings modifying the file where you have defined the application (by default this file is `lib/main.dart`) or by passing the `--port` and `--address` flags to the `run` command:
+By default the server will run on port 3000 and will listen for requests on localhost. You can change these settings modifying the file where you have defined the application (by default this file is `lib/main.dart`) or by passing the `--port` and `--host` flags to the `run` command:
 
 ```bash
-serinus_cli run --port=8080 --address=localhost
+serinus run --port=8080 --host=localhost
 ```
 
 You can also start the application in development mode adding the `--dev` flag to the command:
 
 ```bash
-serinus_cli run --dev
+serinus run --dev
 ```
 
 In development mode the server will automatically restart when you change the source code.
