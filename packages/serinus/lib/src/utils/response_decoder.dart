@@ -36,7 +36,6 @@ class ResponseDecoder{
       final result = jsonEncode(jsonDecode("$data"));
       return result;
     }catch(e){
-      response.headers.contentType = ContentType.text;
       return data;
     }
   }

@@ -5,6 +5,6 @@ void catchTopLevelErrors(void Function() callback,
   if (Zone.current.inSameErrorZone(Zone.root)) {
     return runZonedGuarded(callback, onError);
   } else {
-    return callback();
+    return runZoned(() => callback());
   }
 }

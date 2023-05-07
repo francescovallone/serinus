@@ -1,8 +1,14 @@
+import 'dart:isolate';
 import 'dart:mirrors';
 
+import 'package:async/async.dart';
 import 'package:get_it/get_it.dart';
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/models/event_context.dart';
+import 'package:serinus/src/models/models.dart';
 import 'package:serinus/src/utils/container_utils.dart';
+
+typedef WebSocketContextualized = Map<WebSocketContext, WsProvider>;
 
 class Explorer {
 
@@ -11,6 +17,7 @@ class Explorer {
   final Map<Type, SerinusModule> _controllers = {};
   final Map<SerinusModule, List<MiddlewareConsumer>> _moduleMiddlewares = {};
   final List<Type> _startupInjectables = [];
+  final WebSocketContextualized websockets = {};
   final GetIt _getIt = GetIt.instance;
   List<SerinusController> get controllers => _controllers.keys.map(
     (e) => _getIt.call<SerinusController>(instanceName: e.toString())).toList();
@@ -70,6 +77,21 @@ class Explorer {
         _startupInjectables.add(t);
       }
       _getIt.registerSingleton<T>(reflectClass(t).newInstance(Symbol.empty, parameters).reflectee, instanceName: t.toString());
+      int websocketIndex = reflectClass(t).metadata.indexWhere((element) => element.reflectee is WebSocketGateway);
+      if(websocketIndex != -1){
+        WebSocketGateway websocket = reflectClass(t).metadata[websocketIndex].reflectee;
+        if(!websockets.keys.every((element) => element.gateway.namespace != websocket.namespace)){
+          throw StateError("There can't be two gateway with the same namespace!");
+        }
+        websockets[
+          WebSocketContext(
+            gateway: websocket,
+            events: getDecoratedEndpoints<Event>(reflectClass(t).instanceMembers).entries.map((e) => EventContext(symbol: e.key.toString(), handler: e.value)).toList(),
+            type: t
+          )
+        ] = _getIt<SerinusProvider>(instanceName: t.toString()) as WsProvider;
+        containerLogger.info("Websocket gateway ${t.toString()} loaded");
+      }
     }
   }
   

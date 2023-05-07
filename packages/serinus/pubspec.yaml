@@ -10,12 +10,15 @@ environment:
   sdk: '>=2.19.0 <3.0.0'
 
 dependencies:
+  async: ^2.11.0
   get_it: ^7.2.0
   http_parser: ^4.0.2
   intl: ^0.18.0
   logging: ^1.1.0
   meta: ^1.9.1
   mime: ^1.0.4
+  stream_channel: ^2.1.1
+  web_socket_channel: ^2.4.0
 
 dev_dependencies:
   test: ^1.16.0

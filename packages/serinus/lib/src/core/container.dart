@@ -26,9 +26,7 @@ class SerinusContainer {
 
   /// The method discoverRoutes is used to discover the routes of a module
   List<RouteContext> discoverRoutes(SerinusModule module){
-    _explorer = Explorer();
     _explorer.loadDependencies(module, []);
-    _router = Router();
     _router.loadRoutes(_explorer);
     _explorer.startupInjectables();
     return _router.routes;
@@ -96,6 +94,22 @@ class SerinusContainer {
   
   RequestContext getRequestContext(Request request) {
     return _router.getContext(request);
+  }
+
+  WebSocketContext getWebSocketContext(Request request) {
+    var index = _explorer.websockets.keys.toList().indexWhere((element) => element.gateway.namespace == request.path);
+    if(index > -1){
+      return _explorer.websockets.keys.elementAt(index);
+    }
+    index = _explorer.websockets.keys.toList().indexWhere((element) => element.gateway.namespace == null);
+    if(index == -1){
+      throw NotFoundException();
+    }
+    return _explorer.websockets.keys.elementAt(index);
+  }
+
+  WsProvider getWsProvider(WebSocketContext context){
+    return _explorer.websockets[context]!;
   }
 
 }

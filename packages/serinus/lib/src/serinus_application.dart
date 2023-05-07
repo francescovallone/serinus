@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:io';
 
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart' as logging;
@@ -89,15 +90,22 @@ class SerinusApplication{
   void _handler(io.HttpRequest httpRequest, [String? poweredByHeader]) async {
     Request request = Request.fromHttpRequest(httpRequest);
     try{
-      RequestContext requestContext = SerinusContainer.instance.getRequestContext(request);
-      Response response = Response.from(
-        httpRequest.response,  
-        poweredByHeader: poweredByHeader,
-        statusCode: requestContext.data.statusCode
-      );
-      await requestContext.init(request, response);
-      await requestContext.handle();
-      requestLogger.info('${requestContext.data.statusCode} ${request.method} ${request.path} ${response.contentLengthString}');
+      if(request.isWebSocket){
+        WebSocketContext context = SerinusContainer.instance.getWebSocketContext(request);
+        await context.initialize(request);
+        WsProvider wsProvider = SerinusContainer.instance.getWsProvider(context);
+        wsProvider.initialize(context);
+      }else{
+        RequestContext requestContext = SerinusContainer.instance.getRequestContext(request);
+        Response response = Response.from(
+          httpRequest.response,  
+          poweredByHeader: poweredByHeader,
+          statusCode: requestContext.data.statusCode
+        );
+        await requestContext.init(request, response);
+        await requestContext.handle();
+        requestLogger.info('${requestContext.data.statusCode} ${request.method} ${request.path} ${response.contentLengthString}');
+      }
     }on SerinusException catch(e){
       String contentLength = await e.response(httpRequest.response);
       requestLogger.error('${e.statusCode} ${request.method} ${request.path} ${contentLength}');

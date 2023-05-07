@@ -6,4 +6,8 @@
 /// // ...
 /// }
 /// ```
-abstract class SerinusProvider{}
+abstract class SerinusProvider{
+
+  const SerinusProvider();
+
+}

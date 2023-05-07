@@ -50,15 +50,15 @@ void main() {
     Response r = Response.from(
       FakeResponse(),
     );
-    r.data = {
+    await r.setData({
       'test': 1
-    };
+    });
     expect(r.headers.contentType!.mimeType, ContentType.json.mimeType);
-    r.data = "test";
+    await r.setData("test");
     expect(r.headers.contentType!.mimeType, ContentType.text.mimeType);
-    r.data = {
+    await r.setData({
       1: 'test'
-    };
+    });
     expect(r.headers.contentType!.mimeType, ContentType.json.mimeType);
   });
 

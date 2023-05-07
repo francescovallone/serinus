@@ -2,7 +2,6 @@
 import 'dart:mirrors';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/decorators/http/route.dart';
 import 'package:serinus/src/models/models.dart';
 
 
@@ -14,9 +13,9 @@ Controller isController(InstanceMirror controller) {
   return controller.type.metadata[index].reflectee;
 }
 
-Map<Symbol, MethodMirror> getDecoratedRoutes(Map<Symbol, MethodMirror> instanceMembers){
+Map<Symbol, MethodMirror> getDecoratedEndpoints<T>(Map<Symbol, MethodMirror> instanceMembers){
   Map<Symbol, MethodMirror> map = Map<Symbol, MethodMirror>.from(instanceMembers);
-  map.removeWhere((key, value) => value.metadata.indexWhere((element) => element.reflectee is Route) == -1);
+  map.removeWhere((key, value) => value.metadata.indexWhere((element) => element.reflectee is T) == -1);
   return map; 
 }
 

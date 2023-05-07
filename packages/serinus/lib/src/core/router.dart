@@ -28,7 +28,7 @@ class Router{
           ? ref.type.metadata[0].reflectee.path 
           : '/'}"
       );
-      final routes = getDecoratedRoutes(ref.type.instanceMembers);
+      final routes = getDecoratedEndpoints<Route>(ref.type.instanceMembers);
       routes.entries.forEach((e) { 
         try{
           InstanceMirror controllerRoute = e.value.metadata.firstWhere((element) => element.reflectee is Route);

@@ -32,9 +32,9 @@ class RequestContext{
   Future<void> handle() async {
     InstanceMirror? result = _consumeMiddlewares();
     if(result == null){
-      result = invoke();
+      result = await invoke();
     }
-    _response.data = result.reflectee;
+    await _response.setData(result.reflectee);
     await _response.sendData();
   }
 
@@ -45,8 +45,8 @@ class RequestContext{
         _request, 
         _response, 
         consumer == data.middlewares.last 
-          ? () {
-            result = invoke();
+          ? () async {
+            result = await invoke();
           } 
           : () => {}
       );
@@ -54,8 +54,8 @@ class RequestContext{
     return result;
   }
 
-  InstanceMirror invoke(){
-    return data.controller.invoke(
+  Future<InstanceMirror> invoke() async {
+    return await data.controller.invoke(
       data.symbol, 
       params.values.toList()
     );

@@ -8,7 +8,7 @@ class Response{
 
   /// The result of the response
   /// the result is the data that will be sent back to the client
-  late dynamic _result;
+  dynamic _result;
   /// The response object of the request
   late HttpResponse _response;
   /// The content length of the response
@@ -38,8 +38,8 @@ class Response{
   }
 
   /// The setter [data] is used to set data of the response
-  void set data(dynamic data){
-    _setResponseData(data);
+  Future<void> setData(dynamic data) async{
+    await _setResponseData(data);
   }
 
   /// The method [sendData] is used to send the data of the response to the client
@@ -50,16 +50,18 @@ class Response{
   }
   
   /// The method [_setResponseData] is used to set the data of the response
-  void _setResponseData(dynamic data) async {
+  Future<void> _setResponseData(dynamic data) async {
+    final _parsableData = await data;
+    print(ResponseDecoder.convertStringToJson(_response, _parsableData));
     /// If the data is a [String] then the data is converted to json
-    if(data is String){
-      _result = ResponseDecoder.convertStringToJson(_response, data);
-    } else if(data is List || data is Map){
+    if(_parsableData is String){
+      _result = ResponseDecoder.convertStringToJson(_response, _parsableData);
+    } else if(_parsableData is List || _parsableData is Map){
       /// If the data is a [List] or a [Map] then the data is converted to json
-      _result = ResponseDecoder.tryToParseJson(_response, data);
+      _result = ResponseDecoder.tryToParseJson(_response, _parsableData);
     }else{
       /// If the data is not a [String], a [List] or a [Map] then the data is set to the result
-      _result = data;
+      _result = _parsableData;
     }
     /// The content length of the response is set to the length of the result converted to utf8
     contentLength = Utf8Encoder().convert(_result.toString()).buffer.lengthInBytes;
