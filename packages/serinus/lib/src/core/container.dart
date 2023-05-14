@@ -108,8 +108,4 @@ class SerinusContainer {
     return _explorer.websockets.keys.elementAt(index);
   }
 
-  WsProvider getWsProvider(WebSocketContext context){
-    return _explorer.websockets[context]!;
-  }
-
 }

@@ -7,7 +7,6 @@ class WsProvider extends SerinusProvider{
   late WebSocketContext _context;
 
   @nonVirtual
-  @protected
   void initialize(WebSocketContext context){
     this._context = context;
   }
@@ -20,7 +19,6 @@ class WsProvider extends SerinusProvider{
     _context.listen<T>(callback);
   }
 
-  @protected
   Future<void> close() async{
     await _context.close();
   }

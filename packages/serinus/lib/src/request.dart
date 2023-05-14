@@ -147,9 +147,6 @@ class Request{
     }
 
     webSocketKey = key;
-
-    final origin = httpRequest.headers.value('Origin');
-
     return true;
   }
 

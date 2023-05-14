@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/models/models.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WebSocketContext{
