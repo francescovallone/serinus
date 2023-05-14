@@ -4,42 +4,25 @@ import 'package:serinus/src/models/models.dart';
 
 class WsProvider extends SerinusProvider{
 
-  bool get isInitialized => _context != null;
-
+  late WebSocketContext _context;
 
   @nonVirtual
   @protected
-  WebSocketContext? _context;
-
-  @nonVirtual
   void initialize(WebSocketContext context){
-    if(!isInitialized){
-      this._context = context;
-    }
+    this._context = context;
   }
 
-  @nonVirtual
-  @protected
-  Future<void> emit(dynamic message) async{
-    if(isInitialized){
-      await _context!.emit(message);
-    }
+  Future<void> add<T>(T message) async {
+    await _context.emit<T>(message);
   }
 
-  @nonVirtual
-  @protected
-  Future<void> retrieve(Function(dynamic) callback) async {
-    if(isInitialized){
-      _context!.listen(callback);
-    }
+  void onMessage<T>(Function(T) callback) {
+    _context.listen<T>(callback);
   }
 
-  @nonVirtual
   @protected
   Future<void> close() async{
-    if(isInitialized){
-      await _context!.close();
-    }
+    await _context.close();
   }
   
 }

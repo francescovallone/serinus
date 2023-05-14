@@ -1,10 +1,7 @@
-import 'dart:isolate';
 import 'dart:mirrors';
 
-import 'package:async/async.dart';
 import 'package:get_it/get_it.dart';
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/models/event_context.dart';
 import 'package:serinus/src/models/models.dart';
 import 'package:serinus/src/utils/container_utils.dart';
 
@@ -56,7 +53,7 @@ class Explorer {
     _istantiateInjectables<SerinusProvider>(module.providers);
     if(!_controllers.containsKey(m)){
       _istantiateInjectables<SerinusController>(module.controllers);
-      _checkControllerPath([...module.controllers, ..._controllers.keys.toList()]);
+      _checkControllerPath([...module.controllers, ..._controllers.keys.toList()].toSet());
       module.controllers.forEach((element) {
         _controllers[element] = m;
       });
@@ -76,26 +73,29 @@ class Explorer {
       if(reflectType(t).isSubtypeOf(reflectType(ApplicationInit))){
         _startupInjectables.add(t);
       }
-      _getIt.registerSingleton<T>(reflectClass(t).newInstance(Symbol.empty, parameters).reflectee, instanceName: t.toString());
+      if(!_getIt.isRegistered<T>(instanceName: t.toString())){
+        _getIt.registerSingleton<T>(reflectClass(t).newInstance(Symbol.empty, parameters).reflectee, instanceName: t.toString());
+      }
       int websocketIndex = reflectClass(t).metadata.indexWhere((element) => element.reflectee is WebSocketGateway);
       if(websocketIndex != -1){
         WebSocketGateway websocket = reflectClass(t).metadata[websocketIndex].reflectee;
         if(!websockets.keys.every((element) => element.gateway.namespace != websocket.namespace)){
           throw StateError("There can't be two gateway with the same namespace!");
         }
+        final context = WebSocketContext(
+          gateway: websocket,
+          type: t
+        );
         websockets[
-          WebSocketContext(
-            gateway: websocket,
-            events: getDecoratedEndpoints<Event>(reflectClass(t).instanceMembers).entries.map((e) => EventContext(symbol: e.key.toString(), handler: e.value)).toList(),
-            type: t
-          )
+          context
         ] = _getIt<SerinusProvider>(instanceName: t.toString()) as WsProvider;
+        (_getIt<SerinusProvider>(instanceName: t.toString()) as WsProvider).initialize(context);
         containerLogger.info("Websocket gateway ${t.toString()} loaded");
       }
     }
   }
   
-  void _checkControllerPath(List<Type> controllers) {
+  void _checkControllerPath(Iterable<Type> controllers) {
     List<String> controllersPaths = [];
     for(Type c in controllers){
       SerinusController controller = _getIt.call<SerinusController>(instanceName: c.toString());

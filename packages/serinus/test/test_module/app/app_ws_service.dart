@@ -1,15 +1,13 @@
 import 'package:serinus/serinus.dart';
 
-import 'data/data.service.dart';
-import 'websocket.dart';
+import 'websocket_provider.dart';
 
-class AppService extends SerinusProvider with ApplicationInit{
+class AppWsService extends SerinusProvider with ApplicationInit{
 
   Logger _logger = Logger("AppService");
-  final DataService dataService;
-  final WebsocketGateway gateway;
+  final WebsocketProvider gateway;
 
-  AppService(this.dataService, this.gateway);
+  AppWsService(this.gateway);
 
   String ping(){
     return "Pong!";
@@ -17,7 +15,6 @@ class AppService extends SerinusProvider with ApplicationInit{
   
   @override
   Future<void> onInit() async {
-    _logger.info("AppService is initialized! ${dataService.printHello("value")}");
     gateway.onMessage<String>((message) {
       _logger.info("Message received: $message");
       if(message == "ping")

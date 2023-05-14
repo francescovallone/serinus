@@ -8,26 +8,29 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class WebSocketContext{
 
   final WebSocketGateway gateway;
-  final List<EventContext> events;
   final Type type;
   List<WebSocketChannel> channels = [];
-
+  StreamController<dynamic> _controller = StreamController<dynamic>();
 
   WebSocketContext({
     required this.gateway,
-    required this.events,
     required this.type,
   });
 
-
-  Future<void> initialize(Request request) async {
+  Future<void> connect(Request request) async {
     Socket socket = await request.httpRequest.response.detachSocket(writeHeaders: false);
-    this.channels.add(request.upgradeToWebSocket(
+    WebSocketChannel channel = request.upgradeToWebSocket(
       socket
-    ));
+    );
+    this.channels.add(channel);
+    channel.stream.listen((event) {
+      _controller.add(event);
+    });
   }
 
-  Future<void> emit(dynamic message) async{
+  void onConnection(){}
+
+  Future<void> emit<T>(T message) async{
     if(channels.isNotEmpty){
       await Future.microtask((){
         channels.forEach((element) { 
@@ -37,14 +40,10 @@ class WebSocketContext{
     }
   }
 
-  void listen(Function(dynamic) callback){
-    if(channels.isNotEmpty){
-      channels.forEach((element) { 
-        element.stream.asBroadcastStream().listen(
-          callback,
-        );
-      });
-    }
+  void listen<T>(Function(T) callback){
+    _controller.stream.listen((event){
+      callback(event);
+    });
   }
 
   Future<void> close() async{

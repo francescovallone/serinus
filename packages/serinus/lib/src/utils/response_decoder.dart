@@ -33,7 +33,7 @@ class ResponseDecoder{
 
   static String convertStringToJson(HttpResponse response, String data){
     try{
-      final result = jsonEncode(jsonDecode("$data"));
+      final result = jsonEncode(jsonDecode(data));
       return result;
     }catch(e){
       return data;

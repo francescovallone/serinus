@@ -5,14 +5,15 @@ import 'app/app2.module.dart';
 import 'app/app3.module.dart';
 import 'app/app4.module.dart';
 import 'app/app5.module.dart';
+import 'app/app7_module.dart';
 
 class Serinus{
 
-  static SerinusFactory createApp(){
+  static SerinusFactory createApp({bool forWsTest = false}){
     return SerinusFactory.createApp(
-      AppModule(), 
+      forWsTest ? AppWsModule() : AppModule(), 
       developmentMode: false, 
-      port: 3000,
+      port: forWsTest ? 3010 : 3000,
       loggingLevel: Logging.blockAllLogs
     );
   }

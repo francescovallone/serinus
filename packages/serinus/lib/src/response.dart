@@ -52,7 +52,6 @@ class Response{
   /// The method [_setResponseData] is used to set the data of the response
   Future<void> _setResponseData(dynamic data) async {
     final _parsableData = await data;
-    print(ResponseDecoder.convertStringToJson(_response, _parsableData));
     /// If the data is a [String] then the data is converted to json
     if(_parsableData is String){
       _result = ResponseDecoder.convertStringToJson(_response, _parsableData);
@@ -63,6 +62,7 @@ class Response{
       /// If the data is not a [String], a [List] or a [Map] then the data is set to the result
       _result = _parsableData;
     }
+
     /// The content length of the response is set to the length of the result converted to utf8
     contentLength = Utf8Encoder().convert(_result.toString()).buffer.lengthInBytes;
   }

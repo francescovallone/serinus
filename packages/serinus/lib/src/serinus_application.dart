@@ -92,9 +92,7 @@ class SerinusApplication{
     try{
       if(request.isWebSocket){
         WebSocketContext context = SerinusContainer.instance.getWebSocketContext(request);
-        await context.initialize(request);
-        WsProvider wsProvider = SerinusContainer.instance.getWsProvider(context);
-        wsProvider.initialize(context);
+        await context.connect(request);
       }else{
         RequestContext requestContext = SerinusContainer.instance.getRequestContext(request);
         Response response = Response.from(

@@ -55,11 +55,21 @@ void main() {
     });
     expect(r.headers.contentType!.mimeType, ContentType.json.mimeType);
     await r.setData("test");
+    r = Response.from(
+      FakeResponse(),
+    );
     expect(r.headers.contentType!.mimeType, ContentType.text.mimeType);
+    r = Response.from(
+      FakeResponse(),
+    );
     await r.setData({
       1: 'test'
     });
-    expect(r.headers.contentType!.mimeType, ContentType.json.mimeType);
+    r = Response.from(
+      FakeResponse(),
+    );
+    await r.setData(1);
+    expect(r.headers.contentType!.mimeType, ContentType.text.mimeType);
   });
 
   test('should convert the map in json parsable', () async {

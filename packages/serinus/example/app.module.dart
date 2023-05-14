@@ -8,6 +8,6 @@ import 'websocket.dart';
 @Module(
   imports: [DataModule()],
   controllers: [AppController],
-  providers: [AppService, WebsocketGateway]
+  providers: [WebsocketGateway, AppService]
 )
 class AppModule extends SerinusModule{}
