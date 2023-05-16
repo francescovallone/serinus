@@ -28,6 +28,7 @@ class SerinusContainer {
   List<RouteContext> discoverRoutes(SerinusModule module){
     _explorer = Explorer();
     _explorer.loadDependencies(module, []);
+    _explorer.finalize();
     _router = Router();
     _router.loadRoutes(_explorer);
     _explorer.startupInjectables();
