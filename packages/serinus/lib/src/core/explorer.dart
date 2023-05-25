@@ -1,6 +1,5 @@
 import 'dart:mirrors';
 
-import 'package:get_it/get_it.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/core/injector.dart';
 import 'package:serinus/src/utils/container_utils.dart';
@@ -11,7 +10,7 @@ class Explorer {
 
   final Map<Type, SerinusModule> _controllers = {};
   final Map<SerinusModule, List<MiddlewareConsumer>> _moduleMiddlewares = {};
-  final List<Type> _startupInjectables = [];
+  final Set<Type> _startupInjectables = {};
   final Map<Type, List<dynamic>> _injectables = {};
   final Injector _injector = Injector();
   List<SerinusController> get controllers => _controllers.keys.map(
@@ -51,7 +50,7 @@ class Explorer {
     _exploreInjectibles<SerinusProvider>(module.providers);
     if(!_controllers.containsKey(m)){
       _exploreInjectibles<SerinusController>(module.controllers);
-      // _checkControllerPath([...module.controllers, ..._controllers.keys.toList()]);
+      _checkControllerPath([...module.controllers, ..._controllers.keys.toList()]);
       module.controllers.forEach((element) {
         _controllers[element] = m;
       });
@@ -65,10 +64,12 @@ class Explorer {
       if(reflectType(t).isSubtypeOf(reflectType(ApplicationInit))){
         _startupInjectables.add(t);
       }
-      if(constructor.parameters.isEmpty){
-        _injector.registerSingleton<T>(reflectClass(t).newInstance(Symbol.empty, []).reflectee, instanceName: t.toString());
-      }else{
-        _injectables[t] = constructor.parameters.map((e) => e.type.reflectedType).toList();
+      if(!_injector.isRegistered<T>(instanceName: t.toString())){
+        if(constructor.parameters.isEmpty){
+          _injector.registerSingleton<T>(reflectClass(t).newInstance(Symbol.empty, []).reflectee, instanceName: t.toString());
+        }else{
+          _injectables[t] = constructor.parameters.map((e) => e.type.reflectedType).toList();
+        }
       }
     }
   }
@@ -105,11 +106,11 @@ class Explorer {
   void _checkControllerPath(List<Type> controllers) {
     List<String> controllersPaths = [];
     for(Type c in controllers){
-      SerinusController controller = _injector.call<SerinusController>(instanceName: c.toString());
-      if(controllersPaths.contains(controller.annotation.path)){
+      Controller controller = isController(reflectClass(c).metadata.first);
+      if(controllersPaths.contains(controller.path)){
         throw StateError("There can't be two controllers with the same path");
       }
-      controllersPaths.add(controller.annotation.path);
+      controllersPaths.add(controller.path);
     }
   }
 

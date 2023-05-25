@@ -9,9 +9,7 @@ class Injector{
 
   final GetIt _getIt = GetIt.instance;
 
-  var _wantedType;
   Set _calledTypes = Set();
-  int _depth = 0;
 
   factory Injector() {
     return _singleton;
@@ -20,9 +18,7 @@ class Injector{
   Injector._internal();
 
   void reset(){
-    _wantedType = null;
     _calledTypes.clear();
-    _depth = 0;
     _getIt.reset();
   }
 

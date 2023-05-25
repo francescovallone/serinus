@@ -6,4 +6,8 @@
 /// // ...
 /// }
 /// ```
-abstract class SerinusProvider{}
+abstract class SerinusProvider{
+
+  String get name => this.runtimeType.toString();
+
+}

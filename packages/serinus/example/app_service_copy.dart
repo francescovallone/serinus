@@ -1,13 +1,13 @@
 import 'package:serinus/serinus.dart';
 
-import 'app.service.dart';
 
 class AppServiceCopy extends SerinusProvider with ApplicationInit{
 
-  Logger _logger = Logger("AppServiceCopy");
-  final AppService appService;
+  late Logger _logger;
 
-  AppServiceCopy(this.appService);
+  AppServiceCopy(){
+    _logger = Logger(name);
+  }
 
   String ping(){
     return "Pong!";
@@ -15,7 +15,7 @@ class AppServiceCopy extends SerinusProvider with ApplicationInit{
   
   @override
   void onInit() {
-    _logger.info("AppService is initialized! ${appService.dataService.printHello("value")}");
+    _logger.info("AppService is initialized!");
   }
 
 
