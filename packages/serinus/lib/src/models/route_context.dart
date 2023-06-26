@@ -12,8 +12,9 @@ class RouteContext{
   final List<ParameterMirror> parameters;
   final SerinusModule module;
   final List<MiddlewareConsumer> middlewares;
+  final List<Header> headers;
 
-  RouteContext({
+  const RouteContext({
     required this.path,
     required this.controller,
     required this.handler,
@@ -23,6 +24,7 @@ class RouteContext{
     required this.parameters,
     required this.module,
     required this.middlewares,
+    this.headers = const []
   });
 
 

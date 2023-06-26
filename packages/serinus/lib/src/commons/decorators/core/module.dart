@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/decorators/core/injectable.dart';
 
 /// The class Module is used to mark a class as a module
 /// 
@@ -20,7 +21,7 @@ import 'package:serinus/serinus.dart';
 /// The [providers] parameter is optional and is used to define the providers of the module
 /// 
 /// The [exports] parameter is optional and is used to define the services exported of the module
-class Module{
+class Module extends Injectable{
 
   final List<SerinusModule> imports;
   final List<Type> controllers;
