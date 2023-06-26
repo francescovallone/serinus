@@ -67,7 +67,7 @@ class SerinusApplication{
     /// If the securityContext is null, the server will be started without https
     if(securityContext == null){
       _httpServer = await io.HttpServer.bind(_address, _port);
-    }else{
+    }else{ 
       _httpServer = await io.HttpServer.bindSecure(_address, _port, securityContext);
     }
     final stopwatch = Stopwatch()..start();

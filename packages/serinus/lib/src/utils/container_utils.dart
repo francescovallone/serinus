@@ -7,16 +7,13 @@ import 'package:serinus/src/models/models.dart';
 
 Controller isController(InstanceMirror controller) {
   int index = controller.type.metadata.indexWhere((element) => element.reflectee is Controller);
-  if(index == -1) {
+  if(controller.reflectee is Controller){
+    return controller.reflectee;
+  }else if(index >= 0){
+    return controller.type.metadata[index].reflectee;
+  }else{
     throw StateError("${controller.type.reflectedType} is in the controllers list of the module but doesn't have the @Controller decorator");
   }
-  return controller.type.metadata[index].reflectee;
-}
-
-Map<Symbol, MethodMirror> getDecoratedEndpoints<T>(Map<Symbol, MethodMirror> instanceMembers){
-  Map<Symbol, MethodMirror> map = Map<Symbol, MethodMirror>.from(instanceMembers);
-  map.removeWhere((key, value) => value.metadata.indexWhere((element) => element.reflectee is T) == -1);
-  return map; 
 }
 
 Map<String, dynamic> getRequestParameters(String element, Request request) {

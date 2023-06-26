@@ -27,6 +27,8 @@ class SerinusContainer {
   /// The method discoverRoutes is used to discover the routes of a module
   List<RouteContext> discoverRoutes(SerinusModule module){
     _explorer.loadDependencies(module, []);
+    _explorer.finalize();
+    _router = Router();
     _router.loadRoutes(_explorer);
     _explorer.startupInjectables();
     return _router.routes;

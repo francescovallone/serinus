@@ -9,5 +9,7 @@
 abstract class SerinusProvider{
 
   const SerinusProvider();
+  
+  String get name => this.runtimeType.toString();
 
 }

@@ -1,5 +1,6 @@
 import 'package:serinus/serinus.dart';
 
+import '../app_service_copy.dart';
 import 'data.controller.dart';
 import 'data.middleware.dart';
 import 'data.service.dart';
@@ -7,7 +8,7 @@ import 'data.service.dart';
 @Module(
   imports: const [],
   controllers: const [DataController],
-  providers: const [DataService]
+  providers: const [DataService, AppServiceCopy]
 )
 class DataModule extends SerinusModule{
 

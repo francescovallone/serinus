@@ -1,8 +1,8 @@
 import 'dart:mirrors';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/decorators/http/route.dart';
 import 'package:serinus/src/core/explorer.dart';
-import 'package:serinus/src/decorators/http/route.dart';
 import 'package:serinus/src/models/models.dart';
 import 'package:serinus/src/utils/container_utils.dart';
 
@@ -21,18 +21,17 @@ class Router{
 
   void loadRoutes(Explorer explorer){
     for(var controller in explorer.controllers){
-      var ref = reflect(controller);
       containerLogger.info(
-        "Loading routes from ${ref.type.reflectedType} - " 
-        "${ref.type.metadata[0].reflectee.path.isNotEmpty 
-          ? ref.type.metadata[0].reflectee.path 
-          : '/'}"
+        "Loading routes from $controller - " 
+        "${controller.path.isNotEmpty 
+            ? controller.path 
+            : '/'}"
       );
-      final routes = getDecoratedEndpoints<Route>(ref.type.instanceMembers);
-      routes.entries.forEach((e) { 
+      controller.routes.entries.forEach((e) { 
         try{
           InstanceMirror controllerRoute = e.value.metadata.firstWhere((element) => element.reflectee is Route);
-          String path = Uri(path: "${ref.type.metadata[0].reflectee.path}${controllerRoute.reflectee.path}").normalizePath().path;
+          List<InstanceMirror> headers = e.value.metadata.where((element) => element.reflectee is Header).toList();
+          String path = Uri(path: "${controller.path}${controllerRoute.reflectee.path}").normalizePath().path;
           if(!_isDuplicateRoute(path, controllerRoute.reflectee.method)){
             assert(
               e.value.parameters.where(
@@ -43,7 +42,7 @@ class Router{
             _routes.add(
               RouteContext(
                 path: path, 
-                controller: ref, 
+                controller: reflect(controller), 
                 handler: e.value, 
                 symbol: e.key, 
                 method: controllerRoute.reflectee.method,
@@ -59,13 +58,14 @@ class Router{
                       (element.uri.path == path || element.uri.path == "*")
                     )
                   )
-                ).toList()
+                ).toList(),
+                headers: headers.map((e) => e.reflectee as Header).toList()
               )
             );
             containerLogger.info("Added ${controllerRoute.reflectee.method} route $path");
           }
         }catch(error){
-          containerLogger.warning("Route ${e.key} in ${ref.type.reflectedType} is not decorated with a route annotation.\n(@Get, @Post, @Put, @Delete, @Head, @Patch, @Options)");
+          containerLogger.warning("Route ${e.key} in $controller is not decorated with a route annotation.\n(@Get, @Post, @Put, @Delete, @Head, @Patch, @Options)");
         }
       });
     }

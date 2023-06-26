@@ -28,7 +28,7 @@ enum Method{
 /// ```
 extension StringMethod on String {
   Method toMethod(){
-    switch(this.toLowerCase()){
+    switch(toLowerCase().trim()){
       case 'post':
         return Method.post;
       case 'put':
