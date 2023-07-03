@@ -12,7 +12,6 @@ class AppController extends SerinusController{
 
   @Get()
   Future<String> ping() async {
-    this.appService.gateway.add<String>("Hello from controller!");
     return appService.ping();
   }
 

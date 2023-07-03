@@ -21,10 +21,7 @@ class SerinusFactory{
       this.developmentMode = false,
       this.loggingLevel = Logging.all
     }
-  ){}
-
-  /// The [serve] method is used to start the server
-  Future<void> serve() async {
+  ){
     port = int.tryParse(Platform.environment['PORT'] ?? Platform.environment['port'] ?? '') ?? port;
     address = Platform.environment['ADDRESS'] ?? Platform.environment['address'] ?? address;
     _application = SerinusApplication.create(
@@ -33,6 +30,10 @@ class SerinusFactory{
       address: address,
       loggingLevel: loggingLevel
     );
+  }
+
+  /// The [serve] method is used to start the server
+  Future<void> serve() async {
     if(_application != null){
       await _application?.serve();
     }

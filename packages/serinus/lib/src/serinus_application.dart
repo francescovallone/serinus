@@ -29,12 +29,22 @@ class SerinusApplication{
   SerinusApplication.create(
     dynamic module, 
     {
-      address = '127.0.0.1',
-      port = 3000,
-      loggingLevel = Logging.all
+      String address = '127.0.0.1',
+      int port = 3000,
+      Logging loggingLevel = Logging.all
     }
   ){
     _loggingLevel = loggingLevel;
+    _mainModule = module;
+    _address = address;
+    _port = port;
+  }
+
+  /// The [SerinusApplication.serve] method is used to start the server
+  Future<io.HttpServer> serve({
+    String? poweredByHeader = 'Powered by Serinus',
+    io.SecurityContext? securityContext,
+  }) async{
     logging.Logger.root.onRecord.listen((record) {
       if(
         _loggingLevel == Logging.blockAllLogs ||
@@ -54,16 +64,6 @@ class SerinusApplication{
         '${record.message}'
       );
     });
-    _mainModule = module;
-    _address = address;
-    _port = port;
-  }
-
-  /// The [SerinusApplication.serve] method is used to start the server
-  Future<io.HttpServer> serve({
-    String? poweredByHeader = 'Powered by Serinus',
-    io.SecurityContext? securityContext,
-  }) async{
     /// If the securityContext is null, the server will be started without https
     if(securityContext == null){
       _httpServer = await io.HttpServer.bind(_address, _port);
