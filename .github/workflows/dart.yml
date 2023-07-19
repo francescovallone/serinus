@@ -40,3 +40,11 @@ jobs:
       
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
+        
+      - name: discord-webhook
+        uses: johnnyhuy/actions-discord-git-webhook@v1.0.0
+        with:
+          webhook_url: "https://discord.com/api/webhooks/1131342255572135957/az_jcRLK7VLyEPhHqmGrxJz5Ip7yNduULu5wQLSjTQaGUdyo0zsTiw2LYx0ORCDeNPtd"
+          censor_username: true
+          hide_links: false
+          color: "7dbbe6"
