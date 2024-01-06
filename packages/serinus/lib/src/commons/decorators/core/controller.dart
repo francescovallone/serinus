@@ -19,6 +19,4 @@ class Controller extends Injectable{
 
   const Controller([this.path = ""]);
 
-  
-
 }

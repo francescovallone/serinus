@@ -15,4 +15,9 @@ class AppController extends SerinusController{
     return appService.ping();
   }
 
+  @Get(path: ':id')
+  Future<String> pong(@Param('id') String id) async {
+    return appService.ping();
+  }
+
 }

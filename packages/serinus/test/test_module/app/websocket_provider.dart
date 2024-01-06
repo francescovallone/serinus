@@ -1,6 +1,7 @@
 
 // coverage:ignore-file
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/decorators/http/websocket/web_socket_gateway.dart';
 
 @WebSocketGateway()
 class WebsocketProvider extends WsProvider{

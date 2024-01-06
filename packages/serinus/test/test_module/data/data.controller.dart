@@ -54,16 +54,6 @@ class DataController extends SerinusController{
     return "DELETE";
   }
 
-  @Head(path: "/data")
-  String headRoute(){
-    return "HEAD";
-  }
-
-  @Options(path: "/data")
-  String optionsRoute(){
-    return "OPTIONS";
-  }
-
   @Patch(path: "/data")
   String patchRoute(){
     return "PATCH";

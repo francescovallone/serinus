@@ -20,11 +20,11 @@ class RequestContext{
     if(params.isEmpty){
       throw BadRequestException(uri: Uri.parse(data.path));
     }
-    params = await SerinusContainer.instance.addParameters(
-      params, 
-      request, 
-      data
-    );
+    // params = await SerinusContainer.instance.addParameters(
+    //   params, 
+    //   request, 
+    //   data
+    // );
     _request = request;
     _response = response;
   }
