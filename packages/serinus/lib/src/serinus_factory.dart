@@ -6,7 +6,7 @@ import 'package:serinus/src/serinus_application.dart';
 class Serinus {
 
   static SerinusApplication createApp({
-    required entrypoint,
+    required Type entrypoint,
     String address = "127.0.0.1",
     int port = 3000,
     Logging loggingLevel = Logging.all

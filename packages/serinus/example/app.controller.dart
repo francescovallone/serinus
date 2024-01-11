@@ -6,18 +6,16 @@ import 'app.service.dart';
 @Controller()
 class AppController extends SerinusController{
 
-  final AppService appService;
-
-  const AppController(this.appService);
+  const AppController();
 
   @Get()
   Future<String> ping() async {
-    return appService.ping();
+    return 'pong';
   }
 
   @Get(path: ':id')
   Future<String> pong(@Param('id') String id) async {
-    return appService.ping();
+    return 'pong$id';
   }
 
 }

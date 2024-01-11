@@ -10,7 +10,7 @@ import 'package:uuid/v4.dart';
 /// It also has the applicationId
 class ModulesContainer {
 
-  final Map<String, dynamic> _modules = {};
+  final Map<Type, dynamic> _modules = {};
   final String applicationId = UuidV4().generate();
 
   ModulesContainer._();
@@ -22,16 +22,10 @@ class ModulesContainer {
   }
 
   void registerModule(dynamic module) {
-    _createModuleInstance(module);
     print(_modules);
-  }
-
-  void registerModules(List<dynamic> modules) {
-    modules.forEach(registerModule);
-  }
-
-  void _createModuleInstance(dynamic module) {
-    final mirroredModule = reflect(module);
+    final moduleInstance = _createModuleInstance(module);
+    final moduleName = moduleInstance.runtimeType;
+    final mirroredModule = reflect(moduleInstance);
     final metadata = mirroredModule.type.metadata.where((element) => element.reflectee is Module);
     if(metadata.isEmpty){
       throw StateError("It seems ${module} doesn't have the @Module decorator");
@@ -39,17 +33,24 @@ class ModulesContainer {
     if(metadata.length > 1){
       throw StateError("It seems ${module} has more than one @Module decorator");
     }
-    final moduleInstance = mirroredModule.type.newInstance(Symbol.empty, []).reflectee;
-    print(metadata.first.reflectee.id);
-    _modules[metadata.first.reflectee.id] = moduleInstance;
+    _modules[moduleName] = moduleInstance;
+  }
+
+  void registerModules(List<dynamic> modules) {
+    modules.forEach(registerModule);
+  }
+
+  dynamic _createModuleInstance(dynamic module) {
+    final mirroredType = reflectClass(module);
+    return mirroredType.newInstance(Symbol.empty, []).reflectee;
   }
 
   dynamic getModule(String name) {
     return _modules[name];
   }
 
-  List<dynamic> getModules() {
-    return _modules.values.toList();
+  List<Module> getDecoratedModules() {
+    return _modules.values.map((e) => reflect(e).type.metadata.firstWhere((element) => element.reflectee is Module).reflectee as Module).toList();
   }
 
 }

@@ -23,7 +23,7 @@ import 'package:serinus/src/commons/decorators/core/injectable.dart';
 /// The [exports] parameter is optional and is used to define the services exported of the module
 class Module extends Injectable{
 
-  final List<SerinusModule> imports;
+  final List<Type> imports;
   final List<Type> controllers;
   final List<Type> providers;
   final List<Type> exports;

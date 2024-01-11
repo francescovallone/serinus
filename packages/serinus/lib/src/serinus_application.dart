@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/core/core.dart';
+import 'package:serinus/src/core/injector/explorer.dart';
 import 'package:serinus/src/models/models.dart';
 
 /// The class SerinusApplication is used to create a Serinus application
@@ -50,6 +51,8 @@ class SerinusApplication{
     final modulesContainer = ModulesContainer();
 
     modulesContainer.registerModule(_mainModule);
+    final explorer = Explorer(modulesContainer: modulesContainer);
+    explorer.exploreControllers();
     applicationLogger.info('Registered module ${_mainModule.runtimeType}');
     applicationLogger.info('Application ID: ${modulesContainer.applicationId}');
     stopwatch.stop();

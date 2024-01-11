@@ -6,8 +6,6 @@ enum Method{
   post,
   delete,
   put,
-  options,
-  head,
   patch;
 
   /// Returns the string representation of the method
@@ -35,10 +33,6 @@ extension StringMethod on String {
         return Method.put;
       case 'delete':
         return Method.delete;
-      case 'options':
-        return Method.options;
-      case 'head':
-        return Method.head;
       case 'patch':
         return Method.patch;
       default:

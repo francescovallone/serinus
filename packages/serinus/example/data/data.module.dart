@@ -1,20 +1,20 @@
 import 'package:serinus/serinus.dart';
 
+import '../app.module.dart';
 import '../app_service_copy.dart';
 import 'data.controller.dart';
 import 'data.middleware.dart';
 import 'data.service.dart';
 
 @Module(
-  imports: const [],
-  controllers: const [DataController],
-  providers: const [DataService, AppServiceCopy]
+  imports: [AppModule],
+  controllers: [DataController],
+  providers: [DataService, AppServiceCopy]
 )
-class DataModule extends SerinusModule{
+class DataModule{
 
   const DataModule();
 
-  @override
   void configure(MiddlewareConsumer consumer) {
     consumer.apply(DataMiddleware());
     consumer.excludeRoutes([

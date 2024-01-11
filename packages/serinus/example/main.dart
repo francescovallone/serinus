@@ -5,7 +5,7 @@ import 'app.module.dart';
 
 void main(List<String> arguments) async {
   SerinusApplication application = Serinus.createApp(
-    entrypoint: AppModule()
+    entrypoint: AppModule
   );
   await application.serve();
   await application.close();

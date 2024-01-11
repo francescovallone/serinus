@@ -6,8 +6,8 @@ import 'app_service_copy.dart';
 import 'data/data.module.dart';
 
 @Module(
-  imports: [DataModule()],
+  imports: [DataModule],
   controllers: [AppController],
   providers: [AppService, AppServiceCopy]
 )
-class AppModule extends SerinusModule{}
+class AppModule{}
