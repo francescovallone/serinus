@@ -5,6 +5,7 @@ import 'package:serinus/serinus.dart';
 class RoutesContainer {
 
   Map<String, RouteInformations> _routes = {};
+  final logger = Logger("SerinusApplication");
 
   RoutesContainer._();
 
@@ -15,7 +16,7 @@ class RoutesContainer {
   }
 
   void registerRoute(RouteInformations routeInformations) {
-    print(routeInformations.path);
+    
     _routes[routeInformations.path] = routeInformations;
   }
 

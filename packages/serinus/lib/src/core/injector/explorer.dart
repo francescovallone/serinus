@@ -15,40 +15,42 @@ class Explorer {
   void exploreControllers(){
     final modules = modulesContainer.getDecoratedModules();
     final routesContainer = RoutesContainer();
-    modules.forEach((module) {
+    for(Module module in modules) {
       final controllers = module.controllers;
-      controllers.forEach((controller) {
+      for(var controller in controllers){
         dynamic instantiatedController = _createControllerInstance(controller);
         final reflectedController = reflect(instantiatedController);
-        final metadata = reflectedController.type.metadata.where((element) => element.reflectee is Controller);
-        if(metadata.isEmpty){
+        final controllersMetas = reflectedController.type.metadata
+          .map((e) => e.reflectee)
+          .whereType<Controller>();
+        if(controllersMetas.isEmpty){
           throw StateError("It seems ${controller} doesn't have the @Controller decorator");
         }
-        if(metadata.length > 1){
+        if(controllersMetas.length > 1){
           throw StateError("It seems ${controller} has more than one @Controller decorator");
         }
-        final controllerMetadata = metadata.first.reflectee as Controller;
+        final controllerMetadata = controllersMetas.first;
         Map<Symbol, MethodMirror> routes = {...reflectedController.type.instanceMembers};
         routes.removeWhere((key, value) => value.metadata.indexWhere((element) => element.reflectee is Route) == -1);
         String path = _normalizePath(controllerMetadata.path);
         print("Registering routes for ${instantiatedController.runtimeType}");
-        routes.forEach((key, value) {
-          final routeMetadata = value.metadata.firstWhere((element) => element.reflectee is Route).reflectee as Route;
+        for (var route in routes.values) {
+          final routeMetadata = route.metadata.map((e) => e.reflectee).whereType<Route>().first;
           String routePath = _normalizePath('${path}${routeMetadata.path}');
           final routeMethod = routeMetadata.method;
           routesContainer.registerRoute(
             RouteInformations(
               path: routePath, 
-              callable: value,
+              callable: route,
               controller: controllerMetadata,
               method: routeMethod, 
               redirectTo: '', 
               isRoot: false
             ),
           );
-        });
-      });
-    });
+        }
+      }
+    }
   }
 
   dynamic _createControllerInstance(dynamic controller) {

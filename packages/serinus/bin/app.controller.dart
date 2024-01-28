@@ -1,10 +1,8 @@
 
 import 'package:serinus/serinus.dart';
 
-import 'app.service.dart';
-
 @Controller()
-class AppController extends SerinusController{
+class AppController{
 
   const AppController();
 

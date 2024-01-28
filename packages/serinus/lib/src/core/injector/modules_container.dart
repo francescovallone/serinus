@@ -50,7 +50,7 @@ class ModulesContainer {
   }
 
   List<Module> getDecoratedModules() {
-    return _modules.values.map((e) => reflect(e).type.metadata.firstWhere((element) => element.reflectee is Module).reflectee as Module).toList();
+    return _modules.values.map((e) => reflect(e).type.metadata.map((e) => e.reflectee).whereType<Module>().first).toList();
   }
 
 }

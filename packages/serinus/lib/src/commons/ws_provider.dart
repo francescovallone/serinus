@@ -1,8 +1,7 @@
 import 'package:meta/meta.dart';
-import 'package:serinus/serinus.dart';
 import 'package:serinus/src/models/models.dart';
 
-class WsProvider extends SerinusProvider{
+class WsProvider{
 
   late WebSocketContext _context;
 

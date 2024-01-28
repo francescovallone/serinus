@@ -4,7 +4,7 @@ import 'package:serinus/serinus.dart';
 import 'data.service.dart';
 
 @Controller('/data')
-class DataController extends SerinusController{
+class DataController{
 
   final DataService dataService;
 

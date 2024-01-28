@@ -1,4 +1,3 @@
-import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/decorators/core/injectable.dart';
 
 /// The class Module is used to mark a class as a module

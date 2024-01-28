@@ -2,7 +2,7 @@ import 'package:serinus/serinus.dart';
 
 import 'data/data.service.dart';
 
-class AppService extends SerinusProvider with ApplicationInit{
+class AppService implements ApplicationInit{
 
   Logger _logger = Logger("AppService");
   final DataService dataService;

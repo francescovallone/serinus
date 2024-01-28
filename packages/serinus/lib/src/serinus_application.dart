@@ -53,7 +53,7 @@ class SerinusApplication{
     modulesContainer.registerModule(_mainModule);
     final explorer = Explorer(modulesContainer: modulesContainer);
     explorer.exploreControllers();
-    applicationLogger.info('Registered module ${_mainModule.runtimeType}');
+    applicationLogger.info('Registered module ${_mainModule}');
     applicationLogger.info('Application ID: ${modulesContainer.applicationId}');
     stopwatch.stop();
     applicationLogger.info('Started Serinus application successfully in ${stopwatch.elapsedMilliseconds}ms!');
