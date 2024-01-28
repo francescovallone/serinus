@@ -7,8 +7,9 @@ import 'package:serinus/src/core/injector/modules_container.dart';
 class Explorer {
 
   final ModulesContainer modulesContainer;
+  final Logger logger = Logger('SerinusApplication');
 
-  const Explorer({
+  Explorer({
     required this.modulesContainer
   });
 
@@ -31,9 +32,9 @@ class Explorer {
         }
         final controllerMetadata = controllersMetas.first;
         Map<Symbol, MethodMirror> routes = {...reflectedController.type.instanceMembers};
-        routes.removeWhere((key, value) => value.metadata.indexWhere((element) => element.reflectee is Route) == -1);
+        routes.removeWhere((key, value) => value.metadata.where((element) => element.reflectee is Route).isEmpty);
         String path = _normalizePath(controllerMetadata.path);
-        print("Registering routes for ${instantiatedController.runtimeType}");
+        logger.info("Registering routes for ${instantiatedController.runtimeType}");
         for (var route in routes.values) {
           final routeMetadata = route.metadata.map((e) => e.reflectee).whereType<Route>().first;
           String routePath = _normalizePath('${path}${routeMetadata.path}');
@@ -42,7 +43,7 @@ class Explorer {
             RouteInformations(
               path: routePath, 
               callable: route,
-              controller: controllerMetadata,
+              controller: path,
               method: routeMethod, 
               redirectTo: '', 
               isRoot: false

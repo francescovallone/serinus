@@ -22,7 +22,6 @@ class ModulesContainer {
   }
 
   void registerModule(dynamic module) {
-    print(_modules);
     final moduleInstance = _createModuleInstance(module);
     final moduleName = moduleInstance.runtimeType;
     final mirroredModule = reflect(moduleInstance);

@@ -11,9 +11,9 @@ class AppController{
     return 'pong';
   }
 
-  @Get(path: ':id')
-  Future<String> pong(@Param('id') String id) async {
-    return 'pong$id';
+  @Post()
+  Future<String> pong() async {
+    return 'pong';
   }
 
 }

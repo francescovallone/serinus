@@ -6,7 +6,6 @@ import 'package:logging/logging.dart' as logging;
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/core/core.dart';
 import 'package:serinus/src/core/injector/explorer.dart';
-import 'package:serinus/src/models/models.dart';
 
 /// The class SerinusApplication is used to create a Serinus application
 class SerinusApplication{
