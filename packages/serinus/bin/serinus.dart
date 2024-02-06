@@ -8,5 +8,4 @@ void main(List<String> arguments) async {
     entrypoint: AppModule
   );
   await application.serve();
-  await application.close();
 }

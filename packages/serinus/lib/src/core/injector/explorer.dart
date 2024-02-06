@@ -15,7 +15,7 @@ class Explorer {
 
   void exploreControllers(){
     final modules = modulesContainer.getDecoratedModules();
-    final routesContainer = RoutesContainer();
+    final routesContainer = RoutesContainer.instance;
     for(Module module in modules) {
       final controllers = module.controllers;
       for(var controller in controllers){
@@ -45,6 +45,7 @@ class Explorer {
               callable: route,
               controller: path,
               method: routeMethod, 
+              instance: reflectedController,
               redirectTo: '', 
               isRoot: false
             ),

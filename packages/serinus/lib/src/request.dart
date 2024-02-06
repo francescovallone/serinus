@@ -28,12 +28,14 @@ class Request{
   late Map<String, String> queryParameters;
   /// The [contentType] property contains the content type of the request
   ContentType contentType = ContentType('text', 'plain');
+
+  /// The [httpRequest] getter is used to get the [HttpRequest] object from dart:io
   HttpRequest get httpRequest => _httpRequest;
 
   String webSocketKey = "";
 
-  /// The [Request.fromHttpRequest] constructor is used to create a [Request] object from a [HttpRequest] object
-  Request.fromHttpRequest(HttpRequest request){
+  /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
+  Request.from(HttpRequest request){
     path = request.requestedUri.path;
     uri = request.requestedUri;
     method = request.method;
@@ -45,6 +47,13 @@ class Request{
       headers[name] = values.join(';');
     });
     headers.remove(HttpHeaders.transferEncodingHeader);
+  }
+
+  Response response({
+    int statusCode = 200,
+    String poweredByHeader = 'Powered by Serinus',
+  }){
+    return Response.from(_httpRequest.response, statusCode: statusCode, poweredByHeader: poweredByHeader);
   }
 
   /// This method is used to get the body of the request as a [String]

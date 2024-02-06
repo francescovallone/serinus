@@ -4,19 +4,20 @@ import 'dart:io' as io;
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart' as logging;
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/core/adapters/server.dart';
 import 'package:serinus/src/core/core.dart';
+import 'package:serinus/src/core/discovery/routes_container.dart';
 import 'package:serinus/src/core/injector/explorer.dart';
 
 /// The class SerinusApplication is used to create a Serinus application
 class SerinusApplication{
 
-  late io.HttpServer _httpServer;
   /// The address of the server
   final String address;
   /// The port of the server
   final int port;
   /// The main module of the application
-  final dynamic _mainModule;
+  dynamic _mainModule;
   /// The logger of the application
   final Logger applicationLogger = Logger('SerinusApplication');
   /// The logger of the request that the application receives
@@ -30,38 +31,35 @@ class SerinusApplication{
     this.address = '127.0.0.1',
     this.port = 3000,
     this.loggingLevel = Logging.all
-  }) : _mainModule = entrypoint;
-
-  /// The [SerinusApplication.serve] method is used to start the server
-  Future<void> serve({
-    String? poweredByHeader = 'Powered by Serinus',
-    io.SecurityContext? securityContext,
-  }) async {
+  }) {
+    _mainModule = entrypoint;
     _setupLogging();
-    /// If the securityContext is null, the server will be started without https
-    if(securityContext == null){
-      _httpServer = await io.HttpServer.bind(address, port);
-    }else{ 
-      _httpServer = await io.HttpServer.bindSecure(address, port, securityContext);
-    }
-    final stopwatch = Stopwatch()..start();
-    applicationLogger.info('Starting Serinus application on http://$address:$port...');
-    
     final modulesContainer = ModulesContainer();
-
     modulesContainer.registerModule(_mainModule);
     final explorer = Explorer(modulesContainer: modulesContainer);
     explorer.exploreControllers();
-    applicationLogger.info('Registered module ${_mainModule}');
-    applicationLogger.info('Application ID: ${modulesContainer.applicationId}');
-    stopwatch.stop();
-    applicationLogger.info('Started Serinus application successfully in ${stopwatch.elapsedMilliseconds}ms!');
-    // catchTopLevelErrors(
-    //   () => _httpServer.listen((req) => _handler(req, poweredByHeader)),
-    //   (error, stackTrace) {
-    //     throw error;
-    //   }
-    // );
+  }
+
+  /// The [SerinusApplication.serve] method is used to start the server
+  Future<void> serve({
+    String poweredByHeader = 'Powered by Serinus',
+    io.SecurityContext? securityContext,
+  }) async {
+    final httpServer = SerinusHttpServer();
+    applicationLogger.info('Starting Serinus application on http://$address:$port...');
+    await httpServer.listen(
+      (Request request, String poweredByHeader) async {
+        final response = request.response(poweredByHeader: poweredByHeader);
+        final route = RoutesContainer.instance.getRoute(request.path, request.method.toMethod());
+        final data = await route.execute([]);
+        response.data = data;
+        await response.sendData();
+      },
+      address: address,
+      port: port,
+      securityContext: securityContext,
+      poweredByHeader: poweredByHeader
+    );
   }
 
   /// The [_handler] method is used to handle the request
@@ -115,8 +113,7 @@ class SerinusApplication{
   /// and dispose the [SerinusContainer]
   Future<void> close() async {
     applicationLogger.info('Shutting down the application...');
-    // SerinusContainer.instance.dispose();
-    await _httpServer.close();
+    await SerinusHttpServer().close();
     applicationLogger.info('Serinus application shutted down successfully!');
   }
 

@@ -9,10 +9,10 @@ class RoutesContainer {
 
   RoutesContainer._();
 
-  static final RoutesContainer _instance = RoutesContainer._();
+  static final RoutesContainer instance = RoutesContainer._();
 
   factory RoutesContainer() {
-    return _instance;
+    return instance;
   }
 
   void registerRoute(RouteInformations routeInformations) {
@@ -69,6 +69,8 @@ class RouteInformations {
   final String path;
 
   final MethodMirror? callable;
+  
+  final InstanceMirror instance;
 
   final Method method;
 
@@ -81,10 +83,18 @@ class RouteInformations {
   const RouteInformations({
     required this.path, 
     required this.callable, 
+    required this.instance,
     this.redirectTo = '', 
     this.isRoot = false,
     this.method = Method.get,
     this.controller = ''
   });
+
+  Future<dynamic> execute(List<dynamic> positionalArguments, [Map<Symbol, dynamic> namedArguments = const {}]) async {
+    if(callable == null){
+      throw StateError("No callable found for ${path}");
+    }
+    return await instance.invoke(callable!.simpleName, positionalArguments, namedArguments).reflectee;
+  }
 
 }

@@ -1,4 +1,5 @@
 class Injectable {
+  
   const Injectable();
 
   @override
