@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:serinus/src/utils/response_decoder.dart';
+import 'package:serinus/src/commons/extensions/dynamic_extensions.dart';
+import 'package:serinus/src/commons/extensions/int_extensions.dart';
 
 /// The class Response is used to create a response object
 class Response{
@@ -14,7 +15,7 @@ class Response{
   /// The content length of the response
   late int contentLength = -1;
   /// The content length of the response as a codified [String]
-  String get contentLengthString => ResponseDecoder.formatContentLength(contentLength);
+  String get contentLengthString => contentLength.toBytes();
   /// The headers of the response
   HttpHeaders get headers => actualResponse.headers;
 
@@ -54,10 +55,10 @@ class Response{
     final _parsableData = data;
     /// If the data is a [String] then the data is converted to json
     if(_parsableData is String){
-      _result = ResponseDecoder.convertStringToJson(actualResponse, _parsableData);
+      _result = _parsableData.toJsonString();
     } else if(_parsableData is List || _parsableData is Map){
       /// If the data is a [List] or a [Map] then the data is converted to json
-      _result = ResponseDecoder.tryToParseJson(actualResponse, _parsableData);
+      _result = jsonEncode(_parsableData.convertMap());
     }else{
       /// If the data is not a [String], a [List] or a [Map] then the data is set to the result
       _result = _parsableData;

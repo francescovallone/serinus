@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:serinus/serinus.dart';
@@ -80,6 +81,8 @@ class RouteInformations {
 
   final bool isRoot;
 
+  Iterable<String> get pathParameters => path.split('/').where((element) => element.startsWith(':')).map((e) => e.substring(1));
+
   const RouteInformations({
     required this.path, 
     required this.callable, 
@@ -90,11 +93,72 @@ class RouteInformations {
     this.controller = ''
   });
 
-  Future<dynamic> execute(List<dynamic> positionalArguments, [Map<Symbol, dynamic> namedArguments = const {}]) async {
+  Future<dynamic> execute(Request request) async {
     if(callable == null){
       throw StateError("No callable found for ${path}");
     }
+    Map<String, String> segementedParameters = {
+      for(var i = 0; i < min(pathParameters.length, request.pathParameters.length); i++) pathParameters.elementAt(i) : request.pathParameters[i]
+    };
+    List<dynamic> positionalArguments = [];
+    Map<Symbol, dynamic> namedArguments = {};
+
+    for(ParameterMirror element in (callable?.parameters ?? [])){
+      final param = element.metadata.first;
+      String key = MirrorSystem.getName(element.simpleName);
+      final value = switch(param.reflectee){
+        Query => _getQueryValue(request, key, element),
+        Param => _getParamValue(segementedParameters, key, element),
+        Body => _getBodyValue(request, element),
+        _ => null
+      };
+      if(element.isNamed){
+        namedArguments[element.simpleName] = value;
+      }else{
+        positionalArguments.add(value);
+      }
+    }
     return await instance.invoke(callable!.simpleName, positionalArguments, namedArguments).reflectee;
+  }
+
+  dynamic _getQueryValue(Request request, String key, ParameterMirror element){
+    if(request.queryParameters.containsKey(key)){
+      return request.queryParameters[key];
+    }
+    if(element.isOptional || element.metadata.first.getField(Symbol('nullable')).reflectee){
+      return element.defaultValue?.reflectee;
+    }else{
+      throw BadRequestException(message: "The query parameter $key is required");
+    }
+  }
+
+  dynamic _getParamValue(
+    Map<String, String> segementedParameters, 
+    String key, 
+    ParameterMirror element
+  ){
+    if(segementedParameters.containsKey(key)){
+      return segementedParameters[key];
+    }
+    if(element.isOptional || element.metadata.first.getField(Symbol('nullable')).reflectee){
+      return element.defaultValue?.reflectee;
+    }else{
+      throw BadRequestException(message: "The parameter $key is required");
+    }
+  }
+
+  Future<dynamic> _getBodyValue(Request request, ParameterMirror element) async {
+    if(element.metadata.first.reflectee is JsonBody && request.contentType.mimeType != "application/json"){
+      throw BadRequestException(message: "The body must be a json object");
+    }
+    if(element.metadata.first.reflectee is JsonBody){
+      return await request.json();
+    }
+    if(element.isOptional || element.metadata.first.getField(Symbol('nullable')).reflectee){
+      return element.defaultValue?.reflectee;
+    }else{
+      throw BadRequestException(message: "The body is required");
+    }
   }
 
 }

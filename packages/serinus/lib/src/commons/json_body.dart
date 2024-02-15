@@ -23,9 +23,9 @@
 ///    'email': email,
 ///  };
 /// }
-abstract class BodyParsable{
+abstract class JsonBody{
 
-  BodyParsable.fromJson(Map<String, dynamic> data);
+  JsonBody.fromJson(Map<String, dynamic> data);
 
   Map<String, dynamic> toJson();
 

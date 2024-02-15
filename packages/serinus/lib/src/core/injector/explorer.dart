@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/extensions/paramaters_extensions.dart';
 import 'package:serinus/src/core/discovery/routes_container.dart';
 import 'package:serinus/src/core/injector/modules_container.dart';
 
@@ -39,6 +40,15 @@ class Explorer {
           final routeMetadata = route.metadata.map((e) => e.reflectee).whereType<Route>().first;
           String routePath = _normalizePath('${path}${routeMetadata.path}');
           final routeMethod = routeMetadata.method;
+          if(route.parameters.hasDuplicatesByName()){
+            throw StateError("It seems that the route '${MirrorSystem.getName(route.simpleName)}' of ${controller} has repeated parameters in the same route");
+          }
+          if(route.parameters.checkDuplicatesByType()){
+            throw StateError("It seems that in the route '${MirrorSystem.getName(route.simpleName)}' of ${controller} one parameter has more than one decorator");
+          }
+          if(route.parameters.any((element) => element.metadata.isEmpty)){
+            throw StateError("It seems that in the route '${MirrorSystem.getName(route.simpleName)}' of ${controller} one parameter doesn't have any decorator");
+          }
           routesContainer.registerRoute(
             RouteInformations(
               path: routePath, 

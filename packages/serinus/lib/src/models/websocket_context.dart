@@ -18,7 +18,7 @@ class WebSocketContext{
   });
 
   Future<void> connect(Request request) async {
-    Socket socket = await request.httpRequest.response.detachSocket(writeHeaders: false);
+    Socket socket = await request.original.response.detachSocket(writeHeaders: false);
     WebSocketChannel channel = request.upgradeToWebSocket(
       socket
     );

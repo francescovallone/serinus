@@ -11,49 +11,72 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 class Request{
 
   /// The [path] property contains the path of the request
-  late String path;
+  final String path;
   /// The [uri] property contains the uri of the request
-  late Uri uri;
+  final Uri uri;
   /// The [method] property contains the method of the request
-  late String method;
+  final String method;
   /// The [segments] property contains the segments of the request
-  late List<String> segments;
-  /// The [httpRequest] property contains the [HttpRequest] object from dart:io
-  late HttpRequest _httpRequest;
+  final List<String> segments;
+  /// The [original] property contains the [HttpRequest] object from dart:io
+  final HttpRequest original;
   /// The [headers] property contains the headers of the request
-  Map<String, dynamic> headers = {};
+  final Map<String, dynamic> headers;
   /// The [bytes] property contains the bytes of the request body
   Uint8List? _bytes;
   /// The [queryParameters] property contains the query parameters of the request
-  late Map<String, String> queryParameters;
-  /// The [contentType] property contains the content type of the request
-  ContentType contentType = ContentType('text', 'plain');
+  final Map<String, String> queryParameters;
 
-  /// The [httpRequest] getter is used to get the [HttpRequest] object from dart:io
-  HttpRequest get httpRequest => _httpRequest;
+  final List<String> pathParameters;
+  /// The [contentType] property contains the content type of the request
+  ContentType contentType;
 
   String webSocketKey = "";
 
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
-  Request.from(HttpRequest request){
-    path = request.requestedUri.path;
-    uri = request.requestedUri;
-    method = request.method;
-    queryParameters = request.requestedUri.queryParameters;
-    segments = Uri(path: request.requestedUri.path).pathSegments;
-    contentType = request.headers.contentType ?? ContentType('text', 'plain');
-    _httpRequest = request;
-    _httpRequest.headers.forEach((name, values) {
+  factory Request.from(HttpRequest request){
+    Map<String, String> headers = {};
+    request.headers.forEach((name, values) {
       headers[name] = values.join(';');
     });
     headers.remove(HttpHeaders.transferEncodingHeader);
+    final segments = Uri(path: request.requestedUri.path).pathSegments;
+    final List<String> pathParameters = [];
+    for(var i = 0; i < segments.length; i++){
+      if(segments[i].startsWith(":")){
+        pathParameters.add(segments[i].substring(1));
+      }
+    }
+    return Request(
+      path: request.requestedUri.path,
+      uri: request.requestedUri,
+      method: request.method,
+      segments: segments,
+      queryParameters: request.requestedUri.queryParameters,
+      headers: headers,
+      original: request,
+      contentType: request.headers.contentType ?? ContentType('text', 'plain'),
+      pathParameters: pathParameters
+    );
   }
+
+  Request({
+    required this.path,
+    required this.uri,
+    required this.method,
+    required this.segments,
+    required this.queryParameters,
+    required this.pathParameters,
+    required this.headers,
+    required this.contentType,
+    required this.original
+  });
 
   Response response({
     int statusCode = 200,
     String poweredByHeader = 'Powered by Serinus',
   }){
-    return Response.from(_httpRequest.response, statusCode: statusCode, poweredByHeader: poweredByHeader);
+    return Response.from(original.response, statusCode: statusCode, poweredByHeader: poweredByHeader);
   }
 
   /// This method is used to get the body of the request as a [String]
@@ -96,7 +119,7 @@ class Request{
   Future<Uint8List> bytes() async {
     try{
       if(_bytes == null){
-        _bytes = await _httpRequest.firstWhere((element) => element.isNotEmpty);
+        _bytes = await original.firstWhere((element) => element.isNotEmpty);
       }
       return _bytes!;
     }catch(_){
@@ -122,7 +145,7 @@ class Request{
     if(method != "GET"){
       return false;
     }
-    final connection = httpRequest.headers.value('Connection');
+    final connection = original.headers.value('Connection');
     if(connection == null){
       return false;
     }
@@ -130,7 +153,7 @@ class Request{
     if(!tokens.contains('upgrade')){
       return false;
     }
-    final upgrade = httpRequest.headers.value('Upgrade');
+    final upgrade = original.headers.value('Upgrade');
     if(upgrade == null){
       return false;
     }
@@ -138,18 +161,18 @@ class Request{
       return false;
     }
 
-    final version = httpRequest.headers.value('Sec-WebSocket-Version');
+    final version = original.headers.value('Sec-WebSocket-Version');
     if(version == null){
       throw BadRequestException(message: 'missing Sec-WebSocket-Version header.');
     }else if(version != '13'){
       return false;
     }
 
-    if(httpRequest.protocolVersion != '1.1'){
-      throw BadRequestException(message: 'unexpected HTTP version "${httpRequest.protocolVersion}".');
+    if(original.protocolVersion != '1.1'){
+      throw BadRequestException(message: 'unexpected HTTP version "${original.protocolVersion}".');
     }
 
-    final key = httpRequest.headers.value('Sec-WebSocket-Key');
+    final key = original.headers.value('Sec-WebSocket-Key');
     
     if(key == null){
       throw BadRequestException(message: 'missing Sec-WebSocket-Key header.');

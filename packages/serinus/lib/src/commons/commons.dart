@@ -1,5 +1,5 @@
-export 'body_parsable.dart';
 export 'form_data.dart';
+export 'json_body.dart';
 export 'middleware/consumer_route.dart';
 export 'middleware/middleware_consumer.dart';
 export 'middleware/serinus_middleware.dart';

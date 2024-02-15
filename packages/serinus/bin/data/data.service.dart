@@ -1,5 +1,3 @@
-import 'package:serinus/serinus.dart';
-
 import '../app_service_copy.dart';
 
 class DataService{
