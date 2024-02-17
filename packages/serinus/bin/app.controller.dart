@@ -14,10 +14,10 @@ class AppController{
   }
 
   @Post()
-  Future<String> pong(
-    @Body() String name
+  Future<Map<String,dynamic>> pong(
+    @Body() JsonBody name
   ) async {
-    return 'pong';
+    return name.toJson();
   }
 
 }

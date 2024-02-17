@@ -2,7 +2,7 @@ import 'dart:mirrors';
 
 extension CheckDuplicateExtensions on List<ParameterMirror> {
   
-  bool hasDuplicatesByName(){
+  bool hasDuplicatesByName({bool Function(InstanceMirror)? additionalCheck}){
     final metadata = map(
       (e) => e.metadata
     );
@@ -14,7 +14,12 @@ extension CheckDuplicateExtensions on List<ParameterMirror> {
         ...value,
         ...element
       ]
-    ).map(
+    ).where((element){
+      if(additionalCheck == null){
+        return true;
+      }
+      return additionalCheck.call(element);
+    }).map(
       (e) => e.getField(Symbol('name'))
     );
     final uniqueNames = names.toSet();

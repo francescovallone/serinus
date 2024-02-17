@@ -51,9 +51,17 @@ class SerinusApplication{
       (Request request, String poweredByHeader) async {
         final response = request.response(poweredByHeader: poweredByHeader);
         final route = RoutesContainer.instance.getRoute(request.path, request.method.toMethod());
-        final data = await route.execute(request);
-        response.data = data;
-        await response.sendData();
+        try{
+          final data = await route.execute(request);
+          response.data = data;
+          await response.sendData();
+        }catch(e){
+          if(e is SerinusException){
+            await e.response(response);
+          }else{
+            rethrow;
+          }
+        }
       },
       address: address,
       port: port,

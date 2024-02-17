@@ -45,6 +45,7 @@ extension InstantiableObject on dynamic {
         return typeMirror.newInstance(Symbol(''), []).reflectee;
       }
     }catch(e){
+      print(e);
       throw ArgumentError("Cannot create the instance of the type '$type'.");
     }
   }

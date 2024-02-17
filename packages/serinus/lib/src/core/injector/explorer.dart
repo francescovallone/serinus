@@ -40,7 +40,9 @@ class Explorer {
           final routeMetadata = route.metadata.map((e) => e.reflectee).whereType<Route>().first;
           String routePath = _normalizePath('${path}${routeMetadata.path}');
           final routeMethod = routeMetadata.method;
-          if(route.parameters.hasDuplicatesByName()){
+          if(route.parameters.hasDuplicatesByName(
+            additionalCheck: (element) => element.reflectee is Param || element.reflectee is Query
+          )){
             throw StateError("It seems that the route '${MirrorSystem.getName(route.simpleName)}' of ${controller} has repeated parameters in the same route");
           }
           if(route.parameters.checkDuplicatesByType()){

@@ -13,6 +13,8 @@
 
 class Body {
   
-  const Body();
+  final bool? nullable;
+
+  const Body({this.nullable = false});
   
 }

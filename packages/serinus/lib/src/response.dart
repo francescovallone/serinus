@@ -40,7 +40,8 @@ class Response{
 
   /// The setter [data] is used to set data of the response
   void set data(dynamic data) {
-     _setResponseData(data);
+    print(data);
+    _setResponseData(data);
   }
 
   /// The method [sendData] is used to send the data of the response to the client

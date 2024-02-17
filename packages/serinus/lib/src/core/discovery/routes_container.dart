@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/extensions/content_type_extensions.dart';
+import 'package:serinus/src/commons/extensions/dynamic_extensions.dart';
+import 'package:serinus/src/commons/extensions/string_extensions.dart';
 
 class RoutesContainer {
 
@@ -102,22 +106,33 @@ class RouteInformations {
     };
     List<dynamic> positionalArguments = [];
     Map<Symbol, dynamic> namedArguments = {};
-
+    
     for(ParameterMirror element in (callable?.parameters ?? [])){
       final param = element.metadata.first;
       String key = MirrorSystem.getName(element.simpleName);
-      final value = switch(param.reflectee){
+      print(switch(param.reflectee.runtimeType){
         Query => _getQueryValue(request, key, element),
         Param => _getParamValue(segementedParameters, key, element),
-        Body => _getBodyValue(request, element),
+        Body => "BODY",
+        Req => request,
+        _ => "OTHER"
+      });
+      final value = switch(param.reflectee.runtimeType){
+        Query => _getQueryValue(request, key, element),
+        Param => _getParamValue(segementedParameters, key, element),
+        Body => await _getBodyValue(request, element),
+        Req => request,
         _ => null
       };
+      print(value);
       if(element.isNamed){
         namedArguments[element.simpleName] = value;
       }else{
         positionalArguments.add(value);
       }
     }
+    print(namedArguments);
+    print(positionalArguments);
     return await instance.invoke(callable!.simpleName, positionalArguments, namedArguments).reflectee;
   }
 
@@ -148,17 +163,44 @@ class RouteInformations {
   }
 
   Future<dynamic> _getBodyValue(Request request, ParameterMirror element) async {
-    if(element.metadata.first.reflectee is JsonBody && request.contentType.mimeType != "application/json"){
+    print('BODY');
+    final stringBody = await request.body();
+    if(element.metadata.first.reflectee is JsonBody && !(stringBody.isJson())){
+      print("ERROR");
       throw BadRequestException(message: "The body must be a json object");
     }
-    if(element.metadata.first.reflectee is JsonBody){
-      return await request.json();
+    print(element.type.reflectedType);
+    try{
+      return switch(element.type.reflectedType){
+        JsonBody => createInstance(element.type.reflectedType, jsonDecode(stringBody)),
+        String => stringBody,
+        FormData => {
+          if(request.contentType.isMultipart()){
+            FormData.parseMultipart(request: request.original),
+          },
+          if(request.contentType.isUrlEncoded()){
+            FormData.parseUrlEncoded(stringBody),
+          },
+          throw BadRequestException(message: "The body must be a form data")
+        },
+        Stream => await request.stream(),
+        int => int.parse(stringBody),
+        double => double.parse(stringBody),
+        num => num.parse(stringBody),
+        DateTime => DateTime.parse(stringBody),
+        bool => stringBody.toLowerCase() == 'true',
+        _ => _parseDefaultType(stringBody, element)
+      };
+    }catch(e){
+      throw BadRequestException(message: "The body is malformed");
     }
-    if(element.isOptional || element.metadata.first.getField(Symbol('nullable')).reflectee){
+  }
+
+  dynamic _parseDefaultType(String stringBody, ParameterMirror element){
+    if((element.isOptional || element.metadata.first.getField(Symbol('nullable')).reflectee) && stringBody.isEmpty){
       return element.defaultValue?.reflectee;
-    }else{
-      throw BadRequestException(message: "The body is required");
     }
+    throw BadRequestException(message: "The body is required");
   }
 
 }

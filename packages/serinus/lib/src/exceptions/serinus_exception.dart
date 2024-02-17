@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
+import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/extensions/int_extensions.dart';
 
 /// The class SerinusException is used as superclass for all exceptions
@@ -38,7 +39,8 @@ class SerinusException implements HttpException{
   /// 
   /// The [res] parameter is the response object of the request
   @nonVirtual
-  Future<String> response(HttpResponse res) async {
+  Future<String> response(Response response) async {
+    final res = response.actualResponse;
     res.headers.contentType = ContentType("application", "json");
     res.statusCode = statusCode;
     String content = jsonEncode({
