@@ -40,7 +40,6 @@ class Response{
 
   /// The setter [data] is used to set data of the response
   void set data(dynamic data) {
-    print(data);
     _setResponseData(data);
   }
 

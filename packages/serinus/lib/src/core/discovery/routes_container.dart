@@ -110,13 +110,6 @@ class RouteInformations {
     for(ParameterMirror element in (callable?.parameters ?? [])){
       final param = element.metadata.first;
       String key = MirrorSystem.getName(element.simpleName);
-      print(switch(param.reflectee.runtimeType){
-        Query => _getQueryValue(request, key, element),
-        Param => _getParamValue(segementedParameters, key, element),
-        Body => "BODY",
-        Req => request,
-        _ => "OTHER"
-      });
       final value = switch(param.reflectee.runtimeType){
         Query => _getQueryValue(request, key, element),
         Param => _getParamValue(segementedParameters, key, element),
@@ -124,15 +117,12 @@ class RouteInformations {
         Req => request,
         _ => null
       };
-      print(value);
       if(element.isNamed){
         namedArguments[element.simpleName] = value;
       }else{
         positionalArguments.add(value);
       }
     }
-    print(namedArguments);
-    print(positionalArguments);
     return await instance.invoke(callable!.simpleName, positionalArguments, namedArguments).reflectee;
   }
 
@@ -163,13 +153,10 @@ class RouteInformations {
   }
 
   Future<dynamic> _getBodyValue(Request request, ParameterMirror element) async {
-    print('BODY');
     final stringBody = await request.body();
     if(element.metadata.first.reflectee is JsonBody && !(stringBody.isJson())){
-      print("ERROR");
       throw BadRequestException(message: "The body must be a json object");
     }
-    print(element.type.reflectedType);
     try{
       return switch(element.type.reflectedType){
         JsonBody => createInstance(element.type.reflectedType, jsonDecode(stringBody)),
