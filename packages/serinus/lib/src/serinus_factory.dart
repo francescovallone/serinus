@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:serinus/src/enums/logging.dart';
+import 'package:serinus/src/commons/enums/logging.dart';
 import 'package:serinus/src/serinus_application.dart';
 
 class Serinus {

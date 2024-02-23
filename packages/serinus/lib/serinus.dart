@@ -3,8 +3,8 @@ library serinus;
 
 export 'src/commons/commons.dart';
 export 'src/commons/decorators/decorators.dart';
-export 'src/enums/logging.dart';
-export 'src/enums/method.dart';
+export 'src/commons/enums/logging.dart';
+export 'src/commons/enums/method.dart';
 export 'src/exceptions/exceptions.dart';
 export 'src/request.dart';
 export 'src/response.dart';
