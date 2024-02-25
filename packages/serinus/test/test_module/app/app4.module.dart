@@ -1,5 +1,5 @@
 // coverage:ignore-file
-import 'package:serinus/serinus.dart';
+import 'package:serinus/old/serinus.dart';
 
 class AppWrongModule extends SerinusModule{
 

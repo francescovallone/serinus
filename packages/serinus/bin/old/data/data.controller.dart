@@ -1,0 +1,29 @@
+
+import 'package:serinus/old/serinus.dart';
+
+import 'data.service.dart';
+
+@Controller('/data')
+class DataController{
+
+  final DataService dataService;
+
+  const DataController(this.dataService);
+
+  @Post()
+  Map<String, dynamic> ping(
+    @Body() body,
+  ){
+    return {
+      "hello": "body.values"
+    };
+  }
+
+  @Get()
+  Map<String, dynamic> data(){
+    return {
+      "hello": "HELLO"
+    };
+  }
+
+}

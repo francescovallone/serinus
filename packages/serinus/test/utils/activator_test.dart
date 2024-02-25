@@ -1,5 +1,5 @@
 
-import 'package:serinus/serinus.dart';
+import 'package:serinus/old/serinus.dart';
 import 'package:serinus/src/utils/activator.dart';
 import 'package:test/test.dart';
 

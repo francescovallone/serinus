@@ -1,4 +1,4 @@
-import 'package:serinus/serinus.dart';
+import 'package:serinus/old/serinus.dart';
 
 import 'websocket_provider.dart';
 

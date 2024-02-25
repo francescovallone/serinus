@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:mockito/mockito.dart';
-import 'package:serinus/serinus.dart';
+import 'package:serinus/old/serinus.dart';
 import 'package:serinus/src/utils/response_decoder.dart';
 import 'package:test/test.dart';
 

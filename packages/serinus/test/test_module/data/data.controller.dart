@@ -1,5 +1,5 @@
 // coverage:ignore-file
-import 'package:serinus/serinus.dart';
+import 'package:serinus/old/serinus.dart';
 
 import 'data.service.dart';
 

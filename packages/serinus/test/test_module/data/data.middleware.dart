@@ -1,4 +1,4 @@
-import 'package:serinus/serinus.dart';
+import 'package:serinus/old/serinus.dart';
 
 class DataMiddleware implements SerinusMiddleware{
   @override

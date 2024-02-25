@@ -1,75 +1,36 @@
-import 'dart:mirrors';
 
-import 'package:serinus/serinus.dart';
-import 'package:serinus/src/commons/extensions/paramaters_extensions.dart';
-import 'package:serinus/src/core/discovery/routes_container.dart';
-import 'package:serinus/src/core/injector/modules_container.dart';
+import '../../core.dart';
+import '../containers/module_container.dart';
+import '../containers/routes_container.dart';
 
 class Explorer {
 
-  final ModulesContainer modulesContainer;
-  final Logger logger = Logger('SerinusApplication');
+  const Explorer();
 
-  Explorer({
-    required this.modulesContainer
-  });
-
-  void exploreControllers(){
-    final modules = modulesContainer.getDecoratedModules();
-    final routesContainer = RoutesContainer.instance;
+  void explore(){
+    final modulesContainer = ModulesContainer();
+    final modules = modulesContainer.modules;
+    final routesContainer = RoutesContainer();
     for(Module module in modules) {
       final controllers = module.controllers;
       for(var controller in controllers){
-        dynamic instantiatedController = _createControllerInstance(controller);
-        final reflectedController = reflect(instantiatedController);
-        final controllersMetas = reflectedController.type.metadata
-          .map((e) => e.reflectee)
-          .whereType<Controller>();
-        if(controllersMetas.isEmpty){
-          throw StateError("It seems ${controller} doesn't have the @Controller decorator");
-        }
-        if(controllersMetas.length > 1){
-          throw StateError("It seems ${controller} has more than one @Controller decorator");
-        }
-        final controllerMetadata = controllersMetas.first;
-        Map<Symbol, MethodMirror> routes = {...reflectedController.type.instanceMembers};
-        routes.removeWhere((key, value) => value.metadata.where((element) => element.reflectee is Route).isEmpty);
-        String path = _normalizePath(controllerMetadata.path);
-        logger.info("Registering routes for ${instantiatedController.runtimeType}");
-        for (var route in routes.values) {
-          final routeMetadata = route.metadata.map((e) => e.reflectee).whereType<Route>().first;
-          String routePath = _normalizePath('${path}${routeMetadata.path}');
-          final routeMethod = routeMetadata.method;
-          if(route.parameters.hasDuplicatesByName(
-            additionalCheck: (element) => element.reflectee is Param || element.reflectee is Query
-          )){
-            throw StateError("It seems that the route '${MirrorSystem.getName(route.simpleName)}' of ${controller} has repeated parameters in the same route");
-          }
-          if(route.parameters.checkDuplicatesByType()){
-            throw StateError("It seems that in the route '${MirrorSystem.getName(route.simpleName)}' of ${controller} one parameter has more than one decorator");
-          }
-          if(route.parameters.any((element) => element.metadata.isEmpty)){
-            throw StateError("It seems that in the route '${MirrorSystem.getName(route.simpleName)}' of ${controller} one parameter doesn't have any decorator");
-          }
+        final controllerPath = _normalizePath(controller.path);
+        final routes = controller.routes;
+        for (var route in routes) {
+          String routePath = _normalizePath('${controllerPath}${route.path}');
+          final routeMethod = route.method;
+          print("Registering route $routePath with method $routeMethod");
           routesContainer.registerRoute(
-            RouteInformations(
+            RouteData(
               path: routePath, 
-              callable: route,
-              controller: path,
+              controller: controller,
               method: routeMethod, 
-              instance: reflectedController,
-              redirectTo: '', 
-              isRoot: false
+              redirectTo: '',
             ),
           );
         }
       }
     }
-  }
-
-  dynamic _createControllerInstance(dynamic controller) {
-    final mirroredType = reflectClass(controller);
-    return mirroredType.newInstance(Symbol.empty, []).reflectee;
   }
 
   String _normalizePath(String path){

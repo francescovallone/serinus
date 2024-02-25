@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
-import 'package:serinus/serinus.dart';
+import 'package:serinus/old/serinus.dart';
 import 'package:test/test.dart';
 
 import 'test_module/serinus.dart';

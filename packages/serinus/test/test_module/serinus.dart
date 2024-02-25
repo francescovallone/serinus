@@ -1,4 +1,4 @@
-import 'package:serinus/serinus.dart';
+import 'package:serinus/old/serinus.dart';
 
 import 'app/app.module.dart';
 import 'app/app2.module.dart';
