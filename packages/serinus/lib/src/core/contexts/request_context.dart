@@ -105,7 +105,7 @@ class RequestContextBuilder {
           queryParameters[key] = double.parse(value);
           break;
         case bool:
-          queryParameters[key] = value == 'true';
+          queryParameters[key] = value.toLowerCase() == 'true';
           break;
         default:
           queryParameters[key] = value;
