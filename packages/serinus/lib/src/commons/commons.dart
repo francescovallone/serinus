@@ -5,3 +5,4 @@ export 'exceptions/exceptions.dart';
 export 'mixins/application_mixins.dart';
 export 'request.dart';
 export 'response.dart';
+export 'services/logger_service.dart';

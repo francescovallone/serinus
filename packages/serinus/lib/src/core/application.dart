@@ -18,6 +18,7 @@ class SerinusApplication{
   final LogLevel loggingLevel;
   final Module entrypoint;
   bool _enableShutdownHooks = false;
+  LoggerService loggerService = LoggerService();
 
   final Logger _logger = Logger('SerinusApplication');
 
@@ -26,9 +27,12 @@ class SerinusApplication{
     this.host = 'localhost',
     this.port = 3000,
     this.loggingLevel = LogLevel.debug,
+    LoggerService? loggerService
   }){
     _initialize(entrypoint);
-    LoggerService();
+    if(loggerService != null){
+      this.loggerService = loggerService;
+    }
   }
 
   String get url => 'http://$host:$port';
@@ -63,6 +67,8 @@ class SerinusApplication{
     final modulesContainer = ModulesContainer();
     _logger.info("Starting server on $host:$port");
     await server.listen(
+      securityContext: securityContext,
+      poweredByHeader: poweredByHeader,
       (request, poweredByHeader) async {
         final response = request.response(poweredByHeader: poweredByHeader);
         try{
