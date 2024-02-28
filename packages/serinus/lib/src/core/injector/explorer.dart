@@ -33,12 +33,12 @@ class Explorer {
       String routePath = _normalizePath('${controllerPath}${route.path}');
       final uriPath = Uri.parse(routePath);
       if(uriPath.pathSegments.toSet().length != uriPath.pathSegments.length){
-        throw Exception('Duplicate path segments in route $routePath');
+        throw StateError('Duplicate path segments in route $routePath');
       }
       final routeMethod = route.method;
       final registeredRoute = routesContainer.getRouteForPath(routePath, routeMethod);
       if(registeredRoute != null){
-        throw Exception('Route $routePath with method $routeMethod already registered');
+        throw StateError('Route $routePath with method $routeMethod already registered');
       }
       _logger.info("Mapped {$routePath, $routeMethod} route");
       routesContainer.registerRoute(

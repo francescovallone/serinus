@@ -105,6 +105,11 @@ class SerinusApplication{
     );
   }
 
+  Future<void> close() async {
+    final server = SerinusHttpServer();
+    return await server.close();
+  }
+
   Future<void> _initialize(Module module) async {
     final modulesContainer = ModulesContainer();
     await modulesContainer.recursiveRegisterModules(module, module.runtimeType);
