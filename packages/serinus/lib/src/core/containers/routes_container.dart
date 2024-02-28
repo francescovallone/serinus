@@ -1,7 +1,7 @@
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 
-import '../../commons.dart';
-import '../../core.dart';
+import '../../commons/commons.dart';
+import '../core.dart';
 
 class RoutesContainer {
   
@@ -37,15 +37,32 @@ class RoutesContainer {
     return _routes[controllerName]?.values.expand((element) => element).toList() ?? [];
   }
 
-  RouteData? getRouteForControllerAndPath(Controller controller, String path, HttpMethod method) {
-    return getRoutesForController(controller).firstWhereOrNull((element) => element.path == path && element.method == method);
-  }
-
   RouteData? getRouteForPath(String path, HttpMethod method) {
-    return _routes.values
+    final routes = _routes.values
       .expand((element) => element.values)
-      .expand((element) => element)
-      .firstWhereOrNull((element) => element.path == path && element.method == method);
+      .flatten();
+    final normalizedPath = path.endsWith('/') ? path.substring(0, path.length - 1) : path;
+    final route = routes.firstWhereOrNull((element) => element.path == normalizedPath && element.method == method);
+
+    if(route != null){
+      return route;
+    }
+
+    final routeWithParams = routes.firstWhereOrNull((element) {
+      final routePath = element.path.split('/');
+      final requestPath = normalizedPath.split('/');
+      if(routePath.length != requestPath.length){
+        return false;
+      }
+      for(var i = 0; i < routePath.length; i++){
+        if(routePath[i] != requestPath[i] && !routePath[i].startsWith(':')){
+          return false;
+        }
+      }
+      return element.method == method;
+    });
+
+    return routeWithParams;
   }
 
 }
@@ -59,7 +76,13 @@ class RouteData {
 
   final Controller controller;
 
+  final Type routeCls;
+
   final String redirectTo;
+
+  final String moduleToken;
+
+  final Map<String, Type> queryParameters;
 
   Iterable<String> get pathParameters => path.split('/').where((element) => element.startsWith(':')).map((e) => e.substring(1));
 
@@ -67,7 +90,10 @@ class RouteData {
     required this.path,
     required this.method,
     required this.controller,
+    required this.routeCls,
     required this.redirectTo,
+    required this.moduleToken,
+    this.queryParameters = const {}
   });
 
 }

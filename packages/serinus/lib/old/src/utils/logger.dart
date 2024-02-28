@@ -7,6 +7,7 @@ class Logger{
   late logging.Logger _logger;
   static final Map<String, Logger> _loggers = {};
   
+  
   factory Logger(String name){
     return _loggers.putIfAbsent(name, () => Logger._internal(name));
   }

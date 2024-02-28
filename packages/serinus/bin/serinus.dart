@@ -1,7 +1,62 @@
-import 'package:serinus/src/commons.dart';
-import 'package:serinus/src/commons/request.dart';
-import 'package:serinus/src/core.dart';
+import 'package:dotenv/dotenv.dart';
+import 'package:serinus/src/commons/commons.dart';
+import 'package:serinus/src/core/core.dart';
 
+
+class TestMiddleware extends Middleware {
+  TestMiddleware() : super(routes: ['/']);
+
+  @override
+  Future<(
+    RequestContext context,
+    Request request,
+  )> use(RequestContext context, Request request) async {
+    print('Middleware executed');
+    return await super.use(context, request);
+  }
+}
+
+
+class EnvironmentProvider extends Provider {
+
+  late final DotEnv env;
+
+  EnvironmentProvider();
+
+  void init() {
+    env = DotEnv()..load(['.env']);
+  }
+}
+
+
+class TestProvider extends Provider{
+
+  TestProvider({super.isGlobal});
+
+  String testMethod(){
+    return 'Hello world';
+  }
+
+}
+
+class TestProviderTwo extends Provider with OnApplicationInit, OnApplicationShutdown{
+
+
+  String testMethod(){
+    return 'Hello world from provider two';
+  }
+
+  @override
+  Future<void> onApplicationInit() async {
+    print('Provider two initialized');
+  }
+
+  @override
+  Future<void> onApplicationShutdown() async {
+    print('Provider two shutdown');
+  }
+
+}
 
 class GetRoute extends Route {
   GetRoute({
@@ -10,48 +65,101 @@ class GetRoute extends Route {
   });
 
   @override
-  Future<void> handle(InternalRequest request, Response response) async {
-    await Future.delayed(Duration(seconds: 5));
-    response.status(201).text('Hello world');
+  Future<void> handle(RequestContext context, Response response) async {
+    final result = context.use<TestProvider>().testMethod();
+    final environment = context.use<EnvironmentProvider>();
+    print(environment.env['TEST_ENV']);
+    response.status(201).text('$result - ${environment.env['TEST_ENV']}');
   }
 }
 
 class PostRoute extends Route {
   PostRoute({
     required super.path, 
-    super.method = HttpMethod.post
+    super.method = HttpMethod.post,
+    super.queryParameters = const {
+      'hello': String,
+    }
   });
 
   @override
-  Future<void> handle(InternalRequest request, Response response) async {
-    response.status(201).text('Hello world');
+  Future<void> handle(RequestContext context, Response response) async {
+    if(context.pathParameters['id'] == 'not_found'){
+      response.redirectTo('/404');
+      return;
+    }
+    response.status(201).text('Hello world ${context.pathParameters['id']} ${context.queryParameters['hello']}');
   }
 }
 
 class HomeController extends Controller {
   HomeController() : super(path: '/'){
-    on(GetRoute(path: '/'), (route) {
-      print('Hello world');
-    });
-    on(PostRoute(path: '/'), (route) {
-      print('Hello world');
-    });
+    on(GetRoute(path: '/'));
+    on(PostRoute(path: '/:id'));
+  }
+}
+
+class HomeAController extends Controller {
+  HomeAController() : super(path: '/a'){
+    on(GetRoute(path: '/'));
+    on(PostRoute(path: '/:id'));
   }
 }
 
 class AppModule extends Module {
   AppModule() : super(
+    imports: [
+      ReAppModule()
+    ],
     controllers: [
       HomeController()
+    ],
+    providers: [
+      TestProvider(
+        isGlobal: true
+      )
+    ],
+    middlewares: [
+      TestMiddleware()
+    ]
+  );
+
+  @override
+  Future<Module> registerAsync() async {
+
+    final result = super.get<TestProviderTwo>()?.testMethod();
+    print(result);
+    final environmentProvider = EnvironmentProvider();
+    environmentProvider.init();
+    this.providers.add(environmentProvider);
+
+    return super.registerAsync();
+  }
+}
+
+class ReAppModule extends Module {
+  ReAppModule() : super(
+    imports: [
+    ],
+    controllers: [
+      HomeAController()
+    ],
+    providers: [
+      TestProviderTwo()
+    ],
+    middlewares: [
+      TestMiddleware()
+    ],
+    exports: [
+      TestProviderTwo
     ]
   );
 }
 
 void main(List<String> arguments) async {
-  print(arguments);
   SerinusApplication application = SerinusApplication(
     entrypoint: AppModule(), 
   );
-  print("Starting application...");
+  application.enableShutdownHooks();
   await application.serve();
 }

@@ -1,35 +1,57 @@
 
-import '../../core.dart';
+import '../../commons/services/logger_service.dart';
 import '../containers/module_container.dart';
 import '../containers/routes_container.dart';
+import '../core.dart';
 
 class Explorer {
-
+  
   const Explorer();
 
-  void explore(){
+  void resolveRoutes(){
+    final Logger _logger = Logger('RoutesResolver');
     final modulesContainer = ModulesContainer();
     final modules = modulesContainer.modules;
-    final routesContainer = RoutesContainer();
     for(Module module in modules) {
       final controllers = module.controllers;
       for(var controller in controllers){
         final controllerPath = _normalizePath(controller.path);
-        final routes = controller.routes;
-        for (var route in routes) {
-          String routePath = _normalizePath('${controllerPath}${route.path}');
-          final routeMethod = route.method;
-          print("Registering route $routePath with method $routeMethod");
-          routesContainer.registerRoute(
-            RouteData(
-              path: routePath, 
-              controller: controller,
-              method: routeMethod, 
-              redirectTo: '',
-            ),
-          );
+        if(controllerPath.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))){
+          throw Exception('Invalid controller path: $controllerPath');
         }
+        _logger.info('${controller.runtimeType} {$controllerPath}');
+        exploreRoutes(controller, module, controllerPath);
       }
+    }
+  }
+
+  void exploreRoutes(Controller controller, Module module, String controllerPath){
+    final Logger _logger = Logger('RoutesExplorer');
+    final routesContainer = RoutesContainer();
+    final routes = controller.routes;
+    for (var route in routes) {
+      String routePath = _normalizePath('${controllerPath}${route.path}');
+      final uriPath = Uri.parse(routePath);
+      if(uriPath.pathSegments.toSet().length != uriPath.pathSegments.length){
+        throw Exception('Duplicate path segments in route $routePath');
+      }
+      final routeMethod = route.method;
+      final registeredRoute = routesContainer.getRouteForPath(routePath, routeMethod);
+      if(registeredRoute != null){
+        throw Exception('Route $routePath with method $routeMethod already registered');
+      }
+      _logger.info("Mapped {$routePath, $routeMethod} route");
+      routesContainer.registerRoute(
+        RouteData(
+          path: routePath, 
+          controller: controller,
+          routeCls: route.runtimeType,
+          method: routeMethod, 
+          redirectTo: '',
+          moduleToken: module.token.isEmpty ? module.runtimeType.toString() : module.token,
+          queryParameters: route.queryParameters
+        ),
+      );
     }
   }
 

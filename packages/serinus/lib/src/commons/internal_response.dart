@@ -32,4 +32,8 @@ class InternalResponse {
     });
   }
 
+  void redirect(String path){
+    original.redirect(Uri.parse(path));
+  }
+
 }

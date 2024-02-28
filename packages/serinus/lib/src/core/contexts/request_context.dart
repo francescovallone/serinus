@@ -1,0 +1,134 @@
+import 'package:serinus/serinus.dart';
+
+import '../middleware.dart';
+import '../provider.dart';
+
+sealed class RequestContext {
+
+  final Map<Type, Provider> providers;
+  final List<Middleware> middlewares;
+  final Map<String, String> pathParameters;
+  final Map<String, dynamic> queryParameters;
+  final String path;
+
+  const RequestContext(
+    this.providers,
+    this.middlewares,
+    this.pathParameters,
+    this.queryParameters,
+    this.path
+  );
+
+  T use<T>(){
+    if(!providers.containsKey(T)){
+      throw StateError('Provider not found in request context');
+    }
+    return providers[T] as T;
+  }
+
+}
+
+class _RequestContextImpl extends RequestContext {
+
+  _RequestContextImpl(
+    Map<Type, Provider> providers,
+    List<Middleware> middlewares,
+    Map<String, String> pathParameters,
+    Map<String, dynamic> queryParameters,
+    String path
+  ) : super(
+    providers,
+    middlewares,
+    pathParameters,
+    queryParameters,
+    path
+  );
+
+  @override
+  T use<T>() {
+    if(!providers.containsKey(T)){
+      throw StateError('Provider not found in request context');
+    }
+    return providers[T] as T;
+  }
+
+}
+
+class RequestContextBuilder {
+
+  RequestContext? _context;
+
+  Map<Type, Provider> providers = {};
+  List<Middleware> middlewares = [];
+  Map<String, String> pathParameters = {};
+  Map<String, dynamic> queryParameters = {};
+  String path = '';
+
+  RequestContextBuilder();
+
+  RequestContextBuilder addProviders(List<Provider> providers){
+    this.providers.addAll({
+      for (var provider in providers) provider.runtimeType: provider,
+    });
+    return this;
+  }
+
+  RequestContextBuilder addMiddlewares(List<Middleware> middlewares){
+    this.middlewares.addAll(middlewares);
+    return this;
+  }
+
+  RequestContextBuilder addPathParameters(
+    String routePath,
+    String requestPath
+  ){
+    final pathParameters = <String, String>{};
+    final routePathSegments = routePath.split('/');
+    final requestPathSegments = requestPath.split('/');
+    for (var i = 0; i < routePathSegments.length; i++) {
+      if(routePathSegments[i].startsWith(':')){
+        pathParameters[routePathSegments[i].substring(1)] = requestPathSegments[i];
+      }
+    }
+    this.pathParameters.addAll(pathParameters);
+    return this;
+  }
+  
+  RequestContextBuilder addQueryParameters(Map<String, Type> queryParametersRoute, Map<String, String> queryParametersRequest){
+    final queryParameters = <String, dynamic>{};
+    queryParametersRequest.forEach((key, value) {
+      switch(queryParametersRoute[key]){
+        case int:
+          queryParameters[key] = int.parse(value);
+          break;
+        case double:
+          queryParameters[key] = double.parse(value);
+          break;
+        case bool:
+          queryParameters[key] = value == 'true';
+          break;
+        default:
+          queryParameters[key] = value;
+      }
+    });
+    this.queryParameters.addAll(queryParameters);
+    return this;
+  }
+
+  RequestContextBuilder setPath(String path){
+    this.path = path;
+    return this;
+  }
+
+  RequestContext build(){
+    _context = _RequestContextImpl(
+      providers,
+      middlewares,
+      pathParameters,
+      queryParameters,
+      path
+    );
+    return _context!;
+  }
+
+}

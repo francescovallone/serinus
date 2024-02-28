@@ -9,33 +9,33 @@ class Response {
 
   Response(this._original);
   
-  Response json(Map<String, dynamic> data){
+  void json(Map<String, dynamic> data){
     _original.contentType('application/json');
     _original.send(jsonEncode(data));
-    return this;
   }
 
-  Response html(String data){
+  void html(String data){
     _original.contentType(ContentType.html.value);
     _original.send(data);
-    return this;
   }
 
-  Response text(String data){
+  void text(String data){
     _original.contentType(ContentType.text.value);
     _original.send(data);
-    return this;
   }
 
-  Response bytes(List<int> data){
+  void bytes(List<int> data){
     _original.contentType(ContentType.binary.value);
     _original.send(data);
-    return this;
   }
 
   Response status(int statusCode){
     _original.status(statusCode);
     return this;
+  }
+
+  void redirectTo(String path){
+    _original.redirect(path);
   }
 
 }

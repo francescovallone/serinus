@@ -1,8 +1,8 @@
 import 'package:meta/meta.dart';
-import 'package:serinus/src/commons.dart';
-import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
-import 'package:serinus/src/commons/request.dart';
-
+import '../commons/commons.dart';
+import '../commons/extensions/iterable_extansions.dart';
+import '../commons/internal_request.dart';
+import 'contexts/request_context.dart';
 import 'route.dart';
 
 abstract class Controller {
@@ -16,7 +16,7 @@ abstract class Controller {
   final List<Route> _routes = [];
 
   @mustCallSuper
-  void on<R extends Route>(R route, void Function(R route) callback){
+  void on<R extends Route>(R route){
     final routeExists = _routes.any((r) => r == R);
     if(routeExists){
       throw StateError('A route of type $R already exists in this controller');
@@ -27,15 +27,28 @@ abstract class Controller {
   List<Route> get routes => _routes;
 
   @mustCallSuper
-  Future<void> handle(InternalRequest request) async {
-    final route = _routes.firstWhereOrNull((r) => r.path == request.path && r.method == request.method.toHttpMethod());
+  @nonVirtual
+  Future<void> handle(
+    RequestContext context,
+    Type routeCls,
+    InternalRequest request
+  ) async {
+    var wrappedRequest = Request(request);
+    final route = _routes.firstWhereOrNull((r) => r.runtimeType == routeCls);
     if(route == null){
-      throw StateError('No route found for path ${request.path} and method ${request.method}');
+      throw StateError('Route not found');
     }
-    await route.handle(request, Response(request.response()));
+    if(context.middlewares.isNotEmpty){
+      final routeMiddlewares = context.middlewares.where((m) => m.routes.contains(route.path) || m.routes.contains('*'));
+      for(final middleware in routeMiddlewares){
+        (context, wrappedRequest) = await middleware.use(context, wrappedRequest);
+      }
+    }
+    await route.handle(context, Response(request.response()));
   }
 
   @mustCallSuper
+  @nonVirtual
   bool hasRoute(String path, String method){
     return _routes.any((r) => r.path == path && r.method == method);
   }

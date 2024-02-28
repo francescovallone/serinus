@@ -1,7 +1,6 @@
 import 'dart:io' as io;
 
-import '../request.dart';
-
+import '../internal_request.dart';
 
 typedef RequestHandler = Future<void> Function(InternalRequest request, String poweredByHeader);
 typedef ErrorHandler = void Function(dynamic e, StackTrace stackTrace);

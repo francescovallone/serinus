@@ -18,7 +18,8 @@ dependencies:
   mime: ^1.0.4
   stream_channel: ^2.1.1
   uuid: ^4.3.1
-  web_socket_channel: ^2.4.1
+  web_socket_channel: ^2.4.4
+  dotenv: ^4.2.0
 
 dev_dependencies:
   test: ^1.16.0
