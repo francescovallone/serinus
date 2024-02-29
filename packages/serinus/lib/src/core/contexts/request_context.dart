@@ -10,8 +10,9 @@ sealed class RequestContext {
   final Map<String, String> pathParameters;
   final Map<String, dynamic> queryParameters;
   final String path;
+  late final dynamic body;
 
-  const RequestContext(
+  RequestContext(
     this.providers,
     this.middlewares,
     this.pathParameters,
@@ -66,7 +67,7 @@ class RequestContextBuilder {
 
   RequestContextBuilder();
 
-  RequestContextBuilder addProviders(List<Provider> providers){
+  RequestContextBuilder addProviders(Iterable<Provider> providers){
     this.providers.addAll({
       for (var provider in providers) provider.runtimeType: provider,
     });

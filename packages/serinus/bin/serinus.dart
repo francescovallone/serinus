@@ -1,4 +1,5 @@
-import 'package:dotenv/dotenv.dart';
+import 'dart:io';
+
 import 'package:serinus/src/commons/commons.dart';
 import 'package:serinus/src/core/core.dart';
 
@@ -15,19 +16,6 @@ class TestMiddleware extends Middleware {
     return await super.use(context, request);
   }
 }
-
-
-class EnvironmentProvider extends Provider {
-
-  late final DotEnv env;
-
-  EnvironmentProvider();
-
-  void init() {
-    env = DotEnv()..load(['.env']);
-  }
-}
-
 
 class TestProvider extends Provider{
 
@@ -59,7 +47,8 @@ class TestProviderTwo extends Provider with OnApplicationInit, OnApplicationShut
 }
 
 class GetRoute extends Route {
-  GetRoute({
+
+  const GetRoute({
     required super.path, 
     super.method = HttpMethod.get
   });
@@ -67,19 +56,29 @@ class GetRoute extends Route {
   @override
   Future<void> handle(RequestContext context, Response response) async {
     final result = context.use<TestProvider>().testMethod();
-    final environment = context.use<EnvironmentProvider>();
-    print(environment.env['TEST_ENV']);
-    response.status(201).text('$result - ${environment.env['TEST_ENV']}');
+    response.status(201).text('$result');
+  }
+}
+
+class JsonBody extends BodyTransformer<Map<String, dynamic>>{
+  
+  const JsonBody();
+  
+  @override
+  Map<String, dynamic> call(String rawBody, ContentType contentType) {
+    return {};
   }
 }
 
 class PostRoute extends Route {
-  PostRoute({
+
+  const PostRoute({
     required super.path, 
     super.method = HttpMethod.post,
     super.queryParameters = const {
       'hello': String,
-    }
+    },
+    super.body = const JsonBody()
   });
 
   @override
@@ -88,6 +87,7 @@ class PostRoute extends Route {
       response.redirectTo('/404');
       return;
     }
+    print(context.body);
     response.status(201).text('Hello world ${context.pathParameters['id']} ${context.queryParameters['hello']}');
   }
 }
@@ -126,13 +126,6 @@ class AppModule extends Module {
 
   @override
   Future<Module> registerAsync() async {
-
-    final result = super.get<TestProviderTwo>()?.testMethod();
-    print(result);
-    final environmentProvider = EnvironmentProvider();
-    environmentProvider.init();
-    this.providers.add(environmentProvider);
-
     return super.registerAsync();
   }
 }

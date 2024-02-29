@@ -29,10 +29,10 @@ class SerinusApplication{
     this.loggingLevel = LogLevel.debug,
     LoggerService? loggerService
   }){
-    _initialize(entrypoint);
     if(loggerService != null){
       this.loggerService = loggerService;
     }
+    _initialize(entrypoint);
   }
 
   String get url => 'http://$host:$port';
@@ -79,11 +79,13 @@ class SerinusApplication{
           Module module = modulesContainer.getModuleByToken(routeData.moduleToken);
           RequestContextBuilder builder = RequestContextBuilder()
             ..addMiddlewares(module.middlewares)
-            ..addProviders([
-              ...module.providers,
-              ...(module.imports.map((e) => e.providers.where((element) => e.exports.contains(element.runtimeType))).flatten()),
-              ...modulesContainer.globalProviders
-            ].toSet().toList())
+            ..addProviders(
+              [
+                ...module.providers,
+                ...(module.imports.map((e) => e.providers.where((element) => e.exports.contains(element.runtimeType))).flatten()),
+                ...modulesContainer.globalProviders
+              ].toSet()
+            )
             ..addPathParameters(routeData.path, request.path)
             ..setPath(routeData.path)
             ..addQueryParameters(routeData.queryParameters, request.queryParameters);

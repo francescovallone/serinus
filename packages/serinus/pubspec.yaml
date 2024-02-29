@@ -7,7 +7,7 @@ repository: https://github.com/francescovallone/serinus
 version: 0.0.1-dev.3
 
 environment:
-  sdk: '>=3.0.1 <4.0.0'
+  sdk: '>=3.3.0 <4.0.0'
 
 dependencies:
   async: ^2.11.0
@@ -19,7 +19,6 @@ dependencies:
   stream_channel: ^2.1.1
   uuid: ^4.3.1
   web_socket_channel: ^2.4.4
-  dotenv: ^4.2.0
 
 dev_dependencies:
   test: ^1.16.0

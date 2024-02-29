@@ -44,6 +44,9 @@ abstract class Controller {
         (context, wrappedRequest) = await middleware.use(context, wrappedRequest);
       }
     }
+    context.body = route.body?.call(await request.body(), request.contentType);
+    print(context.body.runtimeType);
+    print(request.contentType);
     await route.handle(context, Response(request.response()));
   }
 
