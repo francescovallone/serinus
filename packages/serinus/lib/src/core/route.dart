@@ -4,11 +4,11 @@ import 'package:meta/meta.dart';
 import '../commons/commons.dart';
 import 'contexts/request_context.dart';
 
-abstract class BodyTransformer<T>{
+abstract class BodyTransformer{
 
   const BodyTransformer();
 
-  T call(String rawBody, ContentType contentType);
+  Body call(Body rawBody, ContentType contentType);
 
 }
 
@@ -17,13 +17,13 @@ abstract class Route {
   final String path;
   final HttpMethod method;
   final Map<String, Type> queryParameters;
-  final BodyTransformer<Object>? body;
+  final BodyTransformer? bodyTranformer;
 
   const Route({
     required this.path,
     required this.method,
     this.queryParameters = const {},
-    this.body
+    this.bodyTranformer
   });
   
   @mustBeOverridden

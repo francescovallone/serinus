@@ -60,13 +60,13 @@ class GetRoute extends Route {
   }
 }
 
-class JsonBody extends BodyTransformer<Map<String, dynamic>>{
+class JsonBody extends BodyTransformer{
   
   const JsonBody();
   
   @override
-  Map<String, dynamic> call(String rawBody, ContentType contentType) {
-    return {};
+  Body call(Body rawBody, ContentType contentType) {
+    return Body(contentType);
   }
 }
 
@@ -78,7 +78,6 @@ class PostRoute extends Route {
     super.queryParameters = const {
       'hello': String,
     },
-    super.body = const JsonBody()
   });
 
   @override

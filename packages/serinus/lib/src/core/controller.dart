@@ -1,6 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:meta/meta.dart';
+
 import '../commons/commons.dart';
+import '../commons/extensions/content_type_extensions.dart';
 import '../commons/extensions/iterable_extansions.dart';
+import '../commons/extensions/string_extensions.dart';
+import '../commons/form_data.dart';
 import '../commons/internal_request.dart';
 import 'contexts/request_context.dart';
 import 'route.dart';
@@ -44,10 +51,42 @@ abstract class Controller {
         (context, wrappedRequest) = await middleware.use(context, wrappedRequest);
       }
     }
-    context.body = route.body?.call(await request.body(), request.contentType);
-    print(context.body.runtimeType);
-    print(request.contentType);
+    Body body = await _getBody(request.contentType, request);
+    if(route.bodyTranformer != null){
+      body = route.bodyTranformer!.call(body, request.contentType);
+    }
+    context.body = body;
     await route.handle(context, Response(request.response()));
+  }
+
+  Future<Body> _getBody(ContentType contentType, InternalRequest request) async {
+    if(contentType.isMultipart()){
+      final formData = await FormData.parseMultipart(request: request.original);
+      return Body(
+        contentType,
+        formData: formData
+      );
+    }
+    final body = await request.body();
+    if(contentType.isUrlEncoded()){
+      final formData = FormData.parseUrlEncoded(body);
+      return Body(
+        contentType,
+        formData: formData
+      );
+    }
+    if(body.isJson() || contentType == ContentType.json){
+      return Body(ContentType.json, json: json.decode(body));
+    }
+
+    if(contentType == ContentType.binary){
+      return Body(contentType, bytes: body.codeUnits);
+    }
+
+    return Body(
+      contentType,
+      text: body,
+    );
   }
 
   @mustCallSuper

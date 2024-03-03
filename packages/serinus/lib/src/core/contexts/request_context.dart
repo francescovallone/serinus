@@ -1,7 +1,5 @@
 import 'package:serinus/serinus.dart';
 
-import '../middleware.dart';
-import '../provider.dart';
 
 sealed class RequestContext {
 
@@ -10,7 +8,7 @@ sealed class RequestContext {
   final Map<String, String> pathParameters;
   final Map<String, dynamic> queryParameters;
   final String path;
-  late final dynamic body;
+  late final Body body;
 
   RequestContext(
     this.providers,
