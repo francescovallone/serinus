@@ -37,12 +37,16 @@ class RoutesContainer {
     return _routes[controllerName]?.values.expand((element) => element).toList() ?? [];
   }
 
+  String _normalizePath(String path) {
+    return path.endsWith('/') ? path.substring(0, path.length - 1) : path;
+  }
+
   RouteData? getRouteForPath(String path, HttpMethod method) {
     final routes = _routes.values
       .expand((element) => element.values)
       .flatten();
-    final normalizedPath = path.endsWith('/') ? path.substring(0, path.length - 1) : path;
-    final route = routes.firstWhereOrNull((element) => element.path == normalizedPath && element.method == method);
+    final normalizedPath = _normalizePath(path);
+    final route = routes.firstWhereOrNull((element) => _normalizePath(element.path) == normalizedPath && element.method == method);
 
     if(route != null){
       return route;
