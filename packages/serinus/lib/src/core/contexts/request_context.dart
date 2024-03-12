@@ -4,7 +4,6 @@ import 'package:serinus/serinus.dart';
 sealed class RequestContext {
 
   final Map<Type, Provider> providers;
-  final List<Middleware> middlewares;
   final Map<String, String> pathParameters;
   final Map<String, dynamic> queryParameters;
   final String path;
@@ -12,7 +11,6 @@ sealed class RequestContext {
 
   RequestContext(
     this.providers,
-    this.middlewares,
     this.pathParameters,
     this.queryParameters,
     this.path
@@ -31,13 +29,11 @@ class _RequestContextImpl extends RequestContext {
 
   _RequestContextImpl(
     Map<Type, Provider> providers,
-    List<Middleware> middlewares,
     Map<String, String> pathParameters,
     Map<String, dynamic> queryParameters,
     String path
   ) : super(
     providers,
-    middlewares,
     pathParameters,
     queryParameters,
     path
@@ -58,7 +54,6 @@ class RequestContextBuilder {
   RequestContext? _context;
 
   Map<Type, Provider> providers = {};
-  List<Middleware> middlewares = [];
   Map<String, String> pathParameters = {};
   Map<String, dynamic> queryParameters = {};
   String path = '';
@@ -69,11 +64,6 @@ class RequestContextBuilder {
     this.providers.addAll({
       for (var provider in providers) provider.runtimeType: provider,
     });
-    return this;
-  }
-
-  RequestContextBuilder addMiddlewares(List<Middleware> middlewares){
-    this.middlewares.addAll(middlewares);
     return this;
   }
 
@@ -122,7 +112,6 @@ class RequestContextBuilder {
   RequestContext build(){
     _context = _RequestContextImpl(
       providers,
-      middlewares,
       pathParameters,
       queryParameters,
       path

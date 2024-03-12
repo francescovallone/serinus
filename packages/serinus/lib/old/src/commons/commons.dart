@@ -1,4 +1,4 @@
-export 'form_data.dart';
+export '../../../src/commons/form_data.dart';
 export 'json_body.dart';
 export 'middleware/consumer_route.dart';
 export 'middleware/middleware_consumer.dart';

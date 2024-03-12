@@ -5,37 +5,70 @@ import 'internal_response.dart';
 
 class Response {
 
-  final InternalResponse _original;
+  final dynamic _value;
+  final int _statusCode;
+  final ContentType _contentType;
+  final bool _shouldRedirect;
 
-  Response(this._original);
+  Response._(this._value, this._statusCode, this._contentType, {bool shouldRedirect = false}): _shouldRedirect = shouldRedirect;
+
+  dynamic get data => _value;
+
+  int get statusCode => _statusCode;
+
+  ContentType get contentType => _contentType;
+
+  bool get shouldRedirect => _shouldRedirect;
+
+  factory Response.json({
+    required Map<String, dynamic> data,
+    int statusCode = 200,
+    ContentType? contentType
+  }){
+    return Response._(data, statusCode, contentType ?? ContentType.json);
+  }
+
+  factory Response.html({
+    required String data,
+    int statusCode = 200,
+    ContentType? contentType
+  }){
+    return Response._(data, statusCode, contentType ?? ContentType.html);
+  }
   
-  void json(Map<String, dynamic> data){
-    _original.contentType('application/json');
-    _original.send(jsonEncode(data));
+  factory Response.text({
+    required String data,
+    int statusCode = 200,
+    ContentType? contentType
+  }){
+    return Response._(data, statusCode, contentType ?? ContentType.text);
   }
 
-  void html(String data){
-    _original.contentType(ContentType.html.value);
-    _original.send(data);
+  factory Response.bytes({
+    required List<int> data,
+    int statusCode = 200,
+    ContentType? contentType
+  }){
+    return Response._(data, statusCode, contentType ?? ContentType.binary);
   }
 
-  void text(String data){
-    _original.contentType(ContentType.text.value);
-    _original.send(data);
+  factory Response.file({
+    required File file,
+    int statusCode = 200,
+    ContentType? contentType
+  }){
+    return Response._(file, statusCode, contentType ?? ContentType.binary);
   }
 
-  void bytes(List<int> data){
-    _original.contentType(ContentType.binary.value);
-    _original.send(data);
+  factory Response.redirect({
+    required String path,
+    int statusCode = 302,
+  }){
+    return Response._(path, statusCode, ContentType.text, shouldRedirect: true);
   }
 
-  Response status(int statusCode){
-    _original.status(statusCode);
-    return this;
-  }
-
-  void redirectTo(String path){
-    _original.redirect(path);
+  factory Response.status(int statusCode){
+    return Response._(null, statusCode, ContentType.text);
   }
 
 }

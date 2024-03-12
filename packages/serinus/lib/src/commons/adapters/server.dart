@@ -1,8 +1,10 @@
 import 'dart:io' as io;
 
+import 'package:serinus/src/commons/internal_response.dart';
+
 import '../internal_request.dart';
 
-typedef RequestHandler = Future<void> Function(InternalRequest request, String poweredByHeader);
+typedef RequestCallback = Future<void> Function(InternalRequest request, InternalResponse response);
 typedef ErrorHandler = void Function(dynamic e, StackTrace stackTrace);
 
 class SerinusHttpServer {
@@ -34,7 +36,7 @@ class SerinusHttpServer {
   }
 
   Future<void> listen(
-    RequestHandler requestHandler,
+    RequestCallback requestCallback,
     {
       String address = '127.0.0.1',
       int port = 3000,
@@ -52,10 +54,11 @@ class SerinusHttpServer {
     }
     try {
       await _httpServer?.listen(
-        (req) => requestHandler(
-          InternalRequest.from(req),
-          poweredByHeader
-        ),
+        (req) {
+          final request = InternalRequest.from(req);
+          final response = request.response(poweredByHeader: poweredByHeader);
+          requestCallback.call(request, response);
+        },
         onError: errorHandler
       );
     }catch(e){

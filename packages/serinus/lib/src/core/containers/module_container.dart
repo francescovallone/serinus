@@ -67,6 +67,16 @@ class ModulesContainer {
     return _modules[token]!;
   }
 
+  List<Module> getParents(Module module) {
+    final parents = <Module>[];
+    for(final subModule in _modules.values){
+      if(subModule.imports.contains(module)){
+        parents.add(subModule);
+      }
+    }
+    return parents;
+  }
+
   T? get<T extends Provider>() {
     final providers = _modules.values.expand((element) => element.providers).toList();
     return providers.firstWhereOrNull((provider) => provider == T) as T?;

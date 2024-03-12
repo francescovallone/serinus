@@ -80,20 +80,13 @@ class PostRoute extends Route {
     },
   });
 
-  @override
-  Future<void> handle(RequestContext context, Response response) async {
-    if(context.pathParameters['id'] == 'not_found'){
-      response.redirectTo('/404');
-      return;
-    }
-    print(context.body);
-    response.status(201).text('Hello world ${context.pathParameters['id']} ${context.queryParameters['hello']}');
-  }
 }
 
 class HomeController extends Controller {
   HomeController() : super(path: '/'){
-    on(GetRoute(path: '/'));
+    on(GetRoute(path: '/'), (context, request) {
+      return Response.o
+    });
     on(PostRoute(path: '/:id'));
   }
 }

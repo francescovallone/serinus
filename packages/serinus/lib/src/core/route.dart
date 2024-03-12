@@ -25,8 +25,5 @@ abstract class Route {
     this.queryParameters = const {},
     this.bodyTranformer
   });
-  
-  @mustBeOverridden
-  Future<void> handle(RequestContext context, Response response);
 
 }

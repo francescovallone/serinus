@@ -3,13 +3,12 @@ import 'dart:io';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 
 import '../commons/commons.dart';
-import '../commons/services/logger_service.dart';
 import './containers/module_container.dart';
 import './injector/explorer.dart';
 import 'containers/routes_container.dart';
-import 'contexts/request_context.dart';
 import 'module.dart';
 import 'provider.dart';
+import 'request_handler.dart';
 
 class SerinusApplication{
 
@@ -63,33 +62,16 @@ class SerinusApplication{
     SecurityContext? securityContext,
   }) async {
     final server = SerinusHttpServer();
-    final routesContainer = RoutesContainer();
-    final modulesContainer = ModulesContainer();
+    final modules = ModulesContainer();
+    final routes = RoutesContainer();
     _logger.info("Starting server on $host:$port");
     await server.listen(
       securityContext: securityContext,
       poweredByHeader: poweredByHeader,
-      (request, poweredByHeader) async {
-        final response = request.response(poweredByHeader: poweredByHeader);
+      (request, response) async {
         try{
-          final routeData = routesContainer.getRouteForPath(request.path, request.method.toHttpMethod());
-          if(routeData == null){
-            throw NotFoundException(message: 'No route found for path ${request.path} and method ${request.method}');
-          }
-          Module module = modulesContainer.getModuleByToken(routeData.moduleToken);
-          RequestContextBuilder builder = RequestContextBuilder()
-            ..addMiddlewares(module.middlewares)
-            ..addProviders(
-              [
-                ...module.providers,
-                ...(module.imports.map((e) => e.providers.where((element) => e.exports.contains(element.runtimeType))).flatten()),
-                ...modulesContainer.globalProviders
-              ].toSet()
-            )
-            ..addPathParameters(routeData.path, request.path)
-            ..setPath(routeData.path)
-            ..addQueryParameters(routeData.queryParameters, request.queryParameters);
-          await routeData.controller.handle(builder.build(), routeData.routeCls, request);
+          final handler = RequestHandler(routes, modules);
+          await handler.handleRequest(request, response);
         }catch(e){
           if(e is SerinusException){
             final (statusCode, error) = e.handle();

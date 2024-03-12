@@ -1,7 +1,9 @@
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
+import 'package:serinus/src/core/containers/route_tree.dart/tree.dart';
 
 import '../../commons/commons.dart';
 import '../core.dart';
+import 'route_tree.dart/node.dart';
 
 class RoutesContainer {
   
@@ -13,28 +15,15 @@ class RoutesContainer {
     return _instance;
   }
 
-  final Map<String, Map<String, List<RouteData>>> _routes = {};
+  final RouteTree _routeTree = RouteTree();
 
   void registerRoute(RouteData routeData) {
-    final controller = routeData.controller.runtimeType.toString();
-    if(_routes.containsKey(controller)){
-      _routes[controller] = {
-        ..._routes[controller]!,
-        routeData.path: [
-          ..._routes[controller]![routeData.path] ?? [],
-          routeData
-        ]
-      };
-    } else {
-      _routes[controller] = {
-        routeData.path: [routeData]
-      };
-    }
+    _routeTree.addNode(routeData.method, routeData.path, routeData);
   }
 
   List<RouteData> getRoutesForController(Controller controller) {
     final controllerName = controller.runtimeType.toString();
-    return _routes[controllerName]?.values.expand((element) => element).toList() ?? [];
+    return [];
   }
 
   String _normalizePath(String path) {
@@ -42,31 +31,32 @@ class RoutesContainer {
   }
 
   RouteData? getRouteForPath(String path, HttpMethod method) {
-    final routes = _routes.values
-      .expand((element) => element.values)
-      .flatten();
-    final normalizedPath = _normalizePath(path);
-    final route = routes.firstWhereOrNull((element) => _normalizePath(element.path) == normalizedPath && element.method == method);
+    return null;
+    // final routes = _routes.values
+    //   .expand((element) => element.values)
+    //   .flatten();
+    // final normalizedPath = _normalizePath(path);
+    // final route = routes.firstWhereOrNull((element) => _normalizePath(element.path) == normalizedPath && element.method == method);
 
-    if(route != null){
-      return route;
-    }
+    // if(route != null){
+    //   return route;
+    // }
 
-    final routeWithParams = routes.firstWhereOrNull((element) {
-      final routePath = element.path.split('/');
-      final requestPath = normalizedPath.split('/');
-      if(routePath.length != requestPath.length){
-        return false;
-      }
-      for(var i = 0; i < routePath.length; i++){
-        if(routePath[i] != requestPath[i] && !routePath[i].startsWith(':')){
-          return false;
-        }
-      }
-      return element.method == method;
-    });
+    // final routeWithParams = routes.firstWhereOrNull((element) {
+    //   final routePath = element.path.split('/');
+    //   final requestPath = normalizedPath.split('/');
+    //   if(routePath.length != requestPath.length){
+    //     return false;
+    //   }
+    //   for(var i = 0; i < routePath.length; i++){
+    //     if(routePath[i] != requestPath[i] && !routePath[i].startsWith(':')){
+    //       return false;
+    //     }
+    //   }
+    //   return element.method == method;
+    // });
 
-    return routeWithParams;
+    // return routeWithParams;
   }
 
 }
