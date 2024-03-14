@@ -12,19 +12,18 @@ class RouteTree {
   }
 
   void addNode(HttpMethod method, String path, RouteData routeData) {
-    print(path);
-    final node = _insert(path, routeData);
-    print(node);
+    _insert(path, routeData);
   }
 
   Node _insert(String path, RouteData routeData){
     path = _normalizePath(path);
     final segments = path.split('/');
-    print(segments);
     Node current = _root;
 
     if(path == RouteNode.key){
-      current.terminal = true;
+      current
+        ..terminal = true
+        ..addRoute(routeData.method, routeData);
       return current;
     }
 
@@ -38,10 +37,8 @@ class RouteTree {
     }
 
     for (var segment in segments.pathMap) {
-      print(segment);
       current = _getNodeType(current, segment.value, segment.isLast, routeData);
     }
-    print("current: $current");
     return current;
   }
 
@@ -55,15 +52,15 @@ class RouteTree {
     Node? child = node.children[segment];
 
     if (child != null) {
-      final newNode = node.put(segment, node);
+      final newNode = node.put(segment, child);
       if(isLast){
-        newNode.data = routeData;
+        newNode.addRoute(routeData.method, routeData);
       }
       return newNode;
     }
     final newNode = node.put(segment, RouteNode(segment));
     if(isLast){
-      newNode.data = routeData;
+      newNode.addRoute(routeData.method, routeData);
     }
     return newNode;
 
@@ -80,6 +77,27 @@ class RouteTree {
       path = path.substring(0, path.length - 1);
     }
     return path.substring(1);
+  }
+
+  RouteData? getNode(List<String> segments, HttpMethod method) {
+    final checkSegments = [...segments];
+    if(checkSegments.lastOrNull == ''){
+      checkSegments.removeLast();
+    }
+    Node current = _root;
+    for (var segment in checkSegments) {
+      final paramRoute = current.children.values.firstWhereOrNull((e) => e.isParam);;
+      if(current.children.containsKey(segment)){
+        current = current.children[segment]!;
+      } else if(current.children.containsKey(WildcardRouteNode.key)){
+        current = current.children[WildcardRouteNode.key]!;
+      } else if(paramRoute != null){
+        current = paramRoute;
+      } else {
+        return null;
+      }
+    }
+    return current.getRoute(method);
   }
 
 }

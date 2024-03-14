@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/core/containers/routes_container.dart';
 
@@ -11,7 +12,20 @@ abstract class Node {
 
   Map<String, Node> get children => UnmodifiableMapView(_children);
   
-  late final RouteData data;
+  final Map<HttpMethod, RouteData> _routes = {};
+
+  RouteData? getRoute(HttpMethod method) {
+    return _routes[method];
+  }
+  
+  bool get isParam => path.startsWith(':');
+
+  void addRoute(HttpMethod method, RouteData routeData) {
+    if(_routes.containsKey(method)){
+      throw StateError('Route {${routeData.path}, $method} already exists');
+    }
+    _routes[method] = routeData;
+  }
 
   bool terminal = false;
 

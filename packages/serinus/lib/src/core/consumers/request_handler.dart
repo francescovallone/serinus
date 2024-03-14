@@ -7,11 +7,13 @@ import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/commons/extensions/string_extensions.dart';
 import 'package:serinus/src/commons/internal_request.dart';
 import 'package:serinus/src/commons/internal_response.dart';
+import 'package:serinus/src/core/consumers/guards_consumer.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
 import 'package:serinus/src/core/containers/routes_container.dart';
 import 'package:serinus/src/core/contexts/request_context.dart';
+import 'package:serinus/src/core/guard.dart';
 
-import '../commons/form_data.dart';
+import '../../commons/form_data.dart';
 
 class RequestHandler {
 
@@ -21,24 +23,39 @@ class RequestHandler {
   RequestHandler(this.routesContainer, this.modulesContainer);
 
   Future<void> handleRequest(InternalRequest request, InternalResponse response) async {
-    final routeData = routesContainer.getRouteForPath(request.path, request.method.toHttpMethod());
+    final routeData = routesContainer.getRouteForPath(request.segments, request.method.toHttpMethod());
     if(routeData == null){
       throw NotFoundException(message: 'No route found for path ${request.path} and method ${request.method}');
     }
+    final controller = routeData.controller;
     final route = _getRouteFromController(controller, routeData);
     Module module = modulesContainer.getModuleByToken(routeData.moduleToken);
     final context = _buildContext(module, routeData, request);
-    final controller = routeData.controller;
-    await _executeMiddlewares(context, routeData, request, response, module);
-
+    final wrappedRequest = Request(request);
     final body = await _getBody(request.contentType, request);
     if(route.bodyTranformer != null){
       route.bodyTranformer!.call(body, request.contentType);
     }
+    final guardsConsumer = GuardsConsumer();
+    final canActivate = await guardsConsumer.tryActivate(
+      request: wrappedRequest,
+      routeData: routeData,
+      guards: Set<Guard>.from([
+        ...controller.guards,
+        ...module.guards,
+        ...route.guards
+      ]).toList(),
+      body: body,
+      providers: module.providers
+    );
+    if(!canActivate){
+      throw ForbiddenException(message: 'You are not allowed to access the route ${routeData.path}');
+    }
+    await _executeMiddlewares(context, routeData, wrappedRequest, response, module);
+
 
     context.body = body;
-
-    final routeHandler = controller.getHandlerForRoute(route);
+    final routeHandler = controller.routes[route];
     if(routeHandler == null){
       throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
     }
@@ -120,39 +137,39 @@ class RequestHandler {
           }
           if(routeSegments.length == segments.length){
             for(int i = 0; i < segments.length; i++){
-              if(segments[i] != routeSegments[i] && segments[i] != '*'){
+              if(segments[i] != routeSegments[i] && segments[i] != '*' && routeData.pathParameters.isEmpty){
                 return false;
               }
             }
             return true;
           }
         }
+        return false;
       }));
-      middlewares.addAll(_recursiveGetMiddlewares(parent));
+      middlewares.addAll(_recursiveGetMiddlewares(parent, routeData));
     }
     return middlewares.toSet();
   }
   
-  void _finalizeResponse(Response result, InternalResponse response) {
+  Future<void> _finalizeResponse(Response result, InternalResponse response) async {
     response.status(result.statusCode);
     if(result.shouldRedirect){
-      response.redirect(result.data);
+      await response.redirect(result.data);
       return;
     }
     response.contentType(result.contentType.value);
-    response.send(result.data);
+    await response.send(result.data);
   }
   
   Route _getRouteFromController(Controller controller, RouteData routeData) {
-    final route = controller.routes.firstWhereOrNull((r) => r.runtimeType == routeData.routeCls);
+    final route = controller.routes.keys.firstWhereOrNull((r) => r.runtimeType == routeData.routeCls);
     return route!;
   }
   
-  Future<void> _executeMiddlewares(RequestContext context, RouteData routeData, InternalRequest request, InternalResponse response, Module module) async {
+  Future<void> _executeMiddlewares(RequestContext context, RouteData routeData, Request request, InternalResponse response, Module module) async {
     final middlewares = _recursiveGetMiddlewares(module, routeData);
-    final wrappedRequest = Request(request);
     for(final middleware in middlewares){
-      await middleware.use(context, wrappedRequest);
+      await middleware.use(context, request);
     }
   }
 

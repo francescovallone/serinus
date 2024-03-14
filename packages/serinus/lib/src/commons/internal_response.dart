@@ -9,12 +9,12 @@ class InternalResponse {
     required this.original
   });
 
-  void send(dynamic data){
+  Future<void> send(dynamic data) async{
     if(!_statusChanged){
       original.statusCode = HttpStatus.ok;
     }
     original.write(data);
-    original.close();
+    await original.close();
   }
 
   void status(int statusCode){
@@ -32,8 +32,8 @@ class InternalResponse {
     });
   }
 
-  void redirect(String path){
-    original.redirect(Uri.parse(path));
+  Future<void> redirect(String path) async{
+    await original.redirect(Uri.parse('http://localhost:3000$path'));
   }
 
 }

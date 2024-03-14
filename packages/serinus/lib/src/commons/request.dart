@@ -11,7 +11,7 @@ class Request {
 
   Map<String, dynamic> get headers => _original.headers;
 
-  Map<String, dynamic> get queryParameters => _original.queryParameters;
+  Map<String, String> get queryParameters => _original.queryParameters;
 
   List<String> get pathParameters => _original.pathParameters;
 }

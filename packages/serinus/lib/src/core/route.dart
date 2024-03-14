@@ -1,8 +1,7 @@
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import '../commons/commons.dart';
-import 'contexts/request_context.dart';
+import 'guard.dart';
 
 abstract class BodyTransformer{
 
@@ -19,11 +18,13 @@ abstract class Route {
   final Map<String, Type> queryParameters;
   final BodyTransformer? bodyTranformer;
 
+  List<Guard> get guards => [];
+
   const Route({
     required this.path,
     required this.method,
     this.queryParameters = const {},
-    this.bodyTranformer
+    this.bodyTranformer,
   });
 
 }

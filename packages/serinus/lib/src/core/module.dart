@@ -4,6 +4,7 @@ import '../commons/extensions/iterable_extansions.dart';
 
 import 'containers/module_container.dart';
 import 'controller.dart';
+import 'guard.dart';
 import 'middleware.dart';
 import 'provider.dart';
 
@@ -16,6 +17,7 @@ abstract class Module {
   final List<Type> exports;
   final List<Middleware> middlewares;
   final ModuleOptions? options;
+  final List<Guard> guards;
 
   const Module({
     this.imports = const [],
@@ -24,7 +26,8 @@ abstract class Module {
     this.exports = const [],
     this.middlewares = const [],
     this.token = '',
-    this.options
+    this.options,
+    this.guards = const []
   });
 
   @protected

@@ -1,9 +1,7 @@
-import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/core/containers/route_tree.dart/tree.dart';
 
 import '../../commons/commons.dart';
 import '../core.dart';
-import 'route_tree.dart/node.dart';
 
 class RoutesContainer {
   
@@ -21,42 +19,8 @@ class RoutesContainer {
     _routeTree.addNode(routeData.method, routeData.path, routeData);
   }
 
-  List<RouteData> getRoutesForController(Controller controller) {
-    final controllerName = controller.runtimeType.toString();
-    return [];
-  }
-
-  String _normalizePath(String path) {
-    return path.endsWith('/') ? path.substring(0, path.length - 1) : path;
-  }
-
-  RouteData? getRouteForPath(String path, HttpMethod method) {
-    return null;
-    // final routes = _routes.values
-    //   .expand((element) => element.values)
-    //   .flatten();
-    // final normalizedPath = _normalizePath(path);
-    // final route = routes.firstWhereOrNull((element) => _normalizePath(element.path) == normalizedPath && element.method == method);
-
-    // if(route != null){
-    //   return route;
-    // }
-
-    // final routeWithParams = routes.firstWhereOrNull((element) {
-    //   final routePath = element.path.split('/');
-    //   final requestPath = normalizedPath.split('/');
-    //   if(routePath.length != requestPath.length){
-    //     return false;
-    //   }
-    //   for(var i = 0; i < routePath.length; i++){
-    //     if(routePath[i] != requestPath[i] && !routePath[i].startsWith(':')){
-    //       return false;
-    //     }
-    //   }
-    //   return element.method == method;
-    // });
-
-    // return routeWithParams;
+  RouteData? getRouteForPath(List<String> segments, HttpMethod method) {
+    return _routeTree.getNode(segments, method);
   }
 
 }
@@ -72,8 +36,6 @@ class RouteData {
 
   final Type routeCls;
 
-  final String redirectTo;
-
   final String moduleToken;
 
   final Map<String, Type> queryParameters;
@@ -85,7 +47,6 @@ class RouteData {
     required this.method,
     required this.controller,
     required this.routeCls,
-    required this.redirectTo,
     required this.moduleToken,
     this.queryParameters = const {}
   });

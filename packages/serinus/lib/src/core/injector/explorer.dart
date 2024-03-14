@@ -29,29 +29,28 @@ class Explorer {
     final Logger _logger = Logger('RoutesExplorer');
     final routesContainer = RoutesContainer();
     final routes = controller.routes;
-    for (var route in routes) {
+    for (var route in routes.keys) {
       String routePath = _normalizePath('${controllerPath}${route.path}');
       final uriPath = Uri.parse(routePath);
       if(uriPath.pathSegments.toSet().length != uriPath.pathSegments.length){
         throw StateError('Duplicate path segments in route $routePath');
       }
       final routeMethod = route.method;
-      final registeredRoute = routesContainer.getRouteForPath(routePath, routeMethod);
+      final registeredRoute = routesContainer.getRouteForPath(routePath.split('/'), routeMethod);
       if(registeredRoute != null){
         throw StateError('Route $routePath with method $routeMethod already registered');
       }
-      _logger.info("Mapped {$routePath, $routeMethod} route");
       routesContainer.registerRoute(
         RouteData(
           path: routePath, 
           controller: controller,
           routeCls: route.runtimeType,
           method: routeMethod, 
-          redirectTo: '',
           moduleToken: module.token.isEmpty ? module.runtimeType.toString() : module.token,
           queryParameters: route.queryParameters
         ),
       );
+      _logger.info("Mapped {$routePath, $routeMethod} route");
     }
   }
 

@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:serinus/src/commons/commons.dart';
+import 'package:serinus/src/core/contexts/execution_context.dart';
 import 'package:serinus/src/core/core.dart';
+import 'package:serinus/src/core/guard.dart';
 
 
 class TestMiddleware extends Middleware {
@@ -46,18 +48,28 @@ class TestProviderTwo extends Provider with OnApplicationInit, OnApplicationShut
 
 }
 
+class TestGuard extends Guard {
+
+  @override
+  bool canActivate(ExecutionContext context) {
+    if(context.path == '/'){
+      return false;
+    }
+    return true;
+  }
+
+}
+
 class GetRoute extends Route {
 
   const GetRoute({
     required super.path, 
-    super.method = HttpMethod.get
+    super.method = HttpMethod.get,
   });
 
   @override
-  Future<void> handle(RequestContext context, Response response) async {
-    final result = context.use<TestProvider>().testMethod();
-    response.status(201).text('$result');
-  }
+  List<Guard> get guards => [TestGuard()];
+
 }
 
 class JsonBody extends BodyTransformer{
@@ -85,16 +97,31 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController() : super(path: '/'){
     on(GetRoute(path: '/'), (context, request) {
-      return Response.o
+      return Response.text(
+        data: 'Hello world'
+      );
     });
-    on(PostRoute(path: '/:id'));
+    on(PostRoute(path: '/:id'), (context, request) {
+      return Response.text(
+        data: 'Hello world ${context.pathParameters}'
+      );
+    });
   }
 }
 
 class HomeAController extends Controller {
   HomeAController() : super(path: '/a'){
-    on(GetRoute(path: '/'));
-    on(PostRoute(path: '/:id'));
+    on(GetRoute(path: '/'), (context, request) {
+      return Response.redirect(path: '/');
+    });
+    on(PostRoute(path: '/:id'), _handlePostRequest);
+  }
+
+  Response _handlePostRequest(RequestContext context, Request request){
+    print(context.body.formData?.fields);
+    return Response.text(
+      data: 'Hello world from a ${context.pathParameters}'
+    );
   }
 }
 

@@ -54,10 +54,10 @@ class SerinusHttpServer {
     }
     try {
       await _httpServer?.listen(
-        (req) {
+        (req) async {
           final request = InternalRequest.from(req);
           final response = request.response(poweredByHeader: poweredByHeader);
-          requestCallback.call(request, response);
+          await requestCallback.call(request, response);
         },
         onError: errorHandler
       );
