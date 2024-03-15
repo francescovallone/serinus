@@ -9,3 +9,4 @@ build/
 **/**/*_test*.json
 **/**/lcov.info
 **/**/*.code-workspace
+**/old/**
