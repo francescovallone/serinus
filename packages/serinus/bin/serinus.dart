@@ -169,8 +169,8 @@ class ReAppModule extends Module {
 }
 
 void main(List<String> arguments) async {
-  SerinusApplication application = SerinusApplication(
-    entrypoint: AppModule(), 
+  SerinusApplication application = await SerinusFactory.createApplication(
+    entrypoint: AppModule()
   );
   application.enableShutdownHooks();
   await application.serve();

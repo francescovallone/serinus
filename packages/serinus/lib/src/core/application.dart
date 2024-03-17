@@ -5,10 +5,10 @@ import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import '../commons/commons.dart';
 import './containers/module_container.dart';
 import './injector/explorer.dart';
+import 'consumers/request_handler.dart';
 import 'containers/routes_container.dart';
 import 'module.dart';
 import 'provider.dart';
-import 'consumers/request_handler.dart';
 
 class SerinusApplication{
 
@@ -18,15 +18,17 @@ class SerinusApplication{
   final Module entrypoint;
   bool _enableShutdownHooks = false;
   LoggerService loggerService = LoggerService();
+  final HttpServerAdapter serverAdapter;
 
   final Logger _logger = Logger('SerinusApplication');
 
   SerinusApplication({
     required this.entrypoint,
+    required this.serverAdapter,
     this.host = 'localhost',
     this.port = 3000,
     this.loggingLevel = LogLevel.debug,
-    LoggerService? loggerService
+    LoggerService? loggerService,
   }){
     if(loggerService != null){
       this.loggerService = loggerService;
@@ -50,18 +52,12 @@ class SerinusApplication{
     }
   }  
 
-  Future<void> serve({
-    String poweredByHeader = 'Powered by Serinus',
-    SecurityContext? securityContext,
-  }) async {
+  Future<void> serve() async {
     try{
-      final server = SerinusHttpServer();
       final modules = ModulesContainer();
       final routes = RoutesContainer();
       _logger.info("Starting server on $host:$port");
-      await server.listen(
-        securityContext: securityContext,
-        poweredByHeader: poweredByHeader,
+      await this.serverAdapter.listen(
         (request, response) async {
           try{
             final handler = RequestHandler(routes, modules);

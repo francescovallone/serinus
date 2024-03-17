@@ -3,7 +3,7 @@ import 'dart:io' as io;
 import '../internal_request.dart';
 import 'server_adapter.dart';
 
-class SerinusHttpServer implements HttpServerAdapter<io.HttpServer>{
+class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
   
   @override
   io.HttpServer? server;
@@ -18,15 +18,17 @@ class SerinusHttpServer implements HttpServerAdapter<io.HttpServer>{
   
   @override
   Future<void> init({
-    String address = '127.0.0.1',
+    String host = '127.0.0.1',
     int port = 3000,
+    String poweredByHeader = 'Powered by Serinus',
     io.SecurityContext? securityContext
   }) async {
     if(securityContext == null){
-      server = await io.HttpServer.bind(address, port);
+      server = await io.HttpServer.bind(host, port);
     }else{ 
-      server = await io.HttpServer.bindSecure(address, port, securityContext);
+      server = await io.HttpServer.bindSecure(host, port, securityContext);
     }
+    server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
   }
 
   @override
@@ -38,25 +40,14 @@ class SerinusHttpServer implements HttpServerAdapter<io.HttpServer>{
   Future<void> listen(
     RequestCallback requestCallback,
     {
-      String address = '127.0.0.1',
-      int port = 3000,
-      io.SecurityContext? securityContext,
-      String poweredByHeader = 'Powered by Serinus',
       ErrorHandler? errorHandler
     }
   ) async {
-    if(server == null){
-      await init(
-        address: address,
-        port: port,
-        securityContext: securityContext
-      );
-    }
     try {
       await server?.listen(
         (req) async {
           final request = InternalRequest.from(req);
-          final response = request.response(poweredByHeader: poweredByHeader);
+          final response = request.response;
           await requestCallback.call(request, response);
         },
         onError: errorHandler

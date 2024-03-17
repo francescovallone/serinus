@@ -12,8 +12,9 @@ abstract class HttpServerAdapter<TServer> {
   TServer? server;
 
   FutureOr<void> init({
-    String address = '',
+    String host = 'localhost',
     int port = 3000,
+    String poweredByHeader = 'Powered by Serinus',
   });
 
   FutureOr<void> close();

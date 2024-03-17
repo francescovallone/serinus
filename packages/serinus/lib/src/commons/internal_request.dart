@@ -73,12 +73,8 @@ class InternalRequest{
     required this.original
   });
 
-  InternalResponse response({
-    String poweredByHeader = 'Powered by Serinus',
-  }){
-    return InternalResponse(original: original.response)..headers({
-      'X-Powered-by': poweredByHeader
-    });
+  InternalResponse get response{
+    return InternalResponse(original: original.response);
   }
 
   /// This method is used to get the body of the request as a [String]
