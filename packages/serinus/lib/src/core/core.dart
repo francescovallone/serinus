@@ -5,5 +5,6 @@ export 'factory.dart';
 export 'guard.dart';
 export 'middleware.dart';
 export 'module.dart';
+export 'pipe.dart';
 export 'provider.dart';
 export 'route.dart';

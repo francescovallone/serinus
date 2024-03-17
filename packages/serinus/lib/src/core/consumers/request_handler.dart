@@ -8,6 +8,7 @@ import 'package:serinus/src/commons/extensions/string_extensions.dart';
 import 'package:serinus/src/commons/internal_request.dart';
 import 'package:serinus/src/commons/internal_response.dart';
 import 'package:serinus/src/core/consumers/guards_consumer.dart';
+import 'package:serinus/src/core/consumers/pipes_consumer.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
 import 'package:serinus/src/core/containers/routes_container.dart';
 import 'package:serinus/src/core/contexts/request_context.dart';
@@ -36,11 +37,12 @@ class RequestHandler {
     if(route.bodyTranformer != null){
       route.bodyTranformer!.call(body, request.contentType);
     }
+    await _executeMiddlewares(context, routeData, wrappedRequest, response, module);
     final guardsConsumer = GuardsConsumer();
-    final canActivate = await guardsConsumer.tryActivate(
+    final canActivate = await guardsConsumer.consume(
       request: wrappedRequest,
       routeData: routeData,
-      guards: Set<Guard>.from([
+      consumables: Set<Guard>.from([
         ...controller.guards,
         ...module.guards,
         ...route.guards
@@ -51,7 +53,16 @@ class RequestHandler {
     if(!canActivate){
       throw ForbiddenException(message: 'You are not allowed to access the route ${routeData.path}');
     }
-    await _executeMiddlewares(context, routeData, wrappedRequest, response, module);
+    final pipesConsumer = PipesConsumer();
+    await pipesConsumer.consume(
+      request: wrappedRequest,
+      routeData: routeData,
+      consumables: Set<Pipe>.from([
+        ...controller.pipes,
+        ...module.pipes,
+        ...route.pipes
+      ]).toList()
+    );
 
 
     context.body = body;

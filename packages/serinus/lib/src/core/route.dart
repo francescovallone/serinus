@@ -19,6 +19,7 @@ abstract class Route {
   final BodyTransformer? bodyTranformer;
 
   List<Guard> get guards => [];
+  List<Pipe> get pipes => [];
 
   const Route({
     required this.path,

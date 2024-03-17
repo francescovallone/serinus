@@ -1,35 +1,20 @@
+import 'dart:async';
+
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/core/consumers/consumer.dart';
 import 'package:serinus/src/core/containers/routes_container.dart';
 
 import '../contexts/execution_context.dart';
-import '../guard.dart';
 
-class GuardsConsumer {
+class GuardsConsumer extends ExecutionContextConsumer<Guard, bool>{
 
-  Future<bool> tryActivate({
-    required Request request,
-    required RouteData routeData,
-    required List<Guard> guards,
-    Body? body,
-    List<Provider> providers = const [],
-  }) async {
-    final context = createContext(
-      request,
-      routeData,
-      providers,
-      body
-    );
-    for(final guard in guards){
-      final canActivate = await guard.canActivate(context);
-      if(canActivate){
-        continue;
-      }
-      return false;
-    }
-    return true;
-  }
-
-  ExecutionContext createContext(Request request, RouteData routeData, List<Provider> providers, Body? body) {
+  @override
+  ExecutionContext createContext(
+    Request request, 
+    RouteData routeData, 
+    List<Provider> providers, 
+    Body? body
+  ) {
     final builder = ExecutionContextBuilder();
     if(body != null){
       builder.body = body;
@@ -42,6 +27,30 @@ class GuardsConsumer {
       .addProviders(providers);
     return builder.build();
 
+  }
+
+  @override
+  FutureOr<bool> consume({
+    required Request request, 
+    required RouteData routeData, 
+    required List<Guard> consumables, 
+    Body? body, 
+    List<Provider> providers = const []
+  }) async {
+    final context = createContext(
+      request,
+      routeData,
+      providers,
+      body
+    );
+    for(final consumable in consumables){
+      final canActivate = await consumable.canActivate(context);
+      if(canActivate){
+        continue;
+      }
+      return false;
+    }
+    return true;
   }
 
 }

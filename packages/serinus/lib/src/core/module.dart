@@ -1,12 +1,9 @@
 
 import 'package:meta/meta.dart';
+import 'package:serinus/serinus.dart';
 import '../commons/extensions/iterable_extansions.dart';
 
 import 'containers/module_container.dart';
-import 'controller.dart';
-import 'guard.dart';
-import 'middleware.dart';
-import 'provider.dart';
 
 abstract class Module {
 
@@ -17,7 +14,9 @@ abstract class Module {
   final List<Type> exports;
   final List<Middleware> middlewares;
   final ModuleOptions? options;
-  final List<Guard> guards;
+  
+  List<Guard> get guards => [];
+  List<Pipe> get pipes => [];
 
   const Module({
     this.imports = const [],
@@ -27,7 +26,6 @@ abstract class Module {
     this.middlewares = const [],
     this.token = '',
     this.options,
-    this.guards = const []
   });
 
   @protected

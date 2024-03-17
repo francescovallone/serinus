@@ -2,22 +2,19 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:meta/meta.dart';
-import 'package:serinus/src/core/guard.dart';
+import 'package:serinus/serinus.dart';
 
-import '../commons/commons.dart';
-import 'contexts/request_context.dart';
-import 'route.dart';
 
 typedef ReqResHandler = FutureOr<Response> Function(RequestContext context, Request request);
 
 abstract class Controller {
 
   final String path;
-  final List<Guard> guards;
+  List<Guard> get guards => [];
+  List<Pipe> get pipes => [];
 
   Controller({
     required this.path,
-    this.guards = const []
   });
 
   final Map<Route, ReqResHandler> _routes = {};
