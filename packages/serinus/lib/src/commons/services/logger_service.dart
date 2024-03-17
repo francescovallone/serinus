@@ -38,7 +38,7 @@ class LoggerService{
         '${DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time)}'
         '\t${record.level.name} [${record.loggerName}] ' 
         '${record.message} +${delta.toInt()}ms'
-      );
+       );
     });
   }
 

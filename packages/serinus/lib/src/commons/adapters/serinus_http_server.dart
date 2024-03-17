@@ -1,15 +1,12 @@
 import 'dart:io' as io;
 
-import 'package:serinus/src/commons/internal_response.dart';
-
 import '../internal_request.dart';
+import 'server_adapter.dart';
 
-typedef RequestCallback = Future<void> Function(InternalRequest request, InternalResponse response);
-typedef ErrorHandler = void Function(dynamic e, StackTrace stackTrace);
-
-class SerinusHttpServer {
+class SerinusHttpServer implements HttpServerAdapter<io.HttpServer>{
   
-  io.HttpServer? _httpServer;
+  @override
+  io.HttpServer? server;
 
   factory SerinusHttpServer() {
     return _singleton;
@@ -19,22 +16,25 @@ class SerinusHttpServer {
 
   static final SerinusHttpServer _singleton = SerinusHttpServer._();
   
-  Future<void> _init({
+  @override
+  Future<void> init({
     String address = '127.0.0.1',
     int port = 3000,
     io.SecurityContext? securityContext
   }) async {
     if(securityContext == null){
-      _httpServer = await io.HttpServer.bind(address, port);
+      server = await io.HttpServer.bind(address, port);
     }else{ 
-      _httpServer = await io.HttpServer.bindSecure(address, port, securityContext);
+      server = await io.HttpServer.bindSecure(address, port, securityContext);
     }
   }
 
+  @override
   Future<void> close() async {
-    await _httpServer?.close(force: true);
+    await server?.close(force: true);
   }
 
+  @override
   Future<void> listen(
     RequestCallback requestCallback,
     {
@@ -45,15 +45,15 @@ class SerinusHttpServer {
       ErrorHandler? errorHandler
     }
   ) async {
-    if(_httpServer == null){
-      await _init(
+    if(server == null){
+      await init(
         address: address,
         port: port,
         securityContext: securityContext
       );
     }
     try {
-      await _httpServer?.listen(
+      await server?.listen(
         (req) async {
           final request = InternalRequest.from(req);
           final response = request.response(poweredByHeader: poweredByHeader);

@@ -1,4 +1,4 @@
-export 'adapters/server.dart';
+export 'adapters/server_adapter.dart';
 export 'body.dart';
 export 'enums/http_method.dart';
 export 'enums/log_level.dart';
