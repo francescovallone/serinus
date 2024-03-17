@@ -1,3 +1,4 @@
+export 'adapters/serinus_http_server.dart';
 export 'adapters/server_adapter.dart';
 export 'body.dart';
 export 'enums/http_method.dart';
