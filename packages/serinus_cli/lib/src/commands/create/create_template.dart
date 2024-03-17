@@ -7,22 +7,22 @@ final MasonBundle createApplicationTemplate = MasonBundle.fromJson({
     {
       'path': 'lib/main.dart',
       'data': 'aW1wb3J0ICdwYWNrYWdlOnNlcmludXMvc2VyaW51cy5kYXJ0JzsKCmltcG9ydCAnYXBwX21vZHVsZS5kYXJ0JzsKCnZvaWQgbWFpbihMaXN0PFN0cmluZz4gYXJndW1lbnRzKSB7CiAgU2VyaW51c0ZhY3RvcnkgYXBwbGljYXRpb24gPSBTZXJpbnVzRmFjdG9yeS5jcmVhdGVBcHAoCiAgICBBcHBNb2R1bGUoKQogICk7CiAgYXBwbGljYXRpb24uc2VydmUoKTsKfQ==',
-      'type': 'text'
+      'type': 'text',
     },
     {
       'path': 'lib/app_service.dart',
       'data': 'aW1wb3J0ICdwYWNrYWdlOnNlcmludXMvc2VyaW51cy5kYXJ0JzsKCmNsYXNzIEFwcFNlcnZpY2UgZXh0ZW5kcyBTZXJpbnVzUHJvdmlkZXJ7CgogIFN0cmluZyBwaW5nKCl7CiAgICByZXR1cm4gIlBvbmchIjsKICB9Cgp9',
-      'type': 'text'
+      'type': 'text',
     },
     {
       'path': 'lib/app_controller.dart',
       'data': 'aW1wb3J0ICdwYWNrYWdlOnNlcmludXMvc2VyaW51cy5kYXJ0JzsKCmltcG9ydCAnYXBwX3NlcnZpY2UuZGFydCc7CgpAQ29udHJvbGxlcigpCmNsYXNzIEFwcENvbnRyb2xsZXIgZXh0ZW5kcyBTZXJpbnVzQ29udHJvbGxlcnsKCiAgZmluYWwgQXBwU2VydmljZSBhcHBTZXJ2aWNlOwoKICBjb25zdCBBcHBDb250cm9sbGVyKHRoaXMuYXBwU2VydmljZSk7CgogIEBHZXQoKQogIFN0cmluZyBwaW5nKCl7CiAgICByZXR1cm4gYXBwU2VydmljZS5waW5nKCk7CiAgfQoKfQ==',
-      'type': 'text'
+      'type': 'text',
     },
     {
       'path': 'lib/app_module.dart',
       'data': 'aW1wb3J0ICdwYWNrYWdlOnNlcmludXMvc2VyaW51cy5kYXJ0JzsKCmltcG9ydCAnYXBwX2NvbnRyb2xsZXIuZGFydCc7CmltcG9ydCAnYXBwX3NlcnZpY2UuZGFydCc7CgpATW9kdWxlKAogIGltcG9ydHM6IFtdLAogIGNvbnRyb2xsZXJzOiBbQXBwQ29udHJvbGxlcl0sCiAgcHJvdmlkZXJzOiBbQXBwU2VydmljZV0sCikKY2xhc3MgQXBwTW9kdWxlIGV4dGVuZHMgU2VyaW51c01vZHVsZXt9',
-      'type': 'text'
+      'type': 'text',
     },
     {
       'path': 'pubspec.yaml',

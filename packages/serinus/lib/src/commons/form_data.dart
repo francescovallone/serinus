@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
-import 'package:serinus/serinus.dart';
+
+import 'exceptions/exceptions.dart';
 
 /// The class FormData is used to parse multipart/form-data and application/x-www-form-urlencoded
 class FormData{

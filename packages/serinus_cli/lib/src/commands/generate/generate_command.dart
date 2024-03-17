@@ -84,7 +84,7 @@ class GenerateCommand extends Command<int> {
     final vars = <String, dynamic>{
       'name': '$_itemName $_itemType',
       'output': outputDirectory.absolute.path,
-      'path': _itemName
+      'path': _itemName,
     };
     final generator = await MasonGenerator.fromBundle(
       bundles[_itemType]!(_itemType, _itemName),
