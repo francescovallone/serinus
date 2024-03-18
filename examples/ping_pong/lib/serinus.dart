@@ -93,7 +93,7 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController() : super(path: '/'){
     on(GetRoute(path: '/'), (context, request) {
-      return Response.render(view: 'template', data: {'greeting': 'DIO', 'world': 'CANE'});
+      return Response.render(view: 'template', data: {'greeting': 'hello', 'world': 'world'});
     });
     on(PostRoute(path: '/:id'), (context, request) {
       return Response.json(data: context.pathParameters);
