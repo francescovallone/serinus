@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:serinus/src/commons/engines/view_engine.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 
 import '../commons/commons.dart';
@@ -19,7 +20,7 @@ class SerinusApplication{
   bool _enableShutdownHooks = false;
   LoggerService loggerService = LoggerService();
   final HttpServerAdapter serverAdapter;
-
+  ViewEngine? viewEngine;
   final Logger _logger = Logger('SerinusApplication');
 
   SerinusApplication({
@@ -50,7 +51,11 @@ class SerinusApplication{
         await _shutdownApplication();
       });
     }
-  }  
+  }
+  
+  void useViewEngine(ViewEngine viewEngine){
+    this.viewEngine = viewEngine;
+  }
 
   Future<void> serve() async {
     try{
@@ -61,7 +66,7 @@ class SerinusApplication{
         (request, response) async {
           try{
             final handler = RequestHandler(routes, modules);
-            await handler.handleRequest(request, response);
+            await handler.handleRequest(request, response, viewEngine: viewEngine);
           }catch(e){
             if(e is SerinusException){
               final (statusCode, error) = e.handle();

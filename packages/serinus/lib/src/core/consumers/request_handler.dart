@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/engines/view_engine.dart';
 import 'package:serinus/src/commons/extensions/content_type_extensions.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/commons/extensions/string_extensions.dart';
@@ -23,7 +24,7 @@ class RequestHandler {
   
   RequestHandler(this.routesContainer, this.modulesContainer);
 
-  Future<void> handleRequest(InternalRequest request, InternalResponse response) async {
+  Future<void> handleRequest(InternalRequest request, InternalResponse response, {ViewEngine? viewEngine}) async {
     final routeData = routesContainer.getRouteForPath(request.segments, request.method.toHttpMethod());
     if(routeData == null){
       throw NotFoundException(message: 'No route found for path ${request.path} and method ${request.method}');
@@ -72,7 +73,7 @@ class RequestHandler {
     }
     
     final result = await routeHandler.call(context, wrappedRequest);
-    _finalizeResponse(result, response);
+    _finalizeResponse(result, response, viewEngine: viewEngine);
   }
 
   Future<Body> _getBody(ContentType contentType, InternalRequest request) async {
@@ -162,8 +163,26 @@ class RequestHandler {
     return middlewares.toSet();
   }
   
-  Future<void> _finalizeResponse(Response result, InternalResponse response) async {
+  Future<void> _finalizeResponse(Response result, InternalResponse response, {ViewEngine? viewEngine}) async {
     response.status(result.statusCode);
+    if(result.data is Map<String, dynamic>){
+      if(result.data.containsKey('view')){
+        final view = result.data['view'];
+        final data = result.data['data'];
+        final rendered = await viewEngine!.render(view, data);
+        response.contentType(ContentType.html.value);
+        await response.send(rendered);
+        return;
+      }
+      if(result.data.containsKey('viewData')){
+        final viewData = result.data['viewData'];
+        final data = result.data['data'];
+        final rendered = await viewEngine!.renderString(viewData, data);
+        response.contentType(ContentType.html.value);
+        await response.send(rendered);
+        return;
+      }
+    }
     if(result.shouldRedirect){
       await response.redirect(result.data);
       return;

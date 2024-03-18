@@ -1,4 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
+
+import 'package:serinus/src/commons/mixins/object_mixins.dart';
 
 class Response {
 
@@ -18,11 +21,19 @@ class Response {
   bool get shouldRedirect => _shouldRedirect;
 
   factory Response.json({
-    required Map<String, dynamic> data,
+    required dynamic data,
     int statusCode = 200,
     ContentType? contentType
   }){
-    return Response._(data, statusCode, contentType ?? ContentType.json);
+    Map<String, dynamic> responseData;
+    if(data is Map<String, dynamic>){
+      responseData = data;
+    }else if(data is JsonSerializableMixin){
+      responseData = data.toJson();
+    }else{
+      throw FormatException('The data must be a Map<String, dynamic> or a JsonSerializableMixin');
+    }
+    return Response._(jsonEncode(responseData), statusCode, contentType ?? ContentType.json);
   }
 
   factory Response.html({
@@ -31,6 +42,24 @@ class Response {
     ContentType? contentType
   }){
     return Response._(data, statusCode, contentType ?? ContentType.html);
+  }
+
+  factory Response.render({
+    required String view,
+    required Map<String, dynamic> data,
+    int statusCode = 200,
+    ContentType? contentType
+  }){
+    return Response._({'view': view, 'data': data}, statusCode, contentType ?? ContentType.html);
+  }
+
+  factory Response.renderString({
+    required String viewData,
+    required Map<String, dynamic> data,
+    int statusCode = 200,
+    ContentType? contentType
+  }){
+    return Response._({'viewData': viewData, 'data': data}, statusCode, contentType ?? ContentType.html);
   }
   
   factory Response.text({

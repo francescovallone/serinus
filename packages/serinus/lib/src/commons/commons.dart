@@ -1,6 +1,7 @@
 export 'adapters/serinus_http_server.dart';
 export 'adapters/server_adapter.dart';
 export 'body.dart';
+export 'engines/view_engine.dart';
 export 'enums/http_method.dart';
 export 'enums/log_level.dart';
 export 'exceptions/exceptions.dart';
