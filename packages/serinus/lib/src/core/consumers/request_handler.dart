@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/commons/engines/view_engine.dart';
 import 'package:serinus/src/commons/extensions/content_type_extensions.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/commons/extensions/string_extensions.dart';
@@ -13,7 +12,6 @@ import 'package:serinus/src/core/consumers/pipes_consumer.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
 import 'package:serinus/src/core/containers/routes_container.dart';
 import 'package:serinus/src/core/contexts/request_context.dart';
-import 'package:serinus/src/core/guard.dart';
 
 import '../../commons/form_data.dart';
 
@@ -23,7 +21,21 @@ class RequestHandler {
   final ModulesContainer modulesContainer;
   
   RequestHandler(this.routesContainer, this.modulesContainer);
-
+  
+  /// Handles the request and sends the response
+  /// 
+  /// This method is responsible for handling the request and sending the response.
+  /// It will get the route data from the [RoutesContainer] and then it will get the controller
+  /// from the [ModulesContainer]. Then it will get the route from the controller and execute the
+  /// route handler. It will also execute the middlewares and guards.
+  /// 
+  /// Request lifecycle:
+  /// 
+  /// 1. Incoming request
+  /// 2. [Middleware] execution
+  /// 3. [Guard] execution
+  /// 4. [Route] handler execution
+  /// 5. Outgoing response
   Future<void> handleRequest(InternalRequest request, InternalResponse response, {ViewEngine? viewEngine}) async {
     final routeData = routesContainer.getRouteForPath(request.segments, request.method.toHttpMethod());
     if(routeData == null){
@@ -38,21 +50,20 @@ class RequestHandler {
     if(route.bodyTranformer != null){
       route.bodyTranformer!.call(body, request.contentType);
     }
+    context.body = body;
     await _executeMiddlewares(context, routeData, wrappedRequest, response, module);
-    final guardsConsumer = GuardsConsumer();
-    final canActivate = await guardsConsumer.consume(
-      request: wrappedRequest,
-      routeData: routeData,
-      consumables: Set<Guard>.from([
-        ...controller.guards,
-        ...module.guards,
-        ...route.guards
-      ]).toList(),
-      body: body,
-      providers: module.providers
+    await _executeGuards(
+      wrappedRequest, 
+      routeData, 
+      _recursiveGetModuleGuards(module, routeData), 
+      body, 
+      module
     );
-    if(!canActivate){
-      throw ForbiddenException(message: 'You are not allowed to access the route ${routeData.path}');
+    if(controller.guards.isNotEmpty){
+      await _executeGuards(wrappedRequest, routeData, controller.guards, body, module);
+    }
+    if(route.guards.isNotEmpty){
+      await _executeGuards(wrappedRequest, routeData, route.guards, body, module);
     }
     final pipesConsumer = PipesConsumer();
     await pipesConsumer.consume(
@@ -64,9 +75,6 @@ class RequestHandler {
         ...route.pipes
       ]).toList()
     );
-
-
-    context.body = body;
     final routeHandler = controller.routes[route];
     if(routeHandler == null){
       throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
@@ -74,6 +82,28 @@ class RequestHandler {
     
     final result = await routeHandler.call(context, wrappedRequest);
     _finalizeResponse(result, response, viewEngine: viewEngine);
+  }
+
+  Future<void> _executeGuards(
+    Request request, 
+    RouteData routeData,
+    List<Guard> guards,
+    Body body,
+    Module module,
+  ) async {
+    final guardsConsumer = GuardsConsumer();
+    final canActivate = await guardsConsumer.consume(
+      request: request,
+      routeData: routeData,
+      consumables: Set<Guard>.from([
+        guards
+      ]).toList(),
+      body: body,
+      providers: module.providers
+    );
+    if(!canActivate){
+      throw ForbiddenException(message: 'You are not allowed to access the route ${routeData.path}');
+    }
   }
 
   Future<Body> _getBody(ContentType contentType, InternalRequest request) async {
@@ -201,6 +231,18 @@ class RequestHandler {
     for(final middleware in middlewares){
       await middleware.use(context, request);
     }
+  }
+  
+  List<Guard> _recursiveGetModuleGuards(Module module, RouteData routeData) {
+    List<Guard> guards = [
+      ...module.guards
+    ];
+    final parents = this.modulesContainer.getParents(module);
+    for (final parent in parents) {
+      guards.addAll(parent.guards);
+      guards.addAll(_recursiveGetModuleGuards(parent, routeData));
+    }
+    return guards;
   }
 
 }
