@@ -25,8 +25,8 @@ class Response {
     int statusCode = 200,
     ContentType? contentType
   }){
-    Map<String, dynamic> responseData;
-    if(data is Map<String, dynamic>){
+    dynamic responseData;
+    if(data is Map<String, dynamic> || data is List<Map<String, dynamic>>){
       responseData = data;
     }else if(data is JsonSerializableMixin){
       responseData = data.toJson();
