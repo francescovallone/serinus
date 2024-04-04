@@ -20,3 +20,7 @@ Initial Implementation
 - Huge refactoring of the code
 - Add guards for the request
 - Add pipes for the request
+
+## 0.0.1-dev.5
+
+- Add scoped providers to ExecutionContext
