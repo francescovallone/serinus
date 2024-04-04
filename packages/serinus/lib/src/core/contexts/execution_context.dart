@@ -6,6 +6,7 @@ sealed class ExecutionContext {
   final Map<String, dynamic> queryParameters;
   final String path;
   final Map<String, dynamic> headers;
+  final Request _request;
   late final Body body;
 
   ExecutionContext(
@@ -14,6 +15,7 @@ sealed class ExecutionContext {
     this.queryParameters,
     this.headers,
     this.path,
+    this._request
   );
 
   T use<T>(){
@@ -21,6 +23,10 @@ sealed class ExecutionContext {
       throw StateError('Provider not found in request context');
     }
     return providers[T] as T;
+  }
+
+  void addDataToRequest(String key, dynamic value){
+    _request.addData(key, value);
   }
 
 }
@@ -32,13 +38,15 @@ class _ExecutionContextImpl extends ExecutionContext {
     Map<String, String> pathParameters,
     Map<String, dynamic> queryParameters,
     Map<String, dynamic> headers,
-    String path
+    String path,
+    Request request
   ) : super(
     providers,
     pathParameters,
     queryParameters,
     headers,
-    path
+    path,
+    request
   );
 
   @override
@@ -119,13 +127,14 @@ class ExecutionContextBuilder {
     return this;
   }
 
-  ExecutionContext build(){
+  ExecutionContext build(Request request){
     return _ExecutionContextImpl(
       providers,
       pathParameters,
       queryParameters,
       headers,
       path,
+      request
     )..body = body;
   }
 }

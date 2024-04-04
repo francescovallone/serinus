@@ -95,9 +95,7 @@ class RequestHandler {
     final canActivate = await guardsConsumer.consume(
       request: request,
       routeData: routeData,
-      consumables: Set<Guard>.from([
-        guards
-      ]).toList(),
+      consumables: Set<Guard>.from(guards).toList(),
       body: body,
       providers: module.providers
     );

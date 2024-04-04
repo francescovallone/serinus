@@ -14,4 +14,14 @@ class Request {
   Map<String, String> get queryParameters => _original.queryParameters;
 
   List<String> get pathParameters => _original.pathParameters;
+
+  Map<String, dynamic> _data = {};
+
+  void addData(String key, dynamic value) {
+    _data[key] = value;
+  }
+
+  dynamic getData(String key) {
+    return _data[key];
+  }
 }

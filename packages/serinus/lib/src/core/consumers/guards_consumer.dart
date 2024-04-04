@@ -25,12 +25,12 @@ class GuardsConsumer extends ExecutionContextConsumer<Guard, bool>{
       .addPathParameters(routeData.path, request.path)
       .setPath(request.path)
       .addProviders(providers);
-    return builder.build();
+    return builder.build(request);
 
   }
 
   @override
-  FutureOr<bool> consume({
+  Future<bool> consume({
     required Request request, 
     required RouteData routeData, 
     required List<Guard> consumables, 

@@ -5,7 +5,7 @@ import 'package:serinus/src/core/containers/routes_container.dart';
 
 abstract class Consumer<TObj, O> {
   
-  FutureOr<O> consume({
+  Future<O> consume({
     required Request request,
     required RouteData routeData,
     required List<TObj> consumables,
@@ -16,7 +16,7 @@ abstract class Consumer<TObj, O> {
 abstract class ExecutionContextConsumer<TObj, O> extends Consumer<TObj, O> {
   
   @override
-  FutureOr<O> consume({
+  Future<O> consume({
     required Request request,
     required RouteData routeData,
     required List<TObj> consumables,

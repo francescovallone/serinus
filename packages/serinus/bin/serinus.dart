@@ -53,6 +53,7 @@ class TestGuard extends Guard {
     if(context.path == '/'){
       return false;
     }
+    context.addDataToRequest('test', 'Hello world');
     return true;
   }
 
@@ -90,6 +91,9 @@ class PostRoute extends Route {
     },
   });
 
+  @override
+  List<Guard> get guards => [TestGuard()];
+
 }
 
 class HomeController extends Controller {
@@ -101,7 +105,7 @@ class HomeController extends Controller {
     });
     on(PostRoute(path: '/:id'), (context, request) {
       return Response.text(
-        data: 'Hello world ${context.pathParameters}'
+        data: '${request.getData('test')} ${context.pathParameters}'
       );
     });
   }

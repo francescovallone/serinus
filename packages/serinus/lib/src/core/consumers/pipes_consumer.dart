@@ -7,7 +7,7 @@ import 'package:serinus/src/core/containers/routes_container.dart';
 class PipesConsumer extends Consumer<Pipe, void> {
 
   @override
-  FutureOr<void> consume({
+  Future<void> consume({
     required Request request,
     required RouteData routeData,
     required List<Pipe> consumables,
