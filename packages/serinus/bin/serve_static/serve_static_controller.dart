@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:convert/convert.dart';
 import 'package:serinus/serinus.dart';
 
 class ServeRouteGet extends Route{
@@ -30,9 +29,9 @@ class ServeStaticController extends Controller{
       if(!file.existsSync()){
         throw NotFoundException(message: "The file $path does not exist");
       }
-      final byteSink = ByteAccumulatorSink();
-      await file.openRead().listen(byteSink.add).asFuture();
-      return Response.text(data: Utf8Decoder().convert(byteSink.bytes));
+      // final byteSink = ByteAccumulatorSink();
+      // await file.openRead().listen(byteSink.add).asFuture();
+      return Response.text(data: Utf8Decoder().convert([]));
     });
   }
 

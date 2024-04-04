@@ -2,7 +2,6 @@ import 'package:uuid/v4.dart';
 
 import '../../commons/commons.dart';
 import '../../commons/extensions/iterable_extansions.dart';
-import '../../commons/services/logger_service.dart';
 import '../module.dart';
 import '../provider.dart';
 
