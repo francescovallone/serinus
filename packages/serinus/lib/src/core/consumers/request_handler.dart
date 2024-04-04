@@ -44,7 +44,12 @@ class RequestHandler {
     final controller = routeData.controller;
     final route = _getRouteFromController(controller, routeData);
     Module module = modulesContainer.getModuleByToken(routeData.moduleToken);
-    final context = _buildContext(module, routeData, request);
+    final scopedProviders = [
+      ...module.providers,
+      ...(_recursiveGetProviders(module)),
+      ...modulesContainer.globalProviders
+    ].toSet();
+    final context = _buildContext([...scopedProviders], routeData, request);
     final wrappedRequest = Request(request);
     final body = await _getBody(request.contentType, request);
     if(route.bodyTranformer != null){
@@ -57,13 +62,13 @@ class RequestHandler {
       routeData, 
       _recursiveGetModuleGuards(module, routeData), 
       body, 
-      module
+      [...scopedProviders]
     );
     if(controller.guards.isNotEmpty){
-      await _executeGuards(wrappedRequest, routeData, controller.guards, body, module);
+      await _executeGuards(wrappedRequest, routeData, controller.guards, body, [...scopedProviders]);
     }
     if(route.guards.isNotEmpty){
-      await _executeGuards(wrappedRequest, routeData, route.guards, body, module);
+      await _executeGuards(wrappedRequest, routeData, route.guards, body, [...scopedProviders]);
     }
     final pipesConsumer = PipesConsumer();
     await pipesConsumer.consume(
@@ -89,7 +94,7 @@ class RequestHandler {
     RouteData routeData,
     List<Guard> guards,
     Body body,
-    Module module,
+    List<Provider> providers,
   ) async {
     final guardsConsumer = GuardsConsumer();
     final canActivate = await guardsConsumer.consume(
@@ -97,7 +102,7 @@ class RequestHandler {
       routeData: routeData,
       consumables: Set<Guard>.from(guards).toList(),
       body: body,
-      providers: module.providers
+      providers: providers
     );
     if(!canActivate){
       throw ForbiddenException(message: 'You are not allowed to access the route ${routeData.path}');
@@ -134,14 +139,10 @@ class RequestHandler {
     );
   }
 
-  RequestContext _buildContext(Module module, RouteData routeData, InternalRequest request) {
+  RequestContext _buildContext(List<Provider> providers, RouteData routeData, InternalRequest request) {
     RequestContextBuilder builder = RequestContextBuilder()
       ..addProviders(
-        [
-          ...module.providers,
-          ...(_recursiveGetProviders(module)),
-          ...modulesContainer.globalProviders
-        ].toSet()
+        providers
       )
       ..addPathParameters(routeData.path, request.path)
       ..setPath(routeData.path)
