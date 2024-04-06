@@ -43,10 +43,8 @@ class InternalRequest{
     headers.remove(HttpHeaders.transferEncodingHeader);
     final segments = Uri(path: request.requestedUri.path).pathSegments;
     final List<String> pathParameters = [];
-    for(var i = 0; i < segments.length; i++){
-      if(segments[i].startsWith(":")){
-        pathParameters.add(segments[i].substring(1));
-      }
+    for(var i = 1; i < segments.length; i++){
+      pathParameters.add(segments[i]);
     }
     return InternalRequest(
       path: request.requestedUri.path,
