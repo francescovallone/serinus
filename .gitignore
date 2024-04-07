@@ -10,3 +10,6 @@ build/
 **/**/lcov.info
 **/**/*.code-workspace
 **/old/**
+
+**/node_modules/
+**/.vitepress/cache
