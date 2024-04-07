@@ -1,3 +1,4 @@
+import 'package:serinus/src/core/contexts/application_context.dart';
 import 'package:uuid/v4.dart';
 
 import '../../commons/commons.dart';
@@ -15,6 +16,7 @@ class ModulesContainer {
   final Map<String, Module> _modules = {};
   final String applicationId = UuidV4().generate();
   final Map<String, List<Provider>> _providers = {};
+  final Map<String, List<LazyProvider>> _lazyProviders = {};
 
   List<Provider> get globalProviders => _providers.values.flatten().where((provider) => provider.isGlobal).toList();
 
@@ -39,17 +41,27 @@ class ModulesContainer {
     if(currentProviders.any((provider) => initializedModule.providers.map((e) => e.runtimeType).contains(provider.runtimeType))){
       throw Exception('A provider with the same type is already registered');
     }
-    if(!initializedModule.exports.every((element) => initializedModule.providers.map((e) => e.runtimeType).contains(element))){
-      throw Exception('All the exported providers must be registered in the module');
-    }
     _modules[token] = initializedModule;
-    for(final provider in initializedModule.providers){
+    for(final provider in initializedModule.providers.where((element) => element is! LazyProvider)){
       if(provider is OnApplicationInit){
         await provider.onApplicationInit();
       }
     }
-    _providers[token] = initializedModule.providers;
+    _providers[token] = [
+      ...initializedModule.providers.where((element) => element is! LazyProvider)
+    ];
+    _lazyProviders[token] = [
+      ...initializedModule.providers.where((element) => element is LazyProvider).map((e) => e as LazyProvider)
+    ];
     logger.info('${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies initialized');
+  }
+
+  ApplicationContext _getApplicationContext() {
+    final providers = _providers.values.flatten().toList();
+    return ApplicationContext(
+      Map<Type, Provider>.fromEntries(providers.map((e) => MapEntry(e.runtimeType, e))), 
+      applicationId
+    );
   }
 
   Future<void> recursiveRegisterModules(Module module, Type entrypoint) async {
@@ -60,6 +72,28 @@ class ModulesContainer {
       await recursiveRegisterModules(subModule, entrypoint);
     }
     await registerModule(module, entrypoint);
+  }
+
+  Future<void> finalize() async{
+    final context = _getApplicationContext();
+    for(final entry in _lazyProviders.entries){
+      final token = entry.key;
+      final providers = entry.value;
+      final parentModule = _modules[token];
+      for(final provider in providers){
+        final initializedProvider = await provider.init(context);
+        if(initializedProvider is OnApplicationInit){
+          await initializedProvider.onApplicationInit();
+        }
+        _providers[token]?.add(initializedProvider);
+        context.addProviderToContext(initializedProvider);
+        parentModule!.providers.remove(provider);
+        parentModule.providers.add(initializedProvider);
+      }
+      if(!parentModule!.exports.every((element) => _providers[token]?.map((e) => e.runtimeType).contains(element) ?? false)){
+        throw Exception('All the exported providers must be registered in the module');
+      }
+    }
   }
 
   Module getModuleByToken(String token) {

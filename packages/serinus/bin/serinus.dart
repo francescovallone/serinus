@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/commons.dart';
 import 'package:serinus/src/core/core.dart';
 
@@ -19,9 +20,12 @@ class TestMiddleware extends Middleware {
 
 class TestProvider extends Provider{
 
+  final List<String> testList = [];
+
   TestProvider({super.isGlobal});
 
   String testMethod(){
+    testList.add('Hello world');
     return 'Hello world';
   }
 
@@ -29,9 +33,13 @@ class TestProvider extends Provider{
 
 class TestProviderTwo extends Provider with OnApplicationInit, OnApplicationShutdown{
 
+  final TestProvider testProvider;
+
+  TestProviderTwo(this.testProvider);
 
   String testMethod(){
-    return 'Hello world from provider two';
+    testProvider.testMethod();
+    return '${testProvider.testList} from provider two';
   }
 
   @override
@@ -50,9 +58,6 @@ class TestGuard extends Guard {
 
   @override
   bool canActivate(ExecutionContext context) {
-    if(context.path == '/'){
-      return false;
-    }
     context.addDataToRequest('test', 'Hello world');
     return true;
   }
@@ -99,8 +104,9 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController() : super(path: '/'){
     on(GetRoute(path: '/'), (context, request) {
+      context.use<TestProviderTwo>().testMethod();
       return Response.text(
-        data: 'Hello world'
+        data: context.use<TestProviderTwo>().testMethod()
       );
     });
     on(PostRoute(path: '/:id'), (context, request) {
@@ -159,7 +165,12 @@ class ReAppModule extends Module {
       HomeAController()
     ],
     providers: [
-      TestProviderTwo()
+      LazyProvider(
+        (context) async {
+          final prov = context.use<TestProvider>();
+          return TestProviderTwo(prov);
+        }
+      )
     ],
     middlewares: [
       TestMiddleware()

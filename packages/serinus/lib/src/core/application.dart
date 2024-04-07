@@ -108,6 +108,7 @@ class SerinusApplication{
   Future<void> _initialize(Module module) async {
     final modulesContainer = ModulesContainer();
     await modulesContainer.recursiveRegisterModules(module, module.runtimeType);
+    await modulesContainer.finalize();
     final explorer = Explorer();
     explorer.resolveRoutes();
   }
