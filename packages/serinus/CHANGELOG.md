@@ -24,3 +24,8 @@ Initial Implementation
 ## 0.0.1-dev.5
 
 - Add scoped providers to ExecutionContext
+
+## 0.1.0-dev.1
+
+- Add LazyProviders
+- Fix parsing of path parameters in request

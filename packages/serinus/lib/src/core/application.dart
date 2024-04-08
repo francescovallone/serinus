@@ -1,15 +1,12 @@
 import 'dart:io';
 
-import 'package:serinus/src/commons/engines/view_engine.dart';
+import 'package:serinus/src/commons/commons.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
-
-import '../commons/commons.dart';
-import './containers/module_container.dart';
-import './injector/explorer.dart';
-import 'consumers/request_handler.dart';
-import 'containers/routes_container.dart';
-import 'module.dart';
-import 'provider.dart';
+import 'package:serinus/src/core/consumers/request_handler.dart';
+import 'package:serinus/src/core/containers/module_container.dart';
+import 'package:serinus/src/core/containers/routes_container.dart';
+import 'package:serinus/src/core/core.dart';
+import 'package:serinus/src/core/injector/explorer.dart';
 
 class SerinusApplication{
 

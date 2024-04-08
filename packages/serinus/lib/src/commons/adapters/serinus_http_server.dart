@@ -44,7 +44,7 @@ class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
     }
   ) async {
     try {
-      await server?.listen(
+      server?.listen(
         (req) async {
           final request = InternalRequest.from(req);
           final response = request.response;

@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/commons/commons.dart';
-import 'package:serinus/src/core/core.dart';
 
 
 class TestMiddleware extends Middleware {
@@ -102,7 +100,7 @@ class PostRoute extends Route {
 }
 
 class HomeController extends Controller {
-  HomeController() : super(path: '/'){
+  HomeController({super.path = '/'}){
     on(GetRoute(path: '/'), (context, request) {
       context.use<TestProviderTwo>().testMethod();
       return Response.text(

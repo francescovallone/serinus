@@ -30,10 +30,19 @@ export default defineConfig({
               { text: 'Getting Started', link: '/overview/getting_started' },
               { text: 'Modules', link: '/overview/modules' },
               { text: 'Controllers', link: '/overview/controllers' },
+              { text: 'Routes', link: '/overview/routes' },
               { text: 'Providers', link: '/overview/providers' },
-              { text: 'Middleware', link: '/overview/middleware' },
+              { text: 'Middlewares', link: '/overview/middlewares' },
+              { text: 'Guards', link: '/overview/guards' },
+              { text: 'Pipes', link: '/overview/pipes' },
             ]
           },
+          {
+            text: 'Techniques',
+            items: [
+              { text: 'Model View Controller', link: '/techniques/mvc' },
+            ]
+          }
         ]
       },
       // {
@@ -43,6 +52,7 @@ export default defineConfig({
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
+      { icon: 'twitter', link: 'https://twitter.com/serinus_nest'}
     ]
   }
 })

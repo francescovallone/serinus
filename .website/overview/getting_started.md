@@ -58,6 +58,8 @@ void main(List<String> arguments) async {
 
 ```
 
+The `AppModule` class is the entry point of the application.
+
 Finally, run the application using the following command:
 
 ```bash

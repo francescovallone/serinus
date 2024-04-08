@@ -1,5 +1,4 @@
-import '../commons/request.dart';
-import 'contexts/request_context.dart';
+import 'package:serinus/serinus.dart';
 
 
 abstract class Middleware {

@@ -15,7 +15,8 @@ Serinus is still being developed and many things can change. Use it at your own 
 ### Using the CLI
   
 ::: tip
-The CLI is still in development and the available version on pub.dev is not up-to-date.
+The CLI is still under development and the available version on pub.dev is not up-to-date.
+Please use the pub.dev version to install Serinus.
 :::
 
 ### From pub.dev
