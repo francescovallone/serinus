@@ -43,7 +43,7 @@ abstract class Module {
     return moduleProviders.toSet().firstWhereOrNull((provider) => provider is T) as T?;
   }
 
-  Future<Module> registerAsync() async {
+  Future<Module> registerAsync(ApplicationContext context) async {
     return this;
   }
 

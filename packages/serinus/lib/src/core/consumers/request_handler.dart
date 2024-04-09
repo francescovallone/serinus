@@ -19,8 +19,9 @@ class RequestHandler {
 
   final RoutesContainer routesContainer;
   final ModulesContainer modulesContainer;
+  final bool cors;
   
-  RequestHandler(this.routesContainer, this.modulesContainer);
+  RequestHandler(this.routesContainer, this.modulesContainer, this.cors);
   
   /// Handles the request and sends the response
   /// 
@@ -37,6 +38,11 @@ class RequestHandler {
   /// 4. [Route] handler execution
   /// 5. Outgoing response
   Future<void> handleRequest(InternalRequest request, InternalResponse response, {ViewEngine? viewEngine}) async {
+    final corsHandler = _CorsHandler();
+    if(request.method == 'OPTIONS'){
+      await corsHandler.call(request, Request(request), null, null);
+      return;
+    }
     final routeData = routesContainer.getRouteForPath(request.segments, request.method.toHttpMethod());
     if(routeData == null){
       throw NotFoundException(message: 'No route found for path ${request.path} and method ${request.method}');
@@ -84,8 +90,21 @@ class RequestHandler {
     if(routeHandler == null){
       throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
     }
-    
-    final result = await routeHandler.call(context, wrappedRequest);
+    Response? result;
+    print("CORS: $cors");
+    if(cors){
+      result = await corsHandler.call(
+        request,
+        wrappedRequest,
+        context,
+        routeHandler
+      );
+    }else{
+      result = await routeHandler.call(context, wrappedRequest);
+    }
+    if(result == null){
+      return;
+    }
     _finalizeResponse(result, response, viewEngine: viewEngine);
   }
 
@@ -216,6 +235,7 @@ class RequestHandler {
       await response.redirect(result.data);
       return;
     }
+    response.headers(result.headers);
     response.contentType(result.contentType.value);
     await response.send(result.data);
   }
@@ -242,6 +262,77 @@ class RequestHandler {
       guards.addAll(_recursiveGetModuleGuards(parent, routeData));
     }
     return guards;
+  }
+
+}
+
+class _CorsHandler {
+
+  _CorsHandler(){
+    _defaultHeaders = {
+      'Access-Control-Expose-Headers': '',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Allow-Headers': _defaultHeadersList.join(','),
+      'Access-Control-Allow-Methods': _defaultMethodsList.join(','),
+      'Access-Control-Max-Age': '86400',
+    };
+    _defaultHeadersAll = _defaultHeaders.map((key, value) => MapEntry(key, [value]));
+  }
+
+  Map<String, List<String>> _defaultHeadersAll = {};
+
+
+  final _defaultHeadersList = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'access-control-allow-origin'
+  ];
+
+  final _defaultMethodsList = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT'
+  ];
+
+  Map<String, String> _defaultHeaders = {};
+
+  Future<Response?> call(
+    InternalRequest request,
+    Request wrappedRequest,
+    RequestContext? context,
+    Future<Response> Function(RequestContext, Request)? handler,
+  ) async {
+    print("HELLO");
+    final origin = request.headers['origin'];
+    print("ORIGIN: $origin");
+    if (origin == null) {
+      return handler!(context!, wrappedRequest);
+    }
+    final _headers = <String, List<String>>{
+      ..._defaultHeadersAll,
+    };
+    _headers['Access-Control-Allow-Origin'] = [origin];
+    final stringHeaders = _headers.map((key, value) => MapEntry(key, value.join(',')));
+    print(stringHeaders);
+    if (request.method == 'OPTIONS') {
+      request.response.status(200);
+      request.response.headers(stringHeaders);
+      request.response.send(null);
+      return null;
+    }
+    final response = await handler!(context!, wrappedRequest);
+    response.addHeaders({
+      ...stringHeaders,
+    });
+    return response;
   }
 
 }

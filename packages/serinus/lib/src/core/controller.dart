@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:serinus/serinus.dart';
 
 
-typedef ReqResHandler = FutureOr<Response> Function(RequestContext context, Request request);
+typedef ReqResHandler = Future<Response> Function(RequestContext context, Request request);
 
 abstract class Controller {
 

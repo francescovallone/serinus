@@ -6,6 +6,6 @@ abstract class Guard {
 
   const Guard();
 
-  FutureOr<bool> canActivate(ExecutionContext context);
+  Future<bool> canActivate(ExecutionContext context);
 
 }

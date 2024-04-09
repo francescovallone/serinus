@@ -150,8 +150,8 @@ class AppModule extends Module {
   );
 
   @override
-  Future<Module> registerAsync() async {
-    return super.registerAsync();
+  Future<Module> registerAsync(ApplicationContext context) async {
+    return super.registerAsync(context);
   }
 }
 

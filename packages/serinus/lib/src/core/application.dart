@@ -18,6 +18,7 @@ class SerinusApplication{
   LoggerService loggerService = LoggerService();
   final HttpServerAdapter serverAdapter;
   ViewEngine? viewEngine;
+  bool _enableCors = false;
   final Logger _logger = Logger('SerinusApplication');
 
   SerinusApplication({
@@ -49,6 +50,10 @@ class SerinusApplication{
       });
     }
   }
+
+  void enableCors(){
+    _enableCors = true;
+  }
   
   void useViewEngine(ViewEngine viewEngine){
     this.viewEngine = viewEngine;
@@ -62,7 +67,7 @@ class SerinusApplication{
       await this.serverAdapter.listen(
         (request, response) async {
           try{
-            final handler = RequestHandler(routes, modules);
+            final handler = RequestHandler(routes, modules, _enableCors);
             await handler.handleRequest(request, response, viewEngine: viewEngine);
           }catch(e){
             if(e is SerinusException){

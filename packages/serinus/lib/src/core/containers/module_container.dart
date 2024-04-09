@@ -33,7 +33,8 @@ class ModulesContainer {
   Future<void> registerModule(Module module, Type entrypoint) async {
     final logger = Logger('InstanceLoader');
     final token = module.token.isEmpty ? module.runtimeType.toString() : module.token;
-    final initializedModule = await module.registerAsync();
+    final context = _getApplicationContext();
+    final initializedModule = await module.registerAsync(context);
     if(initializedModule.runtimeType == entrypoint && initializedModule.exports.isNotEmpty){
       throw StateError('The entrypoint module cannot have exports');
     }

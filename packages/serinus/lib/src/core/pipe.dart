@@ -4,7 +4,7 @@ import 'package:serinus/serinus.dart';
 
 abstract class Pipe {
 
-  FutureOr<void> transform({
+  Future<void> transform({
     required Request request,
   });
 

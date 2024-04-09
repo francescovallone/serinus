@@ -11,15 +11,15 @@ abstract class HttpServerAdapter<TServer> {
 
   TServer? server;
 
-  FutureOr<void> init({
+  Future<void> init({
     String host = 'localhost',
     int port = 3000,
     String poweredByHeader = 'Powered by Serinus',
   });
 
-  FutureOr<void> close();
+  Future<void> close();
 
-  FutureOr<void> listen(
+  Future<void> listen(
     RequestCallback requestCallback,
     {
       ErrorHandler? errorHandler

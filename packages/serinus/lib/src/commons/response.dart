@@ -20,6 +20,10 @@ class Response {
 
   bool get shouldRedirect => _shouldRedirect;
 
+  final Map<String, String> _headers = {};
+
+  Map<String, String> get headers => _headers;
+
   factory Response.json({
     required dynamic data,
     int statusCode = 200,
@@ -95,6 +99,12 @@ class Response {
 
   factory Response.status(int statusCode){
     return Response._(null, statusCode, ContentType.text);
+  }
+
+  void addHeaders(Map<String, String> headers){
+    headers.forEach((key, value) {
+      _headers[key] = value;
+    });
   }
 
 }
