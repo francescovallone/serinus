@@ -7,7 +7,6 @@ import 'package:serinus/src/commons/extensions/content_type_extensions.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/commons/extensions/string_extensions.dart';
 import 'package:serinus/src/commons/internal_request.dart';
-import 'package:serinus/src/commons/internal_response.dart';
 import 'package:serinus/src/core/consumers/guards_consumer.dart';
 import 'package:serinus/src/core/consumers/pipes_consumer.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
@@ -20,7 +19,7 @@ class RequestHandler {
 
   final RoutesContainer routesContainer;
   final ModulesContainer modulesContainer;
-  final bool cors;
+  final Cors? cors;
   
   RequestHandler(this.routesContainer, this.modulesContainer, this.cors);
   
@@ -92,12 +91,13 @@ class RequestHandler {
       throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
     }
     Response? result;
-    if(cors){
+    if(cors != null){
       result = await corsHandler.call(
         request,
         wrappedRequest,
         context,
-        routeHandler
+        routeHandler,
+        cors!.allowedOrigins
       );
     }else{
       result = await routeHandler.call(context, wrappedRequest);
@@ -319,9 +319,10 @@ class _CorsHandler {
     Request wrappedRequest,
     RequestContext? context,
     Future<Response> Function(RequestContext, Request)? handler,
+    [List<String> allowedOrigins = const ['*']]
   ) async {
     final origin = request.headers['origin'];
-    if (origin == null) {
+    if (origin == null || (!allowedOrigins.contains('*') && !allowedOrigins.contains(origin))) {
       return handler!(context!, wrappedRequest);
     }
     final _headers = <String, List<String>>{
