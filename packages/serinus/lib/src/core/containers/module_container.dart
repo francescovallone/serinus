@@ -33,8 +33,7 @@ class ModulesContainer {
   Future<void> registerModule(Module module, Type entrypoint) async {
     final logger = Logger('InstanceLoader');
     final token = module.token.isEmpty ? module.runtimeType.toString() : module.token;
-    final context = _getApplicationContext();
-    final initializedModule = await module.registerAsync(context);
+    final initializedModule = await module.registerAsync();
     if(initializedModule.runtimeType == entrypoint && initializedModule.exports.isNotEmpty){
       throw StateError('The entrypoint module cannot have exports');
     }
@@ -57,10 +56,19 @@ class ModulesContainer {
     logger.info('${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies initialized');
   }
 
-  ApplicationContext _getApplicationContext() {
+  ApplicationContext _getApplicationContext(List<Type> providersToInject) {
     final providers = _providers.values.flatten().toList();
+    final injectableProviders = providers.map((e) => e.runtimeType).toList();
+    final usableProviders = <Provider>[];
+    for(final provider in providersToInject){
+      if(!injectableProviders.contains(provider)){
+        throw StateError('$provider not found in the application providers, are you sure it is registered?');
+      }
+      usableProviders.add(providers.firstWhere((element) => element.runtimeType == provider));
+    }
+    usableProviders.addAll(globalProviders);
     return ApplicationContext(
-      Map<Type, Provider>.fromEntries(providers.map((e) => MapEntry(e.runtimeType, e))), 
+      Map<Type, Provider>.fromEntries(usableProviders.map((e) => MapEntry(e.runtimeType, e))), 
       applicationId
     );
   }
@@ -69,11 +77,11 @@ class ModulesContainer {
     final eagerSubModules = module.imports.where((element) => element is! DeferredModule);
     final deferredSubModules = module.imports.whereType<DeferredModule>();
     for(var subModule in eagerSubModules){
-      _callForRecursiveRegistration(subModule, module, entrypoint);
+      await _callForRecursiveRegistration(subModule, module, entrypoint);
     }
     for(var deferredModule in deferredSubModules){
-      final subModule = await deferredModule.init(_getApplicationContext());
-      _callForRecursiveRegistration(subModule, module, entrypoint);
+      final subModule = await deferredModule.init(_getApplicationContext(deferredModule.inject));
+      await _callForRecursiveRegistration(subModule, module, entrypoint);
     }
     await registerModule(module, entrypoint);
     
@@ -87,18 +95,17 @@ class ModulesContainer {
   }
 
   Future<void> finalize() async{
-    final context = _getApplicationContext();
     for(final entry in _deferredProviders.entries){
       final token = entry.key;
       final providers = entry.value;
       final parentModule = _modules[token];
       for(final provider in providers){
+        final context = _getApplicationContext(provider.inject);
         final initializedProvider = await provider.init(context);
         if(initializedProvider is OnApplicationInit){
           await initializedProvider.onApplicationInit();
         }
         _providers[token]?.add(initializedProvider);
-        context.addProviderToContext(initializedProvider);
         parentModule!.providers.remove(provider);
         parentModule.providers.add(initializedProvider);
       }

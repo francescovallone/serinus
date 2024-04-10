@@ -21,7 +21,7 @@ class MyProvider extends Provider {
 To use a provider, you need to add it to the `providers` list in your module.
 
 ::: code-group
-    
+
 ```dart [my_provider.dart]
 import 'package:serinus/serinus.dart';
 
@@ -42,6 +42,7 @@ class MyModule extends Module {
   );
 }
 ```
+
 :::
 
 Doing this will make the provider available to all controllers and routes in the module and its submodules.
@@ -98,8 +99,7 @@ class MyProvider extends Provider {
 }
 ```
 
-
-## Lazy Providers
+## Deferred Providers
 
 By default, all providers are created when the module is created. If you want to create the provider after all the modules are created, you can extend the `DeferredProvider` class.
 
@@ -108,12 +108,35 @@ This class has a `init` property that accepts a function that returns the provid
 Also the `init` function has access to the application context and contains all the providers initialized.
 When a DeferredProvider is initialized, its provider is added to the application context so that it can be used as dependency by other providers. This grant a incremental initialization of the providers.
 
-```dart 
+::: code-group
+
+```dart [Deferred Provider]
 import 'package:serinus/serinus.dart';
 
-class MyDeferredProvider extends DeferredProvider {
-  MyDeferredProvider() : super(
-    init: (context) => MyProvider(),
+class MyProvider extends Provider {
+  final TestProvider testProvider;
+
+  MyProvider(this.testProvider);
+}
+```
+
+```dart [Module]
+import 'package:serinus/serinus.dart';
+
+class MyModule extends Module {
+  MyModule() : super(
+    providers: [
+      TestProvider(),
+      DeferredProvider(
+        inject: [TestProvider],
+        init: (context) async {
+          final prov = context.use<TestProvider>();
+          return MyProvider(prov);
+        }
+      ),
+    ],
   );
 }
 ```
+
+:::

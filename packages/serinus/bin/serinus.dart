@@ -149,8 +149,8 @@ class AppModule extends Module {
   );
 
   @override
-  Future<Module> registerAsync(ApplicationContext context) async {
-    return super.registerAsync(context);
+  Future<Module> registerAsync() async {
+    return super.registerAsync();
   }
 }
 
@@ -163,6 +163,7 @@ class ReAppModule extends Module {
     ],
     providers: [
       DeferredProvider(
+        inject: [TestProvider, TestProvider],
         (context) async {
           final prov = context.use<TestProvider>();
           return TestProviderTwo(prov);

@@ -29,3 +29,9 @@ Initial Implementation
 
 - Add DeferredProviders
 - Fix parsing of path parameters in request
+
+## 0.1.0-dev.2
+
+- Add DeferredModules
+- Add scope to the ApplicationContext
+- Fix Middlewares

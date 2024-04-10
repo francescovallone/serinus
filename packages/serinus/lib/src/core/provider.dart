@@ -12,9 +12,14 @@ class DeferredProvider extends Provider {
 
   final Future<Provider> Function(ApplicationContext context) init;
 
+  final List<Type> inject;
+
   const DeferredProvider(
     this.init,
-    {bool isGlobal = false}
-  ) : super(isGlobal: isGlobal);
+    {
+      required this.inject,
+      super.isGlobal
+    }
+  );
 
 }

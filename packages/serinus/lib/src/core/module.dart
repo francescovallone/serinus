@@ -43,7 +43,7 @@ abstract class Module {
     return moduleProviders.toSet().firstWhereOrNull((provider) => provider is T) as T?;
   }
 
-  Future<Module> registerAsync(ApplicationContext context) async {
+  Future<Module> registerAsync() async {
     return this;
   }
 
@@ -53,19 +53,23 @@ abstract class ModuleOptions {}
 
 class DeferredModule extends Module {
 
+  final List<Type> inject;
+
   final Future<Module> Function(ApplicationContext context) init;
 
   const DeferredModule(
     this.init,
     {
-      super.imports,
-      super.controllers,
-      super.exports,
-      super.middlewares,
-      super.providers,
-      super.options,
+      required this.inject,
       super.token
     }
+  ) : super(
+    imports: const [],
+    controllers: const [],
+    providers: const [],
+    exports: const [],
+    middlewares: const [],
+    options: null
   );
 
 }

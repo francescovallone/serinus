@@ -320,9 +320,7 @@ class _CorsHandler {
     RequestContext? context,
     Future<Response> Function(RequestContext, Request)? handler,
   ) async {
-    print("HELLO");
     final origin = request.headers['origin'];
-    print("ORIGIN: $origin");
     if (origin == null) {
       return handler!(context!, wrappedRequest);
     }

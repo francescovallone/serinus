@@ -4,17 +4,17 @@ The modules in Serinus are designed to behave as containers for the different pa
 
 ## Creating a module
 
-To create a module, you need to create a class that extends `Module`.
+To create a module, you need to create a class that extends `Module`. These modules by default are eagerly loaded, but you can create a module that will be loaded after the former by creating a class that extends `DeferredModule` with its own sets of dependency.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
 class AppModule extends Module {
   AppModule() : super(
-	imports: [], // Add the modules that you want to import
-	controllers: [],
-	providers: [],
-	middlewares: []
+    imports: [], // Add the modules that you want to import
+    controllers: [],
+    providers: [],
+    middlewares: []
   );
 }
 ```
@@ -25,6 +25,48 @@ In the `AppModule` class, you can pass the following parameters to the `super` c
 - `controllers`: A list of controllers that you want to include in the module.
 - `providers`: A list of providers that you want to include in the module.
 - `middlewares`: A list of middlewares that you want to include in the module.
+
+## Creating a DeferredModule
+
+If you want to create a module that will be loaded after the modules are created, you can wrap a `Module` with the `DeferredModule` class.
+This class has an `inject` property that exposes the providers on which the module depends.
+A `DeferredModule` has access to all the properties of the `Module` class, so you can pass the same parameters to the `super` constructor.
+It also has a `init` property that is a function that will be executed when the module is loaded and that returns a `Module` object.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class OtherDeferredModule extends Module {
+  final TestProvider testProvider;
+  OtherDeferredModule(this.testProvider) : super(
+    imports: [],
+    controllers: [],
+    providers: [],
+    middlewares: []
+  );
+}
+
+class AppModule extends Module {
+  AppModule(): super(
+    imports: [
+      DeferredModule(
+        inject: [TestProvider],
+        (context) async {
+          final prov = context.use<TestProvider>();
+          return OtherDeferredModule(prov);
+        }
+      )
+    ],
+    controllers: [],
+    providers: [TestProvider(isGlobal: true)],
+    middlewares: []
+  );
+}
+```
+
+::: warning
+The entry point of the application must be a module that extends `Module` and cannot be wrapped by the `DeferredModule` class.
+:::
 
 ## Registering a module
 
@@ -38,15 +80,15 @@ import 'package:serinus/serinus.dart';
 
 class AppModule extends Module {
   AppModule() : super(
-	imports: [], // Add the modules that you want to import
-	controllers: [],
-	providers: [],
-	middlewares: []
+    imports: [], // Add the modules that you want to import
+    controllers: [],
+    providers: [],
+    middlewares: []
   );
 
   @override
   Future<void> registerAsync() async {
-	// Register controllers, providers, and other modules asynchronously
+    // Register controllers, providers, and other modules asynchronously
   }
 }
 ```
@@ -64,18 +106,18 @@ import 'package:serinus/serinus.dart';
 class MyGuard extends Guard {
   @override
   Future<bool> canActivate({
-	required Request request,
+    required Request request,
   }) async {
-	return true;
+    return true;
   }
 }
 
 class AppModule extends Module {
   AppModule() : super(
-	imports: [], // Add the modules that you want to import
-	controllers: [],
-	providers: [],
-	middlewares: [],
+    imports: [], // Add the modules that you want to import
+    controllers: [],
+    providers: [],
+    middlewares: [],
   );
 
   @override
@@ -96,18 +138,18 @@ import 'package:serinus/serinus.dart';
 class MyPipe extends Pipe {
   @override
   Future<void> transform({
-	required Request request,
+    required Request request,
   }) async {
-	print('Pipe executed');
+    print('Pipe executed');
   }
 }
 
 class AppModule extends Module {
   AppModule() : super(
-	imports: [], // Add the modules that you want to import
-	controllers: [],
-	providers: [],
-	middlewares: [],
+    imports: [], // Add the modules that you want to import
+    controllers: [],
+    providers: [],
+    middlewares: [],
   );
 
   @override
