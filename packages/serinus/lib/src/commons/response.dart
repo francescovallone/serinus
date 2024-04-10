@@ -24,6 +24,10 @@ class Response {
 
   Map<String, String> get headers => _headers;
 
+  factory Response() {
+    return Response._(null, 200, ContentType.text);
+  }
+
   factory Response.json({
     required dynamic data,
     int statusCode = 200,

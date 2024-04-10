@@ -27,5 +27,5 @@ Initial Implementation
 
 ## 0.1.0-dev.1
 
-- Add LazyProviders
+- Add DeferredProviders
 - Fix parsing of path parameters in request

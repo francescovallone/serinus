@@ -8,11 +8,11 @@ abstract class Provider {
 
 }
 
-class LazyProvider extends Provider {
+class DeferredProvider extends Provider {
 
   final Future<Provider> Function(ApplicationContext context) init;
 
-  const LazyProvider(
+  const DeferredProvider(
     this.init,
     {bool isGlobal = false}
   ) : super(isGlobal: isGlobal);

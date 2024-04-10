@@ -4,15 +4,14 @@ import 'package:serinus/serinus.dart';
 
 
 class TestMiddleware extends Middleware {
-  TestMiddleware() : super(routes: ['/']);
+  int counter = 0;
+
+  TestMiddleware() : super(routes: ['*']);
 
   @override
-  Future<(
-    RequestContext context,
-    Request request,
-  )> use(RequestContext context, Request request) async {
-    print('Middleware executed');
-    return await super.use(context, request);
+  Future<void> use(RequestContext context, Request request, InternalResponse response, NextFunction next) async {
+    print('Middleware executed ${++counter}');
+    return next();
   }
 }
 
@@ -55,7 +54,7 @@ class TestProviderTwo extends Provider with OnApplicationInit, OnApplicationShut
 class TestGuard extends Guard {
 
   @override
-  bool canActivate(ExecutionContext context) {
+  Future<bool> canActivate(ExecutionContext context) async {
     context.addDataToRequest('test', 'Hello world');
     return true;
   }
@@ -101,13 +100,13 @@ class PostRoute extends Route {
 
 class HomeController extends Controller {
   HomeController({super.path = '/'}){
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context, request) async {
       context.use<TestProviderTwo>().testMethod();
       return Response.text(
         data: context.use<TestProviderTwo>().testMethod()
       );
     });
-    on(PostRoute(path: '/:id'), (context, request) {
+    on(PostRoute(path: '/:id'), (context, request) async {
       return Response.text(
         data: '${request.getData('test')} ${context.pathParameters}'
       );
@@ -117,13 +116,13 @@ class HomeController extends Controller {
 
 class HomeAController extends Controller {
   HomeAController() : super(path: '/a'){
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context, request) async {
       return Response.redirect(path: '/');
     });
     on(PostRoute(path: '/:id'), _handlePostRequest);
   }
 
-  Response _handlePostRequest(RequestContext context, Request request){
+  Future<Response> _handlePostRequest(RequestContext context, Request request) async {
     print(context.body.formData?.fields);
     return Response.text(
       data: 'Hello world from a ${context.pathParameters}'
@@ -163,7 +162,7 @@ class ReAppModule extends Module {
       HomeAController()
     ],
     providers: [
-      LazyProvider(
+      DeferredProvider(
         (context) async {
           final prov = context.use<TestProvider>();
           return TestProviderTwo(prov);

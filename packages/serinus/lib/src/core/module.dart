@@ -50,3 +50,22 @@ abstract class Module {
 }
 
 abstract class ModuleOptions {}
+
+class DeferredModule extends Module {
+
+  final Future<Module> Function(ApplicationContext context) init;
+
+  const DeferredModule(
+    this.init,
+    {
+      super.imports,
+      super.controllers,
+      super.exports,
+      super.middlewares,
+      super.providers,
+      super.options,
+      super.token
+    }
+  );
+
+}

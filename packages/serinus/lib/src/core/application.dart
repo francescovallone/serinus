@@ -67,6 +67,7 @@ class SerinusApplication{
       await this.serverAdapter.listen(
         (request, response) async {
           try{
+            print(request.host);
             final handler = RequestHandler(routes, modules, _enableCors);
             await handler.handleRequest(request, response, viewEngine: viewEngine);
           }catch(e){
@@ -109,6 +110,11 @@ class SerinusApplication{
 
   Future<void> _initialize(Module module) async {
     final modulesContainer = ModulesContainer();
+    if(module is DeferredModule){
+      throw Exception(
+        'The entry point of the application cannot be a DeferredModule'
+      );
+    }
     await modulesContainer.recursiveRegisterModules(module, module.runtimeType);
     await modulesContainer.finalize();
     final explorer = Explorer();

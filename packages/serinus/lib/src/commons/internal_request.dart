@@ -27,8 +27,12 @@ class InternalRequest{
   Uint8List? _bytes;
   /// The [queryParameters] property contains the query parameters of the request
   final Map<String, String> queryParameters;
-
+  /// The list of path parameters in the request
   final List<String> pathParameters;
+  /// The host where the application is running
+  final String host;
+  /// The port where the application is running
+  final int port;
   /// The [contentType] property contains the content type of the request
   ContentType contentType;
 
@@ -68,11 +72,13 @@ class InternalRequest{
     required this.pathParameters,
     required this.headers,
     required this.contentType,
-    required this.original
+    required this.original,
+    this.host = 'http://localhost',
+    this.port = 3000
   });
 
   InternalResponse get response{
-    return InternalResponse(original: original.response);
+    return InternalResponse(original.response, port: port, host: host);
   }
 
   /// This method is used to get the body of the request as a [String]

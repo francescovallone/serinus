@@ -1,5 +1,6 @@
 import 'package:serinus/serinus.dart';
 
+typedef NextFunction = Future<void> Function();
 
 abstract class Middleware {
 
@@ -9,10 +10,12 @@ abstract class Middleware {
     this.routes = const ['*']
   });
 
-  Future<(
-    RequestContext context,
-    Request request,
-  )> use(RequestContext context, Request request) async {
-    return (context, request);
+  Future<void> use(
+    RequestContext context, 
+    Request request, 
+    InternalResponse response, 
+    NextFunction next
+  ) async {
+    return next();
   }
 }

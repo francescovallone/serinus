@@ -16,7 +16,7 @@ class ModulesContainer {
   final Map<String, Module> _modules = {};
   final String applicationId = UuidV4().generate();
   final Map<String, List<Provider>> _providers = {};
-  final Map<String, List<LazyProvider>> _lazyProviders = {};
+  final Map<String, List<DeferredProvider>> _deferredProviders = {};
 
   List<Provider> get globalProviders => _providers.values.flatten().where((provider) => provider.isGlobal).toList();
 
@@ -43,16 +43,16 @@ class ModulesContainer {
       throw Exception('A provider with the same type is already registered');
     }
     _modules[token] = initializedModule;
-    for(final provider in initializedModule.providers.where((element) => element is! LazyProvider)){
+    for(final provider in initializedModule.providers.where((element) => element is! DeferredProvider)){
       if(provider is OnApplicationInit){
         await provider.onApplicationInit();
       }
     }
     _providers[token] = [
-      ...initializedModule.providers.where((element) => element is! LazyProvider)
+      ...initializedModule.providers.where((element) => element is! DeferredProvider)
     ];
-    _lazyProviders[token] = [
-      ...initializedModule.providers.where((element) => element is LazyProvider).map((e) => e as LazyProvider)
+    _deferredProviders[token] = [
+      ...initializedModule.providers.whereType<DeferredProvider>()
     ];
     logger.info('${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies initialized');
   }
@@ -66,18 +66,29 @@ class ModulesContainer {
   }
 
   Future<void> recursiveRegisterModules(Module module, Type entrypoint) async {
-    for(var subModule in module.imports){
-      if(subModule.runtimeType == module.runtimeType){
-        throw StateError('A module cannot import itself');
-      }
-      await recursiveRegisterModules(subModule, entrypoint);
+    final eagerSubModules = module.imports.where((element) => element is! DeferredModule);
+    final deferredSubModules = module.imports.whereType<DeferredModule>();
+    for(var subModule in eagerSubModules){
+      _callForRecursiveRegistration(subModule, module, entrypoint);
+    }
+    for(var deferredModule in deferredSubModules){
+      final subModule = await deferredModule.init(_getApplicationContext());
+      _callForRecursiveRegistration(subModule, module, entrypoint);
     }
     await registerModule(module, entrypoint);
+    
+  }
+
+  Future<void> _callForRecursiveRegistration(Module subModule, Module module, Type entrypoint) async {
+    if(subModule.runtimeType == module.runtimeType){
+      throw StateError('A module cannot import itself');
+    }
+    await recursiveRegisterModules(subModule, entrypoint);
   }
 
   Future<void> finalize() async{
     final context = _getApplicationContext();
-    for(final entry in _lazyProviders.entries){
+    for(final entry in _deferredProviders.entries){
       final token = entry.key;
       final providers = entry.value;
       final parentModule = _modules[token];

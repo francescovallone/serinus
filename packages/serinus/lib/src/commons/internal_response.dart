@@ -2,38 +2,41 @@ import 'dart:io';
 
 class InternalResponse {
 
-  final HttpResponse original;
+  final HttpResponse _original;
   bool _statusChanged = false;
+  final int? port;
+  final String? host;
 
-  InternalResponse({
-    required this.original
+  InternalResponse(this._original, {
+    this.host,
+    this.port
   });
 
   Future<void> send(dynamic data) async{
     if(!_statusChanged){
-      original.statusCode = HttpStatus.ok;
+      _original.statusCode = HttpStatus.ok;
     }
-    original.write(data);
-    await original.close();
+    _original.write(data);
+    await _original.close();
   }
 
   void status(int statusCode){
     _statusChanged = true;
-    original.statusCode = statusCode;
+    _original.statusCode = statusCode;
   }
 
   void contentType(String contentType){
-    original.headers.contentType = ContentType.parse(contentType);
+    _original.headers.contentType = ContentType.parse(contentType);
   }
 
   void headers(Map<String, String> headers){
     headers.forEach((key, value) {
-      original.headers.add(key, value);
+      _original.headers.add(key, value);
     });
   }
 
   Future<void> redirect(String path) async{
-    await original.redirect(Uri.parse('http://localhost:3000$path'));
+    await _original.redirect(Uri.parse('$host:$port$path'));
   }
 
 }

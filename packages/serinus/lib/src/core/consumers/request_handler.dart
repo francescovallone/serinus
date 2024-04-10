@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -91,7 +92,6 @@ class RequestHandler {
       throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
     }
     Response? result;
-    print("CORS: $cors");
     if(cors){
       result = await corsHandler.call(
         request,
@@ -182,12 +182,12 @@ class RequestHandler {
   }
 
   Set<Middleware> _recursiveGetMiddlewares(Module module, RouteData routeData) {
-    List<Middleware> middlewares = [
-      ...module.middlewares
-    ];
+    Map<Type, Middleware> middlewares = {
+      for(final m in module.middlewares) m.runtimeType: m
+    };
     final parents = this.modulesContainer.getParents(module);
     for (final parent in parents) {
-      middlewares.addAll(parent.middlewares.where((element) {
+      middlewares.addEntries(parent.middlewares.where((element) {
         final routes = element.routes;
         for(final route in routes){
           final segments = route.split('/');
@@ -205,10 +205,12 @@ class RequestHandler {
           }
         }
         return false;
-      }));
-      middlewares.addAll(_recursiveGetMiddlewares(parent, routeData));
+      }).map((e) => MapEntry(e.runtimeType, e)));
+      middlewares.addEntries(
+        _recursiveGetMiddlewares(parent, routeData).map((e) => MapEntry(e.runtimeType, e))
+      );
     }
-    return middlewares.toSet();
+    return middlewares.values.toSet();
   }
   
   Future<void> _finalizeResponse(Response result, InternalResponse response, {ViewEngine? viewEngine}) async {
@@ -247,9 +249,17 @@ class RequestHandler {
   
   Future<void> _executeMiddlewares(RequestContext context, RouteData routeData, Request request, InternalResponse response, Module module) async {
     final middlewares = _recursiveGetMiddlewares(module, routeData);
-    for(final middleware in middlewares){
-      await middleware.use(context, request);
+    final completer = Completer<void>();
+    for(int i = 0; i<middlewares.length; i++){
+      final middleware = middlewares.elementAt(i);
+      await middleware.use(context, request, response, () async {
+        if(i == middlewares.length - 1){
+          completer.complete();
+        }
+        return;
+      });
     }
+    return completer.future;
   }
   
   List<Guard> _recursiveGetModuleGuards(Module module, RouteData routeData) {
