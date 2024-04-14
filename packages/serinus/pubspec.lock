@@ -121,6 +121,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.6"
+  equatable:
+    dependency: transitive
+    description:
+      name: equatable
+      sha256: c2b87cb7756efdf69892005af546c56c0b5037f54d2a88269b4f347a505e3ca2
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.5"
   file:
     dependency: transitive
     description:
@@ -345,6 +353,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
+  spanner:
+    dependency: "direct main"
+    description:
+      name: spanner
+      sha256: "6e7c83fda01e046f2b4088f22a0f09bff75ec0d5aa999b8de9356b722eb1acac"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1+4"
   sprintf:
     dependency: transitive
     description:

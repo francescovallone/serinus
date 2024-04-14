@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/core/containers/routes_container.dart';
+import 'package:serinus/src/core/containers/router.dart';
 
 abstract class Consumer<TObj, O> {
   

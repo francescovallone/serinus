@@ -16,11 +16,12 @@ dependencies:
   logging: ^1.1.0
   meta: ^1.9.1
   mime: ^1.0.4
+  spanner: ^1.0.1+4
   stream_channel: ^2.1.1
   uuid: ^4.3.1
   web_socket_channel: ^2.4.4
 
 dev_dependencies:
   test: ^1.16.0
-  mockito: ^5.3.2
+  mockito: ^5.4.4
   http: ^1.0.0

@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/core/consumers/consumer.dart';
-import 'package:serinus/src/core/containers/routes_container.dart';
+import 'package:serinus/src/core/containers/router.dart';
 
 import '../contexts/execution_context.dart';
 

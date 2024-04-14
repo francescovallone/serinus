@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:meta/meta.dart';
-
 /// The class SerinusException is used as superclass for all exceptions
 /// defined in Serinus
 /// 
@@ -31,21 +29,12 @@ class SerinusException implements HttpException{
 
   const SerinusException({required this.message, required this.statusCode, this.uri});
 
-  ///
-  /// Returns a [Future] that completes with the [String] representation of the
-  /// [SerinusException].
-  /// 
-  /// The [res] parameter is the response object of the request
-  @nonVirtual
-  (int statusCode, String content) handle() {
-    String content = jsonEncode({
+  @override
+  String toString() {
+    return jsonEncode({
       "message": message,
       "statusCode": statusCode,
       "uri": uri != null ? uri!.path : "No Uri"
     });
-    return (statusCode, content);
   }
-
-  @override
-  String toString() => "$runtimeType";
 }

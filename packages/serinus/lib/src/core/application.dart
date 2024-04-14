@@ -4,7 +4,7 @@ import 'package:serinus/src/commons/commons.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/core/consumers/request_handler.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
-import 'package:serinus/src/core/containers/routes_container.dart';
+import 'package:serinus/src/core/containers/router.dart';
 import 'package:serinus/src/core/core.dart';
 import 'package:serinus/src/core/injector/explorer.dart';
 
@@ -16,6 +16,8 @@ class SerinusApplication{
   final Module entrypoint;
   bool _enableShutdownHooks = false;
   LoggerService loggerService = LoggerService();
+  ModulesContainer modulesContainer = ModulesContainer();
+  Router router = Router();
   final HttpServerAdapter serverAdapter;
   ViewEngine? viewEngine;
   Cors? _cors = null;
@@ -61,20 +63,17 @@ class SerinusApplication{
 
   Future<void> serve() async {
     try{
-      final modules = ModulesContainer();
-      final routes = RoutesContainer();
       _logger.info("Starting server on $host:$port");
       await this.serverAdapter.listen(
         (request, response) async {
           try{
             print(request.host);
-            final handler = RequestHandler(routes, modules, _cors);
+            final handler = RequestHandler(router, modulesContainer, _cors);
             await handler.handleRequest(request, response, viewEngine: viewEngine);
           }catch(e){
             if(e is SerinusException){
-              final (statusCode, error) = e.handle();
-              response.status(statusCode);
-              response.send(error);
+              response.status(e.statusCode);
+              response.send(e.toString());
             }else{
               rethrow;
             }
@@ -109,7 +108,6 @@ class SerinusApplication{
   }
 
   Future<void> _initialize(Module module) async {
-    final modulesContainer = ModulesContainer();
     if(module is DeferredModule){
       throw Exception(
         'The entry point of the application cannot be a DeferredModule'
@@ -117,7 +115,10 @@ class SerinusApplication{
     }
     await modulesContainer.recursiveRegisterModules(module, module.runtimeType);
     await modulesContainer.finalize();
-    final explorer = Explorer();
+    final explorer = Explorer(
+      modulesContainer,
+      router
+    );
     explorer.resolveRoutes();
   }
 

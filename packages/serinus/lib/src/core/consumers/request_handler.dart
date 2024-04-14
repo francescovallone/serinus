@@ -10,18 +10,18 @@ import 'package:serinus/src/commons/internal_request.dart';
 import 'package:serinus/src/core/consumers/guards_consumer.dart';
 import 'package:serinus/src/core/consumers/pipes_consumer.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
-import 'package:serinus/src/core/containers/routes_container.dart';
+import 'package:serinus/src/core/containers/router.dart';
 import 'package:serinus/src/core/contexts/request_context.dart';
 
 import '../../commons/form_data.dart';
 
 class RequestHandler {
 
-  final RoutesContainer routesContainer;
+  final Router router;
   final ModulesContainer modulesContainer;
   final Cors? cors;
   
-  RequestHandler(this.routesContainer, this.modulesContainer, this.cors);
+  RequestHandler(this.router, this.modulesContainer, this.cors);
   
   /// Handles the request and sends the response
   /// 
@@ -43,7 +43,7 @@ class RequestHandler {
       await corsHandler.call(request, Request(request), null, null);
       return;
     }
-    final routeData = routesContainer.getRouteForPath(request.segments, request.method.toHttpMethod());
+    final routeData = router.getRouteForPath(request.segments, request.method.toHttpMethod());
     if(routeData == null){
       throw NotFoundException(message: 'No route found for path ${request.path} and method ${request.method}');
     }

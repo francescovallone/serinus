@@ -1,5 +1,5 @@
 enum LogLevel {
-  hide,
+  none,
   errors,
   debug
 }

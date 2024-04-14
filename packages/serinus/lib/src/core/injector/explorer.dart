@@ -1,17 +1,22 @@
 
 import '../../commons/services/logger_service.dart';
 import '../containers/module_container.dart';
-import '../containers/routes_container.dart';
+import '../containers/router.dart';
 import '../core.dart';
 
 class Explorer {
   
-  const Explorer();
+  final ModulesContainer _modulesContainer;
+  final Router _router;
+
+  const Explorer(
+    this._modulesContainer,
+    this._router
+  );
 
   void resolveRoutes(){
     final Logger _logger = Logger('RoutesResolver');
-    final modulesContainer = ModulesContainer();
-    final modules = modulesContainer.modules;
+    final modules = _modulesContainer.modules;
     for(Module module in modules) {
       final controllers = module.controllers;
       for(var controller in controllers){
@@ -27,20 +32,11 @@ class Explorer {
 
   void exploreRoutes(Controller controller, Module module, String controllerPath){
     final Logger _logger = Logger('RoutesExplorer');
-    final routesContainer = RoutesContainer();
     final routes = controller.routes;
     for (var route in routes.keys) {
       String routePath = _normalizePath('${controllerPath}${route.path}');
-      final uriPath = Uri.parse(routePath);
-      if(uriPath.pathSegments.toSet().length != uriPath.pathSegments.length){
-        throw StateError('Duplicate path segments in route $routePath');
-      }
       final routeMethod = route.method;
-      final registeredRoute = routesContainer.getRouteForPath(routePath.split('/'), routeMethod);
-      if(registeredRoute != null){
-        throw StateError('Route $routePath with method $routeMethod already registered');
-      }
-      routesContainer.registerRoute(
+      _router.registerRoute(
         RouteData(
           path: routePath, 
           controller: controller,

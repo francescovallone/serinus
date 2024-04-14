@@ -106,7 +106,7 @@ class HomeController extends Controller {
         data: context.use<TestProviderTwo>().testMethod()
       );
     });
-    on(PostRoute(path: '/:id'), (context, request) async {
+    on(PostRoute(path: '/*'), (context, request) async {
       return Response.text(
         data: '${request.getData('test')} ${context.pathParameters}'
       );
