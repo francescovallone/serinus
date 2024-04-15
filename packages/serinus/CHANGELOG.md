@@ -35,3 +35,8 @@ Initial Implementation
 - Add DeferredModules
 - Add scope to the ApplicationContext
 - Fix Middlewares
+
+## 0.1.1-dev.1
+
+- Add support for Spanner as router
+- Clean up code
