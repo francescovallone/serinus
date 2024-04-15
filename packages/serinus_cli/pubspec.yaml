@@ -1,31 +1,29 @@
 name: serinus_cli
-description: CLI tool to manage serinus applications.
-version: 0.0.1-dev.4
-documentation: https://docs.serinus.app
-homepage: https://github.com/francescovallone/serinus
-repository: https://github.com/francescovallone/serinus
+description: A CLI to manage and interact with Serinus applications.
+version: 0.1.0-dev.1
+repository: 'https://github.com/francescovallone/serinus'
 
 environment:
-  sdk: ">=2.19.0 <3.0.0"
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  args: ^2.3.1
-  cli_completion: ^0.3.0
-  mason: ^0.1.0-dev.39
-  meta: ^1.7.0
-  path: ^1.8.1
-  pub_updater: ^0.2.4
-  pubspec_parse: ^1.2.0
-  stream_transform: ^2.0.0
-  watcher: ^1.0.2
+  args: ^2.5.0
+  cli_completion: ^0.5.0
+  mason: ^0.1.0-dev.52
+  mason_logger: ^0.2.12
+  meta: ^1.14.0
+  path: ^1.9.0
+  pub_updater: ^0.4.0
+  watcher: ^1.1.0
+  yaml: ^3.1.2
 
 dev_dependencies:
-  build_runner: ^2.0.0
-  build_verify: ^3.0.0
-  build_version: ^2.0.0
-  mocktail: ^0.3.0
-  test: ^1.19.2
-  very_good_analysis: ^4.0.0
+  build_runner: ^2.4.8
+  build_verify: ^3.1.0
+  build_version: ^2.1.1
+  mocktail: ^1.0.3
+  test: ^1.25.2
+  very_good_analysis: ^5.1.0
 
 executables:
   serinus:

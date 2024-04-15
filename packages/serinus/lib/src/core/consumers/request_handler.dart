@@ -6,14 +6,13 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/extensions/content_type_extensions.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/commons/extensions/string_extensions.dart';
+import 'package:serinus/src/commons/form_data.dart';
 import 'package:serinus/src/commons/internal_request.dart';
 import 'package:serinus/src/core/consumers/guards_consumer.dart';
 import 'package:serinus/src/core/consumers/pipes_consumer.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
 import 'package:serinus/src/core/containers/router.dart';
 import 'package:serinus/src/core/contexts/request_context.dart';
-
-import '../../commons/form_data.dart';
 
 class RequestHandler {
 

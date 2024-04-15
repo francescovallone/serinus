@@ -22,17 +22,18 @@ class GenerateCommand extends Command<int> {
   GenerateCommand({
     Logger? logger,
   }) : _logger = logger {
-    argParser..addOption(
-      'name',
-      help: 'The name of the item.',
-      mandatory: true,
-    )..addOption(
-      'type',
-      help: 'The type of the item.',
-      allowed: ['service', 'module', 'controller', 'resource'],
-      mandatory: true,
-    );
-
+    argParser
+      ..addOption(
+        'name',
+        help: 'The name of the item.',
+        mandatory: true,
+      )
+      ..addOption(
+        'type',
+        help: 'The type of the item.',
+        allowed: ['service', 'module', 'controller', 'resource'],
+        mandatory: true,
+      );
   }
 
   Map<String, MasonBundle Function(String, String)> bundles = {
@@ -55,8 +56,8 @@ class GenerateCommand extends Command<int> {
   String get usageString => testUsage ?? usage;
 
   @override
-  String get description => 
-    'Helper to generate new items for your Serinus application';
+  String get description =>
+      'Helper to generate new items for your Serinus application';
 
   @override
   String get name => 'generate';
@@ -66,7 +67,7 @@ class GenerateCommand extends Command<int> {
   @override
   Future<int> run() async {
     _checkIfPubspecExists();
-    if(_itemType != 'resource'){
+    if (_itemType != 'resource') {
       await _generateItem(_itemType, _itemName);
     } else {
       await _generateResource(_itemName);
@@ -132,7 +133,6 @@ class GenerateCommand extends Command<int> {
         usageString,
       );
     }
-    
   }
 
   void _validateItemName(String? name) {
@@ -157,10 +157,10 @@ class GenerateCommand extends Command<int> {
       );
     }
   }
-  
+
   void _checkIfPubspecExists() {
     final pubspec = File(path.join(Directory.current.path, 'pubspec.yaml'));
-    if (!pubspec.existsSync()){
+    if (!pubspec.existsSync()) {
       _logger?.err('No pubspec.yaml file found');
       throw UsageException(
         'No pubspec.yaml file found',
@@ -168,7 +168,7 @@ class GenerateCommand extends Command<int> {
       );
     }
   }
-  
+
   Future<void> _generateResource(String itemName) async {
     final outputDirectory = Directory(
       path.join(Directory.current.path, 'lib', _itemName),

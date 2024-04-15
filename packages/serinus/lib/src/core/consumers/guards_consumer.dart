@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/core/consumers/consumer.dart';
 import 'package:serinus/src/core/containers/router.dart';
+import 'package:serinus/src/core/contexts/execution_context.dart';
 
-import '../contexts/execution_context.dart';
 
 class GuardsConsumer extends ExecutionContextConsumer<Guard, bool>{
 

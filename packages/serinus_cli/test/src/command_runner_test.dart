@@ -2,16 +2,14 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:mason/mason.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:serinus_cli/src/command_runner.dart';
-import 'package:serinus_cli/src/version.dart' as version;
+import 'package:serinus_cli/src/version.dart';
 import 'package:test/test.dart';
 
 class _MockLogger extends Mock implements Logger {}
-
-class _MockProcessResult extends Mock implements ProcessResult {}
 
 class _MockProgress extends Mock implements Progress {}
 
@@ -20,14 +18,13 @@ class _MockPubUpdater extends Mock implements PubUpdater {}
 const latestVersion = '0.0.0';
 
 final updatePrompt = '''
-${lightYellow.wrap('Update available!')} ${lightCyan.wrap(version.packageVersion)} \u2192 ${lightCyan.wrap(latestVersion)}
+${lightYellow.wrap('Update available!')} ${lightCyan.wrap(packageVersion)} \u2192 ${lightCyan.wrap(latestVersion)}
 Run ${lightCyan.wrap('$executableName update')} to update''';
 
 void main() {
   group('SerinusCliCommandRunner', () {
     late PubUpdater pubUpdater;
     late Logger logger;
-    late ProcessResult processResult;
     late SerinusCliCommandRunner commandRunner;
 
     setUp(() {
@@ -35,12 +32,9 @@ void main() {
 
       when(
         () => pubUpdater.getLatestVersion(any()),
-      ).thenAnswer((_) async => version.packageVersion);
+      ).thenAnswer((_) async => packageVersion);
 
       logger = _MockLogger();
-
-      processResult = _MockProcessResult();
-      when(() => processResult.exitCode).thenReturn(ExitCode.success.code);
 
       commandRunner = SerinusCliCommandRunner(
         logger: logger,
@@ -81,7 +75,9 @@ void main() {
           packageName: packageName,
           versionConstraint: any(named: 'versionConstraint'),
         ),
-      ).thenAnswer((_) async => processResult);
+      ).thenAnswer(
+        (_) async => ProcessResult(0, ExitCode.success.code, null, null),
+      );
       when(
         () => pubUpdater.isUpToDate(
           packageName: any(named: 'packageName'),
@@ -143,7 +139,7 @@ void main() {
       test('outputs current version', () async {
         final result = await commandRunner.run(['--version']);
         expect(result, equals(ExitCode.success.code));
-        verify(() => logger.info(version.packageVersion)).called(1);
+        verify(() => logger.info(packageVersion)).called(1);
       });
     });
 
@@ -156,6 +152,22 @@ void main() {
         verify(() => logger.detail('  Top level options:')).called(1);
         verify(() => logger.detail('  - verbose: true')).called(1);
         verifyNever(() => logger.detail('    Command options:'));
+      });
+
+      test('enables verbose logging for sub commands', () async {
+        final result = await commandRunner.run([
+          '--verbose',
+          'sample',
+          '--cyan',
+        ]);
+        expect(result, equals(ExitCode.success.code));
+
+        verify(() => logger.detail('Argument information:')).called(1);
+        verify(() => logger.detail('  Top level options:')).called(1);
+        verify(() => logger.detail('  - verbose: true')).called(1);
+        verify(() => logger.detail('  Command: sample')).called(1);
+        verify(() => logger.detail('    Command options:')).called(1);
+        verify(() => logger.detail('    - cyan: true')).called(1);
       });
     });
   });

@@ -5,7 +5,6 @@ import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:serinus_cli/src/commands/create/create_template.dart';
 
 final RegExp _identifierRegExp = RegExp('[a-z_][a-z0-9_]*');
 
@@ -22,7 +21,7 @@ class CreateCommand extends Command<int> {
     argParser.addOption(
       'project-name',
       help: 'The project name for this new project. '
-        'This must be a valid dart package name.',
+          'This must be a valid dart package name.',
     );
   }
 
@@ -51,9 +50,13 @@ class CreateCommand extends Command<int> {
   Future<int> run() async {
     final outputDirectory = _outputDirectory;
     final projectName = _projectName;
-    final generator = await MasonGenerator.fromBundle(
-      createApplicationTemplate,
+    final brick = Brick.git(
+      const GitPath(
+        'https://github.com/francescovallone/serinus-bricks',
+        path: 'bricks/base_application',
+      ),
     );
+    final generator = await MasonGenerator.fromBrick(brick);
     final progress = _logger?.progress(
       'Generation a new Serinus Application [$projectName]',
     );
@@ -68,7 +71,6 @@ class CreateCommand extends Command<int> {
     progress?.complete();
     return ExitCode.success.code;
   }
-
 
   String get _projectName {
     final projectName = argResults['project-name'] as String? ??

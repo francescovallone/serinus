@@ -23,7 +23,7 @@ class SerinusFactory {
       serverAdapter: server,
       host: host,
       port: port,
-      loggingLevel: loggingLevel,
+      level: loggingLevel,
       loggerService: loggerService
     );
     return app;

@@ -1,21 +1,10 @@
 # Changelog
 
-## 0.0.1-dev.1
+## 0.0.1
 
-Initial Implementation
+First release still in development and not ready for production use.
 
-## 0.0.1-dev.2
+## 0.1.0-dev.1
 
-Fixing some bugs
-
-## 0.0.1-dev.3
-
-- Adjusted the serinus version to 0.0.1-dev.2
-
-## 0.0.1-dev.4
-
-- Adjusted the serinus version to 0.0.1-dev.3
-- Added the `--dev` flag to the `run` command
-- Added the `--port` and `--host` flags to the `run` command
-- Added the `generate` command
-- Changed executable name from `serinus_cli` to `serinus`
+- First release of the cli after the refactor of the whole framework.
+- Usage of Bricks from the serinus-bricks package.

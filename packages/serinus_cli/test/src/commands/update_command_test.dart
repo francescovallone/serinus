@@ -1,16 +1,14 @@
 import 'dart:io';
 
-import 'package:mason/mason.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:serinus_cli/src/command_runner.dart';
 import 'package:serinus_cli/src/commands/commands.dart';
-import 'package:serinus_cli/src/version.dart' as version;
+import 'package:serinus_cli/src/version.dart';
 import 'package:test/test.dart';
 
 class _MockLogger extends Mock implements Logger {}
-
-class _MockProcessResult extends Mock implements ProcessResult {}
 
 class _MockProgress extends Mock implements Progress {}
 
@@ -22,7 +20,6 @@ void main() {
   group('update', () {
     late PubUpdater pubUpdater;
     late Logger logger;
-    late ProcessResult processResult;
     late SerinusCliCommandRunner commandRunner;
 
     setUp(() {
@@ -30,7 +27,6 @@ void main() {
       final progressLogs = <String>[];
       pubUpdater = _MockPubUpdater();
       logger = _MockLogger();
-      processResult = _MockProcessResult();
       commandRunner = SerinusCliCommandRunner(
         logger: logger,
         pubUpdater: pubUpdater,
@@ -38,13 +34,15 @@ void main() {
 
       when(
         () => pubUpdater.getLatestVersion(any()),
-      ).thenAnswer((_) async => version.packageVersion);
+      ).thenAnswer((_) async => packageVersion);
       when(
         () => pubUpdater.update(
           packageName: packageName,
           versionConstraint: latestVersion,
         ),
-      ).thenAnswer((_) async => processResult);
+      ).thenAnswer(
+        (_) async => ProcessResult(0, ExitCode.success.code, null, null),
+      );
       when(
         () => pubUpdater.isUpToDate(
           packageName: any(named: 'packageName'),
@@ -56,7 +54,6 @@ void main() {
         if (message != null) progressLogs.add(message);
       });
       when(() => logger.progress(any())).thenReturn(progress);
-      when(() => processResult.exitCode).thenReturn(ExitCode.success.code);
     });
 
     test('can be instantiated without a pub updater', () {
@@ -111,8 +108,6 @@ void main() {
     test('handles pub update process errors', () async {
       const error = 'Oh no! Installing this is not possible right now!';
 
-      when(() => processResult.exitCode).thenReturn(1);
-      when<dynamic>(() => processResult.stderr).thenReturn(error);
       when(
         () => pubUpdater.getLatestVersion(any()),
       ).thenAnswer((_) async => latestVersion);
@@ -122,7 +117,7 @@ void main() {
           packageName: any(named: 'packageName'),
           versionConstraint: any(named: 'versionConstraint'),
         ),
-      ).thenAnswer((_) async => processResult);
+      ).thenAnswer((_) async => ProcessResult(0, 1, null, error));
 
       final result = await commandRunner.run(['update']);
 
@@ -148,7 +143,9 @@ void main() {
             packageName: any(named: 'packageName'),
             versionConstraint: any(named: 'versionConstraint'),
           ),
-        ).thenAnswer((_) async => processResult);
+        ).thenAnswer(
+          (_) async => ProcessResult(0, ExitCode.success.code, null, null),
+        );
         when(() => logger.progress(any())).thenReturn(_MockProgress());
         final result = await commandRunner.run(['update']);
         expect(result, equals(ExitCode.success.code));
@@ -168,7 +165,7 @@ void main() {
       () async {
         when(
           () => pubUpdater.getLatestVersion(any()),
-        ).thenAnswer((_) async => version.packageVersion);
+        ).thenAnswer((_) async => packageVersion);
         when(() => logger.progress(any())).thenReturn(_MockProgress());
         final result = await commandRunner.run(['update']);
         expect(result, equals(ExitCode.success.code));

@@ -7,4 +7,4 @@
 /// # see usage
 /// serinus_cli --help
 /// ```
-library serinus_cli;
+library;
