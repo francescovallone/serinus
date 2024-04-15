@@ -11,34 +11,32 @@ class LoggerService{
   LogCallback? onLog;
   int _time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-  static LoggerService _instance = LoggerService._(onLog: null);
-
   factory LoggerService({
     LogCallback? onLog,
   }){
-    if(onLog != _instance.onLog){
-      _instance = LoggerService._(onLog: onLog);
-    }
-    return _instance;
+    return LoggerService._(
+      onLog: onLog,
+    );
   }
   
   LoggerService._({
     this.onLog,
   }){
-    logging.Level.ALL;
+    logging.Logger.root.level = logging.Level.ALL;
     logging.Logger.root.onRecord.listen((record) {
       double delta = DateTime.now().millisecondsSinceEpoch / 1000 - _time.toDouble();
       _time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       if(onLog != null){
         onLog?.call(record, delta);
         return;
+      }else{
+        print(
+          '[Serinus] ${io.pid}\t'
+          '${DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time)}'
+          '\t${record.level.name} [${record.loggerName}] ' 
+          '${record.message} +${delta.toInt()}ms'
+        );
       }
-      print(
-        '[Serinus] ${io.pid}\t'
-        '${DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time)}'
-        '\t${record.level.name} [${record.loggerName}] ' 
-        '${record.message} +${delta.toInt()}ms'
-       );
     });
   }
 

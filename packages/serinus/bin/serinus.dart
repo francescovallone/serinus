@@ -119,7 +119,7 @@ class HomeAController extends Controller {
     on(GetRoute(path: '/'), (context, request) async {
       return Response.redirect(path: '/');
     });
-    on(PostRoute(path: '/:id'), _handlePostRequest);
+    on(PostRoute(path: '/<id>'), _handlePostRequest);
   }
 
   Future<Response> _handlePostRequest(RequestContext context, Request request) async {

@@ -10,9 +10,12 @@ class Router {
     _routeTree.addRoute(getHttpMethod(routeData.method), path, routeData);
   }
 
-  RouteData? getRouteForPath(List<String> segments, HttpMethod method) {
+  ({RouteData? route, Map<String, dynamic> params}) getRouteForPath(List<String> segments, HttpMethod method) {
     final result = _routeTree.lookup(getHttpMethod(method), Uri.parse(segments.join('/')));
-    return result?.values.firstOrNull;
+    return (
+      route: result?.values.firstOrNull,
+      params: result?.params ?? {}
+    );
   }
 
   List<RouteEntry> get routes => _routeTree.routes;
@@ -47,8 +50,6 @@ class RouteData {
   final String moduleToken;
 
   final Map<String, Type> queryParameters;
-
-  Iterable<String> get pathParameters => path.split('/').where((element) => element.startsWith(':')).map((e) => e.substring(1));
 
   RouteData({
     required this.path,

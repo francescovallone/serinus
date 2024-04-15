@@ -43,7 +43,8 @@ class RequestHandler {
       await corsHandler.call(request, Request(request), null, null);
       return;
     }
-    final routeData = router.getRouteForPath(request.segments, request.method.toHttpMethod());
+    final routeLookup = router.getRouteForPath(request.segments, request.method.toHttpMethod());
+    final routeData = routeLookup.route;
     if(routeData == null){
       throw NotFoundException(message: 'No route found for path ${request.path} and method ${request.method}');
     }
@@ -55,14 +56,14 @@ class RequestHandler {
       ...(_recursiveGetProviders(module)),
       ...modulesContainer.globalProviders
     ].toSet();
-    final context = _buildContext([...scopedProviders], routeData, request);
+    final context = _buildContext([...scopedProviders], routeData, request, routeLookup.params);
     final wrappedRequest = Request(request);
     final body = await _getBody(request.contentType, request);
     if(route.bodyTranformer != null){
       route.bodyTranformer!.call(body, request.contentType);
     }
     context.body = body;
-    await _executeMiddlewares(context, routeData, wrappedRequest, response, module);
+    await _executeMiddlewares(context, routeData, wrappedRequest, response, module, routeLookup.params);
     await _executeGuards(
       wrappedRequest, 
       routeData, 
@@ -124,7 +125,7 @@ class RequestHandler {
       providers: providers
     );
     if(!canActivate){
-      throw ForbiddenException(message: 'You are not allowed to access the route ${routeData.path}');
+      throw ForbiddenException(message: 'You are not allowed to access the route ${request.path}');
     }
   }
 
@@ -158,12 +159,12 @@ class RequestHandler {
     );
   }
 
-  RequestContext _buildContext(List<Provider> providers, RouteData routeData, InternalRequest request) {
+  RequestContext _buildContext(List<Provider> providers, RouteData routeData, InternalRequest request, Map<String, dynamic> pathParams) {
     RequestContextBuilder builder = RequestContextBuilder()
       ..addProviders(
         providers
       )
-      ..addPathParameters(routeData.path, request.path)
+      ..addPathParameters(pathParams)
       ..setPath(routeData.path)
       ..addQueryParameters(routeData.queryParameters, request.queryParameters);
     return builder.build();
@@ -181,7 +182,7 @@ class RequestHandler {
     return providers.toSet();
   }
 
-  Set<Middleware> _recursiveGetMiddlewares(Module module, RouteData routeData) {
+  Set<Middleware> _recursiveGetMiddlewares(Module module, RouteData routeData, Map<String, dynamic> params) {
     Map<Type, Middleware> middlewares = {
       for(final m in module.middlewares) m.runtimeType: m
     };
@@ -197,7 +198,7 @@ class RequestHandler {
           }
           if(routeSegments.length == segments.length){
             for(int i = 0; i < segments.length; i++){
-              if(segments[i] != routeSegments[i] && segments[i] != '*' && routeData.pathParameters.isEmpty){
+              if(segments[i] != routeSegments[i] && segments[i] != '*' && params.isEmpty){
                 return false;
               }
             }
@@ -207,7 +208,7 @@ class RequestHandler {
         return false;
       }).map((e) => MapEntry(e.runtimeType, e)));
       middlewares.addEntries(
-        _recursiveGetMiddlewares(parent, routeData).map((e) => MapEntry(e.runtimeType, e))
+        _recursiveGetMiddlewares(parent, routeData, params).map((e) => MapEntry(e.runtimeType, e))
       );
     }
     return middlewares.values.toSet();
@@ -247,8 +248,8 @@ class RequestHandler {
     return route!;
   }
   
-  Future<void> _executeMiddlewares(RequestContext context, RouteData routeData, Request request, InternalResponse response, Module module) async {
-    final middlewares = _recursiveGetMiddlewares(module, routeData);
+  Future<void> _executeMiddlewares(RequestContext context, RouteData routeData, Request request, InternalResponse response, Module module, Map<String, dynamic> params) async {
+    final middlewares = _recursiveGetMiddlewares(module, routeData, params);
     final completer = Completer<void>();
     for(int i = 0; i<middlewares.length; i++){
       final middleware = middlewares.elementAt(i);
@@ -258,6 +259,9 @@ class RequestHandler {
         }
         return;
       });
+    }
+    if(middlewares.isEmpty){
+      completer.complete();
     }
     return completer.future;
   }
@@ -330,7 +334,6 @@ class _CorsHandler {
     };
     _headers['Access-Control-Allow-Origin'] = [origin];
     final stringHeaders = _headers.map((key, value) => MapEntry(key, value.join(',')));
-    print(stringHeaders);
     if (request.method == 'OPTIONS') {
       request.response.status(200);
       request.response.headers(stringHeaders);

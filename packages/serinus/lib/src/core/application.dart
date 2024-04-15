@@ -15,7 +15,7 @@ class SerinusApplication{
   final LogLevel loggingLevel;
   final Module entrypoint;
   bool _enableShutdownHooks = false;
-  LoggerService loggerService = LoggerService();
+  LoggerService? loggerService;
   ModulesContainer modulesContainer = ModulesContainer();
   Router router = Router();
   final HttpServerAdapter serverAdapter;
@@ -31,9 +31,7 @@ class SerinusApplication{
     this.loggingLevel = LogLevel.debug,
     LoggerService? loggerService,
   }){
-    if(loggerService != null){
-      this.loggerService = loggerService;
-    }
+    this.loggerService = loggerService ?? LoggerService();
     _initialize(entrypoint);
   }
 
@@ -67,7 +65,6 @@ class SerinusApplication{
       await this.serverAdapter.listen(
         (request, response) async {
           try{
-            print(request.host);
             final handler = RequestHandler(router, modulesContainer, _cors);
             await handler.handleRequest(request, response, viewEngine: viewEngine);
           }catch(e){

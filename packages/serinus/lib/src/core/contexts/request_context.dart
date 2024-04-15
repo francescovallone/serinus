@@ -4,7 +4,7 @@ import 'package:serinus/serinus.dart';
 sealed class RequestContext {
 
   final Map<Type, Provider> providers;
-  final Map<String, String> pathParameters;
+  final Map<String, dynamic> pathParameters;
   final Map<String, dynamic> queryParameters;
   final String path;
   late final Body body;
@@ -29,7 +29,7 @@ class _RequestContextImpl extends RequestContext {
 
   _RequestContextImpl(
     Map<Type, Provider> providers,
-    Map<String, String> pathParameters,
+    Map<String, dynamic> pathParameters,
     Map<String, dynamic> queryParameters,
     String path
   ) : super(
@@ -54,7 +54,7 @@ class RequestContextBuilder {
   RequestContext? _context;
 
   Map<Type, Provider> providers = {};
-  Map<String, String> pathParameters = {};
+  Map<String, dynamic> pathParameters = {};
   Map<String, dynamic> queryParameters = {};
   String path = '';
 
@@ -68,18 +68,10 @@ class RequestContextBuilder {
   }
 
   RequestContextBuilder addPathParameters(
-    String routePath,
-    String requestPath
+    Map<String, dynamic> params
+
   ){
-    final pathParameters = <String, String>{};
-    final routePathSegments = routePath.split('/');
-    final requestPathSegments = requestPath.split('/');
-    for (var i = 0; i < routePathSegments.length; i++) {
-      if(routePathSegments[i].startsWith(':')){
-        pathParameters[routePathSegments[i].substring(1)] = requestPathSegments[i];
-      }
-    }
-    this.pathParameters.addAll(pathParameters);
+    this.pathParameters.addAll(params);
     return this;
   }
   

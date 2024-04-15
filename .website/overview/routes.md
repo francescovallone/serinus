@@ -58,7 +58,7 @@ class GetRoute extends Route {
 
 ## Path Parameters
 
-To define a path parameter you need to use the `:` character before the name of the parameter.
+To define a path parameter you need to add the parameter name between `<` and `>` in the path of the route.
 
 ::: code-group
 ```dart [my_controller.dart]
@@ -68,7 +68,7 @@ import 'my_routes.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/:id'), (context, request) {
+    on(GetRoute(path: '/<id>'), (context, request) {
       return Response.text(
         data: 'Hello World!',
       );
