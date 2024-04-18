@@ -33,17 +33,17 @@ class Explorer {
   void exploreRoutes(Controller controller, Module module, String controllerPath){
     final Logger logger = Logger('RoutesExplorer');
     final routes = controller.routes;
-    for (var route in routes.keys) {
-      String routePath = normalizePath('$controllerPath${route.path}');
-      final routeMethod = route.method;
+    for (var spec in routes.keys) {
+      String routePath = normalizePath('$controllerPath${spec.path}');
+      final routeMethod = spec.method;
       _router.registerRoute(
         RouteData(
           path: routePath, 
           controller: controller,
-          routeCls: route.runtimeType,
+          routeCls: spec.route.runtimeType,
           method: routeMethod, 
           moduleToken: module.token.isEmpty ? module.runtimeType.toString() : module.token,
-          queryParameters: route.queryParameters
+          queryParameters: spec.route.queryParameters
         ),
       );
       logger.info("Mapped {$routePath, $routeMethod} route");

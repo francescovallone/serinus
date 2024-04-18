@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:serinus/src/commons/mixins/object_mixins.dart';
 
@@ -24,15 +25,13 @@ class Response {
 
   Map<String, String> get headers => _headers;
 
-  factory Response() {
-    return Response._(null, 200, ContentType.text);
-  }
-
-  factory Response.json({
-    required dynamic data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.json(
+    dynamic data,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     dynamic responseData;
     if(data is Map<String, dynamic> || data is List<Map<String, dynamic>>){
       responseData = data;
@@ -44,60 +43,74 @@ class Response {
     return Response._(jsonEncode(responseData), statusCode, contentType ?? ContentType.json);
   }
 
-  factory Response.html({
-    required String data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.html(
+    String data,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     return Response._(data, statusCode, contentType ?? ContentType.html);
   }
 
-  factory Response.render({
-    required String view,
-    required Map<String, dynamic> data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.render(
+    String view,
+    {
+      required Map<String, dynamic> data,
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     return Response._({'view': view, 'data': data}, statusCode, contentType ?? ContentType.html);
   }
 
-  factory Response.renderString({
-    required String viewData,
-    required Map<String, dynamic> data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.renderString(
+    String viewData,
+    {
+      required Map<String, dynamic> data,
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     return Response._({'viewData': viewData, 'data': data}, statusCode, contentType ?? ContentType.html);
   }
   
-  factory Response.text({
-    required String data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.text(
+    String data, 
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     return Response._(data, statusCode, contentType ?? ContentType.text);
   }
 
-  factory Response.bytes({
-    required List<int> data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.bytes(
+    Uint8List data,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     return Response._(data, statusCode, contentType ?? ContentType.binary);
   }
 
-  factory Response.file({
-    required File file,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
-    return Response._(file, statusCode, contentType ?? ContentType.binary);
+  factory Response.file(
+    File file,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
+    return Response._(file.readAsBytesSync(), statusCode, contentType ?? ContentType.binary);
   }
 
-  factory Response.redirect({
-    required String path,
-    int statusCode = 302,
-  }){
+  factory Response.redirect(
+    String path,
+    {
+      int statusCode = 302,
+    }
+  ){
     return Response._(path, statusCode, ContentType.text, shouldRedirect: true);
   }
 

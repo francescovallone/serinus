@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:serinus/src/commons/commons.dart';
+import 'package:serinus/src/commons/errors/initialization_error.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/core/consumers/request_handler.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
@@ -29,7 +30,7 @@ sealed class Application {
     this.level = LogLevel.debug,
     LoggerService? loggerService,
   }){
-    this.loggerService = loggerService ?? LoggerService();
+    this.loggerService = loggerService ?? LoggerService(level: level);
   }
 
   String get url;
@@ -70,7 +71,7 @@ class SerinusApplication extends Application {
     required super.serverAdapter,
     super.host = 'localhost',
     super.port = 3000,
-    super.level = LogLevel.debug,
+    super.level,
     super.loggerService,
   }) {
     initialize();
@@ -95,16 +96,6 @@ class SerinusApplication extends Application {
         (request, response) async {
           final handler = RequestHandler(router, modulesContainer, _cors);
           await handler.handleRequest(request, response, viewEngine: viewEngine);
-          try{
-            
-          }catch(e){
-            if(e is SerinusException){
-              response.status(e.statusCode);
-              response.send(e.toString());
-            }else{
-              rethrow;
-            }
-          }
         },
         errorHandler: (e, stackTrace) {
           print(e);
@@ -126,7 +117,7 @@ class SerinusApplication extends Application {
   @override
   Future<void> initialize() async {
     if(entrypoint is DeferredModule){
-      throw Exception(
+      throw InitializationError(
         'The entry point of the application cannot be a DeferredModule'
       );
     }
@@ -148,7 +139,6 @@ class SerinusApplication extends Application {
         await provider.onApplicationShutdown();
       }
     }
-    exit(0);
   }
 
 }

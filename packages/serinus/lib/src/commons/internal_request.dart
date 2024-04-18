@@ -29,17 +29,15 @@ class InternalRequest{
   final Map<String, String> queryParameters;
   /// The list of path parameters in the request
   final List<String> pathParameters;
-  /// The host where the application is running
-  final String host;
-  /// The port where the application is running
-  final int port;
+  /// The base url of the server
+  final String baseUrl;
   /// The [contentType] property contains the content type of the request
   ContentType contentType;
-
+  /// The [webSocketKey] property contains the key of the web socket
   String webSocketKey = "";
 
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
-  factory InternalRequest.from(HttpRequest request){
+  factory InternalRequest.from(HttpRequest request, {String baseUrl = ''}){
     Map<String, String> headers = {};
     request.headers.forEach((name, values) {
       headers[name] = values.join(';');
@@ -59,7 +57,8 @@ class InternalRequest{
       headers: headers,
       original: request,
       contentType: request.headers.contentType ?? ContentType('text', 'plain'),
-      pathParameters: pathParameters
+      pathParameters: pathParameters,
+      baseUrl: baseUrl
     );
   }
 
@@ -73,12 +72,11 @@ class InternalRequest{
     required this.headers,
     required this.contentType,
     required this.original,
-    this.host = 'http://localhost',
-    this.port = 3000
+    required this.baseUrl,
   });
 
   InternalResponse get response{
-    return InternalResponse(original.response, port: port, host: host);
+    return InternalResponse(original.response, baseUrl: baseUrl);
   }
 
   /// This method is used to get the body of the request as a [String]

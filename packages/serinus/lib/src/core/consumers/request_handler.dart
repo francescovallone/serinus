@@ -91,7 +91,7 @@ class RequestHandler {
           ...route.pipes
         }.toList()
       );
-      final routeHandler = controller.routes[route];
+      final routeHandler = controller.get(route);
       if(routeHandler == null){
         throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
       }
@@ -224,7 +224,7 @@ class RequestHandler {
         final view = result.data['view'];
         final data = result.data['data'];
         final rendered = await viewEngine!.render(view, data);
-        response.contentType(ContentType.html.value);
+        response.contentType(ContentType.html);
         await response.send(rendered);
         return;
       }
@@ -232,7 +232,7 @@ class RequestHandler {
         final viewData = result.data['viewData'];
         final data = result.data['data'];
         final rendered = await viewEngine!.renderString(viewData, data);
-        response.contentType(ContentType.html.value);
+        response.contentType(ContentType.html);
         await response.send(rendered);
         return;
       }
@@ -242,13 +242,13 @@ class RequestHandler {
       return;
     }
     response.headers(result.headers);
-    response.contentType(result.contentType.value);
+    response.contentType(result.contentType);
     await response.send(result.data);
   }
   
   Route _getRouteFromController(Controller controller, RouteData routeData) {
-    final route = controller.routes.keys.firstWhereOrNull((r) => r.runtimeType == routeData.routeCls);
-    return route!;
+    final spec = controller.routes.keys.firstWhereOrNull((r) => r.route.runtimeType == routeData.routeCls && r.path == routeData.path && r.method == routeData.method);
+    return spec!.route;
   }
   
   Future<void> _executeMiddlewares(RequestContext context, RouteData routeData, Request request, InternalResponse response, Module module, Map<String, dynamic> params) async {

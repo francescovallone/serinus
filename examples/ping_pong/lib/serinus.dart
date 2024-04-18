@@ -90,10 +90,10 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController() : super(path: '/'){
     on(GetRoute(path: '/'), (context) async {
-      return Response.render(view: 'template', data: {'greeting': 'hello', 'world': 'world'});
+      return Response.render('template', data: {'greeting': 'hello', 'world': 'world'});
     });
     on(PostRoute(path: '/:id'), (context) async {
-      return Response.json(data: context.pathParameters);
+      return Response.json(context.pathParameters);
     });
   }
 }
@@ -101,7 +101,7 @@ class HomeController extends Controller {
 class HomeAController extends Controller {
   HomeAController() : super(path: '/a'){
     on(GetRoute(path: '/'), (context) async {
-      return Response.redirect(path: '/');
+      return Response.redirect('/');
     });
     on(PostRoute(path: '/:id'), _handlePostRequest);
   }
@@ -109,7 +109,7 @@ class HomeAController extends Controller {
   Future<Response> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
     return Response.text(
-      data: 'Hello world from a ${context.pathParameters}'
+      'Hello world from a ${context.pathParameters}'
     );
   }
 }

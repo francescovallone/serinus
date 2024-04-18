@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/errors/initialization_error.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
 import 'package:test/test.dart';
 
@@ -18,6 +19,20 @@ class TestProviderDependent extends Provider {
   TestProviderDependent(TestProvider provider);
 }
 
+class TestProviderOnInit extends Provider with OnApplicationInit {
+
+  bool isInitialized = false;
+
+  @override
+  Future<void> onApplicationInit() async {
+    print('onApplicationInit');
+    isInitialized = true;
+  }
+
+  TestProviderOnInit();
+
+}
+
 class ProviderTestSuite {
 
   static void runTests() {
@@ -34,6 +49,25 @@ class ProviderTestSuite {
             providers: [provider]
           ), Type);
           expect(container.get<TestProvider>(), provider);
+        }
+      );
+
+      test(
+        '''when a $Provider is registered in the application two times, 
+          then it should throw a $InitializationError
+        ''',
+        () async {
+          final container = ModulesContainer();
+
+          container.registerModule(
+            TestModule(
+              providers: [
+                TestProvider(),
+                TestProvider()
+              ]
+            ),
+            Type
+          ).catchError((e) => expect(e.runtimeType, InitializationError));
         }
       );
 
@@ -91,8 +125,6 @@ class ProviderTestSuite {
         and the dipendency is in the scoped context,
         then the initialized $Provider should be gettable''',
         () async {
-          final provider = TestProvider();
-          final depProvider = TestProviderDependent;
           final container = ModulesContainer();
 
           await container.registerModule(
@@ -111,17 +143,17 @@ class ProviderTestSuite {
             Type
           );
 
+          await container.finalize();
+
           expect(container.get<TestProviderDependent>(), isNotNull);
         }
       );
 
-            test(
+      test(
         '''when a $DeferredProvider with dependencies is registered in the application through a $Module,
         and the dipendency is not in the scoped context,
         then the initialized $Provider should not be gettable''',
         () async {
-          final provider = TestProvider();
-          final depProvider = TestProviderDependent;
           final container = ModulesContainer();
 
           await container.registerModule(
@@ -139,7 +171,28 @@ class ProviderTestSuite {
             Type
           );
 
-          expect(container.get<TestProviderDependent>(), isNotNull);
+          container.finalize().catchError(
+            (value) => expect(value.runtimeType, StateError)
+          );
+        }
+      );
+
+      test(
+        '''when a $Provider has $OnApplicationInit mixin,
+        then the onApplicationInit method should be called''',
+        () async {
+          final provider = TestProviderOnInit();
+          final container = ModulesContainer();
+
+          await container.registerModule(
+            TestModule(
+              providers: [provider]
+            ),
+            Type
+          );
+
+          await container.finalize();
+          expect(provider.isInitialized, true);
         }
       );
 

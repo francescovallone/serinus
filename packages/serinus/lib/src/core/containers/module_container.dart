@@ -25,14 +25,6 @@ class ModulesContainer {
   /// The list of all the global providers registered in the application
   List<Provider> get globalProviders => _providers.values.flatten().where((provider) => provider.isGlobal).toList();
 
-  ModulesContainer._();
-
-  static final ModulesContainer _instance = ModulesContainer._();
-
-  factory ModulesContainer() {
-    return _instance;
-  }
-
   /// The list of all the modules registered in the application
   List<Module> get modules => _modules.values.toList();
 
@@ -49,7 +41,7 @@ class ModulesContainer {
     final token = module.token.isEmpty ? module.runtimeType.toString() : module.token;
     final initializedModule = await module.registerAsync();
     if(initializedModule.runtimeType == entrypoint && initializedModule.exports.isNotEmpty){
-      throw StateError('The entrypoint module cannot have exports');
+      throw InitializationError('The entrypoint module cannot have exports');
     }
     _modules[token] = initializedModule;
     _providers[token] = [];
@@ -105,6 +97,8 @@ class ModulesContainer {
     for(var deferredModule in deferredSubModules){
       final subModule = await deferredModule.init(_getApplicationContext(deferredModule.inject));
       await _callForRecursiveRegistration(subModule, module, entrypoint);
+      module.imports.remove(deferredModule);
+      module.imports.add(subModule);
     }
     await registerModule(module, entrypoint);
     
@@ -121,7 +115,7 @@ class ModulesContainer {
   /// Throws a [StateError] if a module tries to import itself
   Future<void> _callForRecursiveRegistration(Module subModule, Module module, Type entrypoint) async {
     if(subModule.runtimeType == module.runtimeType){
-      throw StateError('A module cannot import itself');
+      throw InitializationError('A module cannot import itself');
     }
     await registerModules(subModule, entrypoint);
   }
@@ -131,10 +125,7 @@ class ModulesContainer {
     for(final entry in _deferredProviders.entries){
       final token = entry.key;
       final providers = entry.value;
-      final parentModule = _modules[token];
-      if(parentModule == null){
-        throw InitializationError('The module with token $token does not exists!');
-      }
+      final parentModule = getModuleByToken(token);
       for(final provider in providers){
         final context = _getApplicationContext(provider.inject);
         final initializedProvider = await provider.init(context);
@@ -144,11 +135,14 @@ class ModulesContainer {
         parentModule.providers.add(initializedProvider);
       }
       if(!parentModule.exports.every((element) => _providers[token]?.map((e) => e.runtimeType).contains(element) ?? false)){
-        throw Exception('All the exported providers must be registered in the module');
+        throw InitializationError('All the exported providers must be registered in the module');
       }
     }
   }
 
+  /// Initializes a provider if it is not registered otherwise throws a [InitializationError]
+  /// 
+  /// The [provider] is the provider to initialize
   Future<void> initIfUnregistered(Provider provider) async {
     if(_providers.values.flatten().map((e) => e.runtimeType).contains(provider.runtimeType)) {
       throw InitializationError('The provider ${provider.runtimeType} is already registered in the application'); 
@@ -160,7 +154,11 @@ class ModulesContainer {
 
   /// Gets a module by its token
   Module getModuleByToken(String token) {
-    return _modules[token]!;
+    Module? module = _modules[token];
+    if(module == null){
+      throw ArgumentError('Module with token $token not found');
+    }
+    return module;
   }
 
   /// Gets the parents of a module

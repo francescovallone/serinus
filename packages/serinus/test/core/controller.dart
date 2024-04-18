@@ -23,14 +23,14 @@ class ControllerTestSuite {
       test('when to a controller is added a route, then it should be saved on the "routes" map' , () {
         final controller = TestController();
         final route = GetRoute(path: '/test');
-        controller.on(route, (context) async => Response.text(data: 'ok!'));
-        expect(controller.routes, contains(route));
+        controller.on(route, (context) async => Response.text('ok!'));
+        expect(controller.routes.keys.map((e) => e.route), contains(route));
       });
-      test('when the same routes is added to a controller, then it should throw an error', () {
+      test('when two routes with the same type and path are added to a controller, then it should throw an error', () {
         final controller = TestController();
         final route = GetRoute(path: '/test');
-        controller.on(route, (context) async => Response.text(data: 'ok!'));
-        expect(() => controller.on(route, (context) async => Response.text(data: 'ok!')), throwsStateError);
+        controller.on(route, (context) async => Response.text('ok!'));
+        expect(() => controller.on(route, (context) async => Response.text('ok!')), throwsStateError);
       });
     });
   }

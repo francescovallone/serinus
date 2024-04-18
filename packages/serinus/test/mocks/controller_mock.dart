@@ -4,7 +4,7 @@ class MockController extends Controller {
 
   @override
   MockController({super.path = '/'}){
-    on(MockRoute(), (context) => Future.value(Response.text(data: 'Hello world')));
+    on(MockRoute(), (context) => Future.value(Response.text('Hello world')));
   }
   
 }
@@ -13,7 +13,7 @@ class MockControllerWithWrongPath extends Controller {
 
   @override
   MockControllerWithWrongPath({super.path = '/:id'}){
-    on(MockRoute(), (context) => Future.value(Response.text(data: 'Hello world')));
+    on(MockRoute(), (context) => Future.value(Response.text('Hello world')));
   }
   
 }

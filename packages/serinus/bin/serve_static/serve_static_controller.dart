@@ -31,7 +31,7 @@ class ServeStaticController extends Controller{
       }
       // final byteSink = ByteAccumulatorSink();
       // await file.openRead().listen(byteSink.add).asFuture();
-      return Response.text(data: Utf8Decoder().convert([]));
+      return Response.text(Utf8Decoder().convert([]));
     });
   }
 

@@ -4,12 +4,10 @@ class InternalResponse {
 
   final HttpResponse _original;
   bool _statusChanged = false;
-  final int? port;
-  final String? host;
+  final String? baseUrl;
 
   InternalResponse(this._original, {
-    this.host,
-    this.port
+    this.baseUrl
   });
 
   Future<void> send(dynamic data) async{
@@ -25,8 +23,8 @@ class InternalResponse {
     _original.statusCode = statusCode;
   }
 
-  void contentType(String contentType){
-    _original.headers.contentType = ContentType.parse(contentType);
+  void contentType(ContentType contentType){
+    _original.headers.set(HttpHeaders.contentTypeHeader, contentType.value);
   }
 
   void headers(Map<String, String> headers){
@@ -36,7 +34,7 @@ class InternalResponse {
   }
 
   Future<void> redirect(String path) async{
-    await _original.redirect(Uri.parse('$host:$port$path'));
+    await _original.redirect(Uri.parse('$baseUrl$path'));
   }
 
 }
