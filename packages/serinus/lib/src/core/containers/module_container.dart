@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/errors/initialization_error.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:uuid/v4.dart';
 
@@ -50,19 +51,12 @@ class ModulesContainer {
     if(initializedModule.runtimeType == entrypoint && initializedModule.exports.isNotEmpty){
       throw StateError('The entrypoint module cannot have exports');
     }
-    final currentProviders = _providers.values.flatten();
-    if(currentProviders.any((provider) => initializedModule.providers.map((e) => e.runtimeType).contains(provider.runtimeType))){
-      throw Exception('A provider with the same type is already registered');
-    }
     _modules[token] = initializedModule;
+    _providers[token] = [];
     for(final provider in initializedModule.providers.where((element) => element is! DeferredProvider)){
-      if(provider is OnApplicationInit){
-        await provider.onApplicationInit();
-      }
+      await initIfUnregistered(provider);
+      _providers[token]?.add(provider);
     }
-    _providers[token] = [
-      ...initializedModule.providers.where((element) => element is! DeferredProvider)
-    ];
     _deferredProviders[token] = [
       ...initializedModule.providers.whereType<DeferredProvider>()
     ];
@@ -138,19 +132,29 @@ class ModulesContainer {
       final token = entry.key;
       final providers = entry.value;
       final parentModule = _modules[token];
+      if(parentModule == null){
+        throw InitializationError('The module with token $token does not exists!');
+      }
       for(final provider in providers){
         final context = _getApplicationContext(provider.inject);
         final initializedProvider = await provider.init(context);
-        if(initializedProvider is OnApplicationInit){
-          await initializedProvider.onApplicationInit();
-        }
+        await initIfUnregistered(initializedProvider);
         _providers[token]?.add(initializedProvider);
-        parentModule!.providers.remove(provider);
+        parentModule.providers.remove(provider);
         parentModule.providers.add(initializedProvider);
       }
-      if(!parentModule!.exports.every((element) => _providers[token]?.map((e) => e.runtimeType).contains(element) ?? false)){
+      if(!parentModule.exports.every((element) => _providers[token]?.map((e) => e.runtimeType).contains(element) ?? false)){
         throw Exception('All the exported providers must be registered in the module');
       }
+    }
+  }
+
+  Future<void> initIfUnregistered(Provider provider) async {
+    if(_providers.values.flatten().map((e) => e.runtimeType).contains(provider.runtimeType)) {
+      throw InitializationError('The provider ${provider.runtimeType} is already registered in the application'); 
+    }
+    if(provider is OnApplicationInit){
+      await provider.onApplicationInit();
     }
   }
 
@@ -173,7 +177,7 @@ class ModulesContainer {
   /// Gets a provider by its type
   T? get<T extends Provider>() {
     final providers = _modules.values.expand((element) => element.providers).toList();
-    return providers.firstWhereOrNull((provider) => provider == T) as T?;
+    return providers.firstWhereOrNull((provider) => provider.runtimeType == T) as T?;
   }
 
 }

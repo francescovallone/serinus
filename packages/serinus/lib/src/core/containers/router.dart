@@ -10,8 +10,8 @@ class Router {
     _routeTree.addRoute(getHttpMethod(routeData.method), path, routeData);
   }
 
-  ({RouteData? route, Map<String, dynamic> params}) getRouteForPath(List<String> segments, HttpMethod method) {
-    final result = _routeTree.lookup(getHttpMethod(method), Uri.parse(segments.join('/')));
+  ({RouteData? route, Map<String, dynamic> params}) getRouteByPathAndMethod(String path, HttpMethod method) {
+    final result = _routeTree.lookup(getHttpMethod(method), Uri.parse(path));
     return (
       route: result?.values.firstOrNull,
       params: result?.params ?? {}

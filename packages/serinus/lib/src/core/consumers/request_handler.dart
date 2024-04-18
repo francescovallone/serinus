@@ -6,7 +6,6 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/extensions/content_type_extensions.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/commons/extensions/string_extensions.dart';
-import 'package:serinus/src/commons/form_data.dart';
 import 'package:serinus/src/commons/internal_request.dart';
 import 'package:serinus/src/core/consumers/guards_consumer.dart';
 import 'package:serinus/src/core/consumers/pipes_consumer.dart';
@@ -42,7 +41,7 @@ class RequestHandler {
       await corsHandler.call(request, Request(request), null, null);
       return;
     }
-    final routeLookup = router.getRouteForPath(request.segments, request.method.toHttpMethod());
+    final routeLookup = router.getRouteByPathAndMethod(request.path, request.method.toHttpMethod());
     final routeData = routeLookup.route;
     if(routeData == null){
       throw NotFoundException(message: 'No route found for path ${request.path} and method ${request.method}');
@@ -50,62 +49,72 @@ class RequestHandler {
     final controller = routeData.controller;
     final route = _getRouteFromController(controller, routeData);
     Module module = modulesContainer.getModuleByToken(routeData.moduleToken);
-    final scopedProviders = [
+    final scopedProviders = <Provider>{
       ...module.providers,
       ...(_recursiveGetProviders(module)),
       ...modulesContainer.globalProviders
-    ].toSet();
-    final context = _buildContext([...scopedProviders], routeData, request, routeLookup.params);
-    final wrappedRequest = Request(request);
+    };
     final body = await _getBody(request.contentType, request);
     if(route.bodyTranformer != null){
       route.bodyTranformer!.call(body, request.contentType);
     }
+    final wrappedRequest = Request(
+      request, 
+      params: routeLookup.params,
+      body: body
+    );
+    final context = _buildContext([...scopedProviders], wrappedRequest);
     context.body = body;
-    await _executeMiddlewares(context, routeData, wrappedRequest, response, module, routeLookup.params);
-    await _executeGuards(
-      wrappedRequest, 
-      routeData, 
-      _recursiveGetModuleGuards(module, routeData), 
-      body, 
-      [...scopedProviders]
-    );
-    if(controller.guards.isNotEmpty){
-      await _executeGuards(wrappedRequest, routeData, controller.guards, body, [...scopedProviders]);
-    }
-    if(route.guards.isNotEmpty){
-      await _executeGuards(wrappedRequest, routeData, route.guards, body, [...scopedProviders]);
-    }
-    final pipesConsumer = PipesConsumer();
-    await pipesConsumer.consume(
-      request: wrappedRequest,
-      routeData: routeData,
-      consumables: Set<Pipe>.from([
-        ...controller.pipes,
-        ...module.pipes,
-        ...route.pipes
-      ]).toList()
-    );
-    final routeHandler = controller.routes[route];
-    if(routeHandler == null){
-      throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
-    }
     Response? result;
-    if(cors != null){
-      result = await corsHandler.call(
-        request,
-        wrappedRequest,
-        context,
-        routeHandler,
-        cors!.allowedOrigins
+    try{
+      await _executeMiddlewares(context, routeData, wrappedRequest, response, module, routeLookup.params);
+      await _executeGuards(
+        wrappedRequest, 
+        routeData, 
+        _recursiveGetModuleGuards(module, routeData), 
+        body, 
+        [...scopedProviders]
       );
-    }else{
-      result = await routeHandler.call(context, wrappedRequest);
+      if(controller.guards.isNotEmpty){
+        await _executeGuards(wrappedRequest, routeData, controller.guards, body, [...scopedProviders]);
+      }
+      if(route.guards.isNotEmpty){
+        await _executeGuards(wrappedRequest, routeData, route.guards, body, [...scopedProviders]);
+      }
+      final pipesConsumer = PipesConsumer();
+      await pipesConsumer.consume(
+        request: wrappedRequest,
+        routeData: routeData,
+        consumables: <Pipe>{
+          ...controller.pipes,
+          ...module.pipes,
+          ...route.pipes
+        }.toList()
+      );
+      final routeHandler = controller.routes[route];
+      if(routeHandler == null){
+        throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
+      }
+      if(cors != null){
+        result = await corsHandler.call(
+          request,
+          wrappedRequest,
+          context,
+          routeHandler,
+          cors!.allowedOrigins
+        );
+      }else{
+        result = await routeHandler.call(context);
+      }
+    }on SerinusException catch(e) {
+      response.headers(corsHandler.responseHeaders);
+      response.status(e.statusCode);
+      response.send(e.toString());
     }
     if(result == null){
       return;
     }
-    _finalizeResponse(result, response, viewEngine: viewEngine);
+    await _finalizeResponse(result, response, viewEngine: viewEngine);
   }
 
   Future<void> _executeGuards(
@@ -158,15 +167,10 @@ class RequestHandler {
     );
   }
 
-  RequestContext _buildContext(List<Provider> providers, RouteData routeData, InternalRequest request, Map<String, dynamic> pathParams) {
+  RequestContext _buildContext(List<Provider> providers, Request request) {
     RequestContextBuilder builder = RequestContextBuilder()
-      ..addProviders(
-        providers
-      )
-      ..addPathParameters(pathParams)
-      ..setPath(routeData.path)
-      ..addQueryParameters(routeData.queryParameters, request.queryParameters);
-    return builder.build();
+      .addProviders(providers);
+    return builder.build(request);
   }
   
   Set<Provider> _recursiveGetProviders(Module module) {
@@ -185,7 +189,7 @@ class RequestHandler {
     Map<Type, Middleware> middlewares = {
       for(final m in module.middlewares) m.runtimeType: m
     };
-    final parents = this.modulesContainer.getParents(module);
+    final parents = modulesContainer.getParents(module);
     for (final parent in parents) {
       middlewares.addEntries(parent.middlewares.where((element) {
         final routes = element.routes;
@@ -252,7 +256,7 @@ class RequestHandler {
     final completer = Completer<void>();
     for(int i = 0; i<middlewares.length; i++){
       final middleware = middlewares.elementAt(i);
-      await middleware.use(context, request, response, () async {
+      await middleware.use(context, response, () async {
         if(i == middlewares.length - 1){
           completer.complete();
         }
@@ -269,7 +273,7 @@ class RequestHandler {
     List<Guard> guards = [
       ...module.guards
     ];
-    final parents = this.modulesContainer.getParents(module);
+    final parents = modulesContainer.getParents(module);
     for (final parent in parents) {
       guards.addAll(parent.guards);
       guards.addAll(_recursiveGetModuleGuards(parent, routeData));
@@ -316,30 +320,34 @@ class _CorsHandler {
   ];
 
   Map<String, String> _defaultHeaders = {};
+  Map<String, String> responseHeaders = {};
 
   Future<Response?> call(
     InternalRequest request,
     Request wrappedRequest,
     RequestContext? context,
-    Future<Response> Function(RequestContext, Request)? handler,
+    ReqResHandler? handler,
     [List<String> allowedOrigins = const ['*']]
   ) async {
     final origin = request.headers['origin'];
     if (origin == null || (!allowedOrigins.contains('*') && !allowedOrigins.contains(origin))) {
-      return handler!(context!, wrappedRequest);
+      return handler!(context!);
     }
-    final _headers = <String, List<String>>{
+    final headers = <String, List<String>>{
       ..._defaultHeadersAll,
     };
-    _headers['Access-Control-Allow-Origin'] = [origin];
-    final stringHeaders = _headers.map((key, value) => MapEntry(key, value.join(',')));
+    headers['Access-Control-Allow-Origin'] = [origin];
+    final stringHeaders = headers.map((key, value) => MapEntry(key, value.join(',')));
+    responseHeaders = {
+      ...stringHeaders,
+    };
     if (request.method == 'OPTIONS') {
       request.response.status(200);
       request.response.headers(stringHeaders);
       request.response.send(null);
       return null;
     }
-    final response = await handler!(context!, wrappedRequest);
+    final response = await handler!(context!);
     response.addHeaders({
       ...stringHeaders,
     });

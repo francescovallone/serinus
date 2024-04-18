@@ -20,13 +20,8 @@ class GuardsConsumer extends ExecutionContextConsumer<Guard, bool>{
       builder.body = body;
     }
     builder
-      .addHeaders(request.headers)
-      .addQueryParameters(routeData.queryParameters, request.queryParameters)
-      .addPathParameters(routeData.path, request.path)
-      .setPath(request.path)
       .addProviders(providers);
     return builder.build(request);
-
   }
 
   @override

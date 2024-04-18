@@ -18,7 +18,6 @@ class DeferredProvider extends Provider {
     this.init,
     {
       required this.inject,
-      super.isGlobal
     }
   );
 

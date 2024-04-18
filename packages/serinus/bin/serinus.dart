@@ -9,7 +9,7 @@ class TestMiddleware extends Middleware {
   TestMiddleware() : super(routes: ['*']);
 
   @override
-  Future<void> use(RequestContext context, Request request, InternalResponse response, NextFunction next) async {
+  Future<void> use(RequestContext context, InternalResponse response, NextFunction next) async {
     print('Middleware executed ${++counter}');
     return next();
   }
@@ -100,15 +100,15 @@ class PostRoute extends Route {
 
 class HomeController extends Controller {
   HomeController({super.path = '/'}){
-    on(GetRoute(path: '/'), (context, request) async {
+    on(GetRoute(path: '/'), (context) async {
       context.use<TestProviderTwo>().testMethod();
       return Response.text(
         data: context.use<TestProviderTwo>().testMethod()
       );
     });
-    on(PostRoute(path: '/*'), (context, request) async {
+    on(PostRoute(path: '/*'), (context) async {
       return Response.text(
-        data: '${request.getData('test')} ${context.pathParameters}'
+        data: '${context.request.getData('test')} ${context.pathParameters}'
       );
     });
   }
@@ -116,13 +116,13 @@ class HomeController extends Controller {
 
 class HomeAController extends Controller {
   HomeAController() : super(path: '/a'){
-    on(GetRoute(path: '/'), (context, request) async {
+    on(GetRoute(path: '/'), (context) async {
       return Response.redirect(path: '/');
     });
     on(PostRoute(path: '/<id>'), _handlePostRequest);
   }
 
-  Future<Response> _handlePostRequest(RequestContext context, Request request) async {
+  Future<Response> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
     return Response.text(
       data: 'Hello world from a ${context.pathParameters}'
@@ -148,10 +148,6 @@ class AppModule extends Module {
     ]
   );
 
-  @override
-  Future<Module> registerAsync() async {
-    return super.registerAsync();
-  }
 }
 
 class ReAppModule extends Module {

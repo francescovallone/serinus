@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:serinus/src/core/pipe.dart' as p;
+
 import '../commons/commons.dart';
 import 'guard.dart';
 
@@ -19,7 +21,7 @@ abstract class Route {
   final BodyTransformer? bodyTranformer;
 
   List<Guard> get guards => [];
-  List<Pipe> get pipes => [];
+  List<p.Pipe> get pipes => [];
 
   const Route({
     required this.path,

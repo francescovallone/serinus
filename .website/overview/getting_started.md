@@ -8,6 +8,17 @@ To create a new project you can use the default command to build command-line ap
 dart create <project_name>
 ```
 
+Or you can use the CLI tool that we provide:
+
+```bash
+dart pub global activate serinus_cli
+serinus create <project_name>
+```
+
+::: tip
+The CLI tool will create a new project with the Serinus structure and it is the recommended way to create a new project.
+:::
+
 ## Installation
 
 To install Serinus you can use the following command:
@@ -64,6 +75,12 @@ Finally, run the application using the following command:
 
 ```bash
 dart run
+```
+
+or using the following command if you are using the CLI tool:
+
+```bash
+serinus run
 ```
 
 Your applications is now running and listening for requests on port 3000.

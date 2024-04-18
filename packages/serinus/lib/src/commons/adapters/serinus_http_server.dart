@@ -4,9 +4,6 @@ import '../internal_request.dart';
 import 'server_adapter.dart';
 
 class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
-  
-  @override
-  io.HttpServer? server;
 
   factory SerinusHttpServer() {
     return _singleton;

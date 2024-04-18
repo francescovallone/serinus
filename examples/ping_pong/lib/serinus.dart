@@ -9,7 +9,7 @@ class TestMiddleware extends Middleware {
   TestMiddleware() : super(routes: ['/']);
 
   @override
-  Future<void> use(RequestContext context, Request request, InternalResponse response, NextFunction next) async {
+  Future<void> use(RequestContext context, InternalResponse response, NextFunction next) async {
     print('Middleware executed');
     return next();
   }
@@ -89,10 +89,10 @@ class PostRoute extends Route {
 
 class HomeController extends Controller {
   HomeController() : super(path: '/'){
-    on(GetRoute(path: '/'), (context, request) async {
+    on(GetRoute(path: '/'), (context) async {
       return Response.render(view: 'template', data: {'greeting': 'hello', 'world': 'world'});
     });
-    on(PostRoute(path: '/:id'), (context, request) async {
+    on(PostRoute(path: '/:id'), (context) async {
       return Response.json(data: context.pathParameters);
     });
   }
@@ -100,13 +100,13 @@ class HomeController extends Controller {
 
 class HomeAController extends Controller {
   HomeAController() : super(path: '/a'){
-    on(GetRoute(path: '/'), (context, request) async {
+    on(GetRoute(path: '/'), (context) async {
       return Response.redirect(path: '/');
     });
     on(PostRoute(path: '/:id'), _handlePostRequest);
   }
 
-  Future<Response> _handlePostRequest(RequestContext context, Request request) async {
+  Future<Response> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
     return Response.text(
       data: 'Hello world from a ${context.pathParameters}'

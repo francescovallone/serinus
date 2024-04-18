@@ -62,7 +62,7 @@ sealed class Application {
 class SerinusApplication extends Application {
 
   ViewEngine? viewEngine;
-  Cors? _cors = null;
+  Cors? _cors;
   final Logger _logger = Logger('SerinusApplication');
 
   SerinusApplication({
@@ -91,11 +91,12 @@ class SerinusApplication extends Application {
   Future<void> serve() async {
     try{
       _logger.info("Starting server on $host:$port");
-      await this.serverAdapter.listen(
+      await serverAdapter.listen(
         (request, response) async {
+          final handler = RequestHandler(router, modulesContainer, _cors);
+          await handler.handleRequest(request, response, viewEngine: viewEngine);
           try{
-            final handler = RequestHandler(router, modulesContainer, _cors);
-            await handler.handleRequest(request, response, viewEngine: viewEngine);
+            
           }catch(e){
             if(e is SerinusException){
               response.status(e.statusCode);
@@ -112,7 +113,7 @@ class SerinusApplication extends Application {
       );
     } on SocketException catch(_) {
       _logger.severe('Failed to start server on $host:$port');
-      await this.close();
+      await close();
     }
   }
 

@@ -11,9 +11,7 @@ import 'package:serinus/serinus.dart';
 
 class MyPipe extends Pipe {
   @override
-  Future<void> transform({
-    required Request request,
-  }) async {
+  Future<void> transform(ExecutionContext context) async {
     print('Pipe executed');
   }
 }

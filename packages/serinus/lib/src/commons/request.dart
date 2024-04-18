@@ -1,9 +1,31 @@
+import 'package:serinus/serinus.dart';
+
 import 'internal_request.dart';
 
 class Request {
   final InternalRequest _original;
 
-  Request(this._original);
+  final Body? body;
+
+  Request(this._original, {this.params = const {}, this.body}){
+    for(final entry in _original.queryParameters.entries){
+      switch(entry.value.runtimeType){
+        case == int:
+          _queryParamters[entry.key] = int.parse(entry.value);
+          break;
+        case == double:
+          _queryParamters[entry.key] = double.parse(entry.value);
+          break;
+        case == bool:
+          _queryParamters[entry.key] = entry.value.toLowerCase() == 'true';
+          break;
+        default:
+          _queryParamters[entry.key] = entry.value;
+      }
+    }
+  }
+
+  final Map<String, dynamic> _queryParamters = {};
 
   String get path => _original.path;
 
@@ -11,11 +33,11 @@ class Request {
 
   Map<String, dynamic> get headers => _original.headers;
 
-  Map<String, String> get queryParameters => _original.queryParameters;
+  Map<String, dynamic> get queryParameters => _queryParamters;
 
-  List<String> get pathParameters => _original.pathParameters;
+  final Map<String, dynamic> params;
 
-  Map<String, dynamic> _data = {};
+  final Map<String, dynamic> _data = {};
 
   void addData(String key, dynamic value) {
     _data[key] = value;

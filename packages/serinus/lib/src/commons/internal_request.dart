@@ -120,9 +120,7 @@ class InternalRequest{
   /// it is used internally by the [body], the [json] and the [stream] methods
   Future<Uint8List> bytes() async {
     try{
-      if(_bytes == null){
-        _bytes = await original.firstWhere((element) => element.isNotEmpty);
-      }
+      _bytes ??= await original.firstWhere((element) => element.isNotEmpty);
       return _bytes!;
     }catch(_){
       return Uint8List(0);

@@ -15,26 +15,26 @@ class Explorer {
   );
 
   void resolveRoutes(){
-    final Logger _logger = Logger('RoutesResolver');
+    final Logger logger = Logger('RoutesResolver');
     final modules = _modulesContainer.modules;
     for(Module module in modules) {
       final controllers = module.controllers;
       for(var controller in controllers){
-        final controllerPath = _normalizePath(controller.path);
+        final controllerPath = normalizePath(controller.path);
         if(controllerPath.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))){
           throw Exception('Invalid controller path: $controllerPath');
         }
-        _logger.info('${controller.runtimeType} {$controllerPath}');
+        logger.info('${controller.runtimeType} {$controllerPath}');
         exploreRoutes(controller, module, controllerPath);
       }
     }
   }
 
   void exploreRoutes(Controller controller, Module module, String controllerPath){
-    final Logger _logger = Logger('RoutesExplorer');
+    final Logger logger = Logger('RoutesExplorer');
     final routes = controller.routes;
     for (var route in routes.keys) {
-      String routePath = _normalizePath('${controllerPath}${route.path}');
+      String routePath = normalizePath('$controllerPath${route.path}');
       final routeMethod = route.method;
       _router.registerRoute(
         RouteData(
@@ -46,19 +46,19 @@ class Explorer {
           queryParameters: route.queryParameters
         ),
       );
-      _logger.info("Mapped {$routePath, $routeMethod} route");
+      logger.info("Mapped {$routePath, $routeMethod} route");
     }
   }
 
-  String _normalizePath(String path){
+  String normalizePath(String path){
     if(!path.startsWith("/")){
       path = "/$path";
     }
     if(path.endsWith("/") && path.length > 1){
       path = path.substring(0, path.length - 1);
     }
-    if(path.contains('//')){
-      path = path.replaceAll('//', '/');
+    if(path.contains(RegExp('([/]{2,})'))){
+      path = path.replaceAll(RegExp('([/]{2,})'), '/');
     }
     return path;
   }

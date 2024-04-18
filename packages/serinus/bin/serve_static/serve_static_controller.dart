@@ -14,8 +14,8 @@ class ServeStaticController extends Controller{
   final List<String> excludePaths;
 
   ServeStaticController({required super.path, this.excludePaths = const [],}){
-    on(ServeRouteGet(), (context, request) async {
-      final path = request.path;
+    on(ServeRouteGet(), (context) async {
+      final path = context.request.path;
       Directory current = Directory.current;
       print('Current path: ${Uri(path: '${current.path}/$path').path.replaceAll('//', '/')}');
       final file = File('${current.path}/$path');

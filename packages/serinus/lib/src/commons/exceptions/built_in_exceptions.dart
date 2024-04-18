@@ -13,9 +13,7 @@ import 'exceptions.dart';
 /// 
 /// The [statusCode] is 502
 class BadGatewayException extends SerinusException{
-  const BadGatewayException({String message = "Bad Gateway!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const BadGatewayException({super.message = "Bad Gateway!", super.uri }) : super(
     statusCode: 502
   );
 }
@@ -33,9 +31,7 @@ class BadGatewayException extends SerinusException{
 /// 
 /// The [statusCode] is 400
 class BadRequestException extends SerinusException{
-  const BadRequestException({String message = "Bad Request!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const BadRequestException({super.message = "Bad Request!", super.uri }) : super(
     statusCode: 400
   );
 }
@@ -54,9 +50,7 @@ class BadRequestException extends SerinusException{
 /// 
 /// The [statusCode] is 409
 class ConflictException extends SerinusException{
-  const ConflictException({String message = "Conflict!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const ConflictException({super.message = "Conflict!", super.uri }) : super(
     statusCode: 409
   );
 }
@@ -74,9 +68,7 @@ class ConflictException extends SerinusException{
 /// 
 /// The [statusCode] is 403
 class ForbiddenException extends SerinusException{
-  const ForbiddenException({String message = "Forbidden!", Uri? uri}) : super(
-    message: message, 
-    uri: uri, 
+  const ForbiddenException({super.message = "Forbidden!", super.uri}) : super(
     statusCode: 403
   );
 }
@@ -94,9 +86,7 @@ class ForbiddenException extends SerinusException{
 /// 
 /// The [statusCode] is 504
 class GatewayTimeoutException extends SerinusException{
-  const GatewayTimeoutException({String message = "Gateway Timeout!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const GatewayTimeoutException({super.message = "Gateway Timeout!", super.uri }) : super(
     statusCode: 504
   );
 }
@@ -114,9 +104,7 @@ class GatewayTimeoutException extends SerinusException{
 /// 
 /// The [statusCode] is 410
 class GoneException extends SerinusException{
-  const GoneException({String message = "Gone!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const GoneException({super.message = "Gone!", super.uri }) : super(
     statusCode: 410
   );
 }
@@ -134,9 +122,7 @@ class GoneException extends SerinusException{
 /// 
 /// The [statusCode] is 505
 class HttpVersionNotSupportedException extends SerinusException{
-  const HttpVersionNotSupportedException({String message = "HTTP Version Not Supported!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const HttpVersionNotSupportedException({super.message = "HTTP Version Not Supported!", super.uri }) : super(
     statusCode: 505
   );
 }
@@ -154,9 +140,7 @@ class HttpVersionNotSupportedException extends SerinusException{
 /// 
 /// The [statusCode] is 500
 class InternalServerErrorException extends SerinusException{
-  const InternalServerErrorException({String message = "Internal server error!", Uri? uri}) : super(
-    message: message, 
-    uri: uri, 
+  const InternalServerErrorException({super.message = "Internal server error!", super.uri}) : super(
     statusCode: 500
   );
 }
@@ -174,9 +158,7 @@ class InternalServerErrorException extends SerinusException{
 /// 
 /// The [statusCode] is 405
 class MethodNotAllowedException extends SerinusException{
-  const MethodNotAllowedException({String message = "Method not allowed!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const MethodNotAllowedException({super.message = "Method not allowed!", super.uri }) : super(
     statusCode: 405
   );
 }
@@ -194,9 +176,7 @@ class MethodNotAllowedException extends SerinusException{
 /// 
 /// The [statusCode] is 406
 class NotAcceptableException extends SerinusException{
-  const NotAcceptableException({String message = "Not acceptable!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const NotAcceptableException({super.message = "Not acceptable!", super.uri }) : super(
     statusCode: 406
   );
 }
@@ -214,9 +194,7 @@ class NotAcceptableException extends SerinusException{
 /// 
 /// The [statusCode] is 404
 class NotFoundException extends SerinusException{
-  const NotFoundException({String message = "Not Found!", Uri? uri}) : super(
-    message: message, 
-    uri: uri, 
+  const NotFoundException({super.message = "Not Found!", super.uri}) : super(
     statusCode: 404
   );
 }
@@ -234,9 +212,7 @@ class NotFoundException extends SerinusException{
 /// 
 /// The [statusCode] is 501
 class NotImplementedException extends SerinusException{
-  const NotImplementedException({String message = "Not Implemented!", Uri? uri}) : super(
-    message: message, 
-    uri: uri, 
+  const NotImplementedException({super.message = "Not Implemented!", super.uri}) : super(
     statusCode: 501
   );
 }
@@ -254,9 +230,7 @@ class NotImplementedException extends SerinusException{
 /// 
 /// The [statusCode] is 413
 class PayloadTooLargeException extends SerinusException{
-  const PayloadTooLargeException({String message = "Payload too large!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const PayloadTooLargeException({super.message = "Payload too large!", super.uri }) : super(
     statusCode: 413
   );
 }
@@ -274,9 +248,7 @@ class PayloadTooLargeException extends SerinusException{
 /// 
 /// The [statusCode] is 412
 class PreconditionFailedException extends SerinusException{
-  const PreconditionFailedException({String message = "Precondition failed!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const PreconditionFailedException({super.message = "Precondition failed!", super.uri }) : super(
     statusCode: 412
   );
 }
@@ -294,9 +266,7 @@ class PreconditionFailedException extends SerinusException{
 /// 
 /// The [statusCode] is 408
 class RequestTimeoutException extends SerinusException{
-  const RequestTimeoutException({String message = "Request timeout!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const RequestTimeoutException({super.message = "Request timeout!", super.uri }) : super(
     statusCode: 408
   );
 }
@@ -314,9 +284,7 @@ class RequestTimeoutException extends SerinusException{
 /// 
 /// The [statusCode] is 503
 class ServiceUnavailableException extends SerinusException{
-  const ServiceUnavailableException({String message = "Service unavailable!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const ServiceUnavailableException({super.message = "Service unavailable!", super.uri }) : super(
     statusCode: 503
   );
 }
@@ -334,9 +302,7 @@ class ServiceUnavailableException extends SerinusException{
 /// 
 /// The [statusCode] is 401
 class UnauthorizedException extends SerinusException{
-  const UnauthorizedException({String message = "Not authorized!", Uri? uri}) : super(
-    message: message, 
-    uri: uri, 
+  const UnauthorizedException({super.message = "Not authorized!", super.uri}) : super(
     statusCode: 401
   );
 }
@@ -354,9 +320,7 @@ class UnauthorizedException extends SerinusException{
 /// 
 /// The [statusCode] is 422
 class UnprocessableEntityException extends SerinusException {
-  const UnprocessableEntityException({String message = "Unprocessable entity!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const UnprocessableEntityException({super.message = "Unprocessable entity!", super.uri }) : super(
     statusCode: 422
   );
 }
@@ -374,9 +338,7 @@ class UnprocessableEntityException extends SerinusException {
 /// 
 /// The [statusCode] is 415
 class UnsupportedMediaTypeException extends SerinusException {
-  const UnsupportedMediaTypeException({String message = "Unsupported media type!", Uri? uri }) : super(
-    message: message, 
-    uri: uri, 
+  const UnsupportedMediaTypeException({super.message = "Unsupported media type!", super.uri }) : super(
     statusCode: 415
   );
 }

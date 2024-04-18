@@ -16,7 +16,7 @@ extension Flatten<T> on Iterable<Iterable<T>> {
 
 extension SegmentedPathMap on Iterable<String> {
   Iterable<({bool isLast, String value})> get pathMap {
-    final segments = this.toList();
+    final segments = toList();
     return segments.asMap().entries.map((e) {
       return (isLast: e.key == segments.length - 1, value: e.value);
     });

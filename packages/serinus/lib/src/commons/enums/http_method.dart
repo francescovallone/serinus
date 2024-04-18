@@ -11,7 +11,7 @@ enum HttpMethod{
   /// Returns the string representation of the method
   @override
   String toString() {
-    return this.name.toUpperCase();
+    return name.toUpperCase();
   }
 }
 

@@ -4,17 +4,17 @@ import 'package:serinus/serinus.dart';
 abstract class Module {
 
   final String token;
-  final List<Module> imports;
-  final List<Controller> controllers;
-  final List<Provider> providers;
-  final List<Type> exports;
-  final List<Middleware> middlewares;
+  List<Module> imports;
+  List<Controller> controllers;
+  List<Provider> providers;
+  List<Type> exports;
+  List<Middleware> middlewares;
   final ModuleOptions? options;
   
   List<Guard> get guards => [];
   List<Pipe> get pipes => [];
 
-  const Module({
+  Module({
     this.imports = const [],
     this.controllers = const [],
     this.providers = const [],
@@ -38,7 +38,7 @@ class DeferredModule extends Module {
 
   final Future<Module> Function(ApplicationContext context) init;
 
-  const DeferredModule(
+  DeferredModule(
     this.init,
     {
       required this.inject,
