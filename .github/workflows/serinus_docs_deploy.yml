@@ -27,9 +27,9 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "/" # App source code path
-          output_location: ".vitepress/dist" # Api source code path - optional
-          app_build_command: "npm run docs:build" # Built app content directory - optional
+          app_location: "/.website/" # App source code path
+          api_location: "" # Api source code path - optional
+          output_location: ".vitepress/dist" # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
