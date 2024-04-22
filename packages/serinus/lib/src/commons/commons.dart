@@ -13,3 +13,4 @@ export 'mixins/object_mixins.dart';
 export 'request.dart';
 export 'response.dart';
 export 'services/logger_service.dart';
+export 'session.dart';
