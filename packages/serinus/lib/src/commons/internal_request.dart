@@ -27,8 +27,6 @@ class InternalRequest{
   Uint8List? _bytes;
   /// The [queryParameters] property contains the query parameters of the request
   final Map<String, String> queryParameters;
-  /// The list of path parameters in the request
-  final List<String> pathParameters;
   /// The base url of the server
   final String baseUrl;
   /// The [contentType] property contains the content type of the request
@@ -44,10 +42,6 @@ class InternalRequest{
     });
     headers.remove(HttpHeaders.transferEncodingHeader);
     final segments = Uri(path: request.requestedUri.path).pathSegments;
-    final List<String> pathParameters = [];
-    for(var i = 1; i < segments.length; i++){
-      pathParameters.add(segments[i]);
-    }
     return InternalRequest(
       path: request.requestedUri.path,
       uri: request.requestedUri,
@@ -57,7 +51,6 @@ class InternalRequest{
       headers: headers,
       original: request,
       contentType: request.headers.contentType ?? ContentType('text', 'plain'),
-      pathParameters: pathParameters,
       baseUrl: baseUrl
     );
   }
@@ -68,7 +61,6 @@ class InternalRequest{
     required this.method,
     required this.segments,
     required this.queryParameters,
-    required this.pathParameters,
     required this.headers,
     required this.contentType,
     required this.original,

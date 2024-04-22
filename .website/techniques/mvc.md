@@ -18,11 +18,11 @@ class MustacheViewEngine extends ViewEngine{
   });
 
   @override
-  Future<String> render(String view, Map<String, dynamic> data) async {
+  Future<String> render(View view) async {
     final processor = MustachexProcessor(
-      initialVariables: data
+      initialVariables: view.variables
     );
-    final template = File('${Directory.current.path}/$viewFolder/$view.mustache');
+    final template = File('${Directory.current.path}/$viewFolder/${view.view}.mustache');
     final exists = await template.exists();
     if(exists){
       final content = await template.readAsString();
@@ -33,11 +33,11 @@ class MustacheViewEngine extends ViewEngine{
   }
 
   @override
-  Future<String> renderString(String viewData, Map<String, dynamic> data) async {
+  Future<String> renderString(ViewString view) async {
     final processor = MustachexProcessor(
-      initialVariables: data
+      initialVariables: view.variables
     );
-    return await processor.process(viewData);
+    return await processor.process(view.viewData);
   }
 
   Future<String> _notFoundView(String view) async {
@@ -78,10 +78,7 @@ class MyController extends Controller {
   MyController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context, request) {
       // This refers to the view file `views/index.mustache`
-      return Response.render(
-        view: 'index',
-        data: {'name': 'Serinus'}
-      );
+      return Response.render(View(view: 'index', variables: {'name': 'Serinus'}));
     });
   }
 }
@@ -93,10 +90,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
   MyController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context, request) {
-      return Response.renderString(
-        viewData: 'Hello {{name}}',
-        data: {'name': 'Serinus'}
-      );
+      return Response.renderString(ViewString(viewData: 'Hello {{name}}', variables: {'name': 'Serinus'}));
     });
   }
 }
