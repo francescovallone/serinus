@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/session.dart';
 
 import 'internal_request.dart';
 
@@ -34,6 +35,8 @@ class Request {
   Map<String, dynamic> get headers => _original.headers;
 
   Map<String, dynamic> get queryParameters => _queryParamters;
+
+  Session get session => Session(_original.original.session);
 
   final Map<String, dynamic> params;
 
