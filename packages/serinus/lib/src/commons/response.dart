@@ -2,20 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:serinus/src/commons/engines/view_engine.dart';
 import 'package:serinus/src/commons/mixins/object_mixins.dart';
 
 class Response {
 
   final dynamic _value;
-  final int _statusCode;
+  int statusCode;
   final ContentType _contentType;
   final bool _shouldRedirect;
 
-  Response._(this._value, this._statusCode, this._contentType, {bool shouldRedirect = false}): _shouldRedirect = shouldRedirect;
+  Response._(this._value, this.statusCode, this._contentType, {bool shouldRedirect = false}): _shouldRedirect = shouldRedirect;
 
   dynamic get data => _value;
-
-  int get statusCode => _statusCode;
 
   ContentType get contentType => _contentType;
 
@@ -35,7 +34,7 @@ class Response {
     dynamic responseData;
     if(data is Map<String, dynamic> || data is List<Map<String, dynamic>>){
       responseData = data;
-    }else if(data is JsonSerializableMixin){
+    }else if(data is JsonObject){
       responseData = data.toJson();
     }else{
       throw FormatException('The data must be a Map<String, dynamic> or a JsonSerializableMixin');
@@ -54,25 +53,23 @@ class Response {
   }
 
   factory Response.render(
-    String view,
+    View view,
     {
-      required Map<String, dynamic> data,
       int statusCode = 200,
       ContentType? contentType
     }
   ){
-    return Response._({'view': view, 'data': data}, statusCode, contentType ?? ContentType.html);
+    return Response._(view, statusCode, contentType ?? ContentType.html);
   }
 
   factory Response.renderString(
-    String viewData,
+    ViewString view,
     {
-      required Map<String, dynamic> data,
       int statusCode = 200,
       ContentType? contentType
     }
   ){
-    return Response._({'viewData': viewData, 'data': data}, statusCode, contentType ?? ContentType.html);
+    return Response._(view, statusCode, contentType ?? ContentType.html);
   }
   
   factory Response.text(
@@ -114,9 +111,7 @@ class Response {
     return Response._(path, statusCode, ContentType.text, shouldRedirect: true);
   }
 
-  factory Response.status(int statusCode){
-    return Response._(null, statusCode, ContentType.text);
-  }
+
 
   void addHeaders(Map<String, String> headers){
     headers.forEach((key, value) {

@@ -56,9 +56,4 @@ class RouteSpec {
     required this.method,
   });
 
-  @override
-  String toString() {
-    return '${route.runtimeType}{path: $path, method: $method}';
-  }
-
 }

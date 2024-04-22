@@ -55,9 +55,6 @@ class RequestHandler {
       ...modulesContainer.globalProviders
     };
     final body = await _getBody(request.contentType, request);
-    if(route.bodyTranformer != null){
-      route.bodyTranformer!.call(body, request.contentType);
-    }
     final wrappedRequest = Request(
       request, 
       params: routeLookup.params,
@@ -89,7 +86,8 @@ class RequestHandler {
           ...controller.pipes,
           ...module.pipes,
           ...route.pipes
-        }.toList()
+        }.toList(),
+        body: body
       );
       final routeHandler = controller.get(route);
       if(routeHandler == null){
@@ -219,23 +217,17 @@ class RequestHandler {
   
   Future<void> _finalizeResponse(Response result, InternalResponse response, {ViewEngine? viewEngine}) async {
     response.status(result.statusCode);
-    if(result.data is Map<String, dynamic>){
-      if(result.data.containsKey('view')){
-        final view = result.data['view'];
-        final data = result.data['data'];
-        final rendered = await viewEngine!.render(view, data);
-        response.contentType(ContentType.html);
-        await response.send(rendered);
-        return;
-      }
-      if(result.data.containsKey('viewData')){
-        final viewData = result.data['viewData'];
-        final data = result.data['data'];
-        final rendered = await viewEngine!.renderString(viewData, data);
-        response.contentType(ContentType.html);
-        await response.send(rendered);
-        return;
-      }
+    if(result.data is View){
+      final rendered = await viewEngine!.render(result.data);
+      response.contentType(ContentType.html);
+      await response.send(rendered);
+      return;
+    }
+    if(result.data is ViewString) {
+      final rendered = await viewEngine!.renderString(result.data);
+      response.contentType(ContentType.html);
+      await response.send(rendered);
+      return;
     }
     if(result.shouldRedirect){
       await response.redirect(result.data);

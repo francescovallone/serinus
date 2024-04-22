@@ -1,3 +1,4 @@
+import 'commons/form_data_test.dart';
 import 'core/containers/router.dart';
 import 'core/contexts.dart';
 import 'core/controller.dart';
@@ -16,4 +17,5 @@ void main() {
   RouterTestSuite.runTests();
   ContextsTestSuite.runTests();
   HttpTestSuite.runTests();
+  FormDataTestSuites.runTests();
 }

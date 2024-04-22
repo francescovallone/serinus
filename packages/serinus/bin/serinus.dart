@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:serinus/serinus.dart';
 
 
@@ -71,16 +69,6 @@ class GetRoute extends Route {
   @override
   List<Guard> get guards => [TestGuard()];
 
-}
-
-class JsonBody extends BodyTransformer{
-  
-  const JsonBody();
-  
-  @override
-  Body call(Body rawBody, ContentType contentType) {
-    return Body(contentType);
-  }
 }
 
 class PostRoute extends Route {

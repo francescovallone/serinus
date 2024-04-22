@@ -13,11 +13,23 @@ class TestRoute extends Route {
   
 }
 
+class TestJsonObject with JsonObject {
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'id': 'json-obj'
+    };
+  }
+
+}
+
 class TestController extends Controller{
   
   TestController({super.path = '/'}){
     on(TestRoute(path: '/text'), (context) async => Response.text('ok!'));
     on(TestRoute(path: '/json'), (context) async => Response.json({'message': 'ok!'}));
+    on(TestRoute(path: '/json-obj'), (context) async => Response.json(TestJsonObject()));
     on(TestRoute(path: '/html'), (context) async => Response.html('<h1>ok!</h1>'));
     on(TestRoute(path: '/bytes'), (context) async => Response.bytes(Utf8Encoder().convert('ok!')));
     on(TestRoute(path: '/file'), (context) async {
@@ -25,6 +37,9 @@ class TestController extends Controller{
       return Response.file(file);
     });
     on(TestRoute(path: '/redirect'), (context) async => Response.redirect('/text'));
+    on(TestRoute(path: '/status'), (context) async {
+      return Response.text('test')..statusCode = 201;
+    });
   }
 
 }
@@ -113,12 +128,33 @@ class ResponsesTestSuite {
           }
         );
         test(
-          '''when a 'Response.redirect' is called, then it should return a 302 response''',
+          '''when a 'Response.redirect' is called, then the request should be redirected to the corresponding route''',
           () async {
             final request = await HttpClient().getUrl(Uri.parse('http://localhost:3000/redirect'));
             final response = await request.close();
-
-            expect(response.statusCode, 302);
+            expect(response.statusCode, 200);
+            final body = await response.transform(Utf8Decoder()).join();
+            expect(body, 'ok!');
+          }
+        );
+        test(
+          '''when a 'Response.json' is called, and a JsonObject is provided, then the request should return a json object''',
+          () async {
+            final request = await HttpClient().getUrl(Uri.parse('http://localhost:3000/json-obj'));
+            final response = await request.close();
+            expect(response.statusCode, 200);
+            final body = await response.transform(Utf8Decoder()).join();
+            expect(body, '{"id":"json-obj"}');
+          }
+        );
+        test(
+          '''when a 'Response.json' is called, and a JsonObject is provided, then the request should return a json object''',
+          () async {
+            final request = await HttpClient().getUrl(Uri.parse('http://localhost:3000/status'));
+            final response = await request.close();
+            expect(response.statusCode, 201);
+            final body = await response.transform(Utf8Decoder()).join();
+            expect(body, 'test');
           }
         );
       }

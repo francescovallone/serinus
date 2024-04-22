@@ -139,6 +139,9 @@ class SerinusApplication extends Application {
         await provider.onApplicationShutdown();
       }
     }
+    if(String.fromEnvironment('SERINUS_TEST', defaultValue: 'false') == 'true'){
+      exit(0);
+    }
   }
 
 }

@@ -1,5 +1,3 @@
-mixin JsonSerializableMixin {
-  Map<String, dynamic> toJson() {
-    return {};
-  }
+mixin JsonObject {
+  Map<String, dynamic> toJson();
 }
