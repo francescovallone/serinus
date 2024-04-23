@@ -60,7 +60,7 @@ To use a View Engine first you need to call the `useViewEngine` method in your a
 
 ```dart
 void main(List<String> arguments) async {
-  SerinusApplication application = await SerinusFactory.createApplication(
+  SerinusApplication application = await serinus.createApplication(
     entrypoint: AppModule()
   );
   application.useViewEngine(MustacheViewEngine());

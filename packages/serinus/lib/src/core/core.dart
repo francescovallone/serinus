@@ -1,7 +1,7 @@
 export 'application.dart';
 export 'contexts/contexts.dart';
 export 'controller.dart';
-export 'factory.dart';
+export 'factory.dart' hide SerinusFactory;
 export 'guard.dart';
 export 'middleware.dart';
 export 'module.dart';

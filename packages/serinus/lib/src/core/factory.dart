@@ -4,7 +4,9 @@ import 'package:serinus/serinus.dart';
 
 class SerinusFactory {
 
-  static Future<SerinusApplication> createApplication({
+  const SerinusFactory();
+
+  Future<SerinusApplication> createApplication({
     required Module entrypoint,
     String host = 'localhost',
     int port = 3000,
@@ -26,7 +28,10 @@ class SerinusFactory {
       level: loggingLevel,
       loggerService: loggerService
     );
+    await app.initialize();
     return app;
   }
 
 }
+
+const serinus = SerinusFactory();

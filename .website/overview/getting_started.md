@@ -61,7 +61,7 @@ import 'package:serinus/serinus.dart';
 import 'package:<project_name>/app_module.dart';
 
 void main(List<String> arguments) async {
-  SerinusApplication application = await SerinusFactory.createApplication(
+  SerinusApplication application = await serinus.createApplication(
     entrypoint: AppModule()
   );
   await application.serve();

@@ -18,8 +18,8 @@ sealed class Application {
   final Module entrypoint;
   bool _enableShutdownHooks = false;
   LoggerService? loggerService;
-  ModulesContainer modulesContainer = ModulesContainer();
-  Router router = Router();
+  ModulesContainer modulesContainer;
+  Router router;
   final Adapter serverAdapter;
 
   Application({
@@ -28,16 +28,22 @@ sealed class Application {
     this.host = 'localhost',
     this.port = 3000,
     this.level = LogLevel.debug,
+    Router? router,
+    ModulesContainer? modulesContainer,
     LoggerService? loggerService,
-  }){
-    this.loggerService = loggerService ?? LoggerService(level: level);
-  }
+  }) : router = router ?? Router(), 
+    loggerService = loggerService ?? LoggerService(level: level),
+    modulesContainer = modulesContainer ?? ModulesContainer();
 
   String get url;
 
   T? get<T extends Provider>(){
     return modulesContainer.get<T>();
   }
+
+  HttpServer get server => serverAdapter.server;
+
+  SerinusHttpServer get adapter => serverAdapter as SerinusHttpServer;
 
   void enableShutdownHooks(){
     if(!_enableShutdownHooks){
@@ -73,9 +79,7 @@ class SerinusApplication extends Application {
     super.port = 3000,
     super.level,
     super.loggerService,
-  }) {
-    initialize();
-  }
+  });
 
   @override
   String get url => 'http://$host:$port';

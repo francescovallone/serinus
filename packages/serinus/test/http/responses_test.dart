@@ -63,7 +63,7 @@ class ResponsesTestSuite {
       () {
         SerinusApplication? app;
         setUpAll(() async {
-          app = await SerinusFactory.createApplication(
+          app = await serinus.createApplication(
             entrypoint: TestModule(controllers: [TestController()]),
             loggingLevel: LogLevel.none
           );
