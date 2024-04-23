@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/commons/internal_request.dart';
 import 'package:serinus/src/core/consumers/guards_consumer.dart';
 import 'package:serinus/src/core/consumers/pipes_consumer.dart';
@@ -181,12 +180,6 @@ class RequestHandler {
       );
     }
     return middlewares.values.toSet();
-  }
-
-  
-  Route _getRouteFromController(Controller controller, RouteData routeData) {
-    final spec = controller.routes.keys.firstWhereOrNull((r) => r.route.runtimeType == routeData.routeCls && r.path == routeData.path && r.method == routeData.method);
-    return spec!.route;
   }
   
   Future<void> _executeMiddlewares(RequestContext context, RouteData routeData, Request request, InternalResponse response, Module module, Map<String, dynamic> params) async {
