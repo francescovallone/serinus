@@ -71,6 +71,8 @@ class InternalRequest{
     return InternalResponse(original.response, baseUrl: baseUrl);
   }
 
+  
+
   /// This method is used to get the body of the request as a [String]
   /// 
   /// Example:

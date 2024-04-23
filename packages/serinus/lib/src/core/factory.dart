@@ -18,13 +18,13 @@ class SerinusFactory {
     final server = SerinusHttpServer();
     await server.init(
       securityContext: securityContext,
-      poweredByHeader: poweredByHeader
+      poweredByHeader: poweredByHeader,
+      port: port,
+      host: host
     );
     final app = SerinusApplication(
       entrypoint: entrypoint,
       serverAdapter: server,
-      host: host,
-      port: port,
       level: loggingLevel,
       loggerService: loggerService
     );

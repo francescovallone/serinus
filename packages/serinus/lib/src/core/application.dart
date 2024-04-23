@@ -75,8 +75,6 @@ class SerinusApplication extends Application {
   SerinusApplication({
     required super.entrypoint,
     required super.serverAdapter,
-    super.host = 'localhost',
-    super.port = 3000,
     super.level,
     super.loggerService,
   });

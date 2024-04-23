@@ -1,11 +1,7 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/commons/extensions/content_type_extensions.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
-import 'package:serinus/src/commons/extensions/string_extensions.dart';
 import 'package:serinus/src/commons/internal_request.dart';
 import 'package:serinus/src/core/consumers/guards_consumer.dart';
 import 'package:serinus/src/core/consumers/pipes_consumer.dart';
@@ -36,9 +32,8 @@ class RequestHandler {
   /// 4. [Route] handler execution
   /// 5. Outgoing response
   Future<void> handleRequest(InternalRequest request, InternalResponse response, {ViewEngine? viewEngine}) async {
-    final corsHandler = _CorsHandler();
     if(request.method == 'OPTIONS'){
-      await corsHandler.call(request, Request(request), null, null);
+      await cors?.call(request, Request(request), null, null);
       return;
     }
     final routeLookup = router.getRouteByPathAndMethod(request.path, request.method.toHttpMethod());
@@ -47,21 +42,25 @@ class RequestHandler {
       throw NotFoundException(message: 'No route found for path ${request.path} and method ${request.method}');
     }
     final controller = routeData.controller;
-    final route = _getRouteFromController(controller, routeData);
+    final routeSpec = controller.get(routeData);
+    if(routeSpec == null){
+      throw InternalServerErrorException(message: 'Route spec not found for route ${routeData.path}');
+    }
+    final route = routeSpec.route;
+    final handler = controller.routes[routeSpec];
     Module module = modulesContainer.getModuleByToken(routeData.moduleToken);
     final scopedProviders = <Provider>{
       ...module.providers,
       ...(_recursiveGetProviders(module)),
       ...modulesContainer.globalProviders
     };
-    final body = await _getBody(request.contentType, request);
     final wrappedRequest = Request(
       request, 
       params: routeLookup.params,
-      body: body
     );
-    final context = _buildContext([...scopedProviders], wrappedRequest);
-    context.body = body;
+    await wrappedRequest.parseBody();
+    final body = wrappedRequest.body!;
+    final context = _buildContext([...scopedProviders], wrappedRequest, body);
     Response? result;
     try{
       await _executeMiddlewares(context, routeData, wrappedRequest, response, module, routeLookup.params);
@@ -89,30 +88,29 @@ class RequestHandler {
         }.toList(),
         body: body
       );
-      final routeHandler = controller.get(route);
-      if(routeHandler == null){
+      if(handler == null){
         throw InternalServerErrorException(message: 'Route handler not found for route ${routeData.path}');
       }
       if(cors != null){
-        result = await corsHandler.call(
+        result = await cors?.call(
           request,
           wrappedRequest,
           context,
-          routeHandler,
+          handler,
           cors!.allowedOrigins
         );
       }else{
-        result = await routeHandler.call(context);
+        result = await handler.call(context);
       }
     }on SerinusException catch(e) {
-      response.headers(corsHandler.responseHeaders);
+      response.headers(cors?.responseHeaders ?? {});
       response.status(e.statusCode);
       response.send(e.toString());
     }
     if(result == null){
-      return;
+      throw InternalServerErrorException(message: 'Route handler did not return a response');
     }
-    await _finalizeResponse(result, response, viewEngine: viewEngine);
+    await response.finalize(result, viewEngine: viewEngine);
   }
 
   Future<void> _executeGuards(
@@ -135,40 +133,10 @@ class RequestHandler {
     }
   }
 
-  Future<Body> _getBody(ContentType contentType, InternalRequest request) async {
-    if(contentType.isMultipart()){
-      final formData = await FormData.parseMultipart(request: request.original);
-      return Body(
-        contentType,
-        formData: formData
-      );
-    }
-    final body = await request.body();
-    if(contentType.isUrlEncoded()){
-      final formData = FormData.parseUrlEncoded(body);
-      return Body(
-        contentType,
-        formData: formData
-      );
-    }
-    if(body.isJson() || contentType == ContentType.json){
-      return Body(ContentType.json, json: json.decode(body));
-    }
-
-    if(contentType == ContentType.binary){
-      return Body(contentType, bytes: body.codeUnits);
-    }
-
-    return Body(
-      contentType,
-      text: body,
-    );
-  }
-
-  RequestContext _buildContext(List<Provider> providers, Request request) {
+  RequestContext _buildContext(List<Provider> providers, Request request, Body body) {
     RequestContextBuilder builder = RequestContextBuilder()
       .addProviders(providers);
-    return builder.build(request);
+    return builder.build(request)..body = body;
   }
   
   Set<Provider> _recursiveGetProviders(Module module) {
@@ -214,29 +182,7 @@ class RequestHandler {
     }
     return middlewares.values.toSet();
   }
-  
-  Future<void> _finalizeResponse(Response result, InternalResponse response, {ViewEngine? viewEngine}) async {
-    response.status(result.statusCode);
-    if(result.data is View){
-      final rendered = await viewEngine!.render(result.data);
-      response.contentType(ContentType.html);
-      await response.send(rendered);
-      return;
-    }
-    if(result.data is ViewString) {
-      final rendered = await viewEngine!.renderString(result.data);
-      response.contentType(ContentType.html);
-      await response.send(rendered);
-      return;
-    }
-    if(result.shouldRedirect){
-      await response.redirect(result.data);
-      return;
-    }
-    response.headers(result.headers);
-    response.contentType(result.contentType);
-    await response.send(result.data);
-  }
+
   
   Route _getRouteFromController(Controller controller, RouteData routeData) {
     final spec = controller.routes.keys.firstWhereOrNull((r) => r.route.runtimeType == routeData.routeCls && r.path == routeData.path && r.method == routeData.method);
@@ -271,79 +217,6 @@ class RequestHandler {
       guards.addAll(_recursiveGetModuleGuards(parent, routeData));
     }
     return guards;
-  }
-
-}
-
-class _CorsHandler {
-
-  _CorsHandler(){
-    _defaultHeaders = {
-      'Access-Control-Expose-Headers': '',
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Allow-Headers': _defaultHeadersList.join(','),
-      'Access-Control-Allow-Methods': _defaultMethodsList.join(','),
-      'Access-Control-Max-Age': '86400',
-    };
-    _defaultHeadersAll = _defaultHeaders.map((key, value) => MapEntry(key, [value]));
-  }
-
-  Map<String, List<String>> _defaultHeadersAll = {};
-
-
-  final _defaultHeadersList = [
-    'accept',
-    'accept-encoding',
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'access-control-allow-origin'
-  ];
-
-  final _defaultMethodsList = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT'
-  ];
-
-  Map<String, String> _defaultHeaders = {};
-  Map<String, String> responseHeaders = {};
-
-  Future<Response?> call(
-    InternalRequest request,
-    Request wrappedRequest,
-    RequestContext? context,
-    ReqResHandler? handler,
-    [List<String> allowedOrigins = const ['*']]
-  ) async {
-    final origin = request.headers['origin'];
-    if (origin == null || (!allowedOrigins.contains('*') && !allowedOrigins.contains(origin))) {
-      return handler!(context!);
-    }
-    final headers = <String, List<String>>{
-      ..._defaultHeadersAll,
-    };
-    headers['Access-Control-Allow-Origin'] = [origin];
-    final stringHeaders = headers.map((key, value) => MapEntry(key, value.join(',')));
-    responseHeaders = {
-      ...stringHeaders,
-    };
-    if (request.method == 'OPTIONS') {
-      request.response.status(200);
-      request.response.headers(stringHeaders);
-      request.response.send(null);
-      return null;
-    }
-    final response = await handler!(context!);
-    response.addHeaders({
-      ...stringHeaders,
-    });
-    return response;
   }
 
 }

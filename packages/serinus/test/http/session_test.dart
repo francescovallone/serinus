@@ -63,7 +63,7 @@ class SessionsTestSuite {
         setUpAll(() async {
           app = await serinus.createApplication(
             entrypoint: TestModule(controllers: [TestController()]),
-            loggingLevel: LogLevel.none
+            loggingLevel: LogLevel.none,
           );
           await app?.serve();
         });
