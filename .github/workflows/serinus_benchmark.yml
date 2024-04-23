@@ -25,4 +25,4 @@ jobs:
         run: ./install-wrk.sh
       
       - name: 🧪 Run benchmarks
-        run: dart run > benchmarks_result.txt
+        run: dart run
