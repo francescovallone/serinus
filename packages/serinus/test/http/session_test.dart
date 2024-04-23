@@ -34,7 +34,6 @@ class TestController extends Controller{
       }else{
         context.request.session.put('sessionNew', false);
       }
-      print(context.request.session.id);
       return Response.json({
         'isSessionNew': context.request.session.get('sessionNew'),
       });

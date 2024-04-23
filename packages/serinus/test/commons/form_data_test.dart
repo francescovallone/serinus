@@ -49,14 +49,14 @@ class FormDataTestSuites {
             }
           );
           test(
-            '''when create a UrlEncoded FormData with a key-value pair, then the fields should contains the key-velua pair''',
+            '''when create a UrlEncoded FormData with a key-value pair, then the fields should contains the key-value pair''',
             () {
               final body = FormData.parseUrlEncoded('foo=bar');
               expect(body.fields, equals({'foo': 'bar'}));
             }
           );
           test(
-            '''when create a UrlEncoded FormData with multiples key-value pairs, then the fields should contains the key-velua pairs''',
+            '''when create a UrlEncoded FormData with multiples key-value pairs, then the fields should contains the key-value pairs''',
             () {
               final body = FormData.parseUrlEncoded('foo=bar&bar=foo');
               expect(body.fields, equals({'foo': 'bar', 'bar': 'foo'}));

@@ -139,7 +139,7 @@ class SerinusApplication extends Application {
         await provider.onApplicationShutdown();
       }
     }
-    if(String.fromEnvironment('SERINUS_TEST', defaultValue: 'false') == 'false'){
+    if((Platform.environment['SERINUS_TEST'] ?? 'No env') != 'true'){
       exit(0);
     }
   }
