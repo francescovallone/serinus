@@ -2,6 +2,8 @@ name: Serinus Benchmarks
 
 on:
   push:
+    branches:
+      - main
 
 jobs:
   build:    
