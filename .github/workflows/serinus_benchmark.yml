@@ -1,10 +1,7 @@
-name: Serinus Tests
+name: Serinus Benchmarks
 
 on:
   push:
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:    
@@ -26,4 +23,4 @@ jobs:
         run: ./install-wrk.sh
       
       - name: 🧪 Run benchmarks
-        run: dart run
+        run: dart run > benchmarks_result.txt
