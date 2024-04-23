@@ -5,4 +5,5 @@ Future<void> main(List<String> arguments) async {
   await benchmarks.SerinusAppBenchmark().report();
   await benchmarks.VaniaAppBenchmark().report();
   await benchmarks.PharaohAppBenchmark().report();
+  await benchmarks.DartFrogAppBenchmark().report();
 }
