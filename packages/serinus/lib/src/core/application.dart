@@ -49,7 +49,8 @@ sealed class Application {
     if(!_enableShutdownHooks){
       _enableShutdownHooks = true;
       ProcessSignal.sigint.watch().listen((event) async {
-        await shutdown();
+        await close();
+        exit(0);
       });
     }
   }
@@ -140,9 +141,6 @@ class SerinusApplication extends Application {
       if(provider is OnApplicationShutdown){
         await provider.onApplicationShutdown();
       }
-    }
-    if((Platform.environment['SERINUS_TEST'] ?? 'No env') != 'true'){
-      exit(0);
     }
   }
 

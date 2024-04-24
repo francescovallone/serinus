@@ -17,16 +17,19 @@ class Explorer {
   void resolveRoutes(){
     final Logger logger = Logger('RoutesResolver');
     final modules = _modulesContainer.modules;
+    Map<Controller, _ControllerSpec> controllers = {};
     for(Module module in modules) {
-      final controllers = module.controllers;
-      for(var controller in controllers){
-        final controllerPath = normalizePath(controller.path);
-        if(controllerPath.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))){
-          throw Exception('Invalid controller path: $controllerPath');
-        }
-        logger.info('${controller.runtimeType} {$controllerPath}');
-        exploreRoutes(controller, module, controllerPath);
+      controllers.addEntries(
+        module.controllers.map((controller) => MapEntry(controller, _ControllerSpec(
+          normalizePath(controller.path), module)))
+      );
+    }
+    for(var controller in controllers.entries){
+      if(controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))){
+        throw Exception('Invalid controller path: ${controller.value.path}');
       }
+      logger.info('${controller.key.runtimeType} {${controller.value.path}}');
+      exploreRoutes(controller.key, controller.value.module, controller.value.path);
     }
   }
 
@@ -62,5 +65,14 @@ class Explorer {
     }
     return path;
   }
+
+}
+
+class _ControllerSpec {
+
+  final String path;
+  final Module module;
+
+  _ControllerSpec(this.path, this.module);
 
 }

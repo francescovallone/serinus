@@ -18,9 +18,12 @@ class ModulesContainer {
 
   /// The Map of all the providers registered in the application
   final Map<String, List<Provider>> _providers = {};
+  
+  /// The list of types of providers to inject in the application context
+  Iterable<Type> get injectableProviders => _providers.values.flatten().map((e) => e.runtimeType);
 
   /// The Map of all the deferred providers registered in the application
-  final Map<String, List<DeferredProvider>> _deferredProviders = {};
+  final Map<String, Iterable<DeferredProvider>> _deferredProviders = {};
 
   /// The list of all the global providers registered in the application
   List<Provider> get globalProviders => _providers.values.flatten().where((provider) => provider.isGlobal).toList();
@@ -49,9 +52,7 @@ class ModulesContainer {
       await initIfUnregistered(provider);
       _providers[token]?.add(provider);
     }
-    _deferredProviders[token] = [
-      ...initializedModule.providers.whereType<DeferredProvider>()
-    ];
+    _deferredProviders[token] = initializedModule.providers.whereType<DeferredProvider>();
     logger.info('${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies initialized');
   }
 
@@ -63,18 +64,18 @@ class ModulesContainer {
   /// 
   /// Throws a [StateError] if the provider is not found in the application providers
   ApplicationContext _getApplicationContext(List<Type> providersToInject) {
-    final providers = _providers.values.flatten().toList();
-    final injectableProviders = providers.map((e) => e.runtimeType).toList();
     final usableProviders = <Provider>[];
     for(final provider in providersToInject){
       if(!injectableProviders.contains(provider)){
         throw StateError('$provider not found in the application providers, are you sure it is registered?');
       }
-      usableProviders.add(providers.firstWhere((element) => element.runtimeType == provider));
+      usableProviders.add(_providers.values.flatten().firstWhere((element) => element.runtimeType == provider));
     }
     usableProviders.addAll(globalProviders);
     return ApplicationContext(
-      Map<Type, Provider>.fromEntries(usableProviders.map((e) => MapEntry(e.runtimeType, e))), 
+      Map<Type, Provider>.fromEntries([
+        for(final provider in usableProviders) MapEntry(provider.runtimeType, provider)
+      ]), 
       applicationId
     );
   }

@@ -48,28 +48,29 @@ class RequestHandler {
     final route = routeSpec.route;
     final handler = controller.routes[routeSpec];
     Module module = modulesContainer.getModuleByToken(routeData.moduleToken);
-    final scopedProviders = <Provider>{
-      ...module.providers,
-      ...(_recursiveGetProviders(module)),
-      ...modulesContainer.globalProviders
-    };
+    final scopedProviders = (
+      _recursiveGetProviders(module)..addAll(modulesContainer.globalProviders)
+    );
     final wrappedRequest = Request(
       request, 
       params: routeLookup.params,
     );
     await wrappedRequest.parseBody();
     final body = wrappedRequest.body!;
-    final context = _buildContext([...scopedProviders], wrappedRequest, body);
+    final context = _buildContext(scopedProviders, wrappedRequest, body);
     Response? result;
     try{
       await _executeMiddlewares(context, routeData, wrappedRequest, response, module, routeLookup.params);
-      await _executeGuards(
-        wrappedRequest, 
-        routeData, 
-        _recursiveGetModuleGuards(module, routeData), 
-        body, 
-        [...scopedProviders]
-      );
+      final moduleGuards = _recursiveGetModuleGuards(module, routeData);
+      if(moduleGuards.isNotEmpty){
+        await _executeGuards(
+          wrappedRequest, 
+          routeData, 
+          moduleGuards, 
+          body, 
+          [...scopedProviders]
+        );
+      }
       if(controller.guards.isNotEmpty){
         await _executeGuards(wrappedRequest, routeData, controller.guards, body, [...scopedProviders]);
       }
@@ -84,7 +85,7 @@ class RequestHandler {
           ...controller.pipes,
           ...module.pipes,
           ...route.pipes
-        }.toList(),
+        },
         body: body
       );
       if(handler == null){
@@ -115,7 +116,7 @@ class RequestHandler {
   Future<void> _executeGuards(
     Request request, 
     RouteData routeData,
-    List<Guard> guards,
+    Iterable<Guard> guards,
     Body body,
     List<Provider> providers,
   ) async {
@@ -132,22 +133,20 @@ class RequestHandler {
     }
   }
 
-  RequestContext _buildContext(List<Provider> providers, Request request, Body body) {
+  RequestContext _buildContext(Iterable<Provider> providers, Request request, Body body) {
     RequestContextBuilder builder = RequestContextBuilder()
       .addProviders(providers);
     return builder.build(request)..body = body;
   }
   
   Set<Provider> _recursiveGetProviders(Module module) {
-    List<Provider> providers = [
-      ...module.providers
-    ];
+    Set<Provider> providers = Set<Provider>.from(module.providers);
     for (final subModule in module.imports) {
-      final usableProviders = subModule.providers.where((element) => subModule.exports.contains(element.runtimeType));
-      providers.addAll(usableProviders);
-      providers.addAll(_recursiveGetProviders(subModule));
+      providers.addAll(
+        subModule.exportedProviders..addAll(_recursiveGetProviders(subModule))
+      );
     }
-    return providers.toSet();
+    return providers;
   }
 
   Set<Middleware> _recursiveGetMiddlewares(Module module, RouteData routeData, Map<String, dynamic> params) {
@@ -184,30 +183,26 @@ class RequestHandler {
   
   Future<void> _executeMiddlewares(RequestContext context, RouteData routeData, Request request, InternalResponse response, Module module, Map<String, dynamic> params) async {
     final middlewares = _recursiveGetMiddlewares(module, routeData, params);
+    if(middlewares.isEmpty){
+      return;
+    }
     final completer = Completer<void>();
-    for(int i = 0; i<middlewares.length; i++){
+    for(int i = 0; i<middlewares.length; i++) {
       final middleware = middlewares.elementAt(i);
       await middleware.use(context, response, () async {
         if(i == middlewares.length - 1){
           completer.complete();
         }
-        return;
       });
-    }
-    if(middlewares.isEmpty){
-      completer.complete();
     }
     return completer.future;
   }
   
-  List<Guard> _recursiveGetModuleGuards(Module module, RouteData routeData) {
-    List<Guard> guards = [
-      ...module.guards
-    ];
+  Set<Guard> _recursiveGetModuleGuards(Module module, RouteData routeData) {
+    Set<Guard> guards = Set<Guard>.from(module.guards);
     final parents = modulesContainer.getParents(module);
     for (final parent in parents) {
-      guards.addAll(parent.guards);
-      guards.addAll(_recursiveGetModuleGuards(parent, routeData));
+      guards.addAll(parent.guards..addAll(_recursiveGetModuleGuards(parent, routeData)));
     }
     return guards;
   }

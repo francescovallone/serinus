@@ -11,7 +11,7 @@ class PipesConsumer extends ExecutionContextConsumer<Pipe, void> {
   ExecutionContext createContext(
     Request request, 
     RouteData routeData, 
-    List<Provider> providers, 
+    Iterable<Provider> providers, 
     Body? body
   ) {
     final builder = ExecutionContextBuilder();
@@ -27,7 +27,7 @@ class PipesConsumer extends ExecutionContextConsumer<Pipe, void> {
   Future<void> consume({
     required Request request, 
     required RouteData routeData, 
-    required List<Pipe> consumables, 
+    required Iterable<Pipe> consumables, 
     Body? body, 
     List<Provider> providers = const []
   }) async {

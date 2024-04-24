@@ -9,6 +9,9 @@ abstract class Module {
   List<Provider> providers;
   List<Type> exports;
   List<Middleware> middlewares;
+  List<Provider> get exportedProviders => [
+    for(final export in exports) providers.firstWhere((element) => element.runtimeType == export)
+  ];
   final ModuleOptions? options;
   
   List<Guard> get guards => [];
