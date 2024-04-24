@@ -48,10 +48,6 @@ class BuildCommand extends Command<int> {
       final content = Map<String, dynamic>.from(loadYaml(configContent) as Map);
       entrypoint = content['entrypoint'] as String;
     }
-    print(entrypoint);
-    print('dist/${content['name']}');
-    print(content);
-    print('dart ${['compile', 'exe', entrypoint, '-o', 'dist/${content['name']}'].join(' ')}');
     final progress = _logger?.progress('Building application...');
     final dist = Directory('dist');
     if (!dist.existsSync()) {
@@ -71,7 +67,6 @@ class BuildCommand extends Command<int> {
 
     process.stderr.transform(utf8.decoder).listen((data) {
       final lines = data.split('\n');
-      print(lines);
       for (final line in lines) {
         if (line.isNotEmpty) {
           _logger?.err(line);
