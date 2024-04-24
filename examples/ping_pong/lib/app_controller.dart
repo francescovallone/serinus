@@ -8,8 +8,8 @@ class AppController extends Controller {
     on(HelloWorldRoute(), _handleHelloWorld);
   }
 
-  Future<Response> _handleHelloWorld(RequestContext context, Request request) async {
-    return Response.text(data: 'Hello world');
+  Future<Response> _handleHelloWorld(RequestContext context) async {
+    return Response.text('Hello world');
   }
 
 }

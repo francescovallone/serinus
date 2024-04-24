@@ -19,8 +19,8 @@ class SerinusFactory {
     await server.init(
       securityContext: securityContext,
       poweredByHeader: poweredByHeader,
-      port: port,
-      host: host
+      port: int.tryParse(Platform.environment['PORT'] ?? '') ?? port,
+      host: Platform.environment['HOST'] ?? host
     );
     final app = SerinusApplication(
       entrypoint: entrypoint,

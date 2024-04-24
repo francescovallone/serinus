@@ -40,3 +40,12 @@ Initial Implementation
 
 - Add support for Spanner as router
 - Clean up code
+
+## 0.2.0
+
+- General performance improvements
+- Refactor ViewEngines
+- Add tests
+- Add documentation
+- Add support for Serinus CLI run command environment variables
+- Simplify Route Handler signature (!!!BREAKING!!!)
