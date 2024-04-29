@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/internal_request.dart';
-import 'package:serinus/src/commons/versioning.dart';
 import 'package:serinus/src/core/consumers/guards_consumer.dart';
 import 'package:serinus/src/core/consumers/pipes_consumer.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
