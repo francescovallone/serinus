@@ -41,6 +41,7 @@ export default defineConfig({
             text: 'Techniques',
             items: [
               { text: 'Model View Controller', link: '/techniques/mvc' },
+              { text: 'Versioning', link: '/techniques/versioning' },
             ]
           }
         ]

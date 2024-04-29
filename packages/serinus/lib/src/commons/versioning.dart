@@ -1,6 +1,6 @@
 class VersioningOptions {
   /// The global version of the API
-  final int? version;
+  final int version;
 
   /// The type of the versioning.
   ///
@@ -11,7 +11,7 @@ class VersioningOptions {
   final VersioningType type;
   final String? header;
 
-  VersioningOptions({required this.type, this.version, this.header})
+  VersioningOptions({required this.type, this.version = 1, this.header})
       : assert(type == VersioningType.header && header != null,
             'The header field must be populated if the type is ${VersioningType.header}');
 }

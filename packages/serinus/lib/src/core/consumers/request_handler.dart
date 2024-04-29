@@ -79,15 +79,16 @@ class RequestHandler {
         await _executeGuards(wrappedRequest, routeData, route.guards, body,
             [...scopedProviders]);
       }
+      final pipes = <Pipe>{
+        ...module.pipes,
+        ...controller.pipes,
+        ...route.pipes
+      };
       final pipesConsumer = PipesConsumer();
       await pipesConsumer.consume(
           request: wrappedRequest,
           routeData: routeData,
-          consumables: <Pipe>{
-            ...controller.pipes,
-            ...module.pipes,
-            ...route.pipes
-          },
+          consumables: pipes,
           body: body);
       if (handler == null) {
         throw InternalServerErrorException(
@@ -109,7 +110,7 @@ class RequestHandler {
       throw InternalServerErrorException(
           message: 'Route handler did not return a response');
     }
-    await response.finalize(result, viewEngine: viewEngine);
+    await response.finalize(result, viewEngine: viewEngine,);
   }
 
   Future<void> _executeGuards(

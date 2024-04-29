@@ -92,7 +92,7 @@ class SerinusApplication extends Application {
   }
 
   void enableVersioning(
-      {required VersioningType type, int? version, String? header}) {
+      {required VersioningType type, int version = 1, String? header}) {
     versioning =
         VersioningOptions(type: type, version: version, header: header);
   }
@@ -108,9 +108,9 @@ class SerinusApplication extends Application {
     preview();
     try {
       _logger.info("Starting server on $host:$port");
+      final handler = RequestHandler(router, modulesContainer, _cors, versioning);
       await serverAdapter.listen(
         (request, response) async {
-          final handler = RequestHandler(router, modulesContainer, _cors, versioning);
           await handler.handleRequest(request, response,
               viewEngine: viewEngine);
         },
