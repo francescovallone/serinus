@@ -1,0 +1,31 @@
+name: Serinus Benchmarks
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:    
+    defaults:
+      run:
+        working-directory: ./benchmarks
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+
+      - name: 🎯 Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: 📦 Install Dependencies
+        run: dart pub get
+
+      - name: 🕵️ Install Wrk
+        run: ./install-wrk.sh
+
+      - name: Prepare Benchmarks
+        run: export APP_HOST=localhost && export APP_PORT=8080 && APP_KEY=serinus && APP_SECURE=false && APP_SHARED=false && APP_DEBUG=false && APP_WEBSOCKET=false
+
+      - name: 🧪 Run benchmarks
+        run: dart run

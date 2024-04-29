@@ -6,41 +6,36 @@ import 'package:mime/mime.dart';
 import 'package:serinus/serinus.dart';
 
 /// The class FormData is used to parse multipart/form-data and application/x-www-form-urlencoded
-class FormData{
-
+class FormData {
   final Map<String, dynamic> _fields;
   final Map<String, UploadedFile> _files;
 
   /// The [FormData] constructor is used to create a [FormData] object
-  const FormData({
-    Map<String, dynamic> fields = const {},
-    Map<String, UploadedFile> files = const {}
-  }) : _fields = fields, _files = files;
+  const FormData(
+      {Map<String, dynamic> fields = const {},
+      Map<String, UploadedFile> files = const {}})
+      : _fields = fields,
+        _files = files;
 
-  Map<String, dynamic> get values => Map.unmodifiable({
-    "fields": fields,
-    "files": files
-  });
+  Map<String, dynamic> get values =>
+      Map.unmodifiable({"fields": fields, "files": files});
   Map<String, dynamic> get fields => Map.unmodifiable(_fields);
   Map<String, UploadedFile> get files => Map.unmodifiable(_files);
 
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
-  static Future<FormData> parseMultipart({
-    required HttpRequest request
-  }) async {
-    try{
-      final mediaType = MediaType.parse(request.headers[HttpHeaders.contentTypeHeader]!.join(';'));
+  static Future<FormData> parseMultipart({required HttpRequest request}) async {
+    try {
+      final mediaType = MediaType.parse(
+          request.headers[HttpHeaders.contentTypeHeader]!.join(';'));
       final boundary = mediaType.parameters['boundary'];
       final parts = _getMultiparts(request, boundary);
       RegExp regex = RegExp('([a-zA-Z0-9-_]+)="(.*?)"');
       final fields = <String, dynamic>{};
       final files = <String, UploadedFile>{};
-      await for (MimeMultipart part in parts){
+      await for (MimeMultipart part in parts) {
         final contentDisposition = part.headers['content-disposition'];
-        if (
-          contentDisposition == null || 
-          !contentDisposition.startsWith('form-data;')
-        ) {
+        if (contentDisposition == null ||
+            !contentDisposition.startsWith('form-data;')) {
           continue;
         }
 
@@ -61,12 +56,13 @@ class FormData{
           );
           await files[name]!.readAsString();
         } else {
-          final bytes = (await part.toList()).fold(<int>[], (p, e) => p..addAll(e));
+          final bytes =
+              (await part.toList()).fold(<int>[], (p, e) => p..addAll(e));
           fields[name] = utf8.decode(bytes);
         }
       }
       return FormData(fields: fields, files: files);
-    }catch(_){
+    } catch (_) {
       throw NotAcceptableException();
     }
   }
@@ -76,15 +72,14 @@ class FormData{
     return FormData(fields: Uri.splitQueryString(body), files: {});
   }
 
-  static Stream<MimeMultipart> _getMultiparts(HttpRequest request, String? boundary){
+  static Stream<MimeMultipart> _getMultiparts(
+      HttpRequest request, String? boundary) {
     if (boundary == null) {
       throw StateError('Not a multipart request.');
     }
 
-    return MimeMultipartTransformer(boundary)
-        .bind(request);
+    return MimeMultipartTransformer(boundary).bind(request);
   }
-
 }
 
 /// The class [UploadedFile] is used to represent a file uploaded by the user
@@ -94,30 +89,24 @@ class FormData{
 /// The [stream] property is used to get the stream of the file
 /// The [contentType] property is used to get the content type of the file
 /// The [name] property is used to get the name of the file
-class UploadedFile{
-
+class UploadedFile with JsonObject {
   final ContentType contentType;
   final Stream<List<int>> stream;
   final String name;
   String _data = "";
 
-  UploadedFile(
-    this.stream,
-    this.contentType,
-    this.name
-  );
+  UploadedFile(this.stream, this.contentType, this.name);
 
   Future<void> readAsString() async {
     List<String> data = [];
-    await for(final part in stream){
+    await for (final part in stream) {
       data.add(String.fromCharCodes(part));
     }
     _data = data.join('');
   }
 
   @override
-  String toString() {
-    return _data;
+  Map<String, dynamic> toJson() {
+    return {'name': name, 'contentType': contentType.toString(), 'data': _data};
   }
-
 }

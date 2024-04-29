@@ -1,5 +1,7 @@
 [![Serinus Logo][logo_white]][repo_link]
 
+[![codecov](https://codecov.io/gh/francescovallone/serinus/branch/main/graph/badge.svg?token=A2337C1XGG)](https://codecov.io/gh/francescovallone/serinus)
+
 Serinus is a framework written in Dart for building efficient and scalable server-side applications.
 
 # Getting Started
