@@ -60,7 +60,7 @@ class RunCommand extends Command<int> {
     var entrypoint = '';
     var content = <String, dynamic>{};
     if (!configFile.existsSync()) {
-      _logger?.err(
+      _logger?.warn(
         'No config.yaml file found, using pubspec.yaml to get entrypoint',
       );
       final pubspecContent = await pubspec.readAsString();

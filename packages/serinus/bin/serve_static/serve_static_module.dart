@@ -6,8 +6,6 @@ import 'serve_static_controller.dart';
 
 class ServeStaticModule extends Module {
 
-  List<Controller> controllers = [];
-
   ServeStaticModule();
 
   @override
@@ -16,7 +14,7 @@ class ServeStaticModule extends Module {
     List<String> excludePaths = const [],
   }) {
     print(Directory.current.path);
-    this.controllers.add(
+    controllers.add(
       ServeStaticController(path: path, excludePaths: excludePaths)
     );
 

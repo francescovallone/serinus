@@ -8,3 +8,7 @@ First release still in development and not ready for production use.
 
 - First release of the cli after the refactor of the whole framework.
 - Usage of Bricks from the serinus-bricks package.
+
+## 0.2.0
+
+- Add build command to the CLI.

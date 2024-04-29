@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 import 'package:serinus/src/commons/commons.dart';
+import 'package:serinus/src/commons/errors/initialization_error.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/core/consumers/request_handler.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
@@ -17,8 +18,8 @@ sealed class Application {
   final Module entrypoint;
   bool _enableShutdownHooks = false;
   LoggerService? loggerService;
-  ModulesContainer modulesContainer = ModulesContainer();
-  Router router = Router();
+  ModulesContainer modulesContainer;
+  Router router;
   final Adapter serverAdapter;
 
   Application({
@@ -27,10 +28,12 @@ sealed class Application {
     this.host = 'localhost',
     this.port = 3000,
     this.level = LogLevel.debug,
+    Router? router,
+    ModulesContainer? modulesContainer,
     LoggerService? loggerService,
-  }){
-    this.loggerService = loggerService ?? LoggerService();
-  }
+  }) : router = router ?? Router(), 
+    loggerService = loggerService ?? LoggerService(level: level),
+    modulesContainer = modulesContainer ?? ModulesContainer();
 
   String get url;
 
@@ -38,11 +41,16 @@ sealed class Application {
     return modulesContainer.get<T>();
   }
 
+  HttpServer get server => serverAdapter.server;
+
+  SerinusHttpServer get adapter => serverAdapter as SerinusHttpServer;
+
   void enableShutdownHooks(){
     if(!_enableShutdownHooks){
       _enableShutdownHooks = true;
       ProcessSignal.sigint.watch().listen((event) async {
-        await shutdown();
+        await close();
+        exit(0);
       });
     }
   }
@@ -62,19 +70,15 @@ sealed class Application {
 class SerinusApplication extends Application {
 
   ViewEngine? viewEngine;
-  Cors? _cors = null;
+  Cors? _cors;
   final Logger _logger = Logger('SerinusApplication');
 
   SerinusApplication({
     required super.entrypoint,
     required super.serverAdapter,
-    super.host = 'localhost',
-    super.port = 3000,
-    super.level = LogLevel.debug,
+    super.level,
     super.loggerService,
-  }) {
-    initialize();
-  }
+  });
 
   @override
   String get url => 'http://$host:$port';
@@ -91,19 +95,10 @@ class SerinusApplication extends Application {
   Future<void> serve() async {
     try{
       _logger.info("Starting server on $host:$port");
-      await this.serverAdapter.listen(
+      await serverAdapter.listen(
         (request, response) async {
-          try{
-            final handler = RequestHandler(router, modulesContainer, _cors);
-            await handler.handleRequest(request, response, viewEngine: viewEngine);
-          }catch(e){
-            if(e is SerinusException){
-              response.status(e.statusCode);
-              response.send(e.toString());
-            }else{
-              rethrow;
-            }
-          }
+          final handler = RequestHandler(router, modulesContainer, _cors);
+          await handler.handleRequest(request, response, viewEngine: viewEngine);
         },
         errorHandler: (e, stackTrace) {
           print(e);
@@ -112,7 +107,7 @@ class SerinusApplication extends Application {
       );
     } on SocketException catch(_) {
       _logger.severe('Failed to start server on $host:$port');
-      await this.close();
+      await close();
     }
   }
 
@@ -125,7 +120,7 @@ class SerinusApplication extends Application {
   @override
   Future<void> initialize() async {
     if(entrypoint is DeferredModule){
-      throw Exception(
+      throw InitializationError(
         'The entry point of the application cannot be a DeferredModule'
       );
     }
@@ -147,7 +142,6 @@ class SerinusApplication extends Application {
         await provider.onApplicationShutdown();
       }
     }
-    exit(0);
   }
 
 }

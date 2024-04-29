@@ -4,9 +4,6 @@ import '../internal_request.dart';
 import 'server_adapter.dart';
 
 class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
-  
-  @override
-  io.HttpServer? server;
 
   factory SerinusHttpServer() {
     return _singleton;
@@ -18,7 +15,7 @@ class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
   
   @override
   Future<void> init({
-    String host = '127.0.0.1',
+    String host = 'localhost',
     int port = 3000,
     String poweredByHeader = 'Powered by Serinus',
     io.SecurityContext? securityContext
@@ -46,7 +43,7 @@ class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
     try {
       server?.listen(
         (req) async {
-          final request = InternalRequest.from(req);
+          final request = InternalRequest.from(req, baseUrl: '');
           final response = request.response;
           await requestCallback.call(request, response);
         },

@@ -4,7 +4,9 @@ import 'package:serinus/serinus.dart';
 
 class SerinusFactory {
 
-  static Future<SerinusApplication> createApplication({
+  const SerinusFactory();
+
+  Future<SerinusApplication> createApplication({
     required Module entrypoint,
     String host = 'localhost',
     int port = 3000,
@@ -16,17 +18,20 @@ class SerinusFactory {
     final server = SerinusHttpServer();
     await server.init(
       securityContext: securityContext,
-      poweredByHeader: poweredByHeader
+      poweredByHeader: poweredByHeader,
+      port: int.tryParse(Platform.environment['PORT'] ?? '') ?? port,
+      host: Platform.environment['HOST'] ?? host
     );
     final app = SerinusApplication(
       entrypoint: entrypoint,
       serverAdapter: server,
-      host: host,
-      port: port,
       level: loggingLevel,
       loggerService: loggerService
     );
+    await app.initialize();
     return app;
   }
 
 }
+
+const serinus = SerinusFactory();

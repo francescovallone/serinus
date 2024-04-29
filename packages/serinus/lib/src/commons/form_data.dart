@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import 'package:serinus/serinus.dart';
 
-import 'exceptions/exceptions.dart';
 
 /// The class FormData is used to parse multipart/form-data and application/x-www-form-urlencoded
 class FormData{
@@ -95,7 +95,7 @@ class FormData{
 /// The [stream] property is used to get the stream of the file
 /// The [contentType] property is used to get the content type of the file
 /// The [name] property is used to get the name of the file
-class UploadedFile{
+class UploadedFile with JsonObject{
 
   final ContentType contentType;
   final Stream<List<int>> stream;
@@ -115,10 +115,14 @@ class UploadedFile{
     }
     _data = data.join('');
   }
-
+  
   @override
-  String toString() {
-    return _data;
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'contentType': contentType.toString(),
+      'data': _data
+    };
   }
 
 }

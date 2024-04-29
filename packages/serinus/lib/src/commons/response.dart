@@ -1,20 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:serinus/src/commons/engines/view_engine.dart';
 import 'package:serinus/src/commons/mixins/object_mixins.dart';
 
 class Response {
 
   final dynamic _value;
-  final int _statusCode;
+  int statusCode;
   final ContentType _contentType;
   final bool _shouldRedirect;
 
-  Response._(this._value, this._statusCode, this._contentType, {bool shouldRedirect = false}): _shouldRedirect = shouldRedirect;
+  Response._(this._value, this.statusCode, this._contentType, {bool shouldRedirect = false}): _shouldRedirect = shouldRedirect;
 
   dynamic get data => _value;
-
-  int get statusCode => _statusCode;
 
   ContentType get contentType => _contentType;
 
@@ -24,19 +24,17 @@ class Response {
 
   Map<String, String> get headers => _headers;
 
-  factory Response() {
-    return Response._(null, 200, ContentType.text);
-  }
-
-  factory Response.json({
-    required dynamic data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.json(
+    dynamic data,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     dynamic responseData;
     if(data is Map<String, dynamic> || data is List<Map<String, dynamic>>){
       responseData = data;
-    }else if(data is JsonSerializableMixin){
+    }else if(data is JsonObject){
       responseData = data.toJson();
     }else{
       throw FormatException('The data must be a Map<String, dynamic> or a JsonSerializableMixin');
@@ -44,66 +42,76 @@ class Response {
     return Response._(jsonEncode(responseData), statusCode, contentType ?? ContentType.json);
   }
 
-  factory Response.html({
-    required String data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.html(
+    String data,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     return Response._(data, statusCode, contentType ?? ContentType.html);
   }
 
-  factory Response.render({
-    required String view,
-    required Map<String, dynamic> data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
-    return Response._({'view': view, 'data': data}, statusCode, contentType ?? ContentType.html);
+  factory Response.render(
+    View view,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
+    return Response._(view, statusCode, contentType ?? ContentType.html);
   }
 
-  factory Response.renderString({
-    required String viewData,
-    required Map<String, dynamic> data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
-    return Response._({'viewData': viewData, 'data': data}, statusCode, contentType ?? ContentType.html);
+  factory Response.renderString(
+    ViewString view,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
+    return Response._(view, statusCode, contentType ?? ContentType.html);
   }
   
-  factory Response.text({
-    required String data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.text(
+    String data, 
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     return Response._(data, statusCode, contentType ?? ContentType.text);
   }
 
-  factory Response.bytes({
-    required List<int> data,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
+  factory Response.bytes(
+    Uint8List data,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
     return Response._(data, statusCode, contentType ?? ContentType.binary);
   }
 
-  factory Response.file({
-    required File file,
-    int statusCode = 200,
-    ContentType? contentType
-  }){
-    return Response._(file, statusCode, contentType ?? ContentType.binary);
+  factory Response.file(
+    File file,
+    {
+      int statusCode = 200,
+      ContentType? contentType
+    }
+  ){
+    return Response._(file.readAsBytesSync(), statusCode, contentType ?? ContentType.binary);
   }
 
-  factory Response.redirect({
-    required String path,
-    int statusCode = 302,
-  }){
+  factory Response.redirect(
+    String path,
+    {
+      int statusCode = 302,
+    }
+  ){
     return Response._(path, statusCode, ContentType.text, shouldRedirect: true);
   }
 
-  factory Response.status(int statusCode){
-    return Response._(null, statusCode, ContentType.text);
-  }
+
 
   void addHeaders(Map<String, String> headers){
     headers.forEach((key, value) {

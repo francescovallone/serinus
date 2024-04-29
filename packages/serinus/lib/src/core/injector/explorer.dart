@@ -15,52 +15,64 @@ class Explorer {
   );
 
   void resolveRoutes(){
-    final Logger _logger = Logger('RoutesResolver');
+    final Logger logger = Logger('RoutesResolver');
     final modules = _modulesContainer.modules;
+    Map<Controller, _ControllerSpec> controllers = {};
     for(Module module in modules) {
-      final controllers = module.controllers;
-      for(var controller in controllers){
-        final controllerPath = _normalizePath(controller.path);
-        if(controllerPath.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))){
-          throw Exception('Invalid controller path: $controllerPath');
-        }
-        _logger.info('${controller.runtimeType} {$controllerPath}');
-        exploreRoutes(controller, module, controllerPath);
+      controllers.addEntries(
+        module.controllers.map((controller) => MapEntry(controller, _ControllerSpec(
+          normalizePath(controller.path), module)))
+      );
+    }
+    for(var controller in controllers.entries){
+      if(controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))){
+        throw Exception('Invalid controller path: ${controller.value.path}');
       }
+      logger.info('${controller.key.runtimeType} {${controller.value.path}}');
+      exploreRoutes(controller.key, controller.value.module, controller.value.path);
     }
   }
 
   void exploreRoutes(Controller controller, Module module, String controllerPath){
-    final Logger _logger = Logger('RoutesExplorer');
+    final Logger logger = Logger('RoutesExplorer');
     final routes = controller.routes;
-    for (var route in routes.keys) {
-      String routePath = _normalizePath('${controllerPath}${route.path}');
-      final routeMethod = route.method;
+    for (var spec in routes.keys) {
+      String routePath = normalizePath('$controllerPath${spec.path}');
+      final routeMethod = spec.method;
       _router.registerRoute(
         RouteData(
           path: routePath, 
           controller: controller,
-          routeCls: route.runtimeType,
+          routeCls: spec.route.runtimeType,
           method: routeMethod, 
           moduleToken: module.token.isEmpty ? module.runtimeType.toString() : module.token,
-          queryParameters: route.queryParameters
+          queryParameters: spec.route.queryParameters
         ),
       );
-      _logger.info("Mapped {$routePath, $routeMethod} route");
+      logger.info("Mapped {$routePath, $routeMethod} route");
     }
   }
 
-  String _normalizePath(String path){
+  String normalizePath(String path){
     if(!path.startsWith("/")){
       path = "/$path";
     }
     if(path.endsWith("/") && path.length > 1){
       path = path.substring(0, path.length - 1);
     }
-    if(path.contains('//')){
-      path = path.replaceAll('//', '/');
+    if(path.contains(RegExp('([/]{2,})'))){
+      path = path.replaceAll(RegExp('([/]{2,})'), '/');
     }
     return path;
   }
+
+}
+
+class _ControllerSpec {
+
+  final String path;
+  final Module module;
+
+  _ControllerSpec(this.path, this.module);
 
 }

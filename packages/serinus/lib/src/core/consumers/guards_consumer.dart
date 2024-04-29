@@ -12,7 +12,7 @@ class GuardsConsumer extends ExecutionContextConsumer<Guard, bool>{
   ExecutionContext createContext(
     Request request, 
     RouteData routeData, 
-    List<Provider> providers, 
+    Iterable<Provider> providers, 
     Body? body
   ) {
     final builder = ExecutionContextBuilder();
@@ -20,22 +20,17 @@ class GuardsConsumer extends ExecutionContextConsumer<Guard, bool>{
       builder.body = body;
     }
     builder
-      .addHeaders(request.headers)
-      .addQueryParameters(routeData.queryParameters, request.queryParameters)
-      .addPathParameters(routeData.path, request.path)
-      .setPath(request.path)
       .addProviders(providers);
     return builder.build(request);
-
   }
 
   @override
   Future<bool> consume({
     required Request request, 
     required RouteData routeData, 
-    required List<Guard> consumables, 
+    required Iterable<Guard> consumables, 
     Body? body, 
-    List<Provider> providers = const []
+    Iterable<Provider> providers = const []
   }) async {
     final context = createContext(
       request,
@@ -45,10 +40,9 @@ class GuardsConsumer extends ExecutionContextConsumer<Guard, bool>{
     );
     for(final consumable in consumables){
       final canActivate = await consumable.canActivate(context);
-      if(canActivate){
-        continue;
+      if(!canActivate){
+        return canActivate;
       }
-      return false;
     }
     return true;
   }

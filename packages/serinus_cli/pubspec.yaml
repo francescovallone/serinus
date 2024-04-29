@@ -1,7 +1,8 @@
 name: serinus_cli
-description: A CLI to manage and interact with Serinus applications.
-version: 0.1.0-dev.1
+description: The official CLI to manage and create Serinus projects.
+version: 0.2.0
 repository: 'https://github.com/francescovallone/serinus'
+homepage: https://docs.serinus.app
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

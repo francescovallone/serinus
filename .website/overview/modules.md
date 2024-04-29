@@ -105,9 +105,7 @@ import 'package:serinus/serinus.dart';
 
 class MyGuard extends Guard {
   @override
-  Future<bool> canActivate({
-    required Request request,
-  }) async {
+  Future<bool> canActivate(ExecutionContext context) async {
     return true;
   }
 }
@@ -137,9 +135,7 @@ import 'package:serinus/serinus.dart';
 
 class MyPipe extends Pipe {
   @override
-  Future<void> transform({
-    required Request request,
-  }) async {
+  Future<void> transform(ExecutionContext context) async {
     print('Pipe executed');
   }
 }

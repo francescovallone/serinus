@@ -27,29 +27,21 @@ class InternalRequest{
   Uint8List? _bytes;
   /// The [queryParameters] property contains the query parameters of the request
   final Map<String, String> queryParameters;
-  /// The list of path parameters in the request
-  final List<String> pathParameters;
-  /// The host where the application is running
-  final String host;
-  /// The port where the application is running
-  final int port;
+  /// The base url of the server
+  final String baseUrl;
   /// The [contentType] property contains the content type of the request
   ContentType contentType;
-
+  /// The [webSocketKey] property contains the key of the web socket
   String webSocketKey = "";
 
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
-  factory InternalRequest.from(HttpRequest request){
+  factory InternalRequest.from(HttpRequest request, {String baseUrl = ''}){
     Map<String, String> headers = {};
     request.headers.forEach((name, values) {
       headers[name] = values.join(';');
     });
     headers.remove(HttpHeaders.transferEncodingHeader);
     final segments = Uri(path: request.requestedUri.path).pathSegments;
-    final List<String> pathParameters = [];
-    for(var i = 1; i < segments.length; i++){
-      pathParameters.add(segments[i]);
-    }
     return InternalRequest(
       path: request.requestedUri.path,
       uri: request.requestedUri,
@@ -59,7 +51,7 @@ class InternalRequest{
       headers: headers,
       original: request,
       contentType: request.headers.contentType ?? ContentType('text', 'plain'),
-      pathParameters: pathParameters
+      baseUrl: baseUrl
     );
   }
 
@@ -69,17 +61,17 @@ class InternalRequest{
     required this.method,
     required this.segments,
     required this.queryParameters,
-    required this.pathParameters,
     required this.headers,
     required this.contentType,
     required this.original,
-    this.host = 'http://localhost',
-    this.port = 3000
+    required this.baseUrl,
   });
 
   InternalResponse get response{
-    return InternalResponse(original.response, port: port, host: host);
+    return InternalResponse(original.response, baseUrl: baseUrl);
   }
+
+  
 
   /// This method is used to get the body of the request as a [String]
   /// 
@@ -120,9 +112,7 @@ class InternalRequest{
   /// it is used internally by the [body], the [json] and the [stream] methods
   Future<Uint8List> bytes() async {
     try{
-      if(_bytes == null){
-        _bytes = await original.firstWhere((element) => element.isNotEmpty);
-      }
+      _bytes ??= await original.firstWhere((element) => element.isNotEmpty);
       return _bytes!;
     }catch(_){
       return Uint8List(0);

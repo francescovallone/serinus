@@ -14,8 +14,8 @@ class ServeStaticController extends Controller{
   final List<String> excludePaths;
 
   ServeStaticController({required super.path, this.excludePaths = const [],}){
-    on(ServeRouteGet(), (context, request) async {
-      final path = request.path;
+    on(ServeRouteGet(), (context) async {
+      final path = context.request.path;
       Directory current = Directory.current;
       print('Current path: ${Uri(path: '${current.path}/$path').path.replaceAll('//', '/')}');
       final file = File('${current.path}/$path');
@@ -31,7 +31,7 @@ class ServeStaticController extends Controller{
       }
       // final byteSink = ByteAccumulatorSink();
       // await file.openRead().listen(byteSink.add).asFuture();
-      return Response.text(data: Utf8Decoder().convert([]));
+      return Response.text(Utf8Decoder().convert([]));
     });
   }
 

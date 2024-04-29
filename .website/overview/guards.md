@@ -41,7 +41,7 @@ import 'package:serinus/serinus.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context) {
       return Response.text(
         data: 'Hello World!',
       );
@@ -88,7 +88,7 @@ import 'package:serinus/serinus.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context) {
       final value = context.getData('key');
         return Response.text(
             data: 'Hello World!',
@@ -107,7 +107,7 @@ import 'package:serinus/serinus.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context) {
       return Response.text(
         data: 'Hello World!',
       );

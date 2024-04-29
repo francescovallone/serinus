@@ -15,9 +15,30 @@ Serinus is still being developed and many things can change. Use it at your own 
 ### Using the CLI
   
 ::: tip
-The CLI is still under development and the available version on pub.dev is not up-to-date.
-Please use the pub.dev version to install Serinus.
+The CLI is still under development and more features will be added in the future.
 :::
+
+```console
+dart pub global activate serinus_cli
+
+serinus create my_project
+```
+
+This will create a new Serinus project in the `my_project` directory with the following structure:
+
+```console
+my_project
+├── bin
+│   ├── my_project.dart
+├── lib
+│   ├── app_controller.dart
+│   ├── app_module.dart
+│   ├── app_provider.dart
+│   ├── app_routes.dart
+│   ├── my_project.dart
+├── config.yaml
+├── pubspec.yaml
+```
 
 ### From pub.dev
 

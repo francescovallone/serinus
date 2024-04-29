@@ -26,7 +26,7 @@ import 'my_routes.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context) {
       return Response.text(
         data: 'Hello World!',
       );
@@ -69,7 +69,7 @@ class MyController extends Controller {
   List<Pipe> get pipes => [MyPipe()];
 
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context) {
       return Response.text(
         data: 'Hello World!',
       );
@@ -96,9 +96,7 @@ import 'package:serinus/serinus.dart';
 
 class MyPipe extends Pipe {
   @override
-  Future<void> transform({
-    required Request request,
-  }){
+  Future<void> transform(ExecutionContext context){
     print('Pipe executed');
   }
 }
@@ -126,7 +124,7 @@ class MyController extends Controller {
   List<Guard> get guards => [MyGuard()];
 
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context) {
       return Response.text(
         data: 'Hello World!',
       );

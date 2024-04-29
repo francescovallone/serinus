@@ -12,7 +12,6 @@ abstract class Middleware {
 
   Future<void> use(
     RequestContext context, 
-    Request request, 
     InternalResponse response, 
     NextFunction next
   ) async {

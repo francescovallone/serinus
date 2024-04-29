@@ -2,6 +2,7 @@ import 'dart:io' as io;
 
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart' as logging;
+import 'package:serinus/serinus.dart';
 
 typedef LogCallback = void Function(logging.LogRecord record, double deltaTime);
 
@@ -10,19 +11,27 @@ class LoggerService{
 
   LogCallback? onLog;
   int _time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  LogLevel level;
 
   factory LoggerService({
     LogCallback? onLog,
+    LogLevel level = LogLevel.debug,
   }){
     return LoggerService._(
       onLog: onLog,
+      level: level
     );
   }
   
   LoggerService._({
     this.onLog,
+    this.level = LogLevel.debug,
   }){
-    logging.Logger.root.level = logging.Level.ALL;
+    logging.Logger.root.level = switch(level) {
+      LogLevel.debug => logging.Level.ALL,
+      LogLevel.errors => logging.Level.SEVERE,
+      LogLevel.none => logging.Level.OFF,
+    };
     logging.Logger.root.onRecord.listen((record) {
       double delta = DateTime.now().millisecondsSinceEpoch / 1000 - _time.toDouble();
       _time = DateTime.now().millisecondsSinceEpoch ~/ 1000;

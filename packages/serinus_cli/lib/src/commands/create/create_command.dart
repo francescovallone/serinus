@@ -62,7 +62,7 @@ class CreateCommand extends Command<int> {
     );
     final vars = <String, dynamic>{
       'name': projectName,
-      'output': outputDirectory.absolute.path
+      'output': outputDirectory.absolute.path,
     };
     await generator.generate(
       DirectoryGeneratorTarget(outputDirectory),

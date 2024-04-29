@@ -9,8 +9,6 @@ typedef ErrorHandler = void Function(dynamic e, StackTrace stackTrace);
 
 abstract class HttpServerAdapter<TServer> extends Adapter<TServer>{
 
-  TServer? server;
-
   @override
   Future<void> init({
     String host = 'localhost',

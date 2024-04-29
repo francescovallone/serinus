@@ -14,7 +14,7 @@ import 'my_routes.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context, request) {
+    on(GetRoute(path: '/'), (context) {
       return Response.text(
         data: 'Hello World!',
       );
@@ -68,7 +68,7 @@ import 'my_routes.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/<id>'), (context, request) {
+    on(GetRoute(path: '/<id>'), (context) {
       return Response.text(
         data: 'Hello World!',
       );
@@ -123,9 +123,7 @@ import 'package:serinus/serinus.dart';
 
 class MyPipe extends Pipe {
   @override
-  Future<void> transform({
-    required Request request,
-  }){
+  Future<void> transform(ExecutionContext context){
     print('Pipe executed');
   }
 }
@@ -165,50 +163,11 @@ import 'package:serinus/serinus.dart';
 
 class MyGuard extends Guard {
   @override
-  Future<bool> check({
-    required Request request,
-  }){
+  Future<bool> canActivate(ExecutionContext context){
     print('Guard executed');
     return Future.value(true);
   }
 }
 ```
 
-:::
-
-## BodyTransformers
-
-BodyTransformers are callable classes that can be used to transform the body of the request before it reaches the controller.
-
-To create a BodyTransformer you need to create a class that extends the `BodyTransformer` class and override the `call` method.
-
-::: code-group
-
-```dart [my_body_transformers.dart]
-import 'package:serinus/serinus.dart';
-
-class MyBodyTransformer extends BodyTransformer {
-  @override
-  Future<void> call({
-    required Request request,
-  }) async {
-    print('BodyTransformer executed');
-  }
-}
-```
-
-```dart [my_controller.dart]
-import 'package:serinus/serinus.dart';
-import 'my_body_transformers.dart';
-
-class MyController extends Controller {
-  MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context, request) {
-      return Response.text(
-        data: 'Hello World!',
-      );
-    }, bodyTransformer: MyBodyTransformer());
-  }
-}
-```
 :::
