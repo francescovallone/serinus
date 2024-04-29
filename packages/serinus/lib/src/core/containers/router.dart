@@ -1,5 +1,4 @@
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/commons/versioning.dart';
 import 'package:spanner/spanner.dart';
 
 class Router {

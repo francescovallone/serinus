@@ -4,7 +4,6 @@ import 'package:meta/meta.dart';
 import 'package:serinus/src/commons/commons.dart';
 import 'package:serinus/src/commons/errors/initialization_error.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
-import 'package:serinus/src/commons/versioning.dart';
 import 'package:serinus/src/core/consumers/request_handler.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
 import 'package:serinus/src/core/containers/router.dart';
