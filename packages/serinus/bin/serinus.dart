@@ -1,5 +1,5 @@
 import 'package:serinus/serinus.dart';
-
+import 'package:serinus/src/commons/versioning.dart';
 
 class TestMiddleware extends Middleware {
   int counter = 0;
@@ -7,32 +7,31 @@ class TestMiddleware extends Middleware {
   TestMiddleware() : super(routes: ['*']);
 
   @override
-  Future<void> use(RequestContext context, InternalResponse response, NextFunction next) async {
+  Future<void> use(RequestContext context, InternalResponse response,
+      NextFunction next) async {
     print('Middleware executed ${++counter}');
     return next();
   }
 }
 
-class TestProvider extends Provider{
-
+class TestProvider extends Provider {
   final List<String> testList = [];
 
   TestProvider({super.isGlobal});
 
-  String testMethod(){
+  String testMethod() {
     testList.add('Hello world');
     return 'Hello world';
   }
-
 }
 
-class TestProviderTwo extends Provider with OnApplicationInit, OnApplicationShutdown{
-
+class TestProviderTwo extends Provider
+    with OnApplicationInit, OnApplicationShutdown {
   final TestProvider testProvider;
 
   TestProviderTwo(this.testProvider);
 
-  String testMethod(){
+  String testMethod() {
     testProvider.testMethod();
     return '${testProvider.testList} from provider two';
   }
@@ -46,35 +45,33 @@ class TestProviderTwo extends Provider with OnApplicationInit, OnApplicationShut
   Future<void> onApplicationShutdown() async {
     print('Provider two shutdown');
   }
-
 }
 
 class TestGuard extends Guard {
-
   @override
   Future<bool> canActivate(ExecutionContext context) async {
     context.addDataToRequest('test', 'Hello world');
     return true;
   }
-
 }
 
 class GetRoute extends Route {
-
   const GetRoute({
-    required super.path, 
+    required super.path,
     super.method = HttpMethod.get,
   });
 
   @override
-  List<Guard> get guards => [TestGuard()];
+  // TODO: implement version
+  int? get version => 2;
 
+  @override
+  List<Guard> get guards => [TestGuard()];
 }
 
 class PostRoute extends Route {
-
   const PostRoute({
-    required super.path, 
+    required super.path,
     super.method = HttpMethod.post,
     super.queryParameters = const {
       'hello': String,
@@ -83,27 +80,23 @@ class PostRoute extends Route {
 
   @override
   List<Guard> get guards => [TestGuard()];
-
 }
 
 class HomeController extends Controller {
-  HomeController({super.path = '/'}){
+  HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
       context.use<TestProviderTwo>().testMethod();
-      return Response.text(
-        context.use<TestProviderTwo>().testMethod()
-      );
+      return Response.text(context.use<TestProviderTwo>().testMethod());
     });
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
-        '${context.request.getData('test')} ${context.pathParameters}'
-      );
+          '${context.request.getData('test')} ${context.pathParameters}');
     });
   }
 }
 
 class HomeAController extends Controller {
-  HomeAController() : super(path: '/a'){
+  HomeAController() : super(path: '/a') {
     on(GetRoute(path: '/'), (context) async {
       return Response.redirect('/');
     });
@@ -112,61 +105,43 @@ class HomeAController extends Controller {
 
   Future<Response> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
-    return Response.text(
-      'Hello world from a ${context.pathParameters}'
-    );
+    return Response.text('Hello world from a ${context.pathParameters}');
   }
 }
 
 class AppModule extends Module {
-  AppModule() : super(
-    imports: [
-      ReAppModule()
-    ],
-    controllers: [
-      HomeController()
-    ],
-    providers: [
-      TestProvider(
-        isGlobal: true
-      )
-    ],
-    middlewares: [
-      TestMiddleware()
-    ]
-  );
-
+  AppModule()
+      : super(
+            imports: [ReAppModule()],
+            controllers: [HomeController()],
+            providers: [TestProvider(isGlobal: true)],
+            middlewares: [TestMiddleware()]);
 }
 
 class ReAppModule extends Module {
-  ReAppModule() : super(
-    imports: [
-    ],
-    controllers: [
-      HomeAController()
-    ],
-    providers: [
-      DeferredProvider(
-        inject: [TestProvider, TestProvider],
-        (context) async {
-          final prov = context.use<TestProvider>();
-          return TestProviderTwo(prov);
-        }
-      )
-    ],
-    middlewares: [
-      TestMiddleware()
-    ],
-    exports: [
-      TestProviderTwo
-    ]
-  );
+  ReAppModule()
+      : super(imports: [], controllers: [
+          HomeAController()
+        ], providers: [
+          DeferredProvider(inject: [TestProvider, TestProvider],
+              (context) async {
+            final prov = context.use<TestProvider>();
+            return TestProviderTwo(prov);
+          })
+        ], middlewares: [
+          TestMiddleware()
+        ], exports: [
+          TestProviderTwo
+        ]);
 }
 
 void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
-    entrypoint: AppModule()
-  );
+  SerinusApplication application =
+      await serinus.createApplication(entrypoint: AppModule());
   application.enableShutdownHooks();
+  // application.enableVersioning(
+  //   type: VersioningType.uri,
+  //   version: 1
+  // );
   await application.serve();
 }

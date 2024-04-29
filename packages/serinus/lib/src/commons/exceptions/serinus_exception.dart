@@ -3,7 +3,7 @@ import 'dart:io';
 
 /// The class SerinusException is used as superclass for all exceptions
 /// defined in Serinus
-/// 
+///
 /// Example:
 /// ``` dart
 /// class MyException extends SerinusException{
@@ -14,12 +14,11 @@ import 'dart:io';
 /// );
 /// }
 /// ```
-/// 
+///
 /// The [message] parameter is optional and is used to define the message of the exception
-/// 
+///
 /// The [uri] parameter is optional and is used to define the uri of the exception
-class SerinusException implements HttpException{
-  
+class SerinusException implements HttpException {
   @override
   final String message;
   @override
@@ -27,7 +26,8 @@ class SerinusException implements HttpException{
 
   final int statusCode;
 
-  const SerinusException({required this.message, required this.statusCode, this.uri});
+  const SerinusException(
+      {required this.message, required this.statusCode, this.uri});
 
   @override
   String toString() {

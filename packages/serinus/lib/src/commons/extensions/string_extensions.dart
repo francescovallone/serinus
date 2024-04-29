@@ -1,22 +1,20 @@
 import 'dart:convert';
 
 extension JsonString on String {
-  
-  bool isJson(){
-    try{
+  bool isJson() {
+    try {
       jsonDecode(this);
       return true;
-    }catch(e){
+    } catch (e) {
       return false;
     }
   }
 
-  dynamic tryParse(){
-    try{
+  dynamic tryParse() {
+    try {
       return jsonDecode(this);
-    }catch(e){
+    } catch (e) {
       return null;
     }
   }
-
 }

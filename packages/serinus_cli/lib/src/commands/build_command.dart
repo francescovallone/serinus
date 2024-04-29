@@ -15,7 +15,7 @@ class BuildCommand extends Command<int> {
   /// {@macro create_command}
   BuildCommand({
     Logger? logger,
-  })  : _logger = logger;
+  }) : _logger = logger;
 
   @override
   String get description => 'Build your Serinus application';
@@ -54,7 +54,9 @@ class BuildCommand extends Command<int> {
       dist.createSync();
     }
     final process = await Process.start(
-        'dart', ['compile', 'exe', entrypoint, '-o', 'dist/${content['name']}'],);
+      'dart',
+      ['compile', 'exe', entrypoint, '-o', 'dist/${content['name']}'],
+    );
 
     process.stdout.transform(utf8.decoder).listen((data) {
       final lines = data.split('\n');

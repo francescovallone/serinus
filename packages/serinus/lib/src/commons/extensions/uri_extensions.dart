@@ -17,6 +17,5 @@ extension CombineUriPath on Uri {
     }
 
     return combinedPath;
-
   }
 }

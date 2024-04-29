@@ -5,7 +5,6 @@ import 'package:serinus/serinus.dart';
 import 'serve_static_controller.dart';
 
 class ServeStaticModule extends Module {
-
   ServeStaticModule();
 
   @override
@@ -14,11 +13,9 @@ class ServeStaticModule extends Module {
     List<String> excludePaths = const [],
   }) {
     print(Directory.current.path);
-    controllers.add(
-      ServeStaticController(path: path, excludePaths: excludePaths)
-    );
+    controllers
+        .add(ServeStaticController(path: path, excludePaths: excludePaths));
 
     return super.registerAsync();
   }
-
 }

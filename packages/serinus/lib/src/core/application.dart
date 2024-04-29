@@ -4,6 +4,7 @@ import 'package:meta/meta.dart';
 import 'package:serinus/src/commons/commons.dart';
 import 'package:serinus/src/commons/errors/initialization_error.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
+import 'package:serinus/src/commons/versioning.dart';
 import 'package:serinus/src/core/consumers/request_handler.dart';
 import 'package:serinus/src/core/containers/module_container.dart';
 import 'package:serinus/src/core/containers/router.dart';
@@ -11,7 +12,6 @@ import 'package:serinus/src/core/core.dart';
 import 'package:serinus/src/core/injector/explorer.dart';
 
 sealed class Application {
-
   final String host;
   final int port;
   final LogLevel level;
@@ -31,13 +31,13 @@ sealed class Application {
     Router? router,
     ModulesContainer? modulesContainer,
     LoggerService? loggerService,
-  }) : router = router ?? Router(), 
-    loggerService = loggerService ?? LoggerService(level: level),
-    modulesContainer = modulesContainer ?? ModulesContainer();
+  })  : router = router ?? Router(),
+        loggerService = loggerService ?? LoggerService(level: level),
+        modulesContainer = modulesContainer ?? ModulesContainer();
 
   String get url;
 
-  T? get<T extends Provider>(){
+  T? get<T extends Provider>() {
     return modulesContainer.get<T>();
   }
 
@@ -45,8 +45,8 @@ sealed class Application {
 
   SerinusHttpServer get adapter => serverAdapter as SerinusHttpServer;
 
-  void enableShutdownHooks(){
-    if(!_enableShutdownHooks){
+  void enableShutdownHooks() {
+    if (!_enableShutdownHooks) {
       _enableShutdownHooks = true;
       ProcessSignal.sigint.watch().listen((event) async {
         await close();
@@ -61,17 +61,18 @@ sealed class Application {
   @internal
   Future<void> shutdown();
 
+  Future<void> preview();
+
   Future<void> serve();
 
   Future<void> close();
-
 }
 
 class SerinusApplication extends Application {
-
   ViewEngine? viewEngine;
   Cors? _cors;
   final Logger _logger = Logger('SerinusApplication');
+  VersioningOptions? versioning;
 
   SerinusApplication({
     required super.entrypoint,
@@ -83,29 +84,43 @@ class SerinusApplication extends Application {
   @override
   String get url => 'http://$host:$port';
 
-  void enableCors(Cors cors){
+  void enableCors(Cors cors) {
     _cors = cors;
   }
-  
-  void useViewEngine(ViewEngine viewEngine){
+
+  void useViewEngine(ViewEngine viewEngine) {
     this.viewEngine = viewEngine;
+  }
+
+  void enableVersioning(
+      {required VersioningType type, int? version, String? header}) {
+    versioning =
+        VersioningOptions(type: type, version: version, header: header);
+  }
+
+  @override
+  Future<void> preview() async {
+    final explorer = Explorer(modulesContainer, router, versioning);
+    explorer.resolveRoutes();
   }
 
   @override
   Future<void> serve() async {
-    try{
+    preview();
+    try {
       _logger.info("Starting server on $host:$port");
       await serverAdapter.listen(
         (request, response) async {
-          final handler = RequestHandler(router, modulesContainer, _cors);
-          await handler.handleRequest(request, response, viewEngine: viewEngine);
+          final handler = RequestHandler(router, modulesContainer, _cors, versioning);
+          await handler.handleRequest(request, response,
+              viewEngine: viewEngine);
         },
         errorHandler: (e, stackTrace) {
           print(e);
           print(stackTrace);
         },
       );
-    } on SocketException catch(_) {
+    } on SocketException catch (_) {
       _logger.severe('Failed to start server on $host:$port');
       await close();
     }
@@ -116,32 +131,26 @@ class SerinusApplication extends Application {
     await serverAdapter.close();
     await shutdown();
   }
-  
+
   @override
   Future<void> initialize() async {
-    if(entrypoint is DeferredModule){
+    if (entrypoint is DeferredModule) {
       throw InitializationError(
-        'The entry point of the application cannot be a DeferredModule'
-      );
+          'The entry point of the application cannot be a DeferredModule');
     }
     await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
     await modulesContainer.finalize();
-    final explorer = Explorer(
-      modulesContainer,
-      router
-    );
-    explorer.resolveRoutes();
   }
-  
+
   @override
   Future<void> shutdown() async {
     _logger.info('Shutting down server');
-    final registeredProviders = modulesContainer.modules.map((e) => e.providers).flatten();
-    for(final provider in registeredProviders){
-      if(provider is OnApplicationShutdown){
+    final registeredProviders =
+        modulesContainer.modules.map((e) => e.providers).flatten();
+    for (final provider in registeredProviders) {
+      if (provider is OnApplicationShutdown) {
         await provider.onApplicationShutdown();
       }
     }
   }
-
 }

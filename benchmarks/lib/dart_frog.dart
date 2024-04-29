@@ -4,9 +4,8 @@ import 'package:benchmarks/shared/serinus_benchmark.dart';
 import 'package:dart_frog/dart_frog.dart';
 
 class DartFrogAppBenchmark extends SerinusBenchmark {
-
   DartFrogAppBenchmark() : super(name: 'Dart Frog');
-  
+
   HttpServer? app;
 
   @override
@@ -19,5 +18,4 @@ class DartFrogAppBenchmark extends SerinusBenchmark {
   Future<void> teardown() async {
     await app?.close(force: true);
   }
-
 }

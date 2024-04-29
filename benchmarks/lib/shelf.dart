@@ -2,14 +2,12 @@ import 'package:benchmarks/shared/serinus_benchmark.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
-Response _echoRequest(Request request) =>
-    Response.ok('echo!');
+Response _echoRequest(Request request) => Response.ok('echo!');
 
 class ShelfAppBenchmark extends SerinusBenchmark {
-
   // ignore: prefer_typing_uninitialized_variables
   ShelfAppBenchmark() : super(name: 'Shelf');
-  
+
   var server;
 
   @override
@@ -23,5 +21,4 @@ class ShelfAppBenchmark extends SerinusBenchmark {
   Future<void> teardown() async {
     await server.close(force: true);
   }
-
 }

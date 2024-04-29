@@ -4,7 +4,6 @@ import '../commons/commons.dart';
 import 'guard.dart';
 
 abstract class Route {
-
   final String path;
   final HttpMethod method;
   final Map<String, Type> queryParameters;
@@ -12,10 +11,11 @@ abstract class Route {
   List<Guard> get guards => [];
   List<p.Pipe> get pipes => [];
 
+  int? get version => null;
+
   const Route({
     required this.path,
     required this.method,
     this.queryParameters = const {},
   });
-
 }

@@ -1,10 +1,10 @@
 name: ping_pong
-description: 
-
+description: example
+publish_to: none
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  serinus: ^0.1.1-dev.1
+  serinus: 0.2.0
   

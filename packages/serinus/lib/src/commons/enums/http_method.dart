@@ -1,7 +1,7 @@
 /// HTTP methods
-/// 
+///
 /// This enum contains all the HTTP methods that can be used in a request
-enum HttpMethod{
+enum HttpMethod {
   get,
   post,
   delete,
@@ -16,17 +16,17 @@ enum HttpMethod{
 }
 
 /// Extension method to convert a string to a [Method]
-/// 
+///
 /// This extension method can be used to convert a string to a [Method]
-/// 
+///
 /// Example:
-/// 
+///
 /// ``` dart
 /// Method method = 'post'.toMethod();
 /// ```
 extension StringMethod on String {
-  HttpMethod toHttpMethod(){
-    switch(toLowerCase().trim()){
+  HttpMethod toHttpMethod() {
+    switch (toLowerCase().trim()) {
       case 'post':
         return HttpMethod.post;
       case 'put':

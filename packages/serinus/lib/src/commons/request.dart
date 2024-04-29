@@ -10,9 +10,9 @@ import 'internal_request.dart';
 class Request {
   final InternalRequest _original;
 
-  Request(this._original, {this.params = const {}}){
-    for(final entry in _original.queryParameters.entries){
-      switch(entry.value.runtimeType){
+  Request(this._original, {this.params = const {}}) {
+    for (final entry in _original.queryParameters.entries) {
+      switch (entry.value.runtimeType) {
         case == int:
           _queryParamters[entry.key] = int.parse(entry.value);
           break;
@@ -49,40 +49,29 @@ class Request {
   Body? get body => _body;
 
   Future<void> parseBody() async {
-    if(_body != null){
+    if (_body != null) {
       return;
     }
     final contentType = _original.contentType;
-    if(contentType.isMultipart()){
-      final formData = await FormData.parseMultipart(request: _original.original);
-      _body = Body(
-        contentType,
-        formData: formData
-      );
+    if (contentType.isMultipart()) {
+      final formData =
+          await FormData.parseMultipart(request: _original.original);
+      _body = Body(contentType, formData: formData);
       return;
     }
     final body = await _original.body();
-    if(contentType.isUrlEncoded()){
+    if (contentType.isUrlEncoded()) {
       final formData = FormData.parseUrlEncoded(body);
-      _body = Body(
-        contentType,
-        formData: formData
-      );
+      _body = Body(contentType, formData: formData);
       return;
     }
-    if(body.isJson() || contentType == ContentType.json){
+    if (body.isJson() || contentType == ContentType.json) {
       final json = jsonDecode(body);
-      _body = Body(
-        contentType,
-        json: json
-      );
+      _body = Body(contentType, json: json);
       return;
     }
-    if(contentType == ContentType.binary){
-      _body = Body(
-        contentType,
-        bytes: body.codeUnits
-      );
+    if (contentType == ContentType.binary) {
+      _body = Body(contentType, bytes: body.codeUnits);
       return;
     }
     _body = Body(

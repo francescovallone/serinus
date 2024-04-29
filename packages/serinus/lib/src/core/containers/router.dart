@@ -1,27 +1,33 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/commons/versioning.dart';
 import 'package:spanner/spanner.dart';
 
 class Router {
 
+  final VersioningOptions? versioningOptions;
+
+  Router({
+    this.versioningOptions
+  });
+
   final Spanner _routeTree = Spanner();
 
   void registerRoute(RouteData routeData) {
-    final path = !routeData.path.startsWith('/') ? '/${routeData.path}' : routeData.path;
+    String path =
+        !routeData.path.startsWith('/') ? '/${routeData.path}' : routeData.path;
     _routeTree.addRoute(getHttpMethod(routeData.method), path, routeData);
   }
 
-  ({RouteData? route, Map<String, dynamic> params}) getRouteByPathAndMethod(String path, HttpMethod method) {
+  ({RouteData? route, Map<String, dynamic> params}) getRouteByPathAndMethod(
+      String path, HttpMethod method) {
     final result = _routeTree.lookup(getHttpMethod(method), Uri.parse(path));
-    return (
-      route: result?.values.firstOrNull,
-      params: result?.params ?? {}
-    );
+    return (route: result?.values.firstOrNull, params: result?.params ?? {});
   }
 
   List<RouteEntry> get routes => _routeTree.routes;
 
   HTTPMethod getHttpMethod(HttpMethod method) {
-    switch(method) {
+    switch (method) {
       case HttpMethod.get:
         return HTTPMethod.GET;
       case HttpMethod.post:
@@ -34,11 +40,9 @@ class Router {
         return HTTPMethod.PATCH;
     }
   }
-
 }
 
 class RouteData {
-
   final String path;
 
   final HttpMethod method;
@@ -51,13 +55,11 @@ class RouteData {
 
   final Map<String, Type> queryParameters;
 
-  RouteData({
-    required this.path,
-    required this.method,
-    required this.controller,
-    required this.routeCls,
-    required this.moduleToken,
-    this.queryParameters = const {}
-  });
-
+  RouteData(
+      {required this.path,
+      required this.method,
+      required this.controller,
+      required this.routeCls,
+      required this.moduleToken,
+      this.queryParameters = const {}});
 }

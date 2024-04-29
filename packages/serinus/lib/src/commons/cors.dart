@@ -2,12 +2,9 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/internal_request.dart';
 
 class Cors {
-
   final List<String> allowedOrigins;
 
-  Cors({
-    this.allowedOrigins = const ['*']
-  }) {
+  Cors({this.allowedOrigins = const ['*']}) {
     _defaultHeaders = {
       'Access-Control-Expose-Headers': '',
       'Access-Control-Allow-Credentials': 'true',
@@ -15,11 +12,11 @@ class Cors {
       'Access-Control-Allow-Methods': _defaultMethodsList.join(','),
       'Access-Control-Max-Age': '86400',
     };
-    _defaultHeadersAll = _defaultHeaders.map((key, value) => MapEntry(key, [value]));
+    _defaultHeadersAll =
+        _defaultHeaders.map((key, value) => MapEntry(key, [value]));
   }
 
   Map<String, List<String>> _defaultHeadersAll = {};
-
 
   final _defaultHeadersList = [
     'accept',
@@ -44,22 +41,20 @@ class Cors {
   Map<String, String> _defaultHeaders = {};
   Map<String, String> responseHeaders = {};
 
-  Future<Response?> call(
-    InternalRequest request,
-    Request wrappedRequest,
-    RequestContext? context,
-    ReqResHandler? handler,
-    [List<String> allowedOrigins = const ['*']]
-  ) async {
+  Future<Response?> call(InternalRequest request, Request wrappedRequest,
+      RequestContext? context, ReqResHandler? handler,
+      [List<String> allowedOrigins = const ['*']]) async {
     final origin = request.headers['origin'];
-    if (origin == null || (!allowedOrigins.contains('*') && !allowedOrigins.contains(origin))) {
+    if (origin == null ||
+        (!allowedOrigins.contains('*') && !allowedOrigins.contains(origin))) {
       return handler!(context!);
     }
     final headers = <String, List<String>>{
       ..._defaultHeadersAll,
     };
     headers['Access-Control-Allow-Origin'] = [origin];
-    final stringHeaders = headers.map((key, value) => MapEntry(key, value.join(',')));
+    final stringHeaders =
+        headers.map((key, value) => MapEntry(key, value.join(',')));
     responseHeaders = {
       ...stringHeaders,
     };
@@ -75,5 +70,4 @@ class Cors {
     });
     return response;
   }
-
 }

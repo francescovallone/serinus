@@ -3,8 +3,7 @@ import 'dart:io' as io;
 import '../internal_request.dart';
 import 'server_adapter.dart';
 
-class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
-
+class SerinusHttpServer extends HttpServerAdapter<io.HttpServer> {
   factory SerinusHttpServer() {
     return _singleton;
   }
@@ -12,17 +11,16 @@ class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
   SerinusHttpServer._();
 
   static final SerinusHttpServer _singleton = SerinusHttpServer._();
-  
+
   @override
-  Future<void> init({
-    String host = 'localhost',
-    int port = 3000,
-    String poweredByHeader = 'Powered by Serinus',
-    io.SecurityContext? securityContext
-  }) async {
-    if(securityContext == null){
+  Future<void> init(
+      {String host = 'localhost',
+      int port = 3000,
+      String poweredByHeader = 'Powered by Serinus',
+      io.SecurityContext? securityContext}) async {
+    if (securityContext == null) {
       server = await io.HttpServer.bind(host, port);
-    }else{ 
+    } else {
       server = await io.HttpServer.bindSecure(host, port, securityContext);
     }
     server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
@@ -34,28 +32,19 @@ class SerinusHttpServer extends HttpServerAdapter<io.HttpServer>{
   }
 
   @override
-  Future<void> listen(
-    RequestCallback requestCallback,
-    {
-      ErrorHandler? errorHandler
-    }
-  ) async {
+  Future<void> listen(RequestCallback requestCallback,
+      {ErrorHandler? errorHandler}) async {
     try {
-      server?.listen(
-        (req) async {
-          final request = InternalRequest.from(req, baseUrl: '');
-          final response = request.response;
-          await requestCallback.call(request, response);
-        },
-        onError: errorHandler
-      );
-    }catch(e){
-      if(errorHandler == null) {
+      server?.listen((req) async {
+        final request = InternalRequest.from(req, baseUrl: '');
+        final response = request.response;
+        await requestCallback.call(request, response);
+      }, onError: errorHandler);
+    } catch (e) {
+      if (errorHandler == null) {
         rethrow;
       }
       errorHandler.call(e, StackTrace.current);
-    } 
+    }
   }
-
-
 }

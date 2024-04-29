@@ -9,9 +9,7 @@ extension FirstWhereOrNull<T> on Iterable<T> {
 }
 
 extension Flatten<T> on Iterable<Iterable<T>> {
-  Iterable<T> flatten() => [
-    for (var element in this) ...element
-  ];
+  Iterable<T> flatten() => [for (var element in this) ...element];
 }
 
 extension SegmentedPathMap on Iterable<String> {

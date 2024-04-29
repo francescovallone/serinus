@@ -2,9 +2,8 @@ import 'package:benchmarks/shared/serinus_benchmark.dart';
 import 'package:pharaoh/pharaoh.dart';
 
 class PharaohAppBenchmark extends SerinusBenchmark {
-
   PharaohAppBenchmark() : super(name: 'Pharaoh');
-  
+
   final app = Pharaoh();
 
   @override
@@ -17,5 +16,4 @@ class PharaohAppBenchmark extends SerinusBenchmark {
   Future<void> teardown() async {
     await app.shutdown();
   }
-
 }

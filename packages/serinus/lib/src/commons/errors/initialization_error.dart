@@ -2,8 +2,7 @@
 /// the initialization of the Serinus Application went wrong not for an error
 /// of the library but caused by the user.
 class InitializationError extends Error {
-
-    /// Message describing the initialization error.
+  /// Message describing the initialization error.
   final String? message;
 
   InitializationError([this.message]);

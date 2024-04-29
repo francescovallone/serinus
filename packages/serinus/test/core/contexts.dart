@@ -1,49 +1,39 @@
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
-class TestProvider extends Provider {  
+class TestProvider extends Provider {
   TestProvider();
 }
 
 class ContextsTestSuite {
-
-  static void runTests(){
-
-    group(
-      '$ApplicationContext', 
-      () {
-        test(
+  static void runTests() {
+    group('$ApplicationContext', () {
+      test(
           'when a $ApplicationContext is created, then it should have a list of providers',
           () {
-            final context = ApplicationContext({}, 'test');
+        final context = ApplicationContext({}, 'test');
 
-            expect(context.providers, {});
-          }
-        );
+        expect(context.providers, {});
+      });
 
-        test(
+      test(
           'when a provider is added to the context, then it should be available to be used',
           () {
-            final context = ApplicationContext({}, 'test');
-            final provider = TestProvider();
+        final context = ApplicationContext({}, 'test');
+        final provider = TestProvider();
 
-            context.addProviderToContext(provider);
+        context.addProviderToContext(provider);
 
-            expect(context.use<TestProvider>(), provider);
-          }
-        );
+        expect(context.use<TestProvider>(), provider);
+      });
 
-        test(
+      test(
           'when a provider is not available in the context, then a StateError should be thrown',
           () {
-            final context = ApplicationContext({}, 'test');
+        final context = ApplicationContext({}, 'test');
 
-            expect(() => context.use<TestProvider>(), throwsStateError);
-          }
-        );
-      }
-    );
-
+        expect(() => context.use<TestProvider>(), throwsStateError);
+      });
+    });
   }
-
 }

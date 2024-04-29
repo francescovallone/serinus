@@ -1,7 +1,6 @@
 import 'dart:io';
 
 class Session {
-
   final HttpSession _original;
 
   Session(this._original);
@@ -25,5 +24,4 @@ class Session {
   void destroy() {
     _original.destroy();
   }
-
 }

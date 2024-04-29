@@ -3,21 +3,22 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 
-class ServeRouteGet extends Route{
-  
+class ServeRouteGet extends Route {
   const ServeRouteGet({super.path = '/*', super.method = HttpMethod.get});
-
 }
 
-class ServeStaticController extends Controller{
-
+class ServeStaticController extends Controller {
   final List<String> excludePaths;
 
-  ServeStaticController({required super.path, this.excludePaths = const [],}){
+  ServeStaticController({
+    required super.path,
+    this.excludePaths = const [],
+  }) {
     on(ServeRouteGet(), (context) async {
       final path = context.request.path;
       Directory current = Directory.current;
-      print('Current path: ${Uri(path: '${current.path}/$path').path.replaceAll('//', '/')}');
+      print(
+          'Current path: ${Uri(path: '${current.path}/$path').path.replaceAll('//', '/')}');
       final file = File('${current.path}/$path');
       // if(excludePaths.isNotEmpty){
       //   for(var excludePath in excludePaths){
@@ -26,7 +27,7 @@ class ServeStaticController extends Controller{
       //     }
       //   }
       // }
-      if(!file.existsSync()){
+      if (!file.existsSync()) {
         throw NotFoundException(message: "The file $path does not exist");
       }
       // final byteSink = ByteAccumulatorSink();
@@ -34,5 +35,4 @@ class ServeStaticController extends Controller{
       return Response.text(Utf8Decoder().convert([]));
     });
   }
-
 }

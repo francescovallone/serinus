@@ -6,11 +6,9 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
 import 'package:serinus/src/core/containers/router.dart';
 
-
 typedef ReqResHandler = Future<Response> Function(RequestContext context);
 
 abstract class Controller {
-
   final String path;
   List<Guard> get guards => [];
   List<Pipe> get pipes => [];
@@ -23,18 +21,19 @@ abstract class Controller {
 
   Map<RouteSpec, ReqResHandler> get routes => UnmodifiableMapView(_routes);
 
-  RouteSpec? get(RouteData routeData){
-    return _routes.keys.firstWhereOrNull(
-      (r) => r.route.runtimeType == routeData.routeCls && 
-        r.path == routeData.path && 
-        r.method == routeData.method
-    );
+  RouteSpec? get(RouteData routeData, [int? version]) {
+    return _routes.keys.firstWhereOrNull((r) => r.route.runtimeType == routeData.routeCls &&
+        r.path == routeData.path.replaceFirst('/v${r.route.version ?? version ?? 0}', '') &&
+        r.method == routeData.method);
   }
 
   @mustCallSuper
-  void on<R extends Route>(R route, ReqResHandler handler){
-    final routeExists = _routes.keys.any((r) => r.route.runtimeType == R && r.path == route.path && r.method == route.method);
-    if(routeExists){
+  void on<R extends Route>(R route, ReqResHandler handler) {
+    final routeExists = _routes.keys.any((r) =>
+        r.route.runtimeType == R &&
+        r.path == route.path &&
+        r.method == route.method);
+    if (routeExists) {
       throw StateError('A route of type $R already exists in this controller');
     }
     final routeSpec = RouteSpec(
@@ -44,11 +43,9 @@ abstract class Controller {
     );
     _routes[routeSpec] = handler;
   }
-
 }
 
 class RouteSpec {
-
   final String path;
   final HttpMethod method;
   final Route route;
@@ -58,5 +55,4 @@ class RouteSpec {
     required this.path,
     required this.method,
   });
-
 }
