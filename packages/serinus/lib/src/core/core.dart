@@ -1,4 +1,5 @@
 export 'application.dart';
+export 'application_config.dart';
 export 'contexts/contexts.dart';
 export 'controller.dart';
 export 'factory.dart' hide SerinusFactory;

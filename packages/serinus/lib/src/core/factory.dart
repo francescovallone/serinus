@@ -21,7 +21,12 @@ class SerinusFactory {
         host: Platform.environment['HOST'] ?? host);
     final app = SerinusApplication(
         entrypoint: entrypoint,
-        serverAdapter: server,
+        config: ApplicationConfig(
+            host: host,
+            port: port,
+            poweredByHeader: poweredByHeader,
+            securityContext: securityContext,
+            serverAdapter: server),
         level: loggingLevel,
         loggerService: loggerService);
     await app.initialize();

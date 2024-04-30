@@ -11,10 +11,9 @@ import 'package:serinus/src/core/contexts/request_context.dart';
 class RequestHandler {
   final Router router;
   final ModulesContainer modulesContainer;
-  final Cors? cors;
-  final VersioningOptions? versioningOptions;
+  final ApplicationConfig config;
 
-  const RequestHandler(this.router, this.modulesContainer, this.cors, this.versioningOptions);
+  const RequestHandler(this.router, this.modulesContainer, this.config);
 
   /// Handles the request and sends the response
   ///
@@ -33,7 +32,7 @@ class RequestHandler {
   Future<void> handleRequest(InternalRequest request, InternalResponse response,
       {ViewEngine? viewEngine}) async {
     if (request.method == 'OPTIONS') {
-      await cors?.call(request, Request(request), null, null);
+      await config.cors?.call(request, Request(request), null, null);
       return;
     }
     Response? result;
@@ -47,7 +46,7 @@ class RequestHandler {
                 'No route found for path ${request.path} and method ${request.method}');
       }
       final controller = routeData.controller;
-      final routeSpec = controller.get(routeData, versioningOptions?.version);
+      final routeSpec = controller.get(routeData, config.versioningOptions?.version);
       if (routeSpec == null) {
         throw InternalServerErrorException(
             message: 'Route spec not found for route ${routeData.path}');
@@ -94,14 +93,14 @@ class RequestHandler {
         throw InternalServerErrorException(
             message: 'Route handler not found for route ${routeData.path}');
       }
-      if (cors != null) {
-        result = await cors?.call(
-            request, wrappedRequest, context, handler, cors!.allowedOrigins);
+      if (config.cors != null) {
+        result = await config.cors?.call(
+            request, wrappedRequest, context, handler, config.cors?.allowedOrigins ?? ['*']);
       } else {
         result = await handler.call(context);
       }
     } on SerinusException catch (e) {
-      response.headers(cors?.responseHeaders ?? {});
+      response.headers(config.cors?.responseHeaders ?? {});
       response.status(e.statusCode);
       response.send(e.toString());
       return;

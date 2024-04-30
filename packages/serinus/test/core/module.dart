@@ -19,13 +19,15 @@ class TestProviderExported extends Provider {
   TestProviderExported();
 }
 
+final config = ApplicationConfig(host: 'localhost', port: 3000, poweredByHeader: 'Powered by Serinus', securityContext: null, serverAdapter: SerinusHttpServer());
+
 class ModuleTestSuite {
   static void runTests() {
     group('$Module', () {
       test('''when a $Module is registered in the application, 
           then all the submodules should be registered as well
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         await container.registerModules(
             TestModule(imports: [TestSubModule()]), Type);
@@ -40,7 +42,7 @@ class ModuleTestSuite {
           and has exports, 
           then it should throw a $InitializationError
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         container
             .registerModules(
@@ -57,7 +59,7 @@ class ModuleTestSuite {
           and it imports itself,
           then it should throw a $InitializationError
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         container
             .registerModules(
@@ -73,7 +75,7 @@ class ModuleTestSuite {
           and it exports a provider that is not registered in the module,
           then it should throw a $InitializationError
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         await container.registerModules(
             TestModule(
@@ -91,7 +93,7 @@ class ModuleTestSuite {
           '''when the function 'getModuleByToken' is called with a token that does not exist,
           then it should throw an $ArgumentError
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         expect(() => container.getModuleByToken('test'),
             throwsA(isA<ArgumentError>()));
@@ -101,7 +103,7 @@ class ModuleTestSuite {
           '''when the function 'getParents' is called with a module that has no parents,
           then it should return an empty list
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         final module = TestModule();
         final parents = container.getParents(module);
@@ -113,7 +115,7 @@ class ModuleTestSuite {
           '''when the function 'getParents' is called with a module that has parents,
           then it should return a list with the parents
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
         final subModule = TestSubModule();
         final module = TestModule(imports: [subModule]);
 
@@ -130,7 +132,7 @@ class ModuleTestSuite {
           '''when a $DeferredModule is registered in the application through a $Module,
           then it should be initialized after the 'eager' modules
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
         final subModule = TestSubModule();
         final module = TestModule(imports: [
           DeferredModule((context) async => subModule, inject: [])
