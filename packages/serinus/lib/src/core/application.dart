@@ -93,20 +93,19 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> preview() async {
-    final explorer = Explorer(modulesContainer, router, config.versioningOptions);
+    final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
   }
 
   @override
   Future<void> serve() async {
-    preview();
+    await preview();
     try {
       _logger.info("Starting server on $url");
       final handler = RequestHandler(router, modulesContainer, config);
       await config.serverAdapter.listen(
         (request, response) async {
-          await handler.handleRequest(request, response,
-              viewEngine: config.viewEngine);
+          await handler.handleRequest(request, response);
         },
         errorHandler: (e, stackTrace) {
           print(e);

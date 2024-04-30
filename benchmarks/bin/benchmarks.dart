@@ -8,7 +8,7 @@ Map<String, Result?> results = {};
 Future<void> main(List<String> arguments) async {
   results['shelf'] = await benchmarks.ShelfAppBenchmark().report();
   results['serinus'] = await benchmarks.SerinusAppBenchmark().report();
-  results['vania (no_cli)'] = await benchmarks.VaniaAppBenchmark().report();
+  // results['vania (no_cli)'] = await benchmarks.VaniaAppBenchmark().report();
   results['pharaoh'] = await benchmarks.PharaohAppBenchmark().report();
   results['dart_frog (no_cli)'] =
       await benchmarks.DartFrogAppBenchmark().report();

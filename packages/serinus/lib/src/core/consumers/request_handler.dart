@@ -29,8 +29,7 @@ class RequestHandler {
   /// 3. [Guard] execution
   /// 4. [Route] handler execution
   /// 5. Outgoing response
-  Future<void> handleRequest(InternalRequest request, InternalResponse response,
-      {ViewEngine? viewEngine}) async {
+  Future<void> handleRequest(InternalRequest request, InternalResponse response) async {
     if (request.method == 'OPTIONS') {
       await config.cors?.call(request, Request(request), null, null);
       return;
@@ -109,7 +108,7 @@ class RequestHandler {
       throw InternalServerErrorException(
           message: 'Route handler did not return a response');
     }
-    await response.finalize(result, viewEngine: viewEngine,);
+    await response.finalize(result, viewEngine: config.viewEngine);
   }
 
   Future<void> _executeGuards(

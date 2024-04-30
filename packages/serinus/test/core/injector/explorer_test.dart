@@ -20,7 +20,7 @@ class ExplorerTestsSuite {
         await modulesContainer.registerModule(
             SimpleMockModule(controllers: [MockController()]),
             SimpleMockModule);
-        final explorer = Explorer(modulesContainer, router, null);
+        final explorer = Explorer(modulesContainer, router, config);
         explorer.resolveRoutes();
         expect(router.routes.length, 1);
       });
@@ -33,14 +33,14 @@ class ExplorerTestsSuite {
         await modulesContainer.registerModule(
             SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
             SimpleMockModule);
-        final explorer = Explorer(modulesContainer, router, null);
+        final explorer = Explorer(modulesContainer, router, config);
         expect(() => explorer.resolveRoutes(), throwsException);
       });
 
       test(
           'when a path without leading slash is passed, then the path will be normalized',
           () {
-        final explorer = Explorer(ModulesContainer(config), Router(), null);
+        final explorer = Explorer(ModulesContainer(config), Router(), config);
         final path = 'test';
         final normalizedPath = explorer.normalizePath(path);
         expect(normalizedPath, '/test');
@@ -49,7 +49,7 @@ class ExplorerTestsSuite {
       test(
           'when a path with multiple slashes is passed, then the path will be normalized',
           () {
-        final explorer = Explorer(ModulesContainer(config), Router(), null);
+        final explorer = Explorer(ModulesContainer(config), Router(), config);
         final path = '/test//test';
         final normalizedPath = explorer.normalizePath(path);
         expect(normalizedPath, '/test/test');

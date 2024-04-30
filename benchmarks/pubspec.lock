@@ -423,7 +423,7 @@ packages:
       path: "../packages/serinus"
       relative: true
     source: path
-    version: "0.1.1-dev.1"
+    version: "0.2.0"
   shelf:
     dependency: "direct main"
     description:
