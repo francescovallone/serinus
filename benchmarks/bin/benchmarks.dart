@@ -10,6 +10,7 @@ Future<void> main(List<String> arguments) async {
   results['serinus'] = await benchmarks.SerinusAppBenchmark().report();
   // results['vania (no_cli)'] = await benchmarks.VaniaAppBenchmark().report();
   results['pharaoh'] = await benchmarks.PharaohAppBenchmark().report();
+  results['angel3'] = await benchmarks.Angel3AppBenchmark().report();
   results['dart_frog (no_cli)'] =
       await benchmarks.DartFrogAppBenchmark().report();
   await saveToFile();
