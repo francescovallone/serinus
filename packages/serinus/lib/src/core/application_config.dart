@@ -50,11 +50,20 @@ final class ApplicationConfig {
   /// If the view engine is already set, a [StateError] will be thrown
   ViewEngine? _viewEngine;
   
+  /// The global prefix for the application
+  /// This can be set using the [setGlobalPrefix] method
+  /// The global prefix can be set only once
+  /// If the global prefix is already set, a [StateError] will be thrown
+  /// If not set, the default value is an empty string
+  GlobalPrefix? _globalPrefix;
+
   VersioningOptions? get versioningOptions => _versioningOptions;
 
   Cors? get cors => _cors;
 
   ViewEngine? get viewEngine => _viewEngine;
+  
+  GlobalPrefix? get globalPrefix => _globalPrefix;
 
   String get baseUrl => '${securityContext != null ? 'https' : 'http'}://$host:$port';
 
@@ -63,6 +72,13 @@ final class ApplicationConfig {
       throw StateError('Versioning options already set');
     }
     _versioningOptions = value;
+  }
+
+  set globalPrefix(GlobalPrefix? value) {
+    if(_globalPrefix != null) {
+      throw StateError('Global prefix already set');
+    }
+    _globalPrefix = value;
   }
 
   set cors(Cors? value) {

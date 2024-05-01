@@ -10,7 +10,7 @@ class VersioningTestsSuite {
         () {
           expect(
             () => VersioningOptions(type: VersioningType.header),
-            throwsA(isA<AssertionError>())
+            throwsA(isA<ArgumentError>())
           );
         }
       );

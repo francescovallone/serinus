@@ -11,9 +11,14 @@ class VersioningOptions {
   final VersioningType type;
   final String? header;
 
-  VersioningOptions({required this.type, this.version = 1, this.header})
-      : assert(type == VersioningType.header && header != null,
-            'The header field must be populated if the type is ${VersioningType.header}');
+  VersioningOptions({required this.type, this.version = 1, this.header}){
+    if (version < 1) {
+      throw ArgumentError.value(version, 'version', 'Version must be greater than 0');
+    }
+    if(type == VersioningType.header && header == null) {
+      throw ArgumentError.notNull('header');
+    }
+  }
 }
 
 enum VersioningType {

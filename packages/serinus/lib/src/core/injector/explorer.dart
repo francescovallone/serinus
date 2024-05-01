@@ -37,7 +37,9 @@ class Explorer {
     final routes = controller.routes;
     final maybeUriVers = config.versioningOptions?.type == VersioningType.uri;
     for (var spec in routes.keys) {
-      String routePath = normalizePath('${maybeUriVers ? 'v${spec.route.version ?? config.versioningOptions?.version}' : '' }$controllerPath${spec.path}');
+      String routePath = normalizePath(
+        '${config.globalPrefix != null ? '${config.globalPrefix?.prefix}/' : ''}${maybeUriVers ? 'v${spec.route.version ?? config.versioningOptions?.version}/' : '' }$controllerPath${spec.path}'
+      );
       final routeMethod = spec.method;
       _router.registerRoute(
         RouteData(

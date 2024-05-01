@@ -91,6 +91,10 @@ class SerinusApplication extends Application {
         VersioningOptions(type: type, version: version, header: header);
   }
 
+  void setGlobalPrefix(GlobalPrefix prefix) {
+    config.globalPrefix = prefix;
+  }
+
   @override
   Future<void> preview() async {
     final explorer = Explorer(modulesContainer, router, config);
