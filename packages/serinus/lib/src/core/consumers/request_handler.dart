@@ -149,36 +149,31 @@ class RequestHandler {
 
   Set<Middleware> _recursiveGetMiddlewares(
       Module module, RouteData routeData, Map<String, dynamic> params) {
-    Map<Type, Middleware> middlewares = {
-      for (final m in module.middlewares) m.runtimeType: m
-    };
-    final parents = modulesContainer.getParents(module);
-    for (final parent in parents) {
-      middlewares.addEntries(parent.middlewares.where((element) {
-        final routes = element.routes;
-        for (final route in routes) {
-          final segments = route.split('/');
-          final routeSegments = routeData.path.split('/');
-          if (routeSegments.length > segments.length && segments.last == '*') {
-            return true;
-          }
-          if (routeSegments.length == segments.length) {
-            for (int i = 0; i < segments.length; i++) {
-              if (segments[i] != routeSegments[i] &&
-                  segments[i] != '*' &&
-                  params.isEmpty) {
-                return false;
-              }
+    Set<Middleware> middlewares = Set<Middleware>.from(module.middlewares);
+    Set<Middleware> executedMiddlewares = {};
+    for(Middleware middleware in middlewares) {
+      for (final route in middleware.routes) {
+        final segments = route.split('/');
+        final routeSegments = routeData.path.split('/');
+        if (routeSegments.length > segments.length && segments.last == '*') {
+          executedMiddlewares.add(middleware);
+        }
+        if (routeSegments.length == segments.length) {
+          bool match = true;
+          for (int i = 0; i < segments.length; i++) {
+            if (segments[i] != routeSegments[i] &&
+                segments[i] != '*' &&
+                params.isEmpty) {
+              match = false;
             }
-            return true;
+          }
+          if (match) {
+            executedMiddlewares.add(middleware);
           }
         }
-        return false;
-      }).map((e) => MapEntry(e.runtimeType, e)));
-      middlewares.addEntries(_recursiveGetMiddlewares(parent, routeData, params)
-          .map((e) => MapEntry(e.runtimeType, e)));
+      }
     }
-    return middlewares.values.toSet();
+    return executedMiddlewares;
   }
 
   Future<void> _executeMiddlewares(

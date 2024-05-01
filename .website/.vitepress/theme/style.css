@@ -15,6 +15,8 @@
 	--vp-c-brand-dark: #F57C00;
 	--vp-c-brand-darker: #E65100;
 	--vp-c-brand-dimm: rgba(255, 87, 34, 0.08);
+	--vp-home-hero-name-background: var(--vp-c-brand-1) !important;
+
 }
 
 /**

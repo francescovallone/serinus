@@ -20,3 +20,16 @@ extension SegmentedPathMap on Iterable<String> {
     });
   }
 }
+
+extension AddIfAbsent<T> on Iterable<T> {
+  Iterable<T> addIfAbsent(T element) {
+    if (!contains(element)) {
+      return [...this, element];
+    }
+    return this;
+  }
+
+  Iterable<T> addMultiIfAbsents(Iterable<T> elements) {
+    return elements.fold(this, (acc, element) => acc.addIfAbsent(element));
+  }
+}
