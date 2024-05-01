@@ -65,29 +65,37 @@ class RequestHandler {
       await _executeMiddlewares(context, routeData, wrappedRequest, response,
           module, routeLookup.params);
       final moduleGuards = _recursiveGetModuleGuards(module, routeData);
+      final guardsConsumer = GuardsConsumer(
+        wrappedRequest, 
+        routeData, 
+        scopedProviders, 
+        body: body
+      );
       if (moduleGuards.isNotEmpty) {
-        await _executeGuards(wrappedRequest, routeData, moduleGuards, body,
-            [...scopedProviders]);
+        await _executeGuards(guardsConsumer, moduleGuards, wrappedRequest);
       }
       if (controller.guards.isNotEmpty) {
-        await _executeGuards(wrappedRequest, routeData, controller.guards, body,
-            [...scopedProviders]);
+        await _executeGuards(guardsConsumer, controller.guards, wrappedRequest);
       }
       if (route.guards.isNotEmpty) {
-        await _executeGuards(wrappedRequest, routeData, route.guards, body,
-            [...scopedProviders]);
+        await _executeGuards(guardsConsumer, route.guards, wrappedRequest);
       }
-      final pipes = <Pipe>{
-        ...module.pipes,
-        ...controller.pipes,
-        ...route.pipes
-      };
-      final pipesConsumer = PipesConsumer();
-      await pipesConsumer.consume(
-          request: wrappedRequest,
-          routeData: routeData,
-          consumables: pipes,
-          body: body);
+      final pipesConsumer = PipesConsumer(
+        wrappedRequest, 
+        routeData, 
+        scopedProviders, 
+        body: body
+      );
+      final modelPipes = _recursiveGetModulePipes(module, routeData);
+      if (modelPipes.isNotEmpty) {
+        await pipesConsumer.consume([...modelPipes]);
+      }
+      if (controller.pipes.isNotEmpty) {
+        await pipesConsumer.consume(controller.pipes);
+      }
+      if (route.pipes.isNotEmpty) {
+        await pipesConsumer.consume(route.pipes);
+      }
       if (handler == null) {
         throw InternalServerErrorException(
             message: 'Route handler not found for route ${routeData.path}');
@@ -111,20 +119,8 @@ class RequestHandler {
     await response.finalize(result, viewEngine: config.viewEngine);
   }
 
-  Future<void> _executeGuards(
-    Request request,
-    RouteData routeData,
-    Iterable<Guard> guards,
-    Body body,
-    List<Provider> providers,
-  ) async {
-    final guardsConsumer = GuardsConsumer();
-    final canActivate = await guardsConsumer.consume(
-        request: request,
-        routeData: routeData,
-        consumables: Set<Guard>.from(guards).toList(),
-        body: body,
-        providers: providers);
+  Future<void> _executeGuards(GuardsConsumer consumer, Iterable<Guard> guards, Request request) async {
+    final canActivate = await consumer.consume(Set<Guard>.from(guards).toList());
     if (!canActivate) {
       throw ForbiddenException(
           message: 'You are not allowed to access the route ${request.path}');
@@ -208,4 +204,15 @@ class RequestHandler {
     }
     return guards;
   }
+
+  Set<Pipe> _recursiveGetModulePipes(Module module, RouteData routeData) {
+    Set<Pipe> pipes = Set<Pipe>.from(module.pipes);
+    final parents = modulesContainer.getParents(module);
+    for (final parent in parents) {
+      pipes.addAll(
+          parent.pipes..addAll(_recursiveGetModulePipes(parent, routeData)));
+    }
+    return pipes;
+  }
+
 }

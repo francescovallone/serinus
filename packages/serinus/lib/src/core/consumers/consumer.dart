@@ -4,23 +4,20 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/core/containers/router.dart';
 
 abstract class Consumer<TObj, O> {
-  Future<O> consume({
-    required Request request,
-    required RouteData routeData,
-    required List<TObj> consumables,
-  });
+  Future<O> consume(Iterable<TObj> consumables);
 }
 
 abstract class ExecutionContextConsumer<TObj, O> extends Consumer<TObj, O> {
-  @override
-  Future<O> consume({
-    required Request request,
-    required RouteData routeData,
-    required List<TObj> consumables,
-    Body? body,
-    List<Provider> providers = const [],
-  });
 
-  ExecutionContext createContext(Request request, RouteData routeData,
-      List<Provider> providers, Body? body);
+  final Request request;
+  final RouteData routeData;
+  final Iterable<Provider> providers;
+  final Body? body;
+
+  ExecutionContextConsumer(this.request, this.routeData, this.providers, {this.body});
+
+  @override
+  Future<O> consume(Iterable<TObj> consumables);
+
+  ExecutionContext createContext();
 }
