@@ -64,7 +64,6 @@ sealed class Application {
 }
 
 class SerinusApplication extends Application {
-
   final Logger _logger = Logger('SerinusApplication');
 
   SerinusApplication({

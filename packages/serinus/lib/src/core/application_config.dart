@@ -6,16 +6,15 @@ import 'package:uuid/v4.dart';
 /// The configuration for the application
 /// This is used to configure the application
 final class ApplicationConfig {
-  
   /// The host to be used by the application
   /// Default is 'localhost'
-  /// 
+  ///
   /// This can be changed to any value
   final String host;
 
   /// The port to be used by the application
   /// Default is 3000
-  /// 
+  ///
   /// This can be changed to any value
   final int port;
 
@@ -49,7 +48,7 @@ final class ApplicationConfig {
   /// The view engine can be set only once
   /// If the view engine is already set, a [StateError] will be thrown
   ViewEngine? _viewEngine;
-  
+
   /// The global prefix for the application
   /// This can be set using the [setGlobalPrefix] method
   /// The global prefix can be set only once
@@ -62,34 +61,35 @@ final class ApplicationConfig {
   Cors? get cors => _cors;
 
   ViewEngine? get viewEngine => _viewEngine;
-  
+
   GlobalPrefix? get globalPrefix => _globalPrefix;
 
-  String get baseUrl => '${securityContext != null ? 'https' : 'http'}://$host:$port';
+  String get baseUrl =>
+      '${securityContext != null ? 'https' : 'http'}://$host:$port';
 
   set versioningOptions(VersioningOptions? value) {
-    if(_versioningOptions != null) {
+    if (_versioningOptions != null) {
       throw StateError('Versioning options already set');
     }
     _versioningOptions = value;
   }
 
   set globalPrefix(GlobalPrefix? value) {
-    if(_globalPrefix != null) {
+    if (_globalPrefix != null) {
       throw StateError('Global prefix already set');
     }
     _globalPrefix = value;
   }
 
   set cors(Cors? value) {
-    if(_cors != null) {
+    if (_cors != null) {
       throw StateError('Cors options already set');
     }
     _cors = value;
   }
 
   set viewEngine(ViewEngine? value) {
-    if(_viewEngine != null) {
+    if (_viewEngine != null) {
       throw StateError('View engine already set');
     }
     _viewEngine = value;
@@ -104,5 +104,4 @@ final class ApplicationConfig {
     required this.serverAdapter,
     this.securityContext,
   });
-
 }

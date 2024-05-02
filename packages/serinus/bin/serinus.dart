@@ -117,8 +117,8 @@ class AppModule extends Module {
 
   @override
   List<Pipe> get pipes => [
-    TestPipe(),
-  ];
+        TestPipe(),
+      ];
 }
 
 class TestPipe extends Pipe {
@@ -138,8 +138,7 @@ class ReAppModule extends Module {
             final prov = context.use<TestProvider>();
             return TestProviderTwo(prov);
           })
-        ], middlewares: [
-        ], exports: [
+        ], middlewares: [], exports: [
           TestProviderTwo
         ]);
 }

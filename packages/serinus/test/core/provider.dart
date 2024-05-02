@@ -26,7 +26,12 @@ class TestProviderOnInit extends Provider with OnApplicationInit {
   TestProviderOnInit();
 }
 
-final config = ApplicationConfig(host: 'localhost', port: 3000, poweredByHeader: 'Powered by Serinus', securityContext: null, serverAdapter: SerinusHttpServer());
+final config = ApplicationConfig(
+    host: 'localhost',
+    port: 3000,
+    poweredByHeader: 'Powered by Serinus',
+    securityContext: null,
+    serverAdapter: SerinusHttpServer());
 
 class ProviderTestSuite {
   static void runTests() {

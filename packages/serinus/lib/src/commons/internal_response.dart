@@ -36,7 +36,8 @@ class InternalResponse {
     await _original.redirect(Uri.parse('$baseUrl$path'));
   }
 
-  Future<void> finalize(Response result, {ViewEngine? viewEngine, VersioningOptions? versioning}) async {
+  Future<void> finalize(Response result,
+      {ViewEngine? viewEngine, VersioningOptions? versioning}) async {
     status(result.statusCode);
     if ((result.data is View || result.data is ViewString) &&
         viewEngine == null) {
@@ -54,7 +55,7 @@ class InternalResponse {
       return;
     }
     headers(result.headers);
-    if(versioning != null && versioning.type == VersioningType.header) {
+    if (versioning != null && versioning.type == VersioningType.header) {
       _original.headers.add(versioning.header!, versioning.version.toString());
     }
     contentType(result.contentType);

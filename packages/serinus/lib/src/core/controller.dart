@@ -24,16 +24,18 @@ abstract class Controller {
   RouteSpec? get(RouteData routeData, [int? version]) {
     return _routes.keys.firstWhereOrNull((r) {
       String routePath = r.path.replaceFirst(path, '');
-      if(!routePath.endsWith('/')){
+      if (!routePath.endsWith('/')) {
         routePath = '$routePath/';
       }
-      String routeDataPath = routeData.path.replaceFirst(path, '').replaceFirst('/v${r.route.version ?? version ?? 0}', '');
-      if(!routeDataPath.endsWith('/')){
+      String routeDataPath = routeData.path
+          .replaceFirst(path, '')
+          .replaceFirst('/v${r.route.version ?? version ?? 0}', '');
+      if (!routeDataPath.endsWith('/')) {
         routeDataPath = '$routeDataPath/';
       }
       return r.route.runtimeType == routeData.routeCls &&
-        routePath == routeDataPath &&
-        r.method == routeData.method;
+          routePath == routeDataPath &&
+          r.method == routeData.method;
     });
   }
 

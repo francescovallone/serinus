@@ -19,7 +19,12 @@ class TestProviderExported extends Provider {
   TestProviderExported();
 }
 
-final config = ApplicationConfig(host: 'localhost', port: 3000, poweredByHeader: 'Powered by Serinus', securityContext: null, serverAdapter: SerinusHttpServer());
+final config = ApplicationConfig(
+    host: 'localhost',
+    port: 3000,
+    poweredByHeader: 'Powered by Serinus',
+    securityContext: null,
+    serverAdapter: SerinusHttpServer());
 
 class ModuleTestSuite {
   static void runTests() {

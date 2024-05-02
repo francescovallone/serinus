@@ -7,7 +7,12 @@ import 'package:test/test.dart';
 import '../../mocks/controller_mock.dart';
 import '../../mocks/module_mock.dart';
 
-final config = ApplicationConfig(host: 'localhost', port: 3000, poweredByHeader: 'Powered by Serinus', securityContext: null, serverAdapter: SerinusHttpServer());
+final config = ApplicationConfig(
+    host: 'localhost',
+    port: 3000,
+    poweredByHeader: 'Powered by Serinus',
+    securityContext: null,
+    serverAdapter: SerinusHttpServer());
 
 class ExplorerTestsSuite {
   static void runTests() {
@@ -58,10 +63,11 @@ class ExplorerTestsSuite {
       test(
           'when the $VersioningOptions is set to uri, then the route path will be prefixed with the version',
           () async {
-            config.versioningOptions = VersioningOptions(type: VersioningType.uri, version: 1);
-            final router = Router();
-            final modulesContainer = ModulesContainer(config);
-            await modulesContainer.registerModule(
+        config.versioningOptions =
+            VersioningOptions(type: VersioningType.uri, version: 1);
+        final router = Router();
+        final modulesContainer = ModulesContainer(config);
+        await modulesContainer.registerModule(
             SimpleMockModule(controllers: [MockController()]),
             SimpleMockModule);
         final explorer = Explorer(modulesContainer, router, config);
@@ -73,11 +79,16 @@ class ExplorerTestsSuite {
       test(
           'when the $GlobalPrefix is set, then the route path will be prefixed with the global prefix',
           () async {
-            final config = ApplicationConfig(host: 'localhost', port: 3000, poweredByHeader: 'Powered by Serinus', securityContext: null, serverAdapter: SerinusHttpServer());
-            config.globalPrefix = GlobalPrefix(prefix: 'api');
-            final router = Router();
-            final modulesContainer = ModulesContainer(config);
-            await modulesContainer.registerModule(
+        final config = ApplicationConfig(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+            securityContext: null,
+            serverAdapter: SerinusHttpServer());
+        config.globalPrefix = GlobalPrefix(prefix: 'api');
+        final router = Router();
+        final modulesContainer = ModulesContainer(config);
+        await modulesContainer.registerModule(
             SimpleMockModule(controllers: [MockController()]),
             SimpleMockModule);
         final explorer = Explorer(modulesContainer, router, config);
@@ -89,17 +100,24 @@ class ExplorerTestsSuite {
       test(
           'when the $GlobalPrefix and $VersioningOptions are set, then the route path will be prefixed with the global prefix and the version',
           () async {
-            final config = ApplicationConfig(host: 'localhost', port: 3000, poweredByHeader: 'Powered by Serinus', securityContext: null, serverAdapter: SerinusHttpServer());
-            config.globalPrefix = GlobalPrefix(prefix: 'api');
-            config.versioningOptions = VersioningOptions(type: VersioningType.uri, version: 1);
-            final router = Router();
-            final modulesContainer = ModulesContainer(config);
-            await modulesContainer.registerModule(
+        final config = ApplicationConfig(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+            securityContext: null,
+            serverAdapter: SerinusHttpServer());
+        config.globalPrefix = GlobalPrefix(prefix: 'api');
+        config.versioningOptions =
+            VersioningOptions(type: VersioningType.uri, version: 1);
+        final router = Router();
+        final modulesContainer = ModulesContainer(config);
+        await modulesContainer.registerModule(
             SimpleMockModule(controllers: [MockController()]),
             SimpleMockModule);
         final explorer = Explorer(modulesContainer, router, config);
         explorer.resolveRoutes();
-        final result = router.getRouteByPathAndMethod('/api/v1', HttpMethod.get);
+        final result =
+            router.getRouteByPathAndMethod('/api/v1', HttpMethod.get);
         expect(result.route?.path, '/api/v1/');
       });
     });

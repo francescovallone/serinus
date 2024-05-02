@@ -5,7 +5,6 @@ import 'package:serinus/src/core/consumers/consumer.dart';
 import 'package:serinus/src/core/contexts/execution_context.dart';
 
 class GuardsConsumer extends ExecutionContextConsumer<Guard, bool> {
-
   GuardsConsumer(super.request, super.routeData, super.providers, {super.body});
 
   @override

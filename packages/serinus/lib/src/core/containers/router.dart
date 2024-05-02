@@ -2,12 +2,9 @@ import 'package:serinus/serinus.dart';
 import 'package:spanner/spanner.dart';
 
 class Router {
-
   final VersioningOptions? versioningOptions;
 
-  Router({
-    this.versioningOptions
-  });
+  Router({this.versioningOptions});
 
   final Spanner _routeTree = Spanner();
 

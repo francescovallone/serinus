@@ -29,7 +29,8 @@ class RequestHandler {
   /// 3. [Guard] execution
   /// 4. [Route] handler execution
   /// 5. Outgoing response
-  Future<void> handleRequest(InternalRequest request, InternalResponse response) async {
+  Future<void> handleRequest(
+      InternalRequest request, InternalResponse response) async {
     if (request.method == 'OPTIONS') {
       await config.cors?.call(request, Request(request), null, null);
       return;
@@ -37,7 +38,10 @@ class RequestHandler {
     Response? result;
     try {
       final routeLookup = router.getRouteByPathAndMethod(
-          request.path.endsWith('/') ? request.path.substring(0, request.path.length - 1) : request.path, request.method.toHttpMethod());
+          request.path.endsWith('/')
+              ? request.path.substring(0, request.path.length - 1)
+              : request.path,
+          request.method.toHttpMethod());
       final routeData = routeLookup.route;
       if (routeData == null) {
         throw NotFoundException(
@@ -45,7 +49,8 @@ class RequestHandler {
                 'No route found for path ${request.path} and method ${request.method}');
       }
       final controller = routeData.controller;
-      final routeSpec = controller.get(routeData, config.versioningOptions?.version);
+      final routeSpec =
+          controller.get(routeData, config.versioningOptions?.version);
       if (routeSpec == null) {
         throw InternalServerErrorException(
             message: 'Route spec not found for route ${routeData.path}');
@@ -66,11 +71,8 @@ class RequestHandler {
           module, routeLookup.params);
       final moduleGuards = _recursiveGetModuleGuards(module, routeData);
       final guardsConsumer = GuardsConsumer(
-        wrappedRequest, 
-        routeData, 
-        scopedProviders, 
-        body: body
-      );
+          wrappedRequest, routeData, scopedProviders,
+          body: body);
       if (moduleGuards.isNotEmpty) {
         await _executeGuards(guardsConsumer, moduleGuards, wrappedRequest);
       }
@@ -80,12 +82,8 @@ class RequestHandler {
       if (route.guards.isNotEmpty) {
         await _executeGuards(guardsConsumer, route.guards, wrappedRequest);
       }
-      final pipesConsumer = PipesConsumer(
-        wrappedRequest, 
-        routeData, 
-        scopedProviders, 
-        body: body
-      );
+      final pipesConsumer =
+          PipesConsumer(wrappedRequest, routeData, scopedProviders, body: body);
       final modelPipes = _recursiveGetModulePipes(module, routeData);
       if (modelPipes.isNotEmpty) {
         await pipesConsumer.consume([...modelPipes]);
@@ -101,8 +99,8 @@ class RequestHandler {
             message: 'Route handler not found for route ${routeData.path}');
       }
       if (config.cors != null) {
-        result = await config.cors?.call(
-            request, wrappedRequest, context, handler, config.cors?.allowedOrigins ?? ['*']);
+        result = await config.cors?.call(request, wrappedRequest, context,
+            handler, config.cors?.allowedOrigins ?? ['*']);
       } else {
         result = await handler.call(context);
       }
@@ -119,8 +117,10 @@ class RequestHandler {
     await response.finalize(result, viewEngine: config.viewEngine);
   }
 
-  Future<void> _executeGuards(GuardsConsumer consumer, Iterable<Guard> guards, Request request) async {
-    final canActivate = await consumer.consume(Set<Guard>.from(guards).toList());
+  Future<void> _executeGuards(
+      GuardsConsumer consumer, Iterable<Guard> guards, Request request) async {
+    final canActivate =
+        await consumer.consume(Set<Guard>.from(guards).toList());
     if (!canActivate) {
       throw ForbiddenException(
           message: 'You are not allowed to access the route ${request.path}');
@@ -147,7 +147,7 @@ class RequestHandler {
       Module module, RouteData routeData, Map<String, dynamic> params) {
     Set<Middleware> middlewares = Set<Middleware>.from(module.middlewares);
     Set<Middleware> executedMiddlewares = {};
-    for(Middleware middleware in middlewares) {
+    for (Middleware middleware in middlewares) {
       for (final route in middleware.routes) {
         final segments = route.split('/');
         final routeSegments = routeData.path.split('/');
@@ -214,5 +214,4 @@ class RequestHandler {
     }
     return pipes;
   }
-
 }
