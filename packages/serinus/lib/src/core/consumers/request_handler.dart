@@ -11,10 +11,9 @@ import 'package:serinus/src/core/contexts/request_context.dart';
 class RequestHandler {
   final Router router;
   final ModulesContainer modulesContainer;
-  final Cors? cors;
-  final VersioningOptions? versioningOptions;
+  final ApplicationConfig config;
 
-  const RequestHandler(this.router, this.modulesContainer, this.cors, this.versioningOptions);
+  const RequestHandler(this.router, this.modulesContainer, this.config);
 
   /// Handles the request and sends the response
   ///
@@ -30,16 +29,19 @@ class RequestHandler {
   /// 3. [Guard] execution
   /// 4. [Route] handler execution
   /// 5. Outgoing response
-  Future<void> handleRequest(InternalRequest request, InternalResponse response,
-      {ViewEngine? viewEngine}) async {
+  Future<void> handleRequest(
+      InternalRequest request, InternalResponse response) async {
     if (request.method == 'OPTIONS') {
-      await cors?.call(request, Request(request), null, null);
+      await config.cors?.call(request, Request(request), null, null);
       return;
     }
     Response? result;
     try {
       final routeLookup = router.getRouteByPathAndMethod(
-          request.path, request.method.toHttpMethod());
+          request.path.endsWith('/')
+              ? request.path.substring(0, request.path.length - 1)
+              : request.path,
+          request.method.toHttpMethod());
       final routeData = routeLookup.route;
       if (routeData == null) {
         throw NotFoundException(
@@ -47,7 +49,8 @@ class RequestHandler {
                 'No route found for path ${request.path} and method ${request.method}');
       }
       final controller = routeData.controller;
-      final routeSpec = controller.get(routeData, versioningOptions?.version);
+      final routeSpec =
+          controller.get(routeData, config.versioningOptions?.version);
       if (routeSpec == null) {
         throw InternalServerErrorException(
             message: 'Route spec not found for route ${routeData.path}');
@@ -67,65 +70,57 @@ class RequestHandler {
       await _executeMiddlewares(context, routeData, wrappedRequest, response,
           module, routeLookup.params);
       final moduleGuards = _recursiveGetModuleGuards(module, routeData);
+      final guardsConsumer = GuardsConsumer(
+          wrappedRequest, routeData, scopedProviders,
+          body: body);
       if (moduleGuards.isNotEmpty) {
-        await _executeGuards(wrappedRequest, routeData, moduleGuards, body,
-            [...scopedProviders]);
+        await _executeGuards(guardsConsumer, moduleGuards, wrappedRequest);
       }
       if (controller.guards.isNotEmpty) {
-        await _executeGuards(wrappedRequest, routeData, controller.guards, body,
-            [...scopedProviders]);
+        await _executeGuards(guardsConsumer, controller.guards, wrappedRequest);
       }
       if (route.guards.isNotEmpty) {
-        await _executeGuards(wrappedRequest, routeData, route.guards, body,
-            [...scopedProviders]);
+        await _executeGuards(guardsConsumer, route.guards, wrappedRequest);
       }
-      final pipesConsumer = PipesConsumer();
-      await pipesConsumer.consume(
-          request: wrappedRequest,
-          routeData: routeData,
-          consumables: <Pipe>{
-            ...controller.pipes,
-            ...module.pipes,
-            ...route.pipes
-          },
-          body: body);
+      final pipesConsumer =
+          PipesConsumer(wrappedRequest, routeData, scopedProviders, body: body);
+      final modelPipes = _recursiveGetModulePipes(module, routeData);
+      if (modelPipes.isNotEmpty) {
+        await pipesConsumer.consume([...modelPipes]);
+      }
+      if (controller.pipes.isNotEmpty) {
+        await pipesConsumer.consume(controller.pipes);
+      }
+      if (route.pipes.isNotEmpty) {
+        await pipesConsumer.consume(route.pipes);
+      }
       if (handler == null) {
         throw InternalServerErrorException(
             message: 'Route handler not found for route ${routeData.path}');
       }
-      if (cors != null) {
-        result = await cors?.call(
-            request, wrappedRequest, context, handler, cors!.allowedOrigins);
+      if (config.cors != null) {
+        result = await config.cors?.call(request, wrappedRequest, context,
+            handler, config.cors?.allowedOrigins ?? ['*']);
       } else {
         result = await handler.call(context);
       }
     } on SerinusException catch (e) {
-      response.headers(cors?.responseHeaders ?? {});
+      response.headers(config.cors?.responseHeaders ?? {});
       response.status(e.statusCode);
-      response.send(e.toString());
+      await response.send(e.toString());
       return;
     }
     if (result == null) {
       throw InternalServerErrorException(
           message: 'Route handler did not return a response');
     }
-    await response.finalize(result, viewEngine: viewEngine);
+    await response.finalize(result, viewEngine: config.viewEngine);
   }
 
   Future<void> _executeGuards(
-    Request request,
-    RouteData routeData,
-    Iterable<Guard> guards,
-    Body body,
-    List<Provider> providers,
-  ) async {
-    final guardsConsumer = GuardsConsumer();
-    final canActivate = await guardsConsumer.consume(
-        request: request,
-        routeData: routeData,
-        consumables: Set<Guard>.from(guards).toList(),
-        body: body,
-        providers: providers);
+      GuardsConsumer consumer, Iterable<Guard> guards, Request request) async {
+    final canActivate =
+        await consumer.consume(Set<Guard>.from(guards).toList());
     if (!canActivate) {
       throw ForbiddenException(
           message: 'You are not allowed to access the route ${request.path}');
@@ -150,36 +145,31 @@ class RequestHandler {
 
   Set<Middleware> _recursiveGetMiddlewares(
       Module module, RouteData routeData, Map<String, dynamic> params) {
-    Map<Type, Middleware> middlewares = {
-      for (final m in module.middlewares) m.runtimeType: m
-    };
-    final parents = modulesContainer.getParents(module);
-    for (final parent in parents) {
-      middlewares.addEntries(parent.middlewares.where((element) {
-        final routes = element.routes;
-        for (final route in routes) {
-          final segments = route.split('/');
-          final routeSegments = routeData.path.split('/');
-          if (routeSegments.length > segments.length && segments.last == '*') {
-            return true;
-          }
-          if (routeSegments.length == segments.length) {
-            for (int i = 0; i < segments.length; i++) {
-              if (segments[i] != routeSegments[i] &&
-                  segments[i] != '*' &&
-                  params.isEmpty) {
-                return false;
-              }
+    Set<Middleware> middlewares = Set<Middleware>.from(module.middlewares);
+    Set<Middleware> executedMiddlewares = {};
+    for (Middleware middleware in middlewares) {
+      for (final route in middleware.routes) {
+        final segments = route.split('/');
+        final routeSegments = routeData.path.split('/');
+        if (routeSegments.length > segments.length && segments.last == '*') {
+          executedMiddlewares.add(middleware);
+        }
+        if (routeSegments.length == segments.length) {
+          bool match = true;
+          for (int i = 0; i < segments.length; i++) {
+            if (segments[i] != routeSegments[i] &&
+                segments[i] != '*' &&
+                params.isEmpty) {
+              match = false;
             }
-            return true;
+          }
+          if (match) {
+            executedMiddlewares.add(middleware);
           }
         }
-        return false;
-      }).map((e) => MapEntry(e.runtimeType, e)));
-      middlewares.addEntries(_recursiveGetMiddlewares(parent, routeData, params)
-          .map((e) => MapEntry(e.runtimeType, e)));
+      }
     }
-    return middlewares.values.toSet();
+    return executedMiddlewares;
   }
 
   Future<void> _executeMiddlewares(
@@ -213,5 +203,15 @@ class RequestHandler {
           parent.guards..addAll(_recursiveGetModuleGuards(parent, routeData)));
     }
     return guards;
+  }
+
+  Set<Pipe> _recursiveGetModulePipes(Module module, RouteData routeData) {
+    Set<Pipe> pipes = Set<Pipe>.from(module.pipes);
+    final parents = modulesContainer.getParents(module);
+    for (final parent in parents) {
+      pipes.addAll(
+          parent.pipes..addAll(_recursiveGetModulePipes(parent, routeData)));
+    }
+    return pipes;
   }
 }

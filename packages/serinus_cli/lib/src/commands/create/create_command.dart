@@ -60,12 +60,29 @@ class CreateCommand extends Command<int> {
     final progress = _logger?.progress(
       'Generation a new Serinus Application [$projectName]',
     );
-    final vars = <String, dynamic>{
+    var vars = <String, dynamic>{
       'name': projectName,
       'output': outputDirectory.absolute.path,
+      'description': 'A simple Serinus application',
     };
+    if(!outputDirectory.existsSync()){
+      outputDirectory.createSync(recursive: true);
+    }
+    await generator.hooks.preGen(
+      workingDirectory: outputDirectory.absolute.path,
+      vars: vars,
+      onVarsChanged: (newVars) {
+        vars = {
+          ...newVars,
+        };
+      }
+    );
     await generator.generate(
       DirectoryGeneratorTarget(outputDirectory),
+      vars: vars,
+    );
+    await generator.hooks.postGen(
+      workingDirectory: outputDirectory.absolute.path,
       vars: vars,
     );
     progress?.complete();

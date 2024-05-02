@@ -1,19 +1,14 @@
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/commons/errors/initialization_error.dart';
 import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
-import 'package:uuid/v4.dart';
 
 /// A container for all the modules of the application
 ///
-/// The [ModulesContainer] is a singleton that contains all the modules
+/// The [ModulesContainer] contains all the modules
 /// of the application. It is used to register and get modules.
-/// It also has the applicationId
-class ModulesContainer {
+final class ModulesContainer {
   /// The Map of all the modules registered in the application
   final Map<String, Module> _modules = {};
-
-  /// The applicationId, every application has a unique id
-  final String applicationId = UuidV4().generate();
 
   /// The Map of all the providers registered in the application
   final Map<String, List<Provider>> _providers = {};
@@ -33,6 +28,11 @@ class ModulesContainer {
 
   /// The list of all the modules registered in the application
   List<Module> get modules => _modules.values.toList();
+
+  /// The config of the application
+  final ApplicationConfig config;
+
+  ModulesContainer(this.config);
 
   /// Registers a module in the application
   ///
@@ -88,7 +88,7 @@ class ModulesContainer {
           for (final provider in usableProviders)
             MapEntry(provider.runtimeType, provider)
         ]),
-        applicationId);
+        config.applicationId);
   }
 
   /// Registers all the modules in the application
@@ -105,11 +105,17 @@ class ModulesContainer {
         module.imports.where((element) => element is! DeferredModule);
     final deferredSubModules = module.imports.whereType<DeferredModule>();
     for (var subModule in eagerSubModules) {
+      subModule.middlewares.addAllIfAbsent(module.middlewares);
+      subModule.guards.addAllIfAbsent(module.guards);
+      subModule.pipes.addAllIfAbsent(module.pipes);
       await _callForRecursiveRegistration(subModule, module, entrypoint);
     }
     for (var deferredModule in deferredSubModules) {
       final subModule = await deferredModule
           .init(_getApplicationContext(deferredModule.inject));
+      subModule.middlewares.addAllIfAbsent(module.middlewares);
+      subModule.guards.addAllIfAbsent(module.guards);
+      subModule.pipes.addAllIfAbsent(module.pipes);
       await _callForRecursiveRegistration(subModule, module, entrypoint);
       module.imports.remove(deferredModule);
       module.imports.add(subModule);

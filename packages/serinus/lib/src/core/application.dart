@@ -11,28 +11,24 @@ import 'package:serinus/src/core/core.dart';
 import 'package:serinus/src/core/injector/explorer.dart';
 
 sealed class Application {
-  final String host;
-  final int port;
   final LogLevel level;
   final Module entrypoint;
   bool _enableShutdownHooks = false;
   LoggerService? loggerService;
   ModulesContainer modulesContainer;
   Router router;
-  final Adapter serverAdapter;
+  final ApplicationConfig config;
 
   Application({
     required this.entrypoint,
-    required this.serverAdapter,
-    this.host = 'localhost',
-    this.port = 3000,
+    required this.config,
     this.level = LogLevel.debug,
     Router? router,
     ModulesContainer? modulesContainer,
     LoggerService? loggerService,
   })  : router = router ?? Router(),
         loggerService = loggerService ?? LoggerService(level: level),
-        modulesContainer = modulesContainer ?? ModulesContainer();
+        modulesContainer = modulesContainer ?? ModulesContainer(config);
 
   String get url;
 
@@ -40,9 +36,9 @@ sealed class Application {
     return modulesContainer.get<T>();
   }
 
-  HttpServer get server => serverAdapter.server;
+  HttpServer get server => config.serverAdapter.server;
 
-  SerinusHttpServer get adapter => serverAdapter as SerinusHttpServer;
+  SerinusHttpServer get adapter => config.serverAdapter as SerinusHttpServer;
 
   void enableShutdownHooks() {
     if (!_enableShutdownHooks) {
@@ -68,51 +64,51 @@ sealed class Application {
 }
 
 class SerinusApplication extends Application {
-  ViewEngine? viewEngine;
-  Cors? _cors;
   final Logger _logger = Logger('SerinusApplication');
-  VersioningOptions? versioning;
 
   SerinusApplication({
     required super.entrypoint,
-    required super.serverAdapter,
+    required super.config,
     super.level,
     super.loggerService,
   });
 
   @override
-  String get url => 'http://$host:$port';
+  String get url => config.baseUrl;
 
   void enableCors(Cors cors) {
-    _cors = cors;
+    config.cors = cors;
   }
 
   void useViewEngine(ViewEngine viewEngine) {
-    this.viewEngine = viewEngine;
+    config.viewEngine = viewEngine;
   }
 
   void enableVersioning(
-      {required VersioningType type, int? version, String? header}) {
-    versioning =
+      {required VersioningType type, int version = 1, String? header}) {
+    config.versioningOptions =
         VersioningOptions(type: type, version: version, header: header);
+  }
+
+  void setGlobalPrefix(GlobalPrefix prefix) {
+    config.globalPrefix = prefix;
   }
 
   @override
   Future<void> preview() async {
-    final explorer = Explorer(modulesContainer, router, versioning);
+    final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
   }
 
   @override
   Future<void> serve() async {
-    preview();
+    await preview();
     try {
-      _logger.info("Starting server on $host:$port");
-      await serverAdapter.listen(
+      _logger.info("Starting server on $url");
+      final handler = RequestHandler(router, modulesContainer, config);
+      await config.serverAdapter.listen(
         (request, response) async {
-          final handler = RequestHandler(router, modulesContainer, _cors, versioning);
-          await handler.handleRequest(request, response,
-              viewEngine: viewEngine);
+          await handler.handleRequest(request, response);
         },
         errorHandler: (e, stackTrace) {
           print(e);
@@ -120,14 +116,14 @@ class SerinusApplication extends Application {
         },
       );
     } on SocketException catch (_) {
-      _logger.severe('Failed to start server on $host:$port');
+      _logger.severe('Failed to start server on $url');
       await close();
     }
   }
 
   @override
   Future<void> close() async {
-    await serverAdapter.close();
+    await config.serverAdapter.close();
     await shutdown();
   }
 

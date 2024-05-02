@@ -8,9 +8,9 @@ import '../core.dart';
 class Explorer {
   final ModulesContainer _modulesContainer;
   final Router _router;
-  final VersioningOptions? versioningOptions;
+  final ApplicationConfig config;
 
-  const Explorer(this._modulesContainer, this._router, this.versioningOptions);
+  const Explorer(this._modulesContainer, this._router, this.config);
 
   void resolveRoutes() {
     final Logger logger = Logger('RoutesResolver');
@@ -35,9 +35,10 @@ class Explorer {
       Controller controller, Module module, String controllerPath) {
     final logger = Logger('RoutesExplorer');
     final routes = controller.routes;
-    final maybeUriVers = versioningOptions?.type == VersioningType.uri;
+    final maybeUriVers = config.versioningOptions?.type == VersioningType.uri;
     for (var spec in routes.keys) {
-      String routePath = normalizePath('${maybeUriVers ? 'v${spec.route.version ?? versioningOptions?.version}' : '' }$controllerPath${spec.path}');
+      String routePath = normalizePath(
+          '${config.globalPrefix != null ? '${config.globalPrefix?.prefix}/' : ''}${maybeUriVers ? 'v${spec.route.version ?? config.versioningOptions?.version}/' : ''}$controllerPath${spec.path}');
       final routeMethod = spec.method;
       _router.registerRoute(
         RouteData(
@@ -66,7 +67,6 @@ class Explorer {
     }
     return path;
   }
-
 }
 
 class _ControllerSpec {

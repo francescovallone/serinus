@@ -1,47 +1,30 @@
-# Serinus
+---
+# https://vitepress.dev/reference/default-theme-home-page
+layout: home
 
-Serinus is a minimalistic framework for building efficient and scalable server-side applications and powered by Dart. 🎯
+hero:
+  name: "Serinus"
+  image:
+    src: /serinus-logo.png
+    alt: Serinus
+  tagline: A backend framework written in Dart 🎯 for building efficient and scalable server-side applications.
+  actions:
+    - theme: brand
+      text: Let's Get Started
+      link: /introduction
+    - theme: alt
+      text: Source code
+      link: http://github.com/francescovallone/serinus
 
-## Why Serinus?
+features:
+  - icon: 📦
+    title: Extensible
+    details: Serinus is designed to be extensible and flexible. It allows you to create your own modules and plugins to extend its functionality.
+  - icon: ✨
+    title: Well-structured
+    details: Serinus is designed to be well-structured and easy to use. And it helps you to build scalable and maintainable applications.
+  - icon: 🚀
+    title: Fast
+    details: Serinus is designed to be fast and efficient. It is built on top of the Dart language, which is known for its performance and efficiency.
 
-Serinus aims to be a simple and easy-to-use framework for building server-side applications. It is inspired by [NestJS](https://nestjs.com/) and it is designed to be easy to use and to integrate with your existing projects. It also has a shallow learning curve to ensure that developers can start building applications quickly.
-
-## Installation
-
-::: warning
-Serinus is still being developed and many things can change. Use it at your own risk.
-:::
-
-### Using the CLI
-  
-::: tip
-The CLI is still under development and more features will be added in the future.
-:::
-
-```console
-dart pub global activate serinus_cli
-
-serinus create my_project
-```
-
-This will create a new Serinus project in the `my_project` directory with the following structure:
-
-```console
-my_project
-├── bin
-│   ├── my_project.dart
-├── lib
-│   ├── app_controller.dart
-│   ├── app_module.dart
-│   ├── app_provider.dart
-│   ├── app_routes.dart
-│   ├── my_project.dart
-├── config.yaml
-├── pubspec.yaml
-```
-
-### From pub.dev
-
-```console
-dart pub add serinus
-```
+---

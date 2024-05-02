@@ -17,6 +17,8 @@ dependencies:
   benchmark_harness: ^2.2.2 
   vania: ^0.1.7+3
   pharaoh: ^0.0.6+4
+  angel3_framework: ^8.3.2
+  
 
 dev_dependencies:
   lints: ^3.0.0

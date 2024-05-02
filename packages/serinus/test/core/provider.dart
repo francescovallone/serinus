@@ -26,6 +26,13 @@ class TestProviderOnInit extends Provider with OnApplicationInit {
   TestProviderOnInit();
 }
 
+final config = ApplicationConfig(
+    host: 'localhost',
+    port: 3000,
+    poweredByHeader: 'Powered by Serinus',
+    securityContext: null,
+    serverAdapter: SerinusHttpServer());
+
 class ProviderTestSuite {
   static void runTests() {
     group('$Provider', () {
@@ -34,7 +41,7 @@ class ProviderTestSuite {
           then it should be gettable from the container
         ''', () async {
         final provider = TestProvider();
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         await container.registerModule(TestModule(providers: [provider]), Type);
         expect(container.get<TestProvider>(), provider);
@@ -43,7 +50,7 @@ class ProviderTestSuite {
       test('''when a $Provider is registered in the application two times, 
           then it should throw a $InitializationError
         ''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         container
             .registerModule(
@@ -56,7 +63,7 @@ class ProviderTestSuite {
         and the 'finalize' method has been called,
         then the initialized $Provider should be gettable''', () async {
         final provider = TestProvider();
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         await container.registerModule(
             TestModule(providers: [
@@ -73,7 +80,7 @@ class ProviderTestSuite {
         and the 'finalize' method has not been called,
         then the initialized $Provider should not be gettable''', () async {
         final provider = TestProvider();
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         await container.registerModule(
             TestModule(providers: [
@@ -88,7 +95,7 @@ class ProviderTestSuite {
           '''when a $DeferredProvider with dependencies is registered in the application through a $Module,
         and the dipendency is in the scoped context,
         then the initialized $Provider should be gettable''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         await container.registerModule(
             TestModule(providers: [
@@ -109,7 +116,7 @@ class ProviderTestSuite {
           '''when a $DeferredProvider with dependencies is registered in the application through a $Module,
         and the dipendency is not in the scoped context,
         then the initialized $Provider should not be gettable''', () async {
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         await container.registerModule(
             TestModule(providers: [
@@ -128,7 +135,7 @@ class ProviderTestSuite {
       test('''when a $Provider has $OnApplicationInit mixin,
         then the onApplicationInit method should be called''', () async {
         final provider = TestProviderOnInit();
-        final container = ModulesContainer();
+        final container = ModulesContainer(config);
 
         await container.registerModule(TestModule(providers: [provider]), Type);
 

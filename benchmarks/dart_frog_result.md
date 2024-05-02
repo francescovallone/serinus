@@ -1,15 +1,15 @@
 ## dart_frog (no_cli)
 ### Requests per second
-Requests/sec: 27609.19
-Transfer/sec: 6.82MB
-Requests/sec DIFF: +0.01%
+Requests/sec: 28649.98
+Transfer/sec: 7.08MB
+Requests/sec DIFF: +0.00%
 ### Latency
-Avg Latency: 44.47
-Stdev Latency: 76.59
-Max Latency: 1.06
-Stdev Perc: 97.97
+Avg Latency: 44.57
+Stdev Latency: 81.17
+Max Latency: 1.12
+Stdev Perc: 97.66
 ### Req/Sec
-Rps Avg: 3.47
-Rps Max: 4.18
-Rps Stdev: 511.98
-Rps Perc: 95.12
+Rps Avg: 3.6
+Rps Max: 4.77
+Rps Stdev: 477.96
+Rps Perc: 92.38

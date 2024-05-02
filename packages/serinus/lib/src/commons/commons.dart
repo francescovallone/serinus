@@ -7,6 +7,7 @@ export 'enums/http_method.dart';
 export 'enums/log_level.dart';
 export 'exceptions/exceptions.dart';
 export 'form_data.dart';
+export 'global_prefix.dart';
 export 'internal_response.dart';
 export 'mixins/application_mixins.dart';
 export 'mixins/object_mixins.dart';

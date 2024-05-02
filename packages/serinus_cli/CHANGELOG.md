@@ -1,14 +1,18 @@
 # Changelog
 
-## 0.0.1
+## 0.2.1
 
-First release still in development and not ready for production use.
+- Fix the create command to use the pre and post gen hooks.
+
+## 0.2.0
+
+- Add build command to the CLI.
 
 ## 0.1.0-dev.1
 
 - First release of the cli after the refactor of the whole framework.
 - Usage of Bricks from the serinus-bricks package.
 
-## 0.2.0
+## 0.0.1
 
-- Add build command to the CLI.
+First release still in development and not ready for production use.

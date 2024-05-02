@@ -25,6 +25,54 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.4.1"
+  angel3_container:
+    dependency: transitive
+    description:
+      name: angel3_container
+      sha256: bb2a46cb0cfccd41ef185c0225312687b7c4c1e959484e7312dee8f809748e2a
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.1.1"
+  angel3_framework:
+    dependency: "direct main"
+    description:
+      name: angel3_framework
+      sha256: e3188bf939df2af520299cf67c6843d7617e7b70b9a2e799fb55677508882fe2
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.3.2"
+  angel3_http_exception:
+    dependency: transitive
+    description:
+      name: angel3_http_exception
+      sha256: eac5ee55c36dd56f597286c4b1328470a6e6d972799de37854d52cded2877054
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.1.1"
+  angel3_mock_request:
+    dependency: transitive
+    description:
+      name: angel3_mock_request
+      sha256: a4ac36f3083328efa3abf0c3569abfed8d7ad43bd5b3068d9ab39eb402ec60ae
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.1.1"
+  angel3_model:
+    dependency: transitive
+    description:
+      name: angel3_model
+      sha256: "7a3d4ca0cb11229818efc145c73724ceed251a8f29ad9f4f89fa33ac7a5ef4f7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.1.1"
+  angel3_route:
+    dependency: transitive
+    description:
+      name: angel3_route
+      sha256: "5217ecf74d01599514e08d2b0655192b4e6f9b33f411666cbc165bc80592889c"
+      url: "https://pub.dev"
+    source: hosted
+    version: "8.1.1"
   args:
     dependency: transitive
     description:
@@ -41,6 +89,38 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.11.0"
+  belatuk_code_buffer:
+    dependency: transitive
+    description:
+      name: belatuk_code_buffer
+      sha256: "82a363ad8a11b20d7e0dc7c11611112ba48070565ee6c69a6b17d25a69045c93"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.1.0"
+  belatuk_combinator:
+    dependency: transitive
+    description:
+      name: belatuk_combinator
+      sha256: "4233feae735c02481056ad15f42d36b870b1b18b3e30da314dd3a1a92e442c67"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.1.0"
+  belatuk_http_server:
+    dependency: transitive
+    description:
+      name: belatuk_http_server
+      sha256: "3960306198fc989e7f0efa36b02dcd98e24cbf05d82f77b2d8cab7c1a4280b69"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.2.0"
+  belatuk_merge_map:
+    dependency: transitive
+    description:
+      name: belatuk_merge_map
+      sha256: "9df4e1092c2ead923064a5cc2c095e2a79721589a2ae139f24f22da2b9e10b96"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.1.0"
   benchmark_harness:
     dependency: "direct main"
     description:
@@ -217,6 +297,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.1"
+  http2:
+    dependency: transitive
+    description:
+      name: http2
+      sha256: "9ced024a160b77aba8fb8674e38f70875e321d319e6f303ec18e87bd5a4b0c1d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.0"
   http_methods:
     dependency: transitive
     description:
@@ -401,6 +489,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
+  quiver:
+    dependency: transitive
+    description:
+      name: quiver
+      sha256: b1c1ac5ce6688d77f65f3375a9abb9319b3cb32486bdc7a1e0fdf004d7ba4e47
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.1"
+  recase:
+    dependency: transitive
+    description:
+      name: recase
+      sha256: e4eb4ec2dcdee52dcf99cb4ceabaffc631d7424ee55e56f280bc039737f89213
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.1.0"
   sasl_scram:
     dependency: transitive
     description:
@@ -423,7 +527,7 @@ packages:
       path: "../packages/serinus"
       relative: true
     source: path
-    version: "0.1.1-dev.1"
+    version: "0.2.0"
   shelf:
     dependency: "direct main"
     description:

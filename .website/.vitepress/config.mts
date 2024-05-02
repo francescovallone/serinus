@@ -21,9 +21,10 @@ export default defineConfig({
     ],
     sidebar: [
       {
-        text: 'Introduction',
+        text: 'Serinus - Dart Backend Framework',
         link: '/',
         items: [
+          { text: 'Introduction', link: '/introduction' },
           {
             text: 'Overview',
             items: [
@@ -41,6 +42,7 @@ export default defineConfig({
             text: 'Techniques',
             items: [
               { text: 'Model View Controller', link: '/techniques/mvc' },
+              { text: 'Versioning', link: '/techniques/versioning' },
             ]
           }
         ]
