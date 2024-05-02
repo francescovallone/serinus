@@ -22,9 +22,19 @@ abstract class Controller {
   Map<RouteSpec, ReqResHandler> get routes => UnmodifiableMapView(_routes);
 
   RouteSpec? get(RouteData routeData, [int? version]) {
-    return _routes.keys.firstWhereOrNull((r) => r.route.runtimeType == routeData.routeCls &&
-        r.path == routeData.path.replaceFirst('/v${r.route.version ?? version ?? 0}', '') &&
-        r.method == routeData.method);
+    return _routes.keys.firstWhereOrNull((r) {
+      String routePath = r.path.replaceFirst(path, '');
+      if(!routePath.endsWith('/')){
+        routePath = '$routePath/';
+      }
+      String routeDataPath = routeData.path.replaceFirst(path, '').replaceFirst('/v${r.route.version ?? version ?? 0}', '');
+      if(!routeDataPath.endsWith('/')){
+        routeDataPath = '$routeDataPath/';
+      }
+      return r.route.runtimeType == routeData.routeCls &&
+        routePath == routeDataPath &&
+        r.method == routeData.method;
+    });
   }
 
   @mustCallSuper

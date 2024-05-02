@@ -105,14 +105,17 @@ final class ModulesContainer {
         module.imports.where((element) => element is! DeferredModule);
     final deferredSubModules = module.imports.whereType<DeferredModule>();
     for (var subModule in eagerSubModules) {
-      subModule.middlewares.addMultiIfAbsents(module.middlewares);
-      print(subModule.middlewares);
+      subModule.middlewares.addAllIfAbsent(module.middlewares);
+      subModule.guards.addAllIfAbsent(module.guards);
+      subModule.pipes.addAllIfAbsent(module.pipes);
       await _callForRecursiveRegistration(subModule, module, entrypoint);
     }
     for (var deferredModule in deferredSubModules) {
       final subModule = await deferredModule
           .init(_getApplicationContext(deferredModule.inject));
-      subModule.middlewares.addMultiIfAbsents(module.middlewares);
+      subModule.middlewares.addAllIfAbsent(module.middlewares);
+      subModule.guards.addAllIfAbsent(module.guards);
+      subModule.pipes.addAllIfAbsent(module.pipes);
       await _callForRecursiveRegistration(subModule, module, entrypoint);
       module.imports.remove(deferredModule);
       module.imports.add(subModule);

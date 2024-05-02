@@ -37,7 +37,7 @@ class RequestHandler {
     Response? result;
     try {
       final routeLookup = router.getRouteByPathAndMethod(
-          request.path, request.method.toHttpMethod());
+          request.path.endsWith('/') ? request.path.substring(0, request.path.length - 1) : request.path, request.method.toHttpMethod());
       final routeData = routeLookup.route;
       if (routeData == null) {
         throw NotFoundException(
@@ -109,7 +109,7 @@ class RequestHandler {
     } on SerinusException catch (e) {
       response.headers(config.cors?.responseHeaders ?? {});
       response.status(e.statusCode);
-      response.send(e.toString());
+      await response.send(e.toString());
       return;
     }
     if (result == null) {

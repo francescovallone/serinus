@@ -14,16 +14,18 @@ class SerinusFactory {
       String poweredByHeader = 'Powered by Serinus',
       SecurityContext? securityContext}) async {
     final server = SerinusHttpServer();
+    final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
+    final serverHost = Platform.environment['HOST'] ?? host;
     await server.init(
         securityContext: securityContext,
         poweredByHeader: poweredByHeader,
-        port: int.tryParse(Platform.environment['PORT'] ?? '') ?? port,
-        host: Platform.environment['HOST'] ?? host);
+        port: serverPort,
+        host: serverHost);
     final app = SerinusApplication(
         entrypoint: entrypoint,
         config: ApplicationConfig(
-            host: host,
-            port: port,
+            host: serverHost,
+            port: serverPort,
             poweredByHeader: poweredByHeader,
             securityContext: securityContext,
             serverAdapter: server),

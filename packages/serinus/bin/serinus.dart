@@ -61,7 +61,6 @@ class GetRoute extends Route {
   });
 
   @override
-  // TODO: implement version
   int? get version => 2;
 
   @override
@@ -115,6 +114,18 @@ class AppModule extends Module {
             controllers: [HomeController()],
             providers: [TestProvider(isGlobal: true)],
             middlewares: [TestMiddleware()]);
+
+  @override
+  List<Pipe> get pipes => [
+    TestPipe(),
+  ];
+}
+
+class TestPipe extends Pipe {
+  @override
+  Future<void> transform(ExecutionContext context) async {
+    print('Pipe executed');
+  }
 }
 
 class ReAppModule extends Module {
@@ -128,7 +139,6 @@ class ReAppModule extends Module {
             return TestProviderTwo(prov);
           })
         ], middlewares: [
-          TestMiddleware()
         ], exports: [
           TestProviderTwo
         ]);
