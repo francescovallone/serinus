@@ -21,7 +21,7 @@ export default defineConfig({
     ],
     sidebar: [
       {
-        text: 'Introduction',
+        text: 'Serinus - Dart Backend Framework',
         link: '/',
         items: [
           { text: 'Introduction', link: '/introduction' },
