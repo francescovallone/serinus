@@ -11,6 +11,10 @@ class Response {
   final ContentType _contentType;
   final bool _shouldRedirect;
 
+  int? _contentLength;
+
+  int? get contentLength => _contentLength;
+
   Response._(this._value, this.statusCode, this._contentType,
       {bool shouldRedirect = false})
       : _shouldRedirect = shouldRedirect;
@@ -36,13 +40,14 @@ class Response {
       throw FormatException(
           'The data must be a Map<String, dynamic> or a JsonSerializableMixin');
     }
+    final value = jsonEncode(responseData);
     return Response._(
-        jsonEncode(responseData), statusCode, contentType ?? ContentType.json);
+        value, statusCode, contentType ?? ContentType.json).._contentLength = value.length;
   }
 
   factory Response.html(String data,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(data, statusCode, contentType ?? ContentType.html);
+    return Response._(data, statusCode, contentType ?? ContentType.html).._contentLength = data.length;
   }
 
   factory Response.render(View view,
@@ -57,18 +62,18 @@ class Response {
 
   factory Response.text(String data,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(data, statusCode, contentType ?? ContentType.text);
+    return Response._(data, statusCode, contentType ?? ContentType.text).._contentLength = data.length;
   }
 
   factory Response.bytes(Uint8List data,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(data, statusCode, contentType ?? ContentType.binary);
+    return Response._(data, statusCode, contentType ?? ContentType.binary).._contentLength = data.length;
   }
 
   factory Response.file(File file,
       {int statusCode = 200, ContentType? contentType}) {
     return Response._(
-        file.readAsBytesSync(), statusCode, contentType ?? ContentType.binary);
+        file.readAsBytesSync(), statusCode, contentType ?? ContentType.binary).._contentLength = file.lengthSync();
   }
 
   factory Response.redirect(

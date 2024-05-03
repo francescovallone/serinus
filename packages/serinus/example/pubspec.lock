@@ -100,10 +100,9 @@ packages:
   serinus:
     dependency: "direct main"
     description:
-      name: serinus
-      sha256: "7067d9b144cd1bae425ab796c5c02f1091a0426632e416515e944a431bdf36d3"
-      url: "https://pub.dev"
-    source: hosted
+      path: ".."
+      relative: true
+    source: path
     version: "0.2.0"
   source_span:
     dependency: transitive

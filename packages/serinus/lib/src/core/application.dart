@@ -134,7 +134,7 @@ class SerinusApplication extends Application {
           'The entry point of the application cannot be a DeferredModule');
     }
     await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
-    await modulesContainer.finalize();
+    await modulesContainer.finalize(entrypoint);
   }
 
   @override

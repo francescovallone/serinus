@@ -60,6 +60,10 @@ class Request {
       return;
     }
     final body = await _original.body();
+    if(body.isEmpty){
+      _body = Body.empty();
+      return;
+    }
     if (contentType.isUrlEncoded()) {
       final formData = FormData.parseUrlEncoded(body);
       _body = Body(contentType, formData: formData);

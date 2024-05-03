@@ -33,11 +33,11 @@ class ModuleTestSuite {
           then all the submodules should be registered as well
         ''', () async {
         final container = ModulesContainer(config);
-
+        final module = TestModule(imports: [TestSubModule()]);
         await container.registerModules(
-            TestModule(imports: [TestSubModule()]), Type);
+            module, Type);
 
-        await container.finalize();
+        await container.finalize(module);
 
         expect(container.modules.length, 2);
       });
@@ -81,16 +81,16 @@ class ModuleTestSuite {
           then it should throw a $InitializationError
         ''', () async {
         final container = ModulesContainer(config);
-
+        final entrypoint = TestModule(
+          imports: [
+            TestSubModule(exports: [TestProviderExported])
+          ],
+        );
         await container.registerModules(
-            TestModule(
-              imports: [
-                TestSubModule(exports: [TestProviderExported])
-              ],
-            ),
+            entrypoint,
             TestModule);
 
-        container.finalize().catchError(
+        container.finalize(entrypoint).catchError(
             (value) => expect(value.runtimeType, InitializationError));
       });
 
@@ -126,7 +126,7 @@ class ModuleTestSuite {
 
         await container.registerModule(module, TestModule);
 
-        await container.finalize();
+        await container.finalize(module);
 
         final parents = container.getParents(subModule);
 
@@ -145,7 +145,7 @@ class ModuleTestSuite {
 
         await container.registerModules(module, TestModule);
 
-        await container.finalize();
+        await container.finalize(module);
 
         final parents = container.getParents(subModule);
 

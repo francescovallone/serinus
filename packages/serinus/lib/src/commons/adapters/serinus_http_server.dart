@@ -19,9 +19,9 @@ class SerinusHttpServer extends HttpServerAdapter<io.HttpServer> {
       String poweredByHeader = 'Powered by Serinus',
       io.SecurityContext? securityContext}) async {
     if (securityContext == null) {
-      server = await io.HttpServer.bind(host, port);
+      server = await io.HttpServer.bind(host, port, shared: true);
     } else {
-      server = await io.HttpServer.bindSecure(host, port, securityContext);
+      server = await io.HttpServer.bindSecure(host, port, securityContext, shared: true);
     }
     server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
   }
@@ -35,10 +35,11 @@ class SerinusHttpServer extends HttpServerAdapter<io.HttpServer> {
   Future<void> listen(RequestCallback requestCallback,
       {ErrorHandler? errorHandler}) async {
     try {
-      server?.listen((req) async {
+      server?.autoCompress = true;
+      server?.listen((req) {
         final request = InternalRequest.from(req, baseUrl: '');
         final response = request.response;
-        await requestCallback.call(request, response);
+        requestCallback.call(request, response);
       }, onError: errorHandler);
     } catch (e) {
       if (errorHandler == null) {

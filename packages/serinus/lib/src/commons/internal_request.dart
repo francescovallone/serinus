@@ -63,6 +63,14 @@ class InternalRequest {
         baseUrl: baseUrl);
   }
 
+  Encoding? get encoding {
+    var contentType = this.contentType;
+    if (!contentType.parameters.containsKey('charset')) {
+      return null;
+    }
+    return Encoding.getByName(contentType.parameters['charset']);
+  }
+
   InternalRequest({
     required this.path,
     required this.uri,
@@ -88,10 +96,10 @@ class InternalRequest {
   Future<String> body() async {
     final data = await bytes();
     if (data.isEmpty) {
-      return "";
+      return '';
     }
-    String stringData = utf8.decode(data);
-    return stringData;
+    final en = encoding ?? utf8;
+    return en.decode(data);
   }
 
   /// This method is used to get the body of the request as a [dynamic] json object

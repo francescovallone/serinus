@@ -64,7 +64,7 @@ class GetRoute extends Route {
   int? get version => 2;
 
   @override
-  List<Guard> get guards => [TestGuard()];
+  List<Guard> get guards => [];
 }
 
 class PostRoute extends Route {
@@ -117,8 +117,11 @@ class AppModule extends Module {
 
   @override
   List<Pipe> get pipes => [
-        TestPipe(),
-      ];
+    TestPipe(),
+  ];
+
+  @override
+  List<Guard> get guards => [TestGuard()];
 }
 
 class TestPipe extends Pipe {

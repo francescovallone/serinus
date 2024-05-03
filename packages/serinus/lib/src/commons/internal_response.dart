@@ -7,7 +7,9 @@ class InternalResponse {
   bool _statusChanged = false;
   final String? baseUrl;
 
-  InternalResponse(this._original, {this.baseUrl});
+  InternalResponse(this._original, {this.baseUrl}){
+    _original.headers.chunkedTransferEncoding = false;
+  }
 
   Future<void> send(dynamic data) async {
     if (!_statusChanged) {
@@ -59,6 +61,10 @@ class InternalResponse {
       _original.headers.add(versioning.header!, versioning.version.toString());
     }
     contentType(result.contentType);
+    _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
+    if(result.contentLength != null){
+      _original.headers.contentLength = result.contentLength!;
+    }
     await send(result.data);
   }
 }

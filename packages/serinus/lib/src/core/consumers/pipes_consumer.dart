@@ -5,7 +5,8 @@ import 'package:serinus/src/core/consumers/consumer.dart';
 import 'package:serinus/src/core/contexts/execution_context.dart';
 
 class PipesConsumer extends ExecutionContextConsumer<Pipe, void> {
-  PipesConsumer(super.request, super.routeData, super.providers, {super.body});
+  
+  PipesConsumer(super.request, super.routeData, super.providers, {super.body, super.context});
 
   @override
   ExecutionContext createContext() {
@@ -19,9 +20,9 @@ class PipesConsumer extends ExecutionContextConsumer<Pipe, void> {
 
   @override
   Future<void> consume(Iterable<Pipe> consumables) async {
-    final context = createContext();
+    context ??= createContext();
     for (final consumable in consumables) {
-      await consumable.transform(context);
+      await consumable.transform(context!);
     }
   }
 }

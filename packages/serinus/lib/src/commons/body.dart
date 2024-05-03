@@ -10,4 +10,6 @@ class Body {
   final Map<String, dynamic>? json;
 
   Body(this.contentType, {this.formData, this.text, this.bytes, this.json});
+
+  factory Body.empty() => Body(ContentType.text);
 }

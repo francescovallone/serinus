@@ -64,14 +64,14 @@ class ProviderTestSuite {
         then the initialized $Provider should be gettable''', () async {
         final provider = TestProvider();
         final container = ModulesContainer(config);
-
-        await container.registerModule(
-            TestModule(providers: [
+        final module = TestModule(providers: [
               DeferredProvider((context) async => provider, inject: [])
-            ]),
+            ]);
+        await container.registerModule(
+            module,
             Type);
 
-        await container.finalize();
+        await container.finalize(module);
         expect(container.get<TestProvider>(), provider);
       });
 
@@ -96,18 +96,18 @@ class ProviderTestSuite {
         and the dipendency is in the scoped context,
         then the initialized $Provider should be gettable''', () async {
         final container = ModulesContainer(config);
-
+        final module = TestModule(providers: [
+          TestProvider(),
+          DeferredProvider((context) async {
+            final dep = context.use<TestProvider>();
+            return TestProviderDependent(dep);
+          }, inject: [TestProvider])
+        ]);
         await container.registerModule(
-            TestModule(providers: [
-              TestProvider(),
-              DeferredProvider((context) async {
-                final dep = context.use<TestProvider>();
-                return TestProviderDependent(dep);
-              }, inject: [TestProvider])
-            ]),
+            module,
             Type);
 
-        await container.finalize();
+        await container.finalize(module);
 
         expect(container.get<TestProviderDependent>(), isNotNull);
       });
@@ -117,18 +117,18 @@ class ProviderTestSuite {
         and the dipendency is not in the scoped context,
         then the initialized $Provider should not be gettable''', () async {
         final container = ModulesContainer(config);
-
-        await container.registerModule(
-            TestModule(providers: [
+        final module = TestModule(providers: [
               DeferredProvider((context) async {
                 final dep = context.use<TestProvider>();
                 return TestProviderDependent(dep);
               }, inject: [TestProvider])
-            ]),
+            ]);
+        await container.registerModule(
+            module,
             Type);
 
         container
-            .finalize()
+            .finalize(module)
             .catchError((value) => expect(value.runtimeType, StateError));
       });
 
@@ -136,10 +136,10 @@ class ProviderTestSuite {
         then the onApplicationInit method should be called''', () async {
         final provider = TestProviderOnInit();
         final container = ModulesContainer(config);
+        final module = TestModule(providers: [provider]);
+        await container.registerModule(module, Type);
 
-        await container.registerModule(TestModule(providers: [provider]), Type);
-
-        await container.finalize();
+        await container.finalize(module);
         expect(provider.isInitialized, true);
       });
     });
