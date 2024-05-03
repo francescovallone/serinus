@@ -58,7 +58,7 @@ class CreateCommand extends Command<int> {
     );
     final generator = await MasonGenerator.fromBrick(brick);
     final progress = _logger?.progress(
-      'Generation a new Serinus Application [$projectName]',
+      'Generating a new Serinus Application [$projectName]',
     );
     var vars = <String, dynamic>{
       'name': projectName,
@@ -68,23 +68,32 @@ class CreateCommand extends Command<int> {
     if(!outputDirectory.existsSync()){
       outputDirectory.createSync(recursive: true);
     }
-    await generator.hooks.preGen(
-      workingDirectory: outputDirectory.absolute.path,
-      vars: vars,
-      onVarsChanged: (newVars) {
-        vars = {
-          ...newVars,
-        };
-      }
-    );
+    _logger?.success('Directory created at ${outputDirectory.absolute.path}');
+    progress?.update('Executing pre-gen hooks...');
+    // await generator.hooks.preGen(
+    //   workingDirectory: outputDirectory.absolute.path,
+    //   vars: vars,
+    //   onVarsChanged: (newVars) {
+    //     vars = {
+    //       ...newVars,
+    //     };
+    //   },
+    //   logger: _logger
+    // );
+    _logger?.success('Pre-gen hooks executed successfully');
+    progress?.update('Generating files...');
     await generator.generate(
       DirectoryGeneratorTarget(outputDirectory),
       vars: vars,
     );
+    _logger?.success('Files generated successfully');
+    progress?.update('Executing post-gen hooks...');
     await generator.hooks.postGen(
       workingDirectory: outputDirectory.absolute.path,
       vars: vars,
+      logger: _logger
     );
+    _logger?.success('Post-gen hooks executed successfully');
     progress?.complete();
     return ExitCode.success.code;
   }

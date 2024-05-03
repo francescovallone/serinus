@@ -32,10 +32,6 @@ sealed class Application {
 
   String get url;
 
-  T? get<T extends Provider>() {
-    return modulesContainer.get<T>();
-  }
-
   HttpServer get server => config.serverAdapter.server;
 
   SerinusHttpServer get adapter => config.serverAdapter as SerinusHttpServer;
@@ -55,8 +51,6 @@ sealed class Application {
 
   @internal
   Future<void> shutdown();
-
-  Future<void> preview();
 
   Future<void> serve();
 
@@ -95,14 +89,8 @@ class SerinusApplication extends Application {
   }
 
   @override
-  Future<void> preview() async {
-    final explorer = Explorer(modulesContainer, router, config);
-    explorer.resolveRoutes();
-  }
-
-  @override
   Future<void> serve() async {
-    await preview();
+    await initialize();
     try {
       _logger.info("Starting server on $url");
       final handler = RequestHandler(router, modulesContainer, config);
@@ -134,6 +122,8 @@ class SerinusApplication extends Application {
           'The entry point of the application cannot be a DeferredModule');
     }
     await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
+    final explorer = Explorer(modulesContainer, router, config);
+    explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
   }
 

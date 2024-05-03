@@ -31,7 +31,6 @@ class SerinusFactory {
             serverAdapter: server),
         level: loggingLevel,
         loggerService: loggerService);
-    await app.initialize();
     return app;
   }
 }
