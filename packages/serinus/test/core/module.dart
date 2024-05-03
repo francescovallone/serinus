@@ -34,8 +34,7 @@ class ModuleTestSuite {
         ''', () async {
         final container = ModulesContainer(config);
         final module = TestModule(imports: [TestSubModule()]);
-        await container.registerModules(
-            module, Type);
+        await container.registerModules(module, Type);
 
         await container.finalize(module);
 
@@ -86,9 +85,7 @@ class ModuleTestSuite {
             TestSubModule(exports: [TestProviderExported])
           ],
         );
-        await container.registerModules(
-            entrypoint,
-            TestModule);
+        await container.registerModules(entrypoint, TestModule);
 
         container.finalize(entrypoint).catchError(
             (value) => expect(value.runtimeType, InitializationError));
@@ -124,7 +121,7 @@ class ModuleTestSuite {
         final subModule = TestSubModule();
         final module = TestModule(imports: [subModule]);
 
-        await container.registerModule(module, TestModule);
+        await container.registerModules(module, TestModule);
 
         await container.finalize(module);
 

@@ -14,7 +14,8 @@ abstract class ExecutionContextConsumer<TObj, O> extends Consumer<TObj, O> {
   final Body? body;
   ExecutionContext? context;
 
-  ExecutionContextConsumer(this.request, this.routeData, this.providers, {this.body, this.context});
+  ExecutionContextConsumer(this.request, this.routeData, this.providers,
+      {this.body, this.context});
 
   @override
   Future<O> consume(Iterable<TObj> consumables);

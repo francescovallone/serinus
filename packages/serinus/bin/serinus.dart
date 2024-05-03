@@ -117,8 +117,8 @@ class AppModule extends Module {
 
   @override
   List<Pipe> get pipes => [
-    TestPipe(),
-  ];
+        TestPipe(),
+      ];
 
   @override
   List<Guard> get guards => [TestGuard()];

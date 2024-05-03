@@ -44,7 +44,8 @@ final class ModulesContainer {
   /// The method registers the module in the application and initializes
   /// all the "eager" providers of the module and saves them in the [_providers]
   /// map. It also saves the deferred providers in the [_deferredProviders] map.
-  Future<void> registerModule(Module module, Type entrypoint, [ModuleInjectables? moduleInjectables]) async {
+  Future<void> registerModule(Module module, Type entrypoint,
+      [ModuleInjectables? moduleInjectables]) async {
     final logger = Logger('InstanceLoader');
     final token =
         module.token.isEmpty ? module.runtimeType.toString() : module.token;
@@ -54,14 +55,16 @@ final class ModulesContainer {
       throw InitializationError('The entrypoint module cannot have exports');
     }
     _modules[token] = initializedModule;
-    if(_moduleInjectables.containsKey(token)){
-      _moduleInjectables[token] = moduleInjectables!.concatTo(_moduleInjectables[token]);
+    if (_moduleInjectables.containsKey(token)) {
+      _moduleInjectables[token] =
+          moduleInjectables!.concatTo(_moduleInjectables[token]);
     } else {
-      _moduleInjectables[token] = moduleInjectables ?? ModuleInjectables(
-        guards: {...module.guards},
-        pipes: {...module.pipes},
-        middlewares: {...module.middlewares},
-      );
+      _moduleInjectables[token] = moduleInjectables ??
+          ModuleInjectables(
+            guards: {...module.guards},
+            pipes: {...module.pipes},
+            middlewares: {...module.middlewares},
+          );
     }
     _providers[token] = [];
     for (final provider in initializedModule.providers
@@ -111,36 +114,38 @@ final class ModulesContainer {
   /// from the entrypoint module. It also registers all the submodules.
   ///
   /// It first initialize the "eager" submodules and then the deferred submodules.
-  Future<void> registerModules(Module module, Type entrypoint, [ModuleInjectables? moduleInjectables]) async {
+  Future<void> registerModules(Module module, Type entrypoint,
+      [ModuleInjectables? moduleInjectables]) async {
     final eagerSubModules =
         module.imports.where((element) => element is! DeferredModule);
     final deferredSubModules = module.imports.whereType<DeferredModule>();
-    final currentModuleInjectables = _moduleInjectables[module.token] ??= ModuleInjectables(
+    final currentModuleInjectables =
+        _moduleInjectables[module.token] ??= ModuleInjectables(
       guards: {...module.guards},
       pipes: {...module.pipes},
       middlewares: {...module.middlewares},
     );
     for (var subModule in eagerSubModules) {
-      await _callForRecursiveRegistration(subModule, module, entrypoint, currentModuleInjectables);
-      if(_moduleInjectables.containsKey(subModule.token)){
-        _moduleInjectables[subModule.token] = currentModuleInjectables.concatTo(_moduleInjectables[subModule.token]);
+      await _callForRecursiveRegistration(
+          subModule, module, entrypoint, currentModuleInjectables);
+      if (_moduleInjectables.containsKey(subModule.token)) {
+        _moduleInjectables[subModule.token] = currentModuleInjectables
+            .concatTo(_moduleInjectables[subModule.token]);
       }
     }
     for (var deferredModule in deferredSubModules) {
       final subModule = await deferredModule
           .init(_getApplicationContext(deferredModule.inject));
-      await _callForRecursiveRegistration(subModule, module, entrypoint, currentModuleInjectables);
-      if(_moduleInjectables.containsKey(subModule.token)){
-        _moduleInjectables[subModule.token] = currentModuleInjectables.concatTo(_moduleInjectables[subModule.token]);
+      await _callForRecursiveRegistration(
+          subModule, module, entrypoint, currentModuleInjectables);
+      if (_moduleInjectables.containsKey(subModule.token)) {
+        _moduleInjectables[subModule.token] = currentModuleInjectables
+            .concatTo(_moduleInjectables[subModule.token]);
       }
       module.imports.remove(deferredModule);
       module.imports.add(subModule);
     }
-    await registerModule(
-      module, 
-      entrypoint, 
-      _moduleInjectables[module.token]
-    );
+    await registerModule(module, entrypoint, _moduleInjectables[module.token]);
   }
 
   /// Calls the recursive registration of the submodules
@@ -152,12 +157,12 @@ final class ModulesContainer {
   /// The method calls the recursive registration of the submodules
   ///
   /// Throws a [StateError] if a module tries to import itself
-  Future<void> _callForRecursiveRegistration(
-      Module subModule, Module module, Type entrypoint, ModuleInjectables moduleInjectables) async {
+  Future<void> _callForRecursiveRegistration(Module subModule, Module module,
+      Type entrypoint, ModuleInjectables moduleInjectables) async {
     if (subModule.runtimeType == module.runtimeType) {
       throw InitializationError('A module cannot import itself');
     }
-    
+
     await registerModules(subModule, entrypoint, moduleInjectables);
   }
 
@@ -182,7 +187,8 @@ final class ModulesContainer {
             'All the exported providers must be registered in the module');
       }
     }
-    _moduleInjectables[entrypoint.token] = _moduleInjectables[entrypoint.token]!.copyWith(
+    _moduleInjectables[entrypoint.token] =
+        _moduleInjectables[entrypoint.token]!.copyWith(
       providers: getModuleScopedProviders(entrypoint),
     );
   }
@@ -191,9 +197,10 @@ final class ModulesContainer {
     Set<Provider> providers = Set<Provider>.from(module.providers);
     for (final subModule in module.imports) {
       final providersInjectable = subModule.exportedProviders
-        .addAllIfAbsent(getModuleScopedProviders(subModule));
+          .addAllIfAbsent(getModuleScopedProviders(subModule));
       providers.addAll(providersInjectable);
-      _moduleInjectables[subModule.token] = _moduleInjectables[subModule.token]!.copyWith(
+      _moduleInjectables[subModule.token] =
+          _moduleInjectables[subModule.token]!.copyWith(
         providers: {...providersInjectable},
       );
     }
@@ -251,12 +258,9 @@ final class ModulesContainer {
     return providers.firstWhereOrNull((provider) => provider.runtimeType == T)
         as T?;
   }
-
 }
 
-
 class ModuleInjectables {
-
   final Set<Guard> guards;
   final Set<Pipe> pipes;
   final Set<Middleware> middlewares;
@@ -273,7 +277,8 @@ class ModuleInjectables {
     return ModuleInjectables(
       guards: guards..addAllIfAbsent(moduleInjectables?.guards ?? {}),
       pipes: pipes..addAllIfAbsent(moduleInjectables?.pipes ?? {}),
-      middlewares: middlewares..addAllIfAbsent(moduleInjectables?.middlewares ?? {}),
+      middlewares: middlewares
+        ..addAllIfAbsent(moduleInjectables?.middlewares ?? {}),
       providers: providers..addAllIfAbsent(moduleInjectables?.providers ?? {}),
     );
   }
@@ -292,9 +297,10 @@ class ModuleInjectables {
     );
   }
 
-  Set<Middleware> filterMiddlewaresByRoute(String path, Map<String, dynamic> params){
+  Set<Middleware> filterMiddlewaresByRoute(
+      String path, Map<String, dynamic> params) {
     Set<Middleware> executedMiddlewares = {};
-    for(Middleware middleware in middlewares) {
+    for (Middleware middleware in middlewares) {
       for (final route in middleware.routes) {
         final segments = route.split('/');
         final routeSegments = path.split('/');
@@ -318,5 +324,4 @@ class ModuleInjectables {
     }
     return executedMiddlewares;
   }
-
 }

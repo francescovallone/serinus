@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:collection/collection.dart';
 import 'package:serinus/serinus.dart';
 
 class InternalResponse {
@@ -7,7 +8,7 @@ class InternalResponse {
   bool _statusChanged = false;
   final String? baseUrl;
 
-  InternalResponse(this._original, {this.baseUrl}){
+  InternalResponse(this._original, {this.baseUrl}) {
     _original.headers.chunkedTransferEncoding = false;
   }
 
@@ -62,9 +63,28 @@ class InternalResponse {
     }
     contentType(result.contentType);
     _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-    if(result.contentLength != null){
+    if (result.contentLength != null) {
       _original.headers.contentLength = result.contentLength!;
     }
-    await send(result.data);
+    var data = result.data;
+    var coding = _original.headers['transfer-encoding']?.join(';');
+    if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
+      // If the response is already in a chunked encoding, de-chunk it because
+      // otherwise `dart:io` will try to add another layer of chunking.
+      //
+      _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
+    } else if (result.statusCode >= 200 &&
+        result.statusCode != 204 &&
+        result.statusCode != 304 &&
+        result.contentLength == null &&
+        result.contentType.mimeType != 'multipart/byteranges') {
+      // If the response isn't chunked yet and there's no other way to tell its
+      // length, enable `dart:io`'s chunked encoding.
+      _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
+    }
+    if (!result.headers.containsKey(HttpHeaders.dateHeader)) {
+      _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
+    }
+    await send(data);
   }
 }

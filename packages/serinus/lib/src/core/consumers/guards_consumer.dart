@@ -5,8 +5,8 @@ import 'package:serinus/src/core/consumers/consumer.dart';
 import 'package:serinus/src/core/contexts/execution_context.dart';
 
 class GuardsConsumer extends ExecutionContextConsumer<Guard, bool> {
-
-  GuardsConsumer(super.request, super.routeData, super.providers, {super.body, super.context});
+  GuardsConsumer(super.request, super.routeData, super.providers,
+      {super.body, super.context});
 
   @override
   ExecutionContext createContext() {
@@ -25,7 +25,8 @@ class GuardsConsumer extends ExecutionContextConsumer<Guard, bool> {
       final canActivate = await consumable.canActivate(context!);
       if (!canActivate) {
         throw ForbiddenException(
-          message: '${consumable.runtimeType} block the access to the route ${request.path}');
+            message:
+                '${consumable.runtimeType} block the access to the route ${request.path}');
       }
     }
     return true;

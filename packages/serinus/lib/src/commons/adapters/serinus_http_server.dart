@@ -21,7 +21,8 @@ class SerinusHttpServer extends HttpServerAdapter<io.HttpServer> {
     if (securityContext == null) {
       server = await io.HttpServer.bind(host, port, shared: true);
     } else {
-      server = await io.HttpServer.bindSecure(host, port, securityContext, shared: true);
+      server = await io.HttpServer.bindSecure(host, port, securityContext,
+          shared: true);
     }
     server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
   }

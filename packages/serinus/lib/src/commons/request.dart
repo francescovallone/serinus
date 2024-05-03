@@ -60,7 +60,7 @@ class Request {
       return;
     }
     final body = await _original.body();
-    if(body.isEmpty){
+    if (body.isEmpty) {
       _body = Body.empty();
       return;
     }

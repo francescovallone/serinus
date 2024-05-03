@@ -41,13 +41,14 @@ class Response {
           'The data must be a Map<String, dynamic> or a JsonSerializableMixin');
     }
     final value = jsonEncode(responseData);
-    return Response._(
-        value, statusCode, contentType ?? ContentType.json).._contentLength = value.length;
+    return Response._(value, statusCode, contentType ?? ContentType.json)
+      .._contentLength = value.length;
   }
 
   factory Response.html(String data,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(data, statusCode, contentType ?? ContentType.html).._contentLength = data.length;
+    return Response._(data, statusCode, contentType ?? ContentType.html)
+      .._contentLength = data.length;
   }
 
   factory Response.render(View view,
@@ -62,18 +63,19 @@ class Response {
 
   factory Response.text(String data,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(data, statusCode, contentType ?? ContentType.text).._contentLength = data.length;
+    return Response._(data, statusCode, contentType ?? ContentType.text)
+      .._contentLength = data.length;
   }
 
   factory Response.bytes(Uint8List data,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(data, statusCode, contentType ?? ContentType.binary).._contentLength = data.length;
+    return Response._(data, statusCode, contentType ?? ContentType.binary);
   }
 
   factory Response.file(File file,
       {int statusCode = 200, ContentType? contentType}) {
     return Response._(
-        file.readAsBytesSync(), statusCode, contentType ?? ContentType.binary).._contentLength = file.lengthSync();
+        file.readAsBytesSync(), statusCode, contentType ?? ContentType.binary);
   }
 
   factory Response.redirect(

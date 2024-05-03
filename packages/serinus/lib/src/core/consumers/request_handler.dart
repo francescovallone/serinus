@@ -58,9 +58,10 @@ class RequestHandler {
       }
       final route = routeSpec.route;
       final handler = controller.routes[routeSpec];
-      final injectables = modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
+      final injectables =
+          modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
       final scopedProviders = (injectables.providers
-        .addAllIfAbsent(modulesContainer.globalProviders));
+          .addAllIfAbsent(modulesContainer.globalProviders));
       final wrappedRequest = Request(
         request,
         params: routeLookup.params,
@@ -69,19 +70,17 @@ class RequestHandler {
       final body = wrappedRequest.body!;
       final context = _buildContext(scopedProviders, wrappedRequest, body);
       await _executeMiddlewares(
-        context, 
-        wrappedRequest, 
-        response, 
-        injectables.filterMiddlewaresByRoute(routeData.path, wrappedRequest.params)
-      );
+          context,
+          wrappedRequest,
+          response,
+          injectables.filterMiddlewaresByRoute(
+              routeData.path, wrappedRequest.params));
       final guardsConsumer = GuardsConsumer(
-        wrappedRequest, 
-        routeData, 
-        scopedProviders, 
-        body: body
-      );
+          wrappedRequest, routeData, scopedProviders,
+          body: body);
       if (injectables.guards.isNotEmpty) {
-        await _executeGuards(guardsConsumer, injectables.guards, wrappedRequest);
+        await _executeGuards(
+            guardsConsumer, injectables.guards, wrappedRequest);
       }
       if (controller.guards.isNotEmpty) {
         await _executeGuards(guardsConsumer, controller.guards, wrappedRequest);
@@ -90,12 +89,8 @@ class RequestHandler {
         await _executeGuards(guardsConsumer, route.guards, wrappedRequest);
       }
       final pipesConsumer = PipesConsumer(
-        wrappedRequest, 
-        routeData, 
-        scopedProviders, 
-        body: body,
-        context: guardsConsumer.context
-      );
+          wrappedRequest, routeData, scopedProviders,
+          body: body, context: guardsConsumer.context);
       if (injectables.pipes.isNotEmpty) {
         await pipesConsumer.consume([...injectables.pipes]);
       }
@@ -128,7 +123,8 @@ class RequestHandler {
     await response.finalize(result, viewEngine: config.viewEngine);
   }
 
-  Future<void> _executeGuards(GuardsConsumer consumer, Iterable<Guard> guards, Request request) async {
+  Future<void> _executeGuards(
+      GuardsConsumer consumer, Iterable<Guard> guards, Request request) async {
     await consumer.consume([...guards]);
   }
 
@@ -139,11 +135,8 @@ class RequestHandler {
     return builder.build(request)..body = body;
   }
 
-  Future<void> _executeMiddlewares(
-      RequestContext context,
-      Request request,
-      InternalResponse response,
-      Iterable<Middleware> middlewares) async {
+  Future<void> _executeMiddlewares(RequestContext context, Request request,
+      InternalResponse response, Iterable<Middleware> middlewares) async {
     if (middlewares.isEmpty) {
       return;
     }
@@ -158,5 +151,4 @@ class RequestHandler {
     }
     return completer.future;
   }
-
 }

@@ -43,7 +43,8 @@ class ProviderTestSuite {
         final provider = TestProvider();
         final container = ModulesContainer(config);
 
-        await container.registerModule(TestModule(providers: [provider]), Type);
+        await container.registerModules(
+            TestModule(providers: [provider]), Type);
         expect(container.get<TestProvider>(), provider);
       });
 
@@ -65,11 +66,9 @@ class ProviderTestSuite {
         final provider = TestProvider();
         final container = ModulesContainer(config);
         final module = TestModule(providers: [
-              DeferredProvider((context) async => provider, inject: [])
-            ]);
-        await container.registerModule(
-            module,
-            Type);
+          DeferredProvider((context) async => provider, inject: [])
+        ]);
+        await container.registerModules(module, Type);
 
         await container.finalize(module);
         expect(container.get<TestProvider>(), provider);
@@ -82,7 +81,7 @@ class ProviderTestSuite {
         final provider = TestProvider();
         final container = ModulesContainer(config);
 
-        await container.registerModule(
+        await container.registerModules(
             TestModule(providers: [
               DeferredProvider((context) async => provider, inject: [])
             ]),
@@ -103,9 +102,7 @@ class ProviderTestSuite {
             return TestProviderDependent(dep);
           }, inject: [TestProvider])
         ]);
-        await container.registerModule(
-            module,
-            Type);
+        await container.registerModules(module, Type);
 
         await container.finalize(module);
 
@@ -118,14 +115,12 @@ class ProviderTestSuite {
         then the initialized $Provider should not be gettable''', () async {
         final container = ModulesContainer(config);
         final module = TestModule(providers: [
-              DeferredProvider((context) async {
-                final dep = context.use<TestProvider>();
-                return TestProviderDependent(dep);
-              }, inject: [TestProvider])
-            ]);
-        await container.registerModule(
-            module,
-            Type);
+          DeferredProvider((context) async {
+            final dep = context.use<TestProvider>();
+            return TestProviderDependent(dep);
+          }, inject: [TestProvider])
+        ]);
+        await container.registerModules(module, Type);
 
         container
             .finalize(module)
@@ -137,8 +132,7 @@ class ProviderTestSuite {
         final provider = TestProviderOnInit();
         final container = ModulesContainer(config);
         final module = TestModule(providers: [provider]);
-        await container.registerModule(module, Type);
-
+        await container.registerModules(module, Type);
         await container.finalize(module);
         expect(provider.isInitialized, true);
       });
