@@ -87,14 +87,21 @@ class CreateCommand extends Command<int> {
       vars: vars,
     );
     _logger?.success('Files generated successfully');
-    progress?.update('Executing post-gen hooks...');
-    await generator.hooks.postGen(
-      workingDirectory: outputDirectory.absolute.path,
-      vars: vars,
-      logger: _logger
-    );
-    _logger?.success('Post-gen hooks executed successfully');
+    // progress?.update('Executing post-gen hooks...');
+    // await generator.hooks.postGen(
+    //   workingDirectory: outputDirectory.absolute.path,
+    //   vars: vars,
+    //   logger: _logger
+    // );
+    // _logger?.success('Post-gen hooks executed successfully');
     progress?.complete();
+
+    _logger?.info(
+      'Run the following commands to get started:\n\n'
+      'cd ${outputDirectory.absolute.path}\n'
+      'dart pub get\n'
+      'serinus run\n',
+    );
     return ExitCode.success.code;
   }
 
