@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Fix the create command.
+
 ## 0.2.1
 
 - Fix the create command to use the pre and post gen hooks.
