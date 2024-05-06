@@ -35,7 +35,7 @@ jobs:
         uses: VeryGoodOpenSource/very_good_coverage@v2
         with:
           path: ./packages/serinus/coverage/lcov.info
-          min_coverage: 70
+          min_coverage: 80
       
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
