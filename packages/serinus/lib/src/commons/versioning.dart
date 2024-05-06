@@ -1,4 +1,4 @@
-class VersioningOptions {
+final class VersioningOptions {
   /// The global version of the API
   final int version;
 

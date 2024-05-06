@@ -1,11 +1,6 @@
-import '../extensions/string_extensions.dart';
 
 extension JsonParsing on dynamic {
-  String toJsonString() {
-    final stringifiedObject = toString();
-    if (stringifiedObject.isJson()) {
-      return stringifiedObject;
-    }
+  String parseJson() {
     try {
       return jsonEncode(this);
     } catch (e) {
