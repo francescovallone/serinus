@@ -15,8 +15,9 @@ class TestController extends Controller {
   TestController({super.path = '/'}) {
     on(
         TestRoute(path: '/form', method: HttpMethod.post),
-        (context) async =>
-            Response.json(context.request.body?.formData?.values ?? {}));
+        (context) async {
+          return Response.json(context.request.body?.formData?.values ?? {});
+        });
   }
 }
 
@@ -25,9 +26,8 @@ class TestModule extends Module {
       {super.controllers, super.imports, super.providers, super.exports});
 }
 
-class FormDataTestSuites {
-  static void runTests() {
-    group('$FormData', () {
+void main() async {
+  group('$FormData', () {
       group('UrlEncoded', () {
         test(
             '''when create a UrlEncoded FormData with an empty string, then the fields should be an empty map''',
@@ -83,5 +83,4 @@ class FormDataTestSuites {
         });
       });
     });
-  }
 }

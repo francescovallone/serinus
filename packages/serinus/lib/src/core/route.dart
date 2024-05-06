@@ -1,7 +1,7 @@
-import 'package:serinus/src/core/pipe.dart' as p;
 
-import '../commons/commons.dart';
+import '../enums/http_method.dart';
 import 'guard.dart';
+import 'pipe.dart';
 
 abstract class Route {
   final String path;
@@ -9,7 +9,7 @@ abstract class Route {
   final Map<String, Type> queryParameters;
 
   List<Guard> get guards => [];
-  List<p.Pipe> get pipes => [];
+  List<Pipe> get pipes => [];
 
   int? get version => null;
 

@@ -1,4 +1,6 @@
-import 'package:serinus/serinus.dart';
+
+import '../contexts/contexts.dart';
+import 'core.dart';
 
 abstract class Module {
   final String token;

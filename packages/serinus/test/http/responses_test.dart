@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/router.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
@@ -47,14 +48,15 @@ class TestModule extends Module {
       {super.controllers, super.imports, super.providers, super.exports});
 }
 
-class ResponsesTestSuite {
-  static void runTests() {
-    group('$Response', () {
+void main() async {
+  group('$Response', () {
       SerinusApplication? app;
+      final controller = TestController();
       setUpAll(() async {
         app = await serinus.createApplication(
-            entrypoint: TestModule(controllers: [TestController()]),
+            entrypoint: TestModule(controllers: [controller]),
             loggingLevel: LogLevel.none);
+        app?.enableCors(Cors());
         await app?.serve();
       });
       tearDownAll(() async {
@@ -147,6 +149,24 @@ class ResponsesTestSuite {
         final body = await response.transform(Utf8Decoder()).join();
         expect(body, 'test');
       });
+      test(
+          '''when a non-existent route is called, then it should return a 404 status code''',
+          () async {
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/status-error'));
+        final response = await request.close();
+        expect(response.statusCode, 404);
+      });
+      test(
+          '''when a non-existent route is called, then it should return a 404 status code''',
+          () async {
+            app?.router.registerRoute(
+              RouteData(path: 'path-error', method: HttpMethod.get, controller: controller, routeCls: TestRoute, moduleToken: 'TestModule')
+            );
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/path-error'));
+        final response = await request.close();
+        expect(response.statusCode, 500);
+      });
     });
-  }
 }

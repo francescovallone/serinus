@@ -39,14 +39,14 @@ class TestModule extends Module {
       {super.controllers, super.imports, super.providers, super.exports});
 }
 
-class SessionsTestSuite {
-  static void runTests() {
-    group('$Session', () {
+Future<void> main() async {
+  group('$Session', () {
       SerinusApplication? app;
       setUpAll(() async {
         app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController()]),
           loggingLevel: LogLevel.none,
+          port: 3001
         );
         await app?.serve();
       });
@@ -57,7 +57,7 @@ class SessionsTestSuite {
           '''when the first request of session is handled, then the session should be new''',
           () async {
         final request = await HttpClient()
-            .getUrl(Uri.parse('http://localhost:3000/session'));
+            .getUrl(Uri.parse('http://localhost:3001/session'));
         final response = await request.close();
         final body = await response.transform(Utf8Decoder()).join();
 
@@ -69,10 +69,10 @@ class SessionsTestSuite {
           '''when the second request of session is handled, then the session should not be new''',
           () async {
         var request = await HttpClient()
-            .getUrl(Uri.parse('http://localhost:3000/session'));
+            .getUrl(Uri.parse('http://localhost:3001/session'));
         var response = await request.close();
         request = await HttpClient().getUrl(
-          Uri.parse('http://localhost:3000/session'),
+          Uri.parse('http://localhost:3001/session'),
         );
         request.headers.add('Cookie', response.headers['set-cookie']!);
         response = await request.close();
@@ -82,5 +82,4 @@ class SessionsTestSuite {
         expect(jsonDecode(body), {'isSessionNew': false});
       });
     });
-  }
 }
