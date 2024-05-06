@@ -1,6 +1,6 @@
+import 'package:http/http.dart' as http;
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
-import 'package:http/http.dart' as http;
 
 class TestRoute extends Route {
   const TestRoute({
