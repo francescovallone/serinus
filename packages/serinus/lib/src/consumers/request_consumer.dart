@@ -12,12 +12,12 @@ import '../http/internal_request.dart';
 import 'guards_consumer.dart';
 import 'pipes_consumer.dart';
 
-class RequestHandler {
+class RequestConsumer {
   final Router router;
   final ModulesContainer modulesContainer;
   final ApplicationConfig config;
 
-  const RequestHandler(this.router, this.modulesContainer, this.config);
+  const RequestConsumer(this.router, this.modulesContainer, this.config);
 
   /// Handles the request and sends the response
   ///
@@ -118,8 +118,9 @@ class RequestHandler {
       await response.send(e.toString());
       return;
     }
-    if(result == null) {
-      throw InternalServerErrorException(message: 'The route handler returned null');
+    if (result == null) {
+      throw InternalServerErrorException(
+          message: 'The route handler returned null');
     }
     await response.finalize(result, viewEngine: config.viewEngine);
   }

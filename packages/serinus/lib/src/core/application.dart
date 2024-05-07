@@ -3,17 +3,17 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/serinus_http_server.dart';
-import '../consumers/request_handler.dart';
+import '../consumers/request_consumer.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
-import '../enums/log_level.dart';
+import '../enums/enums.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
 import '../http/http.dart';
 import '../injector/explorer.dart';
-import '../mixins/application_mixins.dart';
+import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
 import 'core.dart';
@@ -101,15 +101,10 @@ class SerinusApplication extends Application {
     await initialize();
     try {
       _logger.info('Starting server on $url');
-      final handler = RequestHandler(router, modulesContainer, config);
+      final handler = RequestConsumer(router, modulesContainer, config);
       await config.serverAdapter.listen(
-        (request, response) async {
-          await handler.handleRequest(request, response);
-        },
-        errorHandler: (e, stackTrace) {
-          print(e);
-          print(stackTrace);
-        },
+        handler.handleRequest,
+        errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );
     } on SocketException catch (_) {
       _logger.severe('Failed to start server on $url');

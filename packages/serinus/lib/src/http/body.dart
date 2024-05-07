@@ -4,7 +4,6 @@ import 'form_data.dart';
 
 /// The class [Body] is used to create a body for the request.
 class Body {
-
   /// If the content type is [multipart/form-data] or [x-www-form-urlencoded], the [formData] will be used.
   final FormData? formData;
 

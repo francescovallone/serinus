@@ -1,8 +1,8 @@
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../core/core.dart';
+import '../enums/versioning_type.dart';
 import '../services/logger_service.dart';
-import '../versioning.dart';
 
 class Explorer {
   final ModulesContainer _modulesContainer;

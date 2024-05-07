@@ -9,10 +9,9 @@ typedef LogCallback = void Function(logging.LogRecord record, double deltaTime);
 
 /// The [LoggerService] is used to bootstrap the logging in the application.
 class LoggerService {
-
   /// The [onLog] callback is used to style the logs.
   LogCallback? onLog;
-  
+
   int _time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
   /// The [level] of the logger.
@@ -35,6 +34,7 @@ class LoggerService {
       LogLevel.errors => logging.Level.SEVERE,
       LogLevel.none => logging.Level.OFF,
     };
+
     /// The listener for the logs.
     logging.Logger.root.onRecord.listen((record) {
       double delta =
@@ -59,7 +59,7 @@ class LoggerService {
 }
 
 /// The [Logger] class is a wrapper around the [logging.Logger] class.
-/// 
+///
 /// It is used to log messages in the application.
 class Logger {
   final String name;

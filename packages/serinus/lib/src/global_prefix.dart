@@ -1,5 +1,5 @@
 /// Global prefix for all routes in the controller.
-/// 
+///
 /// This annotation is used to define a global prefix for all routes in the application.
 final class GlobalPrefix {
   /// The prefix to be used.

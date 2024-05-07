@@ -1,24 +1,23 @@
 import 'dart:io';
 
 /// The class [Session] exposes the methods to interact with the session of the request.
-/// 
+///
 /// [Session] is a wrapper around the [HttpSession] class.
 class Session {
-
   /// The original [HttpSession] object.
   final HttpSession _original;
 
   Session(this._original);
 
   /// This method is used to get a value from the session.
-  /// 
+  ///
   /// Returns a value from the session. (dynamic, it can be null)
   dynamic get(String key) {
     return _original[key];
   }
 
   /// This method is used to put a value in the session.
-  /// 
+  ///
   /// Puts a value in the session.
   void put(String key, dynamic value) {
     _original[key] = value;

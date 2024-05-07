@@ -1,4 +1,3 @@
-
 import '../enums/http_method.dart';
 import 'guard.dart';
 import 'pipe.dart';

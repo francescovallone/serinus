@@ -55,23 +55,28 @@ class Cors {
       [List<String> allowedOrigins = const ['*']]) async {
     /// Get the origin from the request headers.
     final origin = request.headers['origin'];
+
     /// Check if the origin is allowed.
     if (origin == null ||
         (!allowedOrigins.contains('*') && !allowedOrigins.contains(origin))) {
       return handler!(context!);
     }
+
     /// Set the response headers.
     final headers = <String, List<String>>{
       ..._defaultHeadersAll,
     };
+
     /// Add the origin to the response headers.
     headers['Access-Control-Allow-Origin'] = [origin];
+
     /// Stringify the headers.
     final stringHeaders =
         headers.map((key, value) => MapEntry(key, value.join(',')));
     responseHeaders = {
       ...stringHeaders,
     };
+
     /// Check if the request method is OPTIONS.
     if (request.method == 'OPTIONS') {
       /// If the request method is OPTIONS, return a response with status 200.
@@ -80,12 +85,15 @@ class Cors {
       request.response.send(null);
       return null;
     }
+
     /// Call the handler.
     final response = await handler!(context!);
+
     /// Add the headers to the response.
     response.addHeaders({
       ...stringHeaders,
     });
+
     /// Return the response.
     return response;
   }

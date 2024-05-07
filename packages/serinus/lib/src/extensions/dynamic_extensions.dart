@@ -1,4 +1,3 @@
-
 extension JsonParsing on dynamic {
   String parseJson() {
     try {
@@ -13,10 +12,6 @@ extension JsonParsing on dynamic {
     for (var key in this.keys) {
       if (this[key] is Map) {
         convertedMap[key.toString()] = this[key].convertMap();
-        // }else if(this[key] is UploadedFile){
-        //   convertedMap[key.toString()] = this[key].toString();
-        // }else if(this[key] is FormData){
-        //   convertedMap[key.toString()] = this[key].convertMap();
       } else {
         convertedMap[key.toString()] = this[key];
       }

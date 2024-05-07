@@ -18,7 +18,10 @@ class TestJsonObject with JsonObject {
 
 class TestController extends Controller {
   TestController({super.path = '/'}) {
-    on(TestRoute(path: '/guards'), (context) async => Response.text('ok!')..headers['x-guard'] = context.request.headers['x-guard']);
+    on(
+        TestRoute(path: '/guards'),
+        (context) async => Response.text('ok!')
+          ..headers['x-guard'] = context.request.headers['x-guard']);
   }
 }
 
@@ -40,24 +43,26 @@ class TestModuleGuard extends Guard {
 
 void main() {
   group('$Guard', () {
-      SerinusApplication? app;
-      setUpAll(() async {
-        app = await serinus.createApplication(
-            entrypoint: TestModule(controllers: [TestController()]),
-            port: 3002,
-            loggingLevel: LogLevel.none);
-        app?.enableCors(Cors());
-        await app?.serve();
-      });
-      tearDownAll(() async {
-        await app?.close();
-      });
-      test(
-          '''when a request is made to a route with a guard, then the guard should be executed''',
-          () async {
-        final response = await http.get(Uri.parse('http://localhost:3002/guards'),);
-        expect(response.statusCode, 200);
-        expect(response.headers.containsKey('x-guard'), true);
-      });
+    SerinusApplication? app;
+    setUpAll(() async {
+      app = await serinus.createApplication(
+          entrypoint: TestModule(controllers: [TestController()]),
+          port: 3002,
+          loggingLevel: LogLevel.none);
+      app?.enableCors(Cors());
+      await app?.serve();
     });
+    tearDownAll(() async {
+      await app?.close();
+    });
+    test(
+        '''when a request is made to a route with a guard, then the guard should be executed''',
+        () async {
+      final response = await http.get(
+        Uri.parse('http://localhost:3002/guards'),
+      );
+      expect(response.statusCode, 200);
+      expect(response.headers.containsKey('x-guard'), true);
+    });
+  });
 }

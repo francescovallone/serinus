@@ -6,13 +6,12 @@ import '../engines/view_engine.dart';
 import '../mixins/mixins.dart';
 
 /// The class [Response] is used to create a response for the request.
-/// 
+///
 /// It behaves as a template for the response of the request.
 /// It can be used to create a response with different content types.
 class Response {
-
   /// The value to be sent as a response.
-  /// 
+  ///
   /// It can be a [String], [List], [Map], [Uint8List], [File], [View], [ViewString], [JsonObject]
   final dynamic _value;
 
@@ -37,14 +36,14 @@ class Response {
 
   /// The data of the response.
   dynamic get data => _value;
-  
+
   /// The content type of the response.
   ContentType get contentType => _contentType;
 
   /// A boolean value to check if the response should redirect.
   bool get shouldRedirect => _shouldRedirect;
 
-  /// The headers of the response. 
+  /// The headers of the response.
   final Map<String, String> _headers = {};
 
   /// The headers of the response.
@@ -52,11 +51,11 @@ class Response {
 
   /// Factory constructor to create a response with a JSON content type.
   /// It accepts a [Map<String, dynamic>], [List<Map<String, dynamic>>], [JsonObject]
-  /// 
+  ///
   /// The [statusCode] is optional and defaults to 200.
-  /// 
+  ///
   /// If the [contentType] is not provided, it defaults to [ContentType.json].
-  /// 
+  ///
   /// Throws a [FormatException] if the data is not a [Map<String, dynamic], a [List<Map<String, dynamic>>] or a [JsonObject].
   factory Response.json(dynamic data,
       {int statusCode = 200, ContentType? contentType}) {
@@ -75,11 +74,11 @@ class Response {
   }
 
   /// Factory constructor to create a response with a HTML content type.
-  /// 
+  ///
   /// It accepts a [String] value.
-  /// 
+  ///
   /// The [statusCode] is optional and defaults to 200.
-  /// 
+  ///
   /// If the [contentType] is not provided, it defaults to [ContentType.html].
   factory Response.html(String data,
       {int statusCode = 200, ContentType? contentType}) {
@@ -88,11 +87,11 @@ class Response {
   }
 
   /// Factory constructor to create a response that will be rendered by [ViewEngine] if available.
-  /// 
+  ///
   /// It accepts a [View] value.
-  /// 
+  ///
   /// The [statusCode] is optional and defaults to 200.
-  /// 
+  ///
   /// If the [contentType] is not provided, it defaults to [ContentType.html].
   factory Response.render(View view,
       {int statusCode = 200, ContentType? contentType}) {
@@ -100,11 +99,11 @@ class Response {
   }
 
   /// Factory constructor to create a response that will be rendered by [ViewEngine] if available.
-  /// 
+  ///
   /// It accepts a [ViewString] value.
-  /// 
+  ///
   /// The [statusCode] is optional and defaults to 200.
-  /// 
+  ///
   /// If the [contentType] is not provided, it defaults to [ContentType.html].
   factory Response.renderString(ViewString view,
       {int statusCode = 200, ContentType? contentType}) {
@@ -112,11 +111,11 @@ class Response {
   }
 
   /// Factory constructor to create a response with a text content type.
-  /// 
+  ///
   /// It accepts a [String] value.
-  /// 
+  ///
   /// The [statusCode] is optional and defaults to 200.
-  /// 
+  ///
   /// If the [contentType] is not provided, it defaults to [ContentType.text].
   factory Response.text(String data,
       {int statusCode = 200, ContentType? contentType}) {
@@ -125,11 +124,11 @@ class Response {
   }
 
   /// Factory constructor to create a response with a binary content type.
-  /// 
+  ///
   /// It accepts a [Uint8List] value.
-  /// 
+  ///
   /// The [statusCode] is optional and defaults to 200.
-  /// 
+  ///
   /// If the [contentType] is not provided, it defaults to [ContentType.binary].
   factory Response.bytes(Uint8List data,
       {int statusCode = 200, ContentType? contentType}) {
@@ -137,11 +136,11 @@ class Response {
   }
 
   /// Factory constructor to create a response with a file content type.
-  /// 
+  ///
   /// It accepts a [File] value.
-  /// 
+  ///
   /// The [statusCode] is optional and defaults to 200.
-  /// 
+  ///
   /// If the [contentType] is not provided, it defaults to [ContentType.binary].
   factory Response.file(File file,
       {int statusCode = 200, ContentType? contentType}) {
@@ -150,16 +149,14 @@ class Response {
   }
 
   /// Factory constructor to create a response with a redirect status code.
-  /// 
+  ///
   /// It accepts a [String] value. The value is the path to redirect to.
-  factory Response.redirect(
-    String path
-  ) {
+  factory Response.redirect(String path) {
     return Response._(path, 302, ContentType.text, shouldRedirect: true);
   }
 
   /// Methods to add headers to the response.
-  /// 
+  ///
   /// It accepts a [Map<String, String>] value.
   void addHeaders(Map<String, String> headers) {
     headers.forEach((key, value) {

@@ -1,3 +1,5 @@
+import 'enums/enums.dart';
+
 final class VersioningOptions {
   /// The global version of the API
   final int version;
@@ -20,9 +22,4 @@ final class VersioningOptions {
       throw ArgumentError.notNull('header');
     }
   }
-}
-
-enum VersioningType {
-  header,
-  uri,
 }

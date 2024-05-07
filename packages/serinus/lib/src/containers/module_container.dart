@@ -5,7 +5,7 @@ import '../core/core.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 
-import '../mixins/application_mixins.dart';
+import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 
 /// A container for all the modules of the application
