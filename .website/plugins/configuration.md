@@ -1,4 +1,4 @@
-# Serinus Config <Badge type="tip" text="^0.2.1"/>
+# Config <Badge type="tip" text="^0.2.1"/>
 
 Serinus Config is a plugin that allows to load .env files in your Serinus application.
 

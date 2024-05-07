@@ -8,6 +8,7 @@ They only exposes the endpoint and the method that the route will respond to so 
 To add routes you first need to create a class that extends the `Route` class and then add it to the controller using the `on` method.
 
 ::: code-group
+
 ```dart [my_controller.dart]
 import 'package:serinus/serinus.dart';
 import 'my_routes.dart';
@@ -22,6 +23,7 @@ class MyController extends Controller {
   }
 }
 ```
+
 ```dart [my_routes.dart]
 import 'package:serinus/serinus.dart';
 
@@ -34,6 +36,7 @@ class GetRoute extends Route {
 
 }
 ```
+
 :::
 
 ## Query Parameters
@@ -61,6 +64,7 @@ class GetRoute extends Route {
 To define a path parameter you need to add the parameter name between `<` and `>` in the path of the route.
 
 ::: code-group
+
 ```dart [my_controller.dart]
 
 import 'package:serinus/serinus.dart';
@@ -76,6 +80,7 @@ class MyController extends Controller {
   }
 }
 ```
+
 ```dart [my_routes.dart]
 import 'package:serinus/serinus.dart';
 
@@ -88,6 +93,7 @@ class GetRoute extends Route {
 
 }
 ```
+
 :::
 
 ## Adding Pipes
