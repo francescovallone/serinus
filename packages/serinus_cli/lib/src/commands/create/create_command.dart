@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -60,7 +61,7 @@ class CreateCommand extends Command<int> {
     final progress = _logger?.progress(
       'Generating a new Serinus Application [$projectName]',
     );
-    var vars = <String, dynamic>{
+    final vars = <String, dynamic>{
       'name': projectName,
       'output': outputDirectory.absolute.path,
       'description': 'A simple Serinus application',
@@ -69,17 +70,13 @@ class CreateCommand extends Command<int> {
       outputDirectory.createSync(recursive: true);
     }
     _logger?.success('Directory created at ${outputDirectory.absolute.path}');
-    progress?.update('Executing pre-gen hooks...');
-    // await generator.hooks.preGen(
-    //   workingDirectory: outputDirectory.absolute.path,
-    //   vars: vars,
-    //   onVarsChanged: (newVars) {
-    //     vars = {
-    //       ...newVars,
-    //     };
-    //   },
-    //   logger: _logger
-    // );
+    progress?.update('Fetching latest version of serinus package...');
+    try{
+      vars['serinus_version'] = await getSerinusVersion();
+    }catch(e){
+      _logger?.err('''Failed to fetch latest version of serinus package, you will need to update it manually''');
+      rethrow;
+    }
     _logger?.success('Pre-gen hooks executed successfully');
     progress?.update('Generating files...');
     await generator.generate(
@@ -148,5 +145,18 @@ class CreateCommand extends Command<int> {
   bool _isValidPackageName(String name) {
     final match = _identifierRegExp.matchAsPrefix(name);
     return match != null && match.end == name.length;
+  }
+
+  Future<String> getSerinusVersion() async {
+    final client = HttpClient();
+    final req = await client.getUrl(Uri.parse('https://pub.dev/api/packages/serinus'));
+    final res = await req.close();
+    if(res.statusCode != 200){
+      throw Exception('Failed to fetch serinus package');
+    }
+    final body = await res.transform(utf8.decoder).join();
+    final package = jsonDecode(body);
+    final version = package['latest']['version'] as String;
+    return version;
   }
 }
