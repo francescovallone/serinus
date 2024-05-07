@@ -21,7 +21,7 @@ export default defineConfig({
       {
         text: 'pub.dev',
         link: 'https://pub.dev/packages/serinus'
-      }
+      },
     ],
     sidebar: [
       {
@@ -51,6 +51,8 @@ export default defineConfig({
             text: 'Plugins',
             items: [
               { text: 'Configuration', link: '/plugins/configuration' },
+              { text: 'Serve Static Files [WIP]' },
+              { text: 'Swagger [WIP]' }
             ],
             link: '/plugins/'
           }
@@ -63,7 +65,8 @@ export default defineConfig({
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
-      { icon: 'twitter', link: 'https://twitter.com/serinus_nest'}
+      { icon: 'twitter', link: 'https://twitter.com/serinus_nest'},
+      { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ]
   }
 })

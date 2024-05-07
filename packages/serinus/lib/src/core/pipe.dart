@@ -1,6 +1,4 @@
-import 'dart:async';
-
-import 'package:serinus/serinus.dart';
+import '../contexts/execution_context.dart';
 
 abstract class Pipe {
   Future<void> transform(ExecutionContext context);

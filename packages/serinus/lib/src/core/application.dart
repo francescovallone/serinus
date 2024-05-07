@@ -1,14 +1,22 @@
 import 'dart:io';
 
 import 'package:meta/meta.dart';
-import 'package:serinus/src/commons/commons.dart';
-import 'package:serinus/src/commons/errors/initialization_error.dart';
-import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
-import 'package:serinus/src/core/consumers/request_handler.dart';
-import 'package:serinus/src/core/containers/module_container.dart';
-import 'package:serinus/src/core/containers/router.dart';
-import 'package:serinus/src/core/core.dart';
-import 'package:serinus/src/core/injector/explorer.dart';
+
+import '../adapters/serinus_http_server.dart';
+import '../consumers/request_consumer.dart';
+import '../containers/module_container.dart';
+import '../containers/router.dart';
+import '../engines/view_engine.dart';
+import '../enums/enums.dart';
+import '../errors/initialization_error.dart';
+import '../extensions/iterable_extansions.dart';
+import '../global_prefix.dart';
+import '../http/http.dart';
+import '../injector/explorer.dart';
+import '../mixins/mixins.dart';
+import '../services/logger_service.dart';
+import '../versioning.dart';
+import 'core.dart';
 
 sealed class Application {
   final LogLevel level;
@@ -92,16 +100,11 @@ class SerinusApplication extends Application {
   Future<void> serve() async {
     await initialize();
     try {
-      _logger.info("Starting server on $url");
-      final handler = RequestHandler(router, modulesContainer, config);
+      _logger.info('Starting server on $url');
+      final handler = RequestConsumer(router, modulesContainer, config);
       await config.serverAdapter.listen(
-        (request, response) async {
-          await handler.handleRequest(request, response);
-        },
-        errorHandler: (e, stackTrace) {
-          print(e);
-          print(stackTrace);
-        },
+        handler.handleRequest,
+        errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );
     } on SocketException catch (_) {
       _logger.severe('Failed to start server on $url');

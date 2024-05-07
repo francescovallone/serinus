@@ -1,10 +1,13 @@
 import 'dart:async';
-import 'dart:collection';
 
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
-import 'package:serinus/serinus.dart';
-import 'package:serinus/src/commons/extensions/iterable_extansions.dart';
-import 'package:serinus/src/core/containers/router.dart';
+
+import '../containers/router.dart';
+import '../contexts/request_context.dart';
+import '../enums/http_method.dart';
+import '../http/response.dart';
+import 'core.dart';
 
 typedef ReqResHandler = Future<Response> Function(RequestContext context);
 

@@ -1,4 +1,4 @@
-import 'package:serinus/src/core/contexts/application_context.dart';
+import '../contexts/contexts.dart';
 
 abstract class Provider {
   final bool isGlobal;

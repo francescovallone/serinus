@@ -77,10 +77,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: "25dfcaf170a0190f47ca6355bdd4552cb8924b430512ff0cafb8db9bd41fe33b"
+      sha256: bdb68674043280c3428e9ec998512fb681678676b3c54e773629ffe74419f8c7
       url: "https://pub.dev"
     source: hosted
-    version: "1.14.0"
+    version: "1.15.0"
   mime:
     dependency: transitive
     description:
@@ -100,10 +100,11 @@ packages:
   serinus:
     dependency: "direct main"
     description:
-      path: ".."
-      relative: true
-    source: path
-    version: "0.2.1"
+      name: serinus
+      sha256: "7067d9b144cd1bae425ab796c5c02f1091a0426632e416515e944a431bdf36d3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   source_span:
     dependency: transitive
     description:

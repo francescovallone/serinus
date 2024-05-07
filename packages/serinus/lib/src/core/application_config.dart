@@ -1,7 +1,12 @@
 import 'dart:io';
 
-import 'package:serinus/serinus.dart';
 import 'package:uuid/v4.dart';
+
+import '../adapters/server_adapter.dart';
+import '../engines/view_engine.dart';
+import '../global_prefix.dart';
+import '../http/cors.dart';
+import '../versioning.dart';
 
 /// The configuration for the application
 /// This is used to configure the application

@@ -35,3 +35,5 @@ linter:
     - always_put_control_body_on_new_line
     - always_put_required_named_parameters_first
     - directives_ordering
+    - prefer_relative_imports
+    - prefer_single_quotes
