@@ -1,15 +1,15 @@
 ## pharaoh
 ### Requests per second
-Requests/sec: 31479.41
-Transfer/sec: 4.32MB
-Requests/sec DIFF: +9.88%
+Requests/sec: 32743.85
+Transfer/sec: 4.50MB
+Requests/sec DIFF: +10.03%
 ### Latency
-Avg Latency: 38.33
-Stdev Latency: 62.71
-Max Latency: 964.26
-Stdev Perc: 98.04
+Avg Latency: 37.62
+Stdev Latency: 64.91
+Max Latency: 918.12
+Stdev Perc: 98.06
 ### Req/Sec
-Rps Avg: 3.96
-Rps Max: 4.45
-Rps Stdev: 528.26
-Rps Perc: 95.75
+Rps Avg: 4.12
+Rps Max: 4.85
+Rps Stdev: 546.83
+Rps Perc: 95.38

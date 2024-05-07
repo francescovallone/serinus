@@ -11,18 +11,20 @@ export default defineConfig({
   ],
   lastUpdated: true,
   themeConfig: {
+    footer: {
+      copyright: 'Copyright © 2024 Francesco Vallone',
+      message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/serinus-nest">Serinus Nest</a>'
+    },
     // https://vitepress.dev/reference/default-theme-config
     logo: '/serinus-logo.png',
     nav: [
       {
         text: 'pub.dev',
         link: 'https://pub.dev/packages/serinus'
-      }
+      },
     ],
     sidebar: [
       {
-        text: 'Serinus - Dart Backend Framework',
-        link: '/',
         items: [
           { text: 'Introduction', link: '/introduction' },
           {
@@ -44,6 +46,15 @@ export default defineConfig({
               { text: 'Model View Controller', link: '/techniques/mvc' },
               { text: 'Versioning', link: '/techniques/versioning' },
             ]
+          },
+          {
+            text: 'Plugins',
+            items: [
+              { text: 'Configuration', link: '/plugins/configuration' },
+              { text: 'Serve Static Files [WIP]' },
+              { text: 'Swagger [WIP]' }
+            ],
+            link: '/plugins/'
           }
         ]
       },
@@ -54,7 +65,8 @@ export default defineConfig({
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
-      { icon: 'twitter', link: 'https://twitter.com/serinus_nest'}
+      { icon: 'twitter', link: 'https://twitter.com/serinus_nest'},
+      { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ]
   }
 })

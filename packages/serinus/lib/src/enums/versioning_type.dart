@@ -1,0 +1,4 @@
+enum VersioningType {
+  header,
+  uri,
+}

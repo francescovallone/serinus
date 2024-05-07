@@ -56,15 +56,14 @@ If you want to use a provider from a submodule, you must add the `Type` of the p
 import 'package:serinus/serinus.dart';
 
 class MyController extends Controller {
-  MyController({super.path = '/'});
-
-  @override
-  Future<Response> handle(Request request) async {
-    final myProvider = context.get<MyProvider>();
-    return Response.text(
-      data: 'Hello World!',
-    );
+  MyController({super.path = '/'}){
+    on(GetRoute(path: '/'), (context) {
+      return Response.text(
+        data: context.use<MyProvider>().myMethod(),
+      );
+    });
   }
+
 }
 ```
 

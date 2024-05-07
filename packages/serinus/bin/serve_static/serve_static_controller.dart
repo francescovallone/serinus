@@ -28,7 +28,7 @@ class ServeStaticController extends Controller {
       //   }
       // }
       if (!file.existsSync()) {
-        throw NotFoundException(message: "The file $path does not exist");
+        throw NotFoundException(message: 'The file $path does not exist');
       }
       // final byteSink = ByteAccumulatorSink();
       // await file.openRead().listen(byteSink.add).asFuture();

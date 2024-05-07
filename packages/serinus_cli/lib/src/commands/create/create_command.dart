@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -58,9 +59,9 @@ class CreateCommand extends Command<int> {
     );
     final generator = await MasonGenerator.fromBrick(brick);
     final progress = _logger?.progress(
-      'Generation a new Serinus Application [$projectName]',
+      'Generating a new Serinus Application [$projectName]',
     );
-    var vars = <String, dynamic>{
+    final vars = <String, dynamic>{
       'name': projectName,
       'output': outputDirectory.absolute.path,
       'description': 'A simple Serinus application',
@@ -68,24 +69,36 @@ class CreateCommand extends Command<int> {
     if(!outputDirectory.existsSync()){
       outputDirectory.createSync(recursive: true);
     }
-    await generator.hooks.preGen(
-      workingDirectory: outputDirectory.absolute.path,
-      vars: vars,
-      onVarsChanged: (newVars) {
-        vars = {
-          ...newVars,
-        };
-      }
-    );
+    _logger?.success('Directory created at ${outputDirectory.absolute.path}');
+    progress?.update('Fetching latest version of serinus package...');
+    try{
+      vars['serinus_version'] = await getSerinusVersion();
+    }catch(e){
+      _logger?.err('''Failed to fetch latest version of serinus package, you will need to update it manually''');
+      rethrow;
+    }
+    _logger?.success('Pre-gen hooks executed successfully');
+    progress?.update('Generating files...');
     await generator.generate(
       DirectoryGeneratorTarget(outputDirectory),
       vars: vars,
     );
-    await generator.hooks.postGen(
-      workingDirectory: outputDirectory.absolute.path,
-      vars: vars,
-    );
+    _logger?.success('Files generated successfully');
+    // progress?.update('Executing post-gen hooks...');
+    // await generator.hooks.postGen(
+    //   workingDirectory: outputDirectory.absolute.path,
+    //   vars: vars,
+    //   logger: _logger
+    // );
+    // _logger?.success('Post-gen hooks executed successfully');
     progress?.complete();
+
+    _logger?.info(
+      'Run the following commands to get started:\n\n'
+      'cd ${outputDirectory.absolute.path}\n'
+      'dart pub get\n'
+      'serinus run\n',
+    );
     return ExitCode.success.code;
   }
 
@@ -132,5 +145,18 @@ class CreateCommand extends Command<int> {
   bool _isValidPackageName(String name) {
     final match = _identifierRegExp.matchAsPrefix(name);
     return match != null && match.end == name.length;
+  }
+
+  Future<String> getSerinusVersion() async {
+    final client = HttpClient();
+    final req = await client.getUrl(Uri.parse('https://pub.dev/api/packages/serinus'));
+    final res = await req.close();
+    if(res.statusCode != 200){
+      throw Exception('Failed to fetch serinus package');
+    }
+    final body = await res.transform(utf8.decoder).join();
+    final package = jsonDecode(body);
+    final version = package['latest']['version'] as String;
+    return version;
   }
 }
