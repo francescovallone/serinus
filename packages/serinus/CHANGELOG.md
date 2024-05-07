@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+- Add enableCompression flag in the SerinusApplication
+- Clean up code and add more tests
+- Start documenting the code
+
 ## 0.2.1
 
 - Fix support for Serinus CLI run command environment variables
