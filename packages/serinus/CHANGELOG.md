@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3
+
+- Fix a bug in the ModulesContainer that caused a wrongful injection of the providers in the application.
+
 ## 0.2.2
 
 - Add enableCompression flag in the SerinusApplication
