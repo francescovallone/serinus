@@ -77,7 +77,7 @@ class PostRoute extends Route {
   });
 
   @override
-  List<Guard> get guards => [TestGuard()];
+  List<Guard> get guards => [];
 }
 
 class HomeController extends Controller {
@@ -121,7 +121,7 @@ class AppModule extends Module {
       ];
 
   @override
-  List<Guard> get guards => [TestGuard()];
+  List<Guard> get guards => [];
 }
 
 class TestPipe extends Pipe {
