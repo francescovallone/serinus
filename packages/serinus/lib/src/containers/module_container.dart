@@ -42,6 +42,10 @@ final class ModulesContainer {
 
   ModulesContainer(this.config);
 
+  String moduleToken(Module module) => module.token.isEmpty 
+    ? module.runtimeType.toString() 
+    : module.token;
+
   /// Registers a module in the application
   ///
   /// The [module] is the module to register in the application
@@ -53,24 +57,25 @@ final class ModulesContainer {
   Future<void> registerModule(Module module, Type entrypoint,
       [ModuleInjectables? moduleInjectables]) async {
     final logger = Logger('InstanceLoader');
-    final token =
-        module.token.isEmpty ? module.runtimeType.toString() : module.token;
+    final token = moduleToken(module);
     final initializedModule = await module.registerAsync();
     if (initializedModule.runtimeType == entrypoint &&
         initializedModule.exports.isNotEmpty) {
       throw InitializationError('The entrypoint module cannot have exports');
     }
     _modules[token] = initializedModule;
-    if (_moduleInjectables.containsKey(token)) {
+    if (_moduleInjectables[token] != null) {
       _moduleInjectables[token] =
           moduleInjectables!.concatTo(_moduleInjectables[token]);
     } else {
-      _moduleInjectables[token] = moduleInjectables ??
-          ModuleInjectables(
+      final newInjectables = ModuleInjectables(
             guards: {...module.guards},
             pipes: {...module.pipes},
             middlewares: {...module.middlewares},
           );
+      _moduleInjectables[token] = moduleInjectables?.concatTo(newInjectables) ??
+          newInjectables;
+          
     }
     _providers[token] = [];
     for (final provider in initializedModule.providers
@@ -125,8 +130,9 @@ final class ModulesContainer {
     final eagerSubModules =
         module.imports.where((element) => element is! DeferredModule);
     final deferredSubModules = module.imports.whereType<DeferredModule>();
+    final token = moduleToken(module);
     final currentModuleInjectables =
-        _moduleInjectables[module.token] ??= ModuleInjectables(
+        _moduleInjectables[token] ??= ModuleInjectables(
       guards: {...module.guards},
       pipes: {...module.pipes},
       middlewares: {...module.middlewares},
@@ -134,9 +140,10 @@ final class ModulesContainer {
     for (var subModule in eagerSubModules) {
       await _callForRecursiveRegistration(
           subModule, module, entrypoint, currentModuleInjectables);
-      if (_moduleInjectables.containsKey(subModule.token)) {
-        _moduleInjectables[subModule.token] = currentModuleInjectables
-            .concatTo(_moduleInjectables[subModule.token]);
+      final subModuleToken = moduleToken(subModule);
+      if (_moduleInjectables.containsKey(subModuleToken)) {
+        _moduleInjectables[subModuleToken] = currentModuleInjectables
+            .concatTo(_moduleInjectables[subModuleToken]);
       }
     }
     for (var deferredModule in deferredSubModules) {
@@ -144,14 +151,15 @@ final class ModulesContainer {
           .init(_getApplicationContext(deferredModule.inject));
       await _callForRecursiveRegistration(
           subModule, module, entrypoint, currentModuleInjectables);
-      if (_moduleInjectables.containsKey(subModule.token)) {
-        _moduleInjectables[subModule.token] = currentModuleInjectables
-            .concatTo(_moduleInjectables[subModule.token]);
+      final subModuleToken = moduleToken(subModule);
+      if (_moduleInjectables.containsKey(subModuleToken)) {
+        _moduleInjectables[subModuleToken] = currentModuleInjectables
+            .concatTo(_moduleInjectables[subModuleToken]);
       }
       module.imports.remove(deferredModule);
       module.imports.add(subModule);
     }
-    await registerModule(module, entrypoint, _moduleInjectables[module.token]);
+    await registerModule(module, entrypoint, _moduleInjectables[token]);
   }
 
   /// Calls the recursive registration of the submodules
@@ -193,8 +201,9 @@ final class ModulesContainer {
             'All the exported providers must be registered in the module');
       }
     }
-    _moduleInjectables[entrypoint.token] =
-        _moduleInjectables[entrypoint.token]!.copyWith(
+    final entrypointToken = moduleToken(entrypoint);
+    _moduleInjectables[entrypointToken] =
+        _moduleInjectables[entrypointToken]!.copyWith(
       providers: getModuleScopedProviders(entrypoint),
     );
   }
@@ -202,11 +211,12 @@ final class ModulesContainer {
   Set<Provider> getModuleScopedProviders(Module module) {
     Set<Provider> providers = Set<Provider>.from(module.providers);
     for (final subModule in module.imports) {
+      final subModuleToken = moduleToken(subModule);
       final providersInjectable = subModule.exportedProviders
           .addAllIfAbsent(getModuleScopedProviders(subModule));
       providers.addAll(providersInjectable);
-      _moduleInjectables[subModule.token] =
-          _moduleInjectables[subModule.token]!.copyWith(
+      _moduleInjectables[subModuleToken] =
+          _moduleInjectables[subModuleToken]!.copyWith(
         providers: {...providersInjectable},
       );
     }

@@ -8,8 +8,7 @@ extension AddIfAbsent<T> on Iterable<T> {
     if (!elementsType.contains(element.runtimeType)) {
       return [...this, element];
     }
-    throw ArgumentError(
-        'Element ${element.runtimeType} already exists in the list');
+    return this;
   }
 
   Iterable<T> addAllIfAbsent(Iterable<T> elements) {
