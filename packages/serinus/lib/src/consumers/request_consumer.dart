@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../adapters/ws_adapter.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../contexts/request_context.dart';
@@ -9,6 +10,7 @@ import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
 import '../http/http.dart';
 import '../http/internal_request.dart';
+import '../mixins/ws_gateway_mixins.dart';
 import 'guards_consumer.dart';
 import 'pipes_consumer.dart';
 
@@ -35,6 +37,25 @@ class RequestConsumer {
   /// 5. Outgoing response
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
+    if (request.isWebSocket) {
+      await config.wsAdapter?.upgrade(request);
+      final providers = modulesContainer.getAll<WebSocketGateway>();
+      final onDoneHandlers = <void Function()>[];
+      final onMessageHandlers = <WsRequestHandler>[];
+      for (final provider in providers) {
+        if (provider is OnClientConnect) {
+          provider.onClientConnect();
+        }
+        var onDone =
+            provider is OnClientDisconnect ? provider.onClientDisconnect : null;
+        if (onDone != null) {
+          onDoneHandlers.add(onDone);
+        }
+        onMessageHandlers.add(provider!.onMessage);
+      }
+      config.wsAdapter?.listen(onMessageHandlers, onDone: onDoneHandlers);
+      return;
+    }
     if (request.method == 'OPTIONS') {
       await config.cors?.call(request, Request(request), null, null);
       return;

@@ -42,7 +42,7 @@ sealed class Application {
 
   HttpServer get server => config.serverAdapter.server;
 
-  SerinusHttpServer get adapter => config.serverAdapter as SerinusHttpServer;
+  SerinusHttpAdapter get adapter => config.serverAdapter as SerinusHttpAdapter;
 
   void enableShutdownHooks() {
     if (!_enableShutdownHooks) {
@@ -59,6 +59,8 @@ sealed class Application {
 
   @internal
   Future<void> shutdown();
+
+  Future<void> register();
 
   Future<void> serve();
 
@@ -102,8 +104,8 @@ class SerinusApplication extends Application {
     try {
       _logger.info('Starting server on $url');
       final handler = RequestConsumer(router, modulesContainer, config);
-      await config.serverAdapter.listen(
-        handler.handleRequest,
+      await adapter.listen(
+        (request, response) => handler.handleRequest(request, response),
         errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );
     } on SocketException catch (_) {
@@ -124,7 +126,10 @@ class SerinusApplication extends Application {
       throw InitializationError(
           'The entry point of the application cannot be a DeferredModule');
     }
-    await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
+    if (!modulesContainer.isInitialized) {
+      await modulesContainer.registerModules(
+          entrypoint, entrypoint.runtimeType);
+    }
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
@@ -140,5 +145,10 @@ class SerinusApplication extends Application {
         await provider.onApplicationShutdown();
       }
     }
+  }
+
+  @override
+  Future<void> register() async {
+    await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
   }
 }

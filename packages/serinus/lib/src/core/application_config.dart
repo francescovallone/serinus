@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:uuid/v4.dart';
 
 import '../adapters/server_adapter.dart';
+import '../adapters/ws_adapter.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../http/cors.dart';
@@ -102,11 +103,12 @@ final class ApplicationConfig {
 
   final Adapter serverAdapter;
 
-  ApplicationConfig({
-    required this.host,
-    required this.port,
-    required this.poweredByHeader,
-    required this.serverAdapter,
-    this.securityContext,
-  });
+  WsAdapter? wsAdapter;
+
+  ApplicationConfig(
+      {required this.host,
+      required this.port,
+      required this.poweredByHeader,
+      required this.serverAdapter,
+      this.securityContext});
 }

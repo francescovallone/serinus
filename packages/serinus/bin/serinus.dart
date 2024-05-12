@@ -107,13 +107,66 @@ class HomeAController extends Controller {
   }
 }
 
+class TestWsProvider extends WebSocketGateway
+    with OnClientConnect, OnClientDisconnect {
+  TestWsProvider(super.context);
+
+  @override
+  Future<dynamic> onMessage(dynamic message) async {
+    print('Message received: $message');
+    return 'Hello world from ws provider';
+  }
+
+  @override
+  Future<void> onClientConnect() async {
+    print('Client connected');
+  }
+
+  @override
+  Future<void> onClientDisconnect() async {
+    print('Client disconnected');
+  }
+}
+
+class TestWs2Provider extends WebSocketGateway
+    with OnClientConnect, OnClientDisconnect {
+  TestWs2Provider(super.context);
+
+  @override
+  Future<dynamic> onMessage(dynamic message) async {
+    print('Message received: $message');
+    return 'Hello world from ws provider';
+  }
+
+  @override
+  Future<void> onClientConnect() async {
+    print('Client connected');
+  }
+
+  @override
+  Future<void> onClientDisconnect() async {
+    print('Client disconnected');
+  }
+}
+
 class AppModule extends Module {
   AppModule()
-      : super(
-            imports: [ReAppModule()],
-            controllers: [HomeController()],
-            providers: [TestProvider(isGlobal: true)],
-            middlewares: [TestMiddleware()]);
+      : super(imports: [
+          ReAppModule(),
+          WsModule()
+        ], controllers: [
+          HomeController()
+        ], providers: [
+          TestProvider(isGlobal: true),
+          DeferredProvider(
+              inject: [TestProvider],
+              (context) async => TestWsProvider(context)),
+          DeferredProvider(
+              inject: [TestProvider],
+              (context) async => TestWs2Provider(context))
+        ], middlewares: [
+          TestMiddleware()
+        ]);
 
   @override
   List<Pipe> get pipes => [

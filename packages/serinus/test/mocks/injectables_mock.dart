@@ -1,7 +1,6 @@
 import 'package:serinus/serinus.dart';
 
 class TestProvider extends Provider {
-
   TestProvider();
 
   String testMethod() {
@@ -10,7 +9,6 @@ class TestProvider extends Provider {
 }
 
 class TestProviderTwo extends Provider {
-
   TestProviderTwo();
 
   String testMethod() {
@@ -19,7 +17,6 @@ class TestProviderTwo extends Provider {
 }
 
 class TestProviderThree extends Provider {
-
   TestProviderThree();
 
   String testMethod() {
@@ -28,7 +25,6 @@ class TestProviderThree extends Provider {
 }
 
 class TestGuard extends Guard {
-
   TestGuard();
 
   @override
@@ -38,17 +34,16 @@ class TestGuard extends Guard {
 }
 
 class TestMiddleware extends Middleware {
-
   TestMiddleware() : super(routes: ['*']);
 
   @override
-  Future<void> use(RequestContext context, InternalResponse response, NextFunction next) async {
+  Future<void> use(RequestContext context, InternalResponse response,
+      NextFunction next) async {
     return next();
   }
 }
 
 class TestPipe extends Pipe {
-
   TestPipe();
 
   @override

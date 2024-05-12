@@ -66,15 +66,16 @@ class CreateCommand extends Command<int> {
       'output': outputDirectory.absolute.path,
       'description': 'A simple Serinus application',
     };
-    if(!outputDirectory.existsSync()){
+    if (!outputDirectory.existsSync()) {
       outputDirectory.createSync(recursive: true);
     }
     _logger?.success('Directory created at ${outputDirectory.absolute.path}');
     progress?.update('Fetching latest version of serinus package...');
-    try{
+    try {
       vars['serinus_version'] = await getSerinusVersion();
-    }catch(e){
-      _logger?.err('''Failed to fetch latest version of serinus package, you will need to update it manually''');
+    } catch (e) {
+      _logger?.err(
+          '''Failed to fetch latest version of serinus package, you will need to update it manually''');
       rethrow;
     }
     _logger?.success('Pre-gen hooks executed successfully');
@@ -149,9 +150,10 @@ class CreateCommand extends Command<int> {
 
   Future<String> getSerinusVersion() async {
     final client = HttpClient();
-    final req = await client.getUrl(Uri.parse('https://pub.dev/api/packages/serinus'));
+    final req =
+        await client.getUrl(Uri.parse('https://pub.dev/api/packages/serinus'));
     final res = await req.close();
-    if(res.statusCode != 200){
+    if (res.statusCode != 200) {
       throw Exception('Failed to fetch serinus package');
     }
     final body = await res.transform(utf8.decoder).join();

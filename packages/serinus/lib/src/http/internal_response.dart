@@ -16,6 +16,10 @@ class InternalResponse {
     _original.headers.chunkedTransferEncoding = false;
   }
 
+  Future<Socket> detachSocket() {
+    return _original.detachSocket(writeHeaders: false);
+  }
+
   Future<void> send(dynamic data) async {
     if (!_statusChanged) {
       _original.statusCode = HttpStatus.ok;

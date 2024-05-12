@@ -22,7 +22,11 @@ final config = ApplicationConfig(
     port: 3000,
     poweredByHeader: 'Powered by Serinus',
     securityContext: null,
-    serverAdapter: SerinusHttpServer());
+    serverAdapter: SerinusHttpAdapter(
+      host: 'localhost',
+      port: 3000,
+      poweredByHeader: 'Powered by Serinus',
+    ));
 
 void main() async {
   group('$Module', () {
