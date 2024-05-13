@@ -1,7 +1,6 @@
 library serinus;
 
-export 'src/adapters/serinus_http_server.dart';
-export 'src/adapters/server_adapter.dart';
+export 'src/adapters/adapters.dart';
 export 'src/containers/module_container.dart';
 export 'src/contexts/contexts.dart';
 export 'src/core/core.dart';
