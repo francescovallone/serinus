@@ -289,6 +289,15 @@ final class ModulesContainer {
     return parents;
   }
 
+  Module getModuleByProvider(Type provider) {
+    final module = _modules.values.firstWhereOrNull((module) =>
+        module.providers.map((e) => e.runtimeType).contains(provider));
+    if (module == null) {
+      throw ArgumentError('Module with provider $provider not found');
+    }
+    return module;
+  }
+
   /// Gets a provider by its type
   T? get<T extends Provider>() {
     final providers =

@@ -1,5 +1,6 @@
 import '../../contexts/contexts.dart';
 import '../core.dart';
+import 'ws_context.dart';
 
 abstract class MessageSerializer<TInput> {
   String serialize(TInput data);
@@ -17,5 +18,5 @@ abstract class WebSocketGateway extends Provider {
   const WebSocketGateway(ApplicationContext context,
       {this.event, this.serializer, this.deserializer});
 
-  Future<dynamic> onMessage(dynamic data);
+  Future<void> onMessage(dynamic data, WebSocketContext context);
 }

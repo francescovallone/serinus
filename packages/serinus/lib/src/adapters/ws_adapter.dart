@@ -6,23 +6,33 @@ import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../serinus.dart';
+import '../core/websockets/ws_context.dart';
 import '../http/internal_request.dart';
 import '../services/logger_service.dart';
 
-typedef WsRequestHandler = Future<dynamic> Function(dynamic data);
+typedef WsRequestHandler = Future<void> Function(
+    dynamic data, WebSocketContext context);
 
-class WsAdapter extends Adapter<WebSocket> {
+class WsAdapter extends Adapter<Map<String, WebSocket>> {
   Logger logger = Logger('WsAdapter');
   bool _isOpen = false;
+  final Map<String, WebSocketContext> _contexts = {};
+
+  void addContext(String key, WebSocketContext context) {
+    _contexts[key] = context;
+  }
 
   bool get isOpen => _isOpen;
 
   @override
   Future<void> listen(List<WsRequestHandler> requestCallback,
-      {List<void Function()>? onDone, ErrorHandler? errorHandler}) async {
-    server?.listen((data) {
+      {InternalRequest? request,
+      List<void Function()>? onDone,
+      ErrorHandler? errorHandler}) async {
+    final wsClient = server?[request?.webSocketKey];
+    wsClient?.listen((data) {
       for (var handler in requestCallback) {
-        handler(data).then((value) => server?.add(value));
+        handler(data, _contexts[request?.webSocketKey]!);
       }
     }, onDone: () {
       if (onDone != null) {
@@ -39,7 +49,9 @@ class WsAdapter extends Adapter<WebSocket> {
       return;
     }
     _isOpen = false;
-    server?.close(normalClosure, 'Connection closed by the server.');
+    for (var key in server!.keys) {
+      server![key]?.close(normalClosure);
+    }
   }
 
   @override
@@ -59,9 +71,20 @@ class WsAdapter extends Adapter<WebSocket> {
     if (channel.sink is! Socket) {
       throw ArgumentError('channel.sink must be a dart:io `Socket`.');
     }
-    server =
+    server ??= {};
+    server![request.webSocketKey] =
         WebSocket.fromUpgradedSocket(channel.sink as Socket, serverSide: true);
     _isOpen = true;
     return;
+  }
+
+  void send(dynamic data, {bool broadcast = false, String? key}) {
+    if (broadcast) {
+      for (var key in server!.keys) {
+        server![key]?.add(data);
+      }
+      return;
+    }
+    server![key]?.add(data);
   }
 }

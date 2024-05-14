@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/core/websockets/ws_context.dart';
 
 class TestMiddleware extends Middleware {
   int counter = 0;
@@ -112,9 +113,13 @@ class TestWsProvider extends WebSocketGateway
   TestWsProvider(super.context);
 
   @override
-  Future<dynamic> onMessage(dynamic message) async {
+  Future<void> onMessage(dynamic message, WebSocketContext context) async {
+    if (message == 'broadcast') {
+      context.send('Hello from server', broadcast: true);
+    }
+    print(context.queryParameters);
+    context.send('Message received: $message');
     print('Message received: $message');
-    return 'Hello world from ws provider';
   }
 
   @override
@@ -133,9 +138,12 @@ class TestWs2Provider extends WebSocketGateway
   TestWs2Provider(super.context);
 
   @override
-  Future<dynamic> onMessage(dynamic message) async {
+  Future<void> onMessage(dynamic message, WebSocketContext context) async {
+    if (message == 'broadcast') {
+      context.send('Hello from server', broadcast: true);
+    }
+    context.send('Message received: $message');
     print('Message received: $message');
-    return 'Hello world from ws provider';
   }
 
   @override
@@ -201,7 +209,7 @@ class ReAppModule extends Module {
 
 void main(List<String> arguments) async {
   SerinusApplication application =
-      await serinus.createApplication(entrypoint: AppModule());
+      await serinus.createApplication(entrypoint: AppModule(), host: '0.0.0.0');
   application.enableShutdownHooks();
   // application.enableVersioning(
   //   type: VersioningType.uri,

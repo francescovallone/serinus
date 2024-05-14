@@ -5,6 +5,7 @@ import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../contexts/request_context.dart';
 import '../core/core.dart';
+import '../core/websockets/ws_context.dart';
 import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
@@ -37,27 +38,12 @@ class RequestConsumer {
   /// 5. Outgoing response
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
-    if (request.isWebSocket) {
-      await config.wsAdapter?.upgrade(request);
-      final providers = modulesContainer.getAll<WebSocketGateway>();
-      final onDoneHandlers = <void Function()>[];
-      final onMessageHandlers = <WsRequestHandler>[];
-      for (final provider in providers) {
-        if (provider is OnClientConnect) {
-          provider.onClientConnect();
-        }
-        var onDone =
-            provider is OnClientDisconnect ? provider.onClientDisconnect : null;
-        if (onDone != null) {
-          onDoneHandlers.add(onDone);
-        }
-        onMessageHandlers.add(provider!.onMessage);
-      }
-      config.wsAdapter?.listen(onMessageHandlers, onDone: onDoneHandlers);
-      return;
-    }
     if (request.method == 'OPTIONS') {
       await config.cors?.call(request, Request(request), null, null);
+      return;
+    }
+    if (request.isWebSocket && config.wsAdapter != null) {
+      await upgradeRequest(request);
       return;
     }
     Response? result;
@@ -168,5 +154,43 @@ class RequestConsumer {
       });
     }
     return completer.future;
+  }
+
+  Future<void> upgradeRequest(InternalRequest request) async {
+    final providers = modulesContainer.getAll<WebSocketGateway>();
+    await config.wsAdapter?.upgrade(request);
+    final onDoneHandlers = <void Function()>[];
+    final onMessageHandlers = <WsRequestHandler>[];
+    for (final provider in providers) {
+      final providerModule =
+          modulesContainer.getModuleByProvider(provider.runtimeType);
+      final injectables = modulesContainer.getModuleInjectablesByToken(
+          providerModule.token.isEmpty
+              ? providerModule.runtimeType.toString()
+              : providerModule.token);
+      final scopedProviders = List<Provider>.from(injectables.providers
+          .addAllIfAbsent(modulesContainer.globalProviders));
+      scopedProviders.remove(provider);
+      final context = WebSocketContext(
+          config.wsAdapter!,
+          request.webSocketKey,
+          {
+            for (final provider in scopedProviders)
+              provider.runtimeType: provider
+          },
+          Request(request));
+      config.wsAdapter?.addContext(request.webSocketKey, context);
+      if (provider is OnClientConnect) {
+        provider.onClientConnect();
+      }
+      var onDone =
+          provider is OnClientDisconnect ? provider.onClientDisconnect : null;
+      if (onDone != null) {
+        onDoneHandlers.add(onDone);
+      }
+      onMessageHandlers.add(provider!.onMessage);
+    }
+    config.wsAdapter
+        ?.listen(onMessageHandlers, onDone: onDoneHandlers, request: request);
   }
 }

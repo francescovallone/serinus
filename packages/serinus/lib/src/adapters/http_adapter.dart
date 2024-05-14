@@ -1,3 +1,4 @@
+import '../http/internal_request.dart';
 import 'server_adapter.dart';
 
 abstract class HttpAdapter<TServer> extends Adapter<TServer> {
@@ -16,5 +17,5 @@ abstract class HttpAdapter<TServer> extends Adapter<TServer> {
 
   @override
   Future<void> listen(RequestCallback requestCallback,
-      {ErrorHandler? errorHandler});
+      {InternalRequest? request, ErrorHandler? errorHandler});
 }

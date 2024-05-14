@@ -16,6 +16,9 @@ abstract class Adapter<TServer> {
 
   Future<void> close();
 
-  Future<void> listen(covariant dynamic requestCallback,
-      {ErrorHandler? errorHandler});
+  Future<void> listen(
+    covariant dynamic requestCallback, {
+    InternalRequest request,
+    ErrorHandler? errorHandler,
+  });
 }
