@@ -109,7 +109,7 @@ class HomeAController extends Controller {
 
 class TestWsProvider extends WebSocketGateway
     with OnClientConnect, OnClientDisconnect {
-  TestWsProvider();
+  TestWsProvider({super.path = '/ws'});
 
   @override
   Future<void> onMessage(dynamic message, WebSocketContext context) async {
@@ -134,7 +134,7 @@ class TestWsProvider extends WebSocketGateway
 
 class TestWs2Provider extends WebSocketGateway
     with OnClientConnect, OnClientDisconnect {
-  TestWs2Provider();
+  TestWs2Provider({super.path = '/ws2'});
 
   @override
   Future<void> onMessage(dynamic message, WebSocketContext context) async {

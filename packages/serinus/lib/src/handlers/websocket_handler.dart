@@ -1,3 +1,4 @@
+import '../../serinus.dart';
 import '../adapters/adapters.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
@@ -24,10 +25,12 @@ class WebSocketHandler extends Handler {
         List<void Function()> onDoneHandlers,
       })> upgradeRequest(InternalRequest request) async {
     final providers = modulesContainer.getAll<WebSocketGateway>();
-    await config.wsAdapter?.upgrade(request);
     final onDoneHandlers = <void Function()>[];
     final onMessageHandlers = <WsRequestHandler>[];
     for (final provider in providers) {
+      if(provider.path != null && !request.uri.path.endsWith(provider.path!)) {
+        continue;
+      }
       final providerModule =
           modulesContainer.getModuleByProvider(provider.runtimeType);
       final injectables = modulesContainer.getModuleInjectablesByToken(
@@ -45,7 +48,7 @@ class WebSocketHandler extends Handler {
               provider.runtimeType: provider
           },
           Request(request),
-          provider?.serializer
+          provider.serializer
         );
       config.wsAdapter?.addContext(request.webSocketKey, context);
       if (provider is OnClientConnect) {
@@ -57,12 +60,16 @@ class WebSocketHandler extends Handler {
         onDoneHandlers.add(onDone);
       }
       onMessageHandlers.add((dynamic message, WebSocketContext context) async {
-        if(provider?.deserializer != null) {
-          message = provider?.deserializer?.deserialize(message);
+        if(provider.deserializer != null) {
+          message = provider.deserializer?.deserialize(message);
         }
-        await provider?.onMessage(message, context);
+        await provider.onMessage(message, context);
       });
     }
+    if(onMessageHandlers.isEmpty) {
+      throw NotFoundException(message: 'No WebSocketGateway found for this request');
+    }
+    await config.wsAdapter?.upgrade(request);
     return (
       handlers: onMessageHandlers,
       onDoneHandlers: onDoneHandlers,

@@ -259,6 +259,10 @@ final class ModulesContainer {
     if (provider is OnApplicationInit) {
       await provider.onApplicationInit();
     }
+    if(provider is WebSocketGateway){
+      final logger = Logger('InstanceLoader');
+      logger.info('WebSocketGateway ${provider.runtimeType} initialized on path ${provider.path ?? '*'}');
+    }
   }
 
   /// Gets a module by its token
@@ -306,7 +310,7 @@ final class ModulesContainer {
         as T?;
   }
 
-  List<T?> getAll<T extends Provider>() {
+  List<T> getAll<T extends Provider>() {
     final providers =
         _modules.values.expand((element) => element.providers).toList();
     return providers.whereType<T>().toList();

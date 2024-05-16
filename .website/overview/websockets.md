@@ -25,7 +25,7 @@ After importing the `WsModule` class, you can create your Gateway extending the 
 
 ::: code-group
 
-```dart [WebSocketGateway.dart]
+```dart [web_socket_gateway.dart]
 import 'package:serinus/serinus.dart';
 
 class TestWsProvider extends WebSocketGateway {
@@ -39,7 +39,7 @@ class TestWsProvider extends WebSocketGateway {
 }
 ```
 
-```dart [AppModule.dart]
+```dart [app_module.dart]
 import 'package:serinus/serinus.dart';
 
 class AppModule extends Module {
@@ -80,7 +80,6 @@ class TestWsProvider extends WebSocketGateway {
 If you want to broadcast a message to all connected clients you can set to true the param `broadcast` in the `send` method.
 
 ```dart
-
 import 'package:serinus/serinus.dart';
 
 class TestWsProvider extends WebSocketGateway {
@@ -130,7 +129,7 @@ You can use the `serializer` and `deserializer` properties to serialize and dese
 
 ::: code-group
 
-```dart [JsonMessageDeserializer.dart]
+```dart [json_message_deserializer.dart]
 import 'package:serinus/serinus.dart';
 
 class JsonMessageDeserializer extends MessageDeserializer {
@@ -141,7 +140,7 @@ class JsonMessageDeserializer extends MessageDeserializer {
 }
 ```
 
-```dart [JsonMessageSerializer.dart]
+```dart [json_message_serializer.dart]
 import 'package:serinus/serinus.dart';
 
 class JsonMessageSerializer extends MessageSerializer {
@@ -152,7 +151,7 @@ class JsonMessageSerializer extends MessageSerializer {
 }
 ```
 
-```dart [WebSocketGateway.dart]
+```dart [web_socket_gateway.dart]
 import 'package:serinus/serinus.dart';
 
 class TestWsProvider extends WebSocketGateway {
@@ -181,4 +180,46 @@ class TestWsProvider extends WebSocketGateway {
 }
 ```
 
+:::
+
+## Specify the path
+
+You can specify the path of the WebSocket using the `path` property.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class TestWsProvider extends WebSocketGateway {
+
+  TestWsProvider() : super(
+    serializer: JsonMessageSerializer(),
+    deserializer: JsonMessageDeserializer(),
+    path: '/ws'
+  );
+
+  @override
+  Future<void> onMessage(dynamic message, WebSocketContext context) async {
+    print('Message received: $message');
+    context.send('Hello from the server!');
+  }
+
+  @override
+  Future<void> onConnect(WebSocketContext context) async {
+    print('Client connected');
+  }
+
+  @override
+  Future<void> onDisconnect(WebSocketContext context) async {
+    print('Client disconnected');
+  }
+
+}
+```
+
+::: tip
+If no path is specified, then every websocket connection will be handled by the gateway.
+:::
+
+::: warning
+If no gateways can handle the connection, the connection will be closed with status code 404.
 :::
