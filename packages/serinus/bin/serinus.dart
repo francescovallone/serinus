@@ -109,7 +109,7 @@ class HomeAController extends Controller {
 
 class TestWsProvider extends WebSocketGateway
     with OnClientConnect, OnClientDisconnect {
-  TestWsProvider(super.context);
+  TestWsProvider();
 
   @override
   Future<void> onMessage(dynamic message, WebSocketContext context) async {
@@ -134,7 +134,7 @@ class TestWsProvider extends WebSocketGateway
 
 class TestWs2Provider extends WebSocketGateway
     with OnClientConnect, OnClientDisconnect {
-  TestWs2Provider(super.context);
+  TestWs2Provider();
 
   @override
   Future<void> onMessage(dynamic message, WebSocketContext context) async {
@@ -165,12 +165,8 @@ class AppModule extends Module {
           HomeController()
         ], providers: [
           TestProvider(isGlobal: true),
-          DeferredProvider(
-              inject: [TestProvider],
-              (context) async => TestWsProvider(context)),
-          DeferredProvider(
-              inject: [TestProvider],
-              (context) async => TestWs2Provider(context))
+          TestWsProvider(),
+          TestWs2Provider()
         ], middlewares: [
           TestMiddleware()
         ]);

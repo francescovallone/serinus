@@ -37,14 +37,16 @@ class WebSocketHandler extends Handler {
       final scopedProviders = List<Provider>.from(injectables.providers
           .addAllIfAbsent(modulesContainer.globalProviders));
       scopedProviders.remove(provider);
-      final context = WebSocketContext(
+            final context = WebSocketContext(
           config.wsAdapter!,
           request.webSocketKey,
           {
             for (final provider in scopedProviders)
               provider.runtimeType: provider
           },
-          Request(request));
+          Request(request),
+          provider?.serializer
+        );
       config.wsAdapter?.addContext(request.webSocketKey, context);
       if (provider is OnClientConnect) {
         provider.onClientConnect();
@@ -54,7 +56,12 @@ class WebSocketHandler extends Handler {
       if (onDone != null) {
         onDoneHandlers.add(onDone);
       }
-      onMessageHandlers.add(provider!.onMessage);
+      onMessageHandlers.add((dynamic message, WebSocketContext context) async {
+        if(provider?.deserializer != null) {
+          message = provider?.deserializer?.deserialize(message);
+        }
+        await provider?.onMessage(message, context);
+      });
     }
     return (
       handlers: onMessageHandlers,

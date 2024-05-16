@@ -14,8 +14,7 @@ abstract class WebSocketGateway extends Provider {
   final MessageSerializer? serializer;
   final MessageDeserializer? deserializer;
 
-  const WebSocketGateway(ApplicationContext context,
-      {this.event, this.serializer, this.deserializer});
+  const WebSocketGateway({this.event, this.serializer, this.deserializer});
 
   Future<void> onMessage(dynamic data, WebSocketContext context);
 }
