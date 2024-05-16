@@ -1,6 +1,6 @@
 import '../adapters/adapters.dart';
+import '../contexts/contexts.dart';
 import '../core/core.dart';
-import '../core/websockets/ws_context.dart';
 import '../extensions/iterable_extansions.dart';
 import '../http/http.dart';
 import '../http/internal_request.dart';

@@ -1,6 +1,5 @@
 import '../../contexts/contexts.dart';
 import '../core.dart';
-import 'ws_context.dart';
 
 abstract class MessageSerializer<TInput> {
   String serialize(TInput data);

@@ -1,5 +1,4 @@
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/core/websockets/ws_context.dart';
 
 class TestMiddleware extends Middleware {
   int counter = 0;

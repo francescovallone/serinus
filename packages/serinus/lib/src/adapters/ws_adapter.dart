@@ -6,7 +6,6 @@ import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../serinus.dart';
-import '../core/websockets/ws_context.dart';
 import '../http/internal_request.dart';
 import '../services/logger_service.dart';
 
