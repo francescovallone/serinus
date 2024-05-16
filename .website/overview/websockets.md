@@ -111,12 +111,12 @@ class TestWsProvider extends WebSocketGateway with OnClientConnect, OnClientDisc
   }
 
   @override
-  Future<void> onConnect(WebSocketContext context) async {
+  Future<void> onConnect() async {
     print('Client connected');
   }
 
   @override
-  Future<void> onDisconnect(WebSocketContext context) async {
+  Future<void> onDisconnect() async {
     print('Client disconnected');
   }
 
@@ -168,12 +168,12 @@ class TestWsProvider extends WebSocketGateway {
   }
 
   @override
-  Future<void> onConnect(WebSocketContext context) async {
+  Future<void> onConnect() async {
     print('Client connected');
   }
 
   @override
-  Future<void> onDisconnect(WebSocketContext context) async {
+  Future<void> onDisconnect() async {
     print('Client disconnected');
   }
 
@@ -204,12 +204,12 @@ class TestWsProvider extends WebSocketGateway {
   }
 
   @override
-  Future<void> onConnect(WebSocketContext context) async {
+  Future<void> onConnect() async {
     print('Client connected');
   }
 
   @override
-  Future<void> onDisconnect(WebSocketContext context) async {
+  Future<void> onDisconnect() async {
     print('Client disconnected');
   }
 
