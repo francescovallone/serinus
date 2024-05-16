@@ -1,33 +1,29 @@
 import 'dart:async';
 
+import '../../serinus.dart';
 import '../contexts/execution_context.dart';
-import '../core/core.dart';
-import '../exceptions/exceptions.dart';
 import 'consumer.dart';
 
 class GuardsConsumer extends ExecutionContextConsumer<Guard, bool> {
-  GuardsConsumer(super.request, super.routeData, super.providers,
-      {super.body, super.context});
+  GuardsConsumer(
+    super.requestContext,
+      {super.context});
 
   @override
-  ExecutionContext createContext() {
+  ExecutionContext createContext(RequestContext context) {
     final builder = ExecutionContextBuilder();
-    if (body != null) {
-      builder.body = body!;
-    }
-    builder.addProviders(providers);
-    return builder.build(request);
+    return builder.fromRequestContext(context);
   }
 
   @override
   Future<bool> consume(Iterable<Guard> consumables) async {
-    context ??= createContext();
+    context ??= createContext(requestContext);
     for (final consumable in consumables) {
       final canActivate = await consumable.canActivate(context!);
       if (!canActivate) {
         throw ForbiddenException(
             message:
-                '${consumable.runtimeType} block the access to the route ${request.path}');
+                '${consumable.runtimeType} block the access to the route ${requestContext.path}');
       }
     }
     return true;

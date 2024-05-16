@@ -21,6 +21,7 @@ sealed class RequestContext {
   RequestContext(
     this.providers,
     this.request,
+    this.body,
   );
 
   T use<T>() {
@@ -32,7 +33,7 @@ sealed class RequestContext {
 }
 
 class _RequestContextImpl extends RequestContext {
-  _RequestContextImpl(super.providers, super.request);
+  _RequestContextImpl(super.providers, super.request, super.body);
 
   @override
   T use<T>() {
@@ -48,17 +49,12 @@ class RequestContextBuilder {
 
   Map<Type, Provider> providers = {};
 
-  RequestContextBuilder();
+  RequestContextBuilder({
+    this.providers = const {},
+  });
 
-  RequestContextBuilder addProviders(Iterable<Provider> providers) {
-    this.providers.addAll({
-      for (var provider in providers) provider.runtimeType: provider,
-    });
-    return this;
-  }
-
-  RequestContext build(Request request) {
-    _context = _RequestContextImpl(providers, request);
+  RequestContext build(Request request, Body body) {
+    _context = _RequestContextImpl(providers, request, body);
     return _context!;
   }
 }

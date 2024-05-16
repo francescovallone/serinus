@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/serinus_http_server.dart';
-import '../consumers/request_consumer.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -11,6 +10,8 @@ import '../enums/enums.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
+import '../handlers/request_handler.dart';
+import '../handlers/websocket_handler.dart';
 import '../http/http.dart';
 import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
@@ -103,9 +104,15 @@ class SerinusApplication extends Application {
     await initialize();
     try {
       _logger.info('Starting server on $url');
-      final handler = RequestConsumer(router, modulesContainer, config);
+      final requestHandler = RequestHandler(router, modulesContainer, config);
+      final wsHandler = WebSocketHandler(router, modulesContainer, config);
       await adapter.listen(
-        (request, response) => handler.handleRequest(request, response),
+        (request, response) {
+          final handler = request.isWebSocket && config.wsAdapter != null
+              ? wsHandler
+              : requestHandler;
+          return handler.handle(request, response);
+        },
         errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );
     } on SocketException catch (_) {
