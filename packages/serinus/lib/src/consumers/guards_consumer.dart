@@ -5,9 +5,7 @@ import '../contexts/execution_context.dart';
 import 'consumer.dart';
 
 class GuardsConsumer extends ExecutionContextConsumer<Guard, bool> {
-  GuardsConsumer(
-    super.requestContext,
-      {super.context});
+  GuardsConsumer(super.requestContext, {super.context});
 
   @override
   ExecutionContext createContext(RequestContext context) {

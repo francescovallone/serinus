@@ -12,8 +12,7 @@ import '../http/http.dart';
 import '../http/internal_request.dart';
 import 'handler.dart';
 
-class RequestHandler extends Handler{
-
+class RequestHandler extends Handler {
   const RequestHandler(super.router, super.modulesContainer, super.config);
 
   /// Handles the request and sends the response
@@ -35,10 +34,10 @@ class RequestHandler extends Handler{
       InternalRequest request, InternalResponse response) async {
     Response? result;
     final routeLookup = router.getRouteByPathAndMethod(
-    request.path.endsWith('/')
-        ? request.path.substring(0, request.path.length - 1)
-        : request.path,
-    request.method.toHttpMethod());
+        request.path.endsWith('/')
+            ? request.path.substring(0, request.path.length - 1)
+            : request.path,
+        request.method.toHttpMethod());
     final routeData = routeLookup.route;
     if (routeData == null) {
       throw NotFoundException(
@@ -46,7 +45,7 @@ class RequestHandler extends Handler{
               'No route found for path ${request.path} and method ${request.method}');
     }
     final injectables =
-      modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
+        modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
     final controller = routeData.controller;
     final routeSpec =
         controller.get(routeData, config.versioningOptions?.version);
@@ -74,19 +73,19 @@ class RequestHandler extends Handler{
         wrappedRequest,
         response,
         injectables.filterMiddlewaresByRoute(
-            routeData.path, wrappedRequest.params)
-    );
+            routeData.path, wrappedRequest.params));
     var executionContext = await handleGuards(
         route.guards, controller.guards, [...injectables.guards], context);
-    executionContext = await handlePipes(
-        route.pipes, controller.pipes, [...injectables.pipes], context, executionContext);
+    executionContext = await handlePipes(route.pipes, controller.pipes,
+        [...injectables.pipes], context, executionContext);
     if (config.cors != null) {
       result = await config.cors?.call(request, wrappedRequest, context,
           handler, config.cors?.allowedOrigins ?? ['*']);
     } else {
       result = await handler.call(context);
     }
-    await response.finalize(result ?? Response.text(''), viewEngine: config.viewEngine);
+    await response.finalize(result ?? Response.text(''),
+        viewEngine: config.viewEngine);
   }
 
   Future<void> handleMiddlewares(RequestContext context, Request request,
@@ -126,11 +125,11 @@ class RequestHandler extends Handler{
     RequestContext requestContext,
     ExecutionContext executionContext,
   ) async {
-    final pipesConsumer = PipesConsumer(requestContext, context: executionContext);
+    final pipesConsumer =
+        PipesConsumer(requestContext, context: executionContext);
     await pipesConsumer.consume(globalPipes);
     await pipesConsumer.consume(controllerPipes);
     await pipesConsumer.consume(routePipes);
     return pipesConsumer.context!;
   }
-  
 }

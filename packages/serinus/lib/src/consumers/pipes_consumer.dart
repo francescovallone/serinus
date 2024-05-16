@@ -2,12 +2,10 @@ import 'dart:async';
 
 import '../../serinus.dart';
 import '../contexts/execution_context.dart';
-import '../core/core.dart';
 import 'consumer.dart';
 
 class PipesConsumer extends ExecutionContextConsumer<Pipe, void> {
-  PipesConsumer(super.requestContext,
-      {super.context});
+  PipesConsumer(super.requestContext, {super.context});
 
   @override
   ExecutionContext createContext(RequestContext context) {

@@ -8,26 +8,29 @@ import '../http/internal_request.dart';
 
 /// The base class for all handlers in the application
 abstract class Handler {
-
   /// The instance of the router currently used by the application
   final Router router;
+
   /// The instance of the modules container currently used by the application
   final ModulesContainer modulesContainer;
+
   /// The current configuration of the application
   final ApplicationConfig config;
+
   /// Creates a new instance of the handler
   const Handler(this.router, this.modulesContainer, this.config);
 
   /// Handles the request and sends the response
   /// This method is responsible for handling the request.
-  Future<void> handle(InternalRequest request, InternalResponse response) async {
+  Future<void> handle(
+      InternalRequest request, InternalResponse response) async {
     if (request.method == 'OPTIONS') {
       await config.cors?.call(request, Request(request), null, null);
       return;
     }
     try {
       await handleRequest(request, response);
-    }on SerinusException catch (e){
+    } on SerinusException catch (e) {
       response.headers(config.cors?.responseHeaders ?? {});
       response.status(e.statusCode);
       await response.send(e.toString());
@@ -35,16 +38,15 @@ abstract class Handler {
     }
   }
 
-  Future<void> handleRequest(InternalRequest request, InternalResponse response);
+  Future<void> handleRequest(
+      InternalRequest request, InternalResponse response);
 
   /// Build the request context from the request and body
-  RequestContext buildRequestContext(Iterable<Provider> providers, Request request, Body body) {
-    RequestContextBuilder builder =
-        RequestContextBuilder(providers: {
-          for (final provider in providers) provider.runtimeType: provider
-        });
+  RequestContext buildRequestContext(
+      Iterable<Provider> providers, Request request, Body body) {
+    RequestContextBuilder builder = RequestContextBuilder(providers: {
+      for (final provider in providers) provider.runtimeType: provider
+    });
     return builder.build(request, body);
   }
-
-  
 }
