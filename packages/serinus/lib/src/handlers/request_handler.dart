@@ -112,6 +112,11 @@ class RequestHandler extends Handler {
     RequestContext context,
   ) async {
     final guardsConsumer = GuardsConsumer(context);
+    if (routeGuards.isEmpty &&
+        controllerGuards.isEmpty &&
+        globalGuards.isEmpty) {
+      return guardsConsumer.createContext(context);
+    }
     await guardsConsumer.consume(globalGuards);
     await guardsConsumer.consume(controllerGuards);
     await guardsConsumer.consume(routeGuards);
@@ -127,6 +132,9 @@ class RequestHandler extends Handler {
   ) async {
     final pipesConsumer =
         PipesConsumer(requestContext, context: executionContext);
+    if (routePipes.isEmpty && controllerPipes.isEmpty && globalPipes.isEmpty) {
+      return pipesConsumer.createContext(requestContext);
+    }
     await pipesConsumer.consume(globalPipes);
     await pipesConsumer.consume(controllerPipes);
     await pipesConsumer.consume(routePipes);

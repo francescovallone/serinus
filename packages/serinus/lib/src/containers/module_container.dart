@@ -259,9 +259,10 @@ final class ModulesContainer {
     if (provider is OnApplicationInit) {
       await provider.onApplicationInit();
     }
-    if(provider is WebSocketGateway){
+    if (provider is WebSocketGateway) {
       final logger = Logger('InstanceLoader');
-      logger.info('WebSocketGateway ${provider.runtimeType} initialized on path ${provider.path ?? '*'}');
+      logger.info(
+          'WebSocketGateway ${provider.runtimeType} initialized on path ${provider.path ?? '*'}');
     }
   }
 

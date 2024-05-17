@@ -15,7 +15,8 @@ class WebSocketContext {
 
   Map<String, dynamic> get headers => request.headers;
 
-  WebSocketContext(this._wsAdapter, this.id, this._providers, this.request, this._serializer);
+  WebSocketContext(this._wsAdapter, this.id, this._providers, this.request,
+      this._serializer);
 
   void send(dynamic data, {bool broadcast = false}) {
     if (_serializer != null) {

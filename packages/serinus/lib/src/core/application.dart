@@ -13,6 +13,7 @@ import '../global_prefix.dart';
 import '../handlers/request_handler.dart';
 import '../handlers/websocket_handler.dart';
 import '../http/http.dart';
+import '../http/internal_request.dart';
 import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
@@ -102,16 +103,18 @@ class SerinusApplication extends Application {
   @override
   Future<void> serve() async {
     await initialize();
+    _logger.info('Starting server on $url');
+    final requestHandler = RequestHandler(router, modulesContainer, config);
+    final wsHandler = WebSocketHandler(router, modulesContainer, config);
+    Future<void> Function(InternalRequest, InternalResponse) handler;
     try {
-      _logger.info('Starting server on $url');
-      final requestHandler = RequestHandler(router, modulesContainer, config);
-      final wsHandler = WebSocketHandler(router, modulesContainer, config);
-      await adapter.listen(
+      adapter.listen(
         (request, response) {
-          final handler = request.isWebSocket && config.wsAdapter != null
-              ? wsHandler
-              : requestHandler;
-          return handler.handle(request, response);
+          handler = requestHandler.handle;
+          if (request.isWebSocket && config.wsAdapter != null) {
+            handler = wsHandler.handle;
+          }
+          return handler(request, response);
         },
         errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );

@@ -1,11 +1,6 @@
 import '../../serinus.dart';
-import '../adapters/adapters.dart';
-import '../contexts/contexts.dart';
-import '../core/core.dart';
 import '../extensions/iterable_extansions.dart';
-import '../http/http.dart';
 import '../http/internal_request.dart';
-import '../mixins/mixins.dart';
 import 'handler.dart';
 
 class WebSocketHandler extends Handler {
@@ -28,7 +23,7 @@ class WebSocketHandler extends Handler {
     final onDoneHandlers = <void Function()>[];
     final onMessageHandlers = <WsRequestHandler>[];
     for (final provider in providers) {
-      if(provider.path != null && !request.uri.path.endsWith(provider.path!)) {
+      if (provider.path != null && !request.uri.path.endsWith(provider.path!)) {
         continue;
       }
       final providerModule =
@@ -40,7 +35,7 @@ class WebSocketHandler extends Handler {
       final scopedProviders = List<Provider>.from(injectables.providers
           .addAllIfAbsent(modulesContainer.globalProviders));
       scopedProviders.remove(provider);
-            final context = WebSocketContext(
+      final context = WebSocketContext(
           config.wsAdapter!,
           request.webSocketKey,
           {
@@ -48,8 +43,7 @@ class WebSocketHandler extends Handler {
               provider.runtimeType: provider
           },
           Request(request),
-          provider.serializer
-        );
+          provider.serializer);
       config.wsAdapter?.addContext(request.webSocketKey, context);
       if (provider is OnClientConnect) {
         provider.onClientConnect();
@@ -60,14 +54,15 @@ class WebSocketHandler extends Handler {
         onDoneHandlers.add(onDone);
       }
       onMessageHandlers.add((dynamic message, WebSocketContext context) async {
-        if(provider.deserializer != null) {
+        if (provider.deserializer != null) {
           message = provider.deserializer?.deserialize(message);
         }
         await provider.onMessage(message, context);
       });
     }
-    if(onMessageHandlers.isEmpty) {
-      throw NotFoundException(message: 'No WebSocketGateway found for this request');
+    if (onMessageHandlers.isEmpty) {
+      throw NotFoundException(
+          message: 'No WebSocketGateway found for this request');
     }
     await config.wsAdapter?.upgrade(request);
     return (
