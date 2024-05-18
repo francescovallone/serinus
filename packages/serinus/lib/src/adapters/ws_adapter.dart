@@ -74,7 +74,6 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     server![request.webSocketKey] =
         WebSocket.fromUpgradedSocket(channel.sink as Socket, serverSide: true);
     _isOpen = true;
-    return;
   }
 
   void send(dynamic data, {bool broadcast = false, String? key}) {
