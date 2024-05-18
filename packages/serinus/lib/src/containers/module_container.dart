@@ -362,7 +362,7 @@ class ModuleInjectables {
       for (final route in middleware.routes) {
         final segments = route.split('/');
         final routeSegments = path.split('/');
-        if (routeSegments.length > segments.length && segments.last == '*') {
+        if (segments.last == '*') {
           executedMiddlewares.add(middleware);
         }
         if (routeSegments.length == segments.length) {

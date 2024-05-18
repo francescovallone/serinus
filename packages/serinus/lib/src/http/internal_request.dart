@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:http_parser/http_parser.dart';
+
 import '../exceptions/exceptions.dart';
 import 'internal_response.dart';
 
@@ -62,6 +64,19 @@ class InternalRequest {
             request.headers.contentType ?? ContentType('text', 'plain'),
         baseUrl: baseUrl);
   }
+
+  DateTime? get ifModifiedSince {
+    if (_ifModifiedSinceCache != null) {
+      return _ifModifiedSinceCache;
+    }
+    if (!headers.containsKey('if-modified-since')) {
+      return null;
+    }
+    _ifModifiedSinceCache = parseHttpDate(headers['if-modified-since']!);
+    return _ifModifiedSinceCache;
+  }
+
+  DateTime? _ifModifiedSinceCache;
 
   Encoding? get encoding {
     var contentType = this.contentType;

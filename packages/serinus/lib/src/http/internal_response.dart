@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
@@ -20,12 +21,13 @@ class InternalResponse {
     return _original.detachSocket(writeHeaders: false);
   }
 
-  Future<void> send(dynamic data) async {
+  void send(List<int> data) {
     if (!_statusChanged) {
       _original.statusCode = HttpStatus.ok;
     }
-    _original.write(data);
-    await _original.close();
+    _original
+        .addStream(Stream.fromIterable([data]))
+        .then((_) => _original.close());
   }
 
   void status(int statusCode) {
@@ -50,6 +52,9 @@ class InternalResponse {
   Future<void> finalize(Response result,
       {ViewEngine? viewEngine, VersioningOptions? versioning}) async {
     status(result.statusCode);
+    if (result.shouldRedirect) {
+      return redirect(result.data);
+    }
     if ((result.data is View || result.data is ViewString) &&
         viewEngine == null) {
       throw StateError('ViewEngine is required to render views');
@@ -59,11 +64,7 @@ class InternalResponse {
       final rendered = await (result.data is View
           ? viewEngine!.render(result.data)
           : viewEngine!.renderString(result.data));
-      await send(rendered);
-    }
-    if (result.shouldRedirect) {
-      await redirect(result.data);
-      return;
+      return send(utf8.encode(rendered));
     }
     headers(result.headers);
     if (versioning != null && versioning.type == VersioningType.header) {
@@ -93,6 +94,6 @@ class InternalResponse {
     if (!result.headers.containsKey(HttpHeaders.dateHeader)) {
       _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
     }
-    await send(data);
+    return send(utf8.encode(data.toString()));
   }
 }

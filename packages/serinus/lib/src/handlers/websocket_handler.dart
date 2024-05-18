@@ -53,11 +53,11 @@ class WebSocketHandler extends Handler {
       if (onDone != null) {
         onDoneHandlers.add(onDone);
       }
-      onMessageHandlers.add((dynamic message, WebSocketContext context) async {
+      onMessageHandlers.add((dynamic message, WebSocketContext context) {
         if (provider.deserializer != null) {
           message = provider.deserializer?.deserialize(message);
         }
-        await provider.onMessage(message, context);
+        return provider.onMessage(message, context);
       });
     }
     if (onMessageHandlers.isEmpty) {

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../contexts/request_context.dart';
@@ -25,15 +27,15 @@ abstract class Handler {
   Future<void> handle(
       InternalRequest request, InternalResponse response) async {
     if (request.method == 'OPTIONS') {
-      await config.cors?.call(request, Request(request), null, null);
+      config.cors?.call(request, Request(request), null, null);
       return;
     }
     try {
-      await handleRequest(request, response);
+      handleRequest(request, response);
     } on SerinusException catch (e) {
       response.headers(config.cors?.responseHeaders ?? {});
       response.status(e.statusCode);
-      await response.send(e.toString());
+      response.send(utf8.encode(e.toString()));
       return;
     }
   }

@@ -84,7 +84,7 @@ class RequestHandler extends Handler {
     } else {
       result = await handler.call(context);
     }
-    await response.finalize(result ?? Response.text(''),
+    response.finalize(result ?? Response.text(''),
         viewEngine: config.viewEngine);
   }
 

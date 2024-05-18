@@ -106,13 +106,13 @@ abstract class SerinusBenchmark {
     Result? result;
     final resultMessage = StringBuffer();
     process.stdout.transform(utf8.decoder).listen((message) {
-      print(message);
       resultMessage.writeln(message);
     });
     process.stderr.transform(utf8.decoder).listen((message) {
       print(message);
     });
     await process.exitCode;
+    print(resultMessage);
     result = _parseWinrkResult(resultMessage.toString());
     return result;
   }
