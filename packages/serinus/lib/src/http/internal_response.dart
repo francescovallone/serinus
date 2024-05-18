@@ -21,13 +21,13 @@ class InternalResponse {
     return _original.detachSocket(writeHeaders: false);
   }
 
-  void send(List<int> data) {
+  Future<void> send(List<int> data) async {
     if (!_statusChanged) {
       _original.statusCode = HttpStatus.ok;
     }
-    _original
-        .addStream(Stream.fromIterable([data]))
-        .then((_) => _original.close());
+    await _original
+        .addStream(Stream.fromIterable([data]));
+    await _original.close();
   }
 
   void status(int statusCode) {

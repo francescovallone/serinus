@@ -27,16 +27,15 @@ abstract class Handler {
   Future<void> handle(
       InternalRequest request, InternalResponse response) async {
     if (request.method == 'OPTIONS') {
-      config.cors?.call(request, Request(request), null, null);
+      await config.cors?.call(request, Request(request), null, null);
       return;
     }
     try {
-      handleRequest(request, response);
+      await handleRequest(request, response);
     } on SerinusException catch (e) {
       response.headers(config.cors?.responseHeaders ?? {});
       response.status(e.statusCode);
-      response.send(utf8.encode(e.toString()));
-      return;
+      return response.send(utf8.encode(e.toString()));
     }
   }
 
