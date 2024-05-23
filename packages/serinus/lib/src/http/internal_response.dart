@@ -25,8 +25,7 @@ class InternalResponse {
     if (!_statusChanged) {
       _original.statusCode = HttpStatus.ok;
     }
-    await _original
-        .addStream(Stream.fromIterable([data]));
+    await _original.addStream(Stream.fromIterable([data]));
     await _original.close();
   }
 

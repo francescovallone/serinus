@@ -23,22 +23,21 @@ class TestModule extends Module {
 }
 
 class WsGateway extends WebSocketGateway {
-
   WsGateway({super.path});
-  
+
   @override
   Future<void> onMessage(dynamic data, WebSocketContext context) async {
     context.send(data);
   }
 }
 
-class WsGatewayMixins extends WebSocketGateway with OnClientConnect, OnClientDisconnect {
-
+class WsGatewayMixins extends WebSocketGateway
+    with OnClientConnect, OnClientDisconnect {
   bool onClientConnectCalled = false;
   bool onClientDisconnectCalled = false;
 
   WsGatewayMixins({super.path});
-  
+
   @override
   Future<void> onMessage(dynamic data, WebSocketContext context) async {
     context.send(data);
@@ -52,85 +51,66 @@ class WsGatewayMixins extends WebSocketGateway with OnClientConnect, OnClientDis
   @override
   Future<void> onClientDisconnect() async {
     onClientDisconnectCalled = true;
-  }  
+  }
 }
 
-
-
-
-void main(){
-  group(
-    '$WebSocket', 
-    () {
-      test(
-        'when a module import the WsModule and use a WebSocketGateway it should possible to connect using a websocket', 
+void main() {
+  group('$WebSocket', () {
+    test(
+        'when a module import the WsModule and use a WebSocketGateway it should possible to connect using a websocket',
         () async {
-          final app = await serinus.createApplication(
+      final app = await serinus.createApplication(
+          entrypoint:
+              TestModule(imports: [WsModule()], providers: [WsGateway()]),
+          loggingLevel: LogLevel.none,
+          port: 3004);
+      await app.serve();
+      final ws = await WebSocket.connect('ws://localhost:3004/');
+      ws.add('Hello from client');
+      final message = await ws.first;
+      expect(message, 'Hello from client');
+      await app.close();
+    });
+
+    test(
+      'when a module import the WsModule and use a WebSocketGateway and the path param is not null then the gateway should only accept connections on the specified path',
+      () async {
+        final app = await serinus.createApplication(
             entrypoint: TestModule(
-              imports: [WsModule()],
-              providers: [WsGateway()]
-            ),
+                imports: [WsModule()], providers: [WsGateway(path: '/ws')]),
             loggingLevel: LogLevel.none,
-            port: 3004
-          );
-          await app.serve();
-          final ws = await WebSocket.connect('ws://localhost:3004/');
-          ws.add('Hello from client');
-          final message = await ws.first;
-          expect(message, 'Hello from client');
-          await app.close();
+            port: 3001);
+        await app.serve();
+        try {
+          await WebSocket.connect('ws://localhost:3001/');
+        } catch (e) {
+          expect(e, isA<WebSocketException>());
         }
-      );
+        final ws = await WebSocket.connect('ws://localhost:3001/ws');
+        ws.add('Hello from client');
+        final message = await ws.first;
+        expect(message, 'Hello from client');
+      },
+    );
 
-      test(
-        'when a module import the WsModule and use a WebSocketGateway and the path param is not null then the gateway should only accept connections on the specified path', 
-        () async {
-          final app = await serinus.createApplication(
-            entrypoint: TestModule(
-              imports: [WsModule()],
-              providers: [WsGateway(path: '/ws')]
-            ),
+    test(
+      'when a module import the WsModule and use a WebSocketGateway and the path param is not null then the gateway should only accept connections on the specified path',
+      () async {
+        final gateway = WsGatewayMixins(path: '/ws');
+        final app = await serinus.createApplication(
+            entrypoint: TestModule(imports: [WsModule()], providers: [gateway]),
             loggingLevel: LogLevel.none,
-            port: 3001
-          );
-          await app.serve();
-          try{
-            await WebSocket.connect('ws://localhost:3001/');
-          }catch(e){
-            expect(e, isA<WebSocketException>());
-          }
-          final ws = await WebSocket.connect('ws://localhost:3001/ws');
-          ws.add('Hello from client');
-          final message = await ws.first;
-          expect(message, 'Hello from client');
-        },
-      );
-
-      test(
-        'when a module import the WsModule and use a WebSocketGateway and the path param is not null then the gateway should only accept connections on the specified path', 
-        () async {
-          final gateway = WsGatewayMixins(path: '/ws');
-          final app = await serinus.createApplication(
-            entrypoint: TestModule(
-              imports: [WsModule()],
-              providers: [gateway]
-            ),
-            loggingLevel: LogLevel.none,
-            port: 3002
-          );
-          await app.serve();
-          final ws = await WebSocket.connect('ws://localhost:3002/ws');
-          ws.add('Hello from client');
-          final message = await ws.first;
-          expect(message, 'Hello from client');
-          await ws.close();
-          await app.close();
-          expect(gateway.onClientConnectCalled, true);
-          expect(gateway.onClientDisconnectCalled, true);
-        },
-      );
-
-    }
-  );
-
+            port: 3002);
+        await app.serve();
+        final ws = await WebSocket.connect('ws://localhost:3002/ws');
+        ws.add('Hello from client');
+        final message = await ws.first;
+        expect(message, 'Hello from client');
+        await ws.close();
+        await app.close();
+        expect(gateway.onClientConnectCalled, true);
+        expect(gateway.onClientDisconnectCalled, true);
+      },
+    );
+  });
 }

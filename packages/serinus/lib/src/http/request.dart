@@ -64,8 +64,7 @@ class Request {
   ///
   /// It will try to parse the body of the request to the correct type.
   Future<void> parseBody() async {
-
-    if(body != null) {
+    if (body != null) {
       return;
     }
 
