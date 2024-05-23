@@ -20,6 +20,17 @@ abstract class SerinusBenchmark {
     await setup();
     print(
         "Running $name wrk with $threads threads, $connections connections, and ${duration.inSeconds}s duration");
+    Result? result;
+    if(Platform.isWindows){
+      result = await _executeWinrkBenchmark();
+    }else{
+      result = await _executeWrkBenchmark();
+    }
+    await teardown();
+    return result;
+  }
+
+  Future<Result> _executeWrkBenchmark() async {
     final process = await Process.start('wrk', [
       '-t$threads',
       '-c$connections',
@@ -30,17 +41,16 @@ abstract class SerinusBenchmark {
     Result? result;
     process.stdout.transform(utf8.decoder).listen((message) {
       print(message);
-      result = _parseResult(message);
+      result = _parseWrkResult(message);
     });
     process.stderr.transform(utf8.decoder).listen((message) {
       print(message);
     });
     await process.exitCode;
-    await teardown();
-    return result;
+    return result!;
   }
 
-  Result _parseResult(String stdout) {
+  Result _parseWrkResult(String stdout) {
     final lines = stdout.split('\n');
     final result = Result();
     for (var line in lines) {
@@ -85,9 +95,82 @@ abstract class SerinusBenchmark {
   }
 
   Future<void> teardown();
+  
+  Future<Result?> _executeWinrkBenchmark() async {
+    final process = await Process.start('winrk', [
+      'http://localhost:3000/',
+      '-t $threads',
+      '-c $connections',
+      '-d ${duration.inSeconds}',
+    ]);
+    Result? result;
+    final resultMessage = StringBuffer();
+    process.stdout.transform(utf8.decoder).listen((message) {
+      resultMessage.writeln(message);
+    });
+    process.stderr.transform(utf8.decoder).listen((message) {
+      print(message);
+    });
+    await process.exitCode;
+    print(resultMessage);
+    result = _parseWinrkResult(resultMessage.toString());
+    return result;
+  }
+
+  Result _parseWinrkResult(String stdout) {
+    final lines = stdout.split('\n');
+    final result = Result();
+    bool metResultString = false;
+    for (var line in lines) {
+      final segments = line
+          .split(' ')
+          .map((e) => e.trim())
+          .where((element) => element.isNotEmpty)
+          .toList();
+      if (segments.isNotEmpty) {
+        if(!metResultString){
+          metResultString = segments[0] == 'Result:';
+        }
+        if(metResultString){
+          final segment = segments[0];
+          if (segment.contains('total:')) {
+            result.requests = int.parse(segments[1]);
+          }
+          if (segment.contains('transfers:')) {
+            result.readSize = double.parse(segments[1]);
+            result.transferRate = result.readSize / duration.inSeconds / 1024 / 1024 > 1 
+              ? '${(result.readSize / duration.inSeconds / 1024 / 1024).toStringAsFixed(2)} MB/s' 
+              : '${(result.readSize / duration.inSeconds / 1024).toStringAsFixed(2)} KB/s';
+          }
+          if (segments[0] == 'latency') {
+            switch(segments[1]){
+              case 'min:':
+                result.minLatency = double.parse(segments[2].replaceAll(RegExp(r'[A-Za-z]+'), ''));
+                break;
+              case 'average:':
+                result.avgLatency = double.parse(segments[2].replaceAll(RegExp(r'[A-Za-z]+'), ''));
+                break;
+              case 'max:':
+                result.maxLatency = double.parse(segments[2].replaceAll(RegExp(r'[A-Za-z]+'), ''));
+                break;
+              case 'median:':
+                result.stdevLatency = double.parse(segments[2].replaceAll(RegExp(r'[A-Za-z]+'), ''));
+                break;
+            }
+          }
+          if (segments[0] == 'rps:') {
+            result.rps = double.parse(segments[1]);
+          }
+        }
+      }
+    }
+    return result;
+  }
+  
 }
 
 class Result {
+  double minLatency = 0;
   double avgLatency = 0;
   double stdevLatency = 0;
   double maxLatency = 0;
@@ -106,4 +189,9 @@ class Result {
   String transferRate = '0';
 
   Result();
+
+  @override
+  String toString() {
+    return 'Result{minLatency: $minLatency, avgLatency: $avgLatency, stdevLatency: $stdevLatency, maxLatency: $maxLatency, stdevPerc: $stdevPerc, rpsAvg: $rpsAvg, rpsMax: $rpsMax, rpdStdev: $rpdStdev, rpsPerc: $rpsPerc, latency50: $latency50, latency75: $latency75, latency90: $latency90, latency99: $latency99, requests: $requests, readSize: $readSize, rps: $rps, transferRate: $transferRate}';
+  }
 }

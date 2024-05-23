@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+- Add WebSocket support
+- Fix a bug in the ModulesContainer that caused a wrongful injection of the providers in the application.
+- Abstract the Handler interface to allow for more flexibility in the implementation of the handlers
+
 ## 0.2.3
 
 - Fix a bug in the ModulesContainer that caused a wrongful injection of the providers in the application.

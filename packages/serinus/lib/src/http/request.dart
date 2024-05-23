@@ -57,63 +57,60 @@ class Request {
 
   final Map<String, dynamic> _data = {};
 
-  Body? _body;
-
   /// The body of the request.
-  Body? get body => _body;
+  Body? body;
 
   /// This method is used to parse the body of the request.
   ///
   /// It will try to parse the body of the request to the correct type.
   Future<void> parseBody() async {
-    /// If the body is already parsed, it will return.
-    if (_body != null) {
+    if (body != null) {
       return;
     }
 
-    /// The content type of the request.
+    /// If the body is already parsed, it will return.
     final contentType = _original.contentType;
 
     /// If the content type is multipart, it will parse the body as a multipart form data.
     if (contentType.isMultipart()) {
       final formData =
           await FormData.parseMultipart(request: _original.original);
-      _body = Body(contentType, formData: formData);
+      body = Body(contentType, formData: formData);
       return;
     }
 
     /// If the body is empty, it will return an empty body.
-    final body = await _original.body();
-    if (body.isEmpty) {
-      _body = Body.empty();
+    final parsedBody = await _original.body();
+    if (parsedBody.isEmpty) {
+      body = Body.empty();
       return;
     }
 
     /// If the content type is url encoded, it will parse the body as a url encoded form data.
     if (contentType.isUrlEncoded()) {
-      final formData = FormData.parseUrlEncoded(body);
-      _body = Body(contentType, formData: formData);
+      final formData = FormData.parseUrlEncoded(parsedBody);
+      body = Body(contentType, formData: formData);
       return;
     }
 
     /// If the content type is json, it will parse the body as a json object.
-    final parsedJson = body.tryParse();
+    final parsedJson = parsedBody.tryParse();
     if (parsedJson != null || contentType == ContentType.json) {
-      final json = parsedJson ?? jsonDecode(body);
-      _body = Body(contentType, json: json);
+      final json = parsedJson ?? jsonDecode(parsedBody);
+      body = Body(contentType, json: json);
       return;
     }
 
     /// If the content type is binary, it will parse the body as a binary data.
     if (contentType == ContentType.binary) {
-      _body = Body(contentType, bytes: body.codeUnits);
+      body = Body(contentType, bytes: parsedBody.codeUnits);
       return;
     }
 
     /// If the content type is text, it will parse the body as a text data.
-    _body = Body(
+    body = Body(
       contentType,
-      text: body,
+      text: parsedBody,
     );
   }
 

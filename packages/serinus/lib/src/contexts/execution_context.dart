@@ -1,5 +1,6 @@
 import '../core/core.dart';
 import '../http/http.dart';
+import 'request_context.dart';
 
 sealed class ExecutionContext {
   final Map<Type, Provider> providers;
@@ -32,18 +33,17 @@ class _ExecutionContextImpl extends ExecutionContext {
 }
 
 class ExecutionContextBuilder {
-  final Map<Type, Provider> providers = {};
-  final Map<String, String> pathParameters = {};
-  final Map<String, dynamic> queryParameters = {};
-  final Map<String, dynamic> headers = {};
-  late String path;
-  late Body body;
+  Map<Type, Provider> providers = {};
 
   ExecutionContextBuilder addProviders(Iterable<Provider> providers) {
     this.providers.addAll({
       for (var provider in providers) provider.runtimeType: provider,
     });
     return this;
+  }
+
+  ExecutionContext fromRequestContext(RequestContext context) {
+    return _ExecutionContextImpl(context.providers, context.request);
   }
 
   ExecutionContext build(Request request) {

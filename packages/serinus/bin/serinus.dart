@@ -107,13 +107,69 @@ class HomeAController extends Controller {
   }
 }
 
+class TestWsProvider extends WebSocketGateway
+    with OnClientConnect, OnClientDisconnect {
+  TestWsProvider({super.path = '/ws'});
+
+  @override
+  Future<void> onMessage(dynamic message, WebSocketContext context) async {
+    if (message == 'broadcast') {
+      context.send('Hello from server', broadcast: true);
+    }
+    print(context.queryParameters);
+    context.send('Message received: $message');
+    print('Message received: $message');
+  }
+
+  @override
+  Future<void> onClientConnect() async {
+    print('Client connected');
+  }
+
+  @override
+  Future<void> onClientDisconnect() async {
+    print('Client disconnected');
+  }
+}
+
+class TestWs2Provider extends WebSocketGateway
+    with OnClientConnect, OnClientDisconnect {
+  TestWs2Provider({super.path = '/ws2'});
+
+  @override
+  Future<void> onMessage(dynamic message, WebSocketContext context) async {
+    if (message == 'broadcast') {
+      context.send('Hello from server', broadcast: true);
+    }
+    context.send('Message received: $message');
+    print('Message received: $message');
+  }
+
+  @override
+  Future<void> onClientConnect() async {
+    print('Client connected');
+  }
+
+  @override
+  Future<void> onClientDisconnect() async {
+    print('Client disconnected');
+  }
+}
+
 class AppModule extends Module {
   AppModule()
-      : super(
-            imports: [ReAppModule()],
-            controllers: [HomeController()],
-            providers: [TestProvider(isGlobal: true)],
-            middlewares: [TestMiddleware()]);
+      : super(imports: [
+          ReAppModule(),
+          WsModule()
+        ], controllers: [
+          HomeController()
+        ], providers: [
+          TestProvider(isGlobal: true),
+          TestWsProvider(),
+          TestWs2Provider()
+        ], middlewares: [
+          TestMiddleware()
+        ]);
 
   @override
   List<Pipe> get pipes => [
@@ -148,7 +204,7 @@ class ReAppModule extends Module {
 
 void main(List<String> arguments) async {
   SerinusApplication application =
-      await serinus.createApplication(entrypoint: AppModule());
+      await serinus.createApplication(entrypoint: AppModule(), host: '0.0.0.0');
   application.enableShutdownHooks();
   // application.enableVersioning(
   //   type: VersioningType.uri,

@@ -38,6 +38,7 @@ export default defineConfig({
               { text: 'Middlewares', link: '/overview/middlewares' },
               { text: 'Guards', link: '/overview/guards' },
               { text: 'Pipes', link: '/overview/pipes' },
+              { text: 'WebSockets', link: '/overview/websockets' },
             ]
           },
           {

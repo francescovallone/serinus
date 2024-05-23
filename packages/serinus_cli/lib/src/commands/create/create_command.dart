@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -19,10 +20,14 @@ class CreateCommand extends Command<int> {
   CreateCommand({
     Logger? logger,
   }) : _logger = logger {
-    argParser.addOption(
+    argParser..addOption(
       'project-name',
       help: 'The project name for this new project. '
           'This must be a valid dart package name.',
+    )
+    ..addFlag(
+      'plugin',
+      help: 'Whether to create a plugin project.',
     );
   }
 
@@ -51,6 +56,67 @@ class CreateCommand extends Command<int> {
   Future<int> run() async {
     final outputDirectory = _outputDirectory;
     final projectName = _projectName;
+    if(_isPlugin){
+      await _createPlugin(outputDirectory, projectName);
+    }else{
+      await _createApplication(outputDirectory, projectName);
+    }
+    return ExitCode.success.code;
+  }
+
+  Future<void> _createPlugin(
+    Directory outputDirectory, String projectName,) async {
+    final brick = Brick.git(
+      const GitPath(
+        'https://github.com/francescovallone/serinus-bricks',
+        path: 'bricks/base_plugin',
+      ),
+    );
+    final generator = await MasonGenerator.fromBrick(brick);
+    final progress = _logger?.progress(
+      'Generating a new Serinus Plugin [$projectName]',
+    );
+    final vars = <String, dynamic>{
+      'name': projectName,
+      'output': outputDirectory.absolute.path,
+      'description': _logger?.prompt(
+        'Description: ', defaultValue: 'A new Serinus plugin',),
+      'version': _logger?.prompt(
+        'Version: ', defaultValue: '0.1.0',),
+      'repository': _logger?.prompt(
+        'Repository: ', defaultValue: '',),
+    };
+
+    if (!outputDirectory.existsSync()) {
+      outputDirectory.createSync(recursive: true);
+    }
+
+    _logger?.success('Directory created at ${outputDirectory.absolute.path}');
+    progress?.update('Fetching latest version of serinus package...');
+    try {
+      vars['serinus_version'] = await getSerinusVersion();
+    } catch (e) {
+      _logger?.err(
+          '''Failed to fetch latest version of serinus package, you will need to update it manually''');
+      rethrow;
+    }
+    progress?.update('Generating files...');
+    await generator.generate(
+      DirectoryGeneratorTarget(outputDirectory),
+      vars: vars,
+    );
+    _logger?.success('Files generated successfully');
+    progress?.complete();
+    _logger?.info(
+      'Run the following commands to get started:\n\n'
+      '- cd ${outputDirectory.absolute.path}\n'
+      '- dart pub get\n'
+    );
+  }
+    
+
+  Future<void> _createApplication(
+    Directory outputDirectory, String projectName,) async {
     final brick = Brick.git(
       const GitPath(
         'https://github.com/francescovallone/serinus-bricks',
@@ -64,17 +130,19 @@ class CreateCommand extends Command<int> {
     final vars = <String, dynamic>{
       'name': projectName,
       'output': outputDirectory.absolute.path,
-      'description': 'A simple Serinus application',
+      'description': _logger?.prompt(
+        'Description: ', defaultValue: 'A new Serinus application',),
     };
-    if(!outputDirectory.existsSync()){
+    if (!outputDirectory.existsSync()) {
       outputDirectory.createSync(recursive: true);
     }
     _logger?.success('Directory created at ${outputDirectory.absolute.path}');
     progress?.update('Fetching latest version of serinus package...');
-    try{
+    try {
       vars['serinus_version'] = await getSerinusVersion();
-    }catch(e){
-      _logger?.err('''Failed to fetch latest version of serinus package, you will need to update it manually''');
+    } catch (e) {
+      _logger?.err(
+          '''Failed to fetch latest version of serinus package, you will need to update it manually''');
       rethrow;
     }
     _logger?.success('Pre-gen hooks executed successfully');
@@ -99,7 +167,6 @@ class CreateCommand extends Command<int> {
       'dart pub get\n'
       'serinus run\n',
     );
-    return ExitCode.success.code;
   }
 
   String get _projectName {
@@ -114,6 +181,8 @@ class CreateCommand extends Command<int> {
     _validateOutputDirectoryArg(rest);
     return Directory(rest.first);
   }
+
+  bool get _isPlugin => argResults['plugin'] as bool;
 
   void _validateOutputDirectoryArg(List<String> args) {
     if (args.isEmpty) {
@@ -149,9 +218,10 @@ class CreateCommand extends Command<int> {
 
   Future<String> getSerinusVersion() async {
     final client = HttpClient();
-    final req = await client.getUrl(Uri.parse('https://pub.dev/api/packages/serinus'));
+    final req =
+        await client.getUrl(Uri.parse('https://pub.dev/api/packages/serinus'));
     final res = await req.close();
-    if(res.statusCode != 200){
+    if (res.statusCode != 200) {
       throw Exception('Failed to fetch serinus package');
     }
     final body = await res.transform(utf8.decoder).join();

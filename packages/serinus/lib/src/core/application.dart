@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/serinus_http_server.dart';
-import '../consumers/request_consumer.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -11,7 +10,10 @@ import '../enums/enums.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
+import '../handlers/request_handler.dart';
+import '../handlers/websocket_handler.dart';
 import '../http/http.dart';
+import '../http/internal_request.dart';
 import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
@@ -42,7 +44,7 @@ sealed class Application {
 
   HttpServer get server => config.serverAdapter.server;
 
-  SerinusHttpServer get adapter => config.serverAdapter as SerinusHttpServer;
+  SerinusHttpAdapter get adapter => config.serverAdapter as SerinusHttpAdapter;
 
   void enableShutdownHooks() {
     if (!_enableShutdownHooks) {
@@ -59,6 +61,8 @@ sealed class Application {
 
   @internal
   Future<void> shutdown();
+
+  Future<void> register();
 
   Future<void> serve();
 
@@ -99,11 +103,19 @@ class SerinusApplication extends Application {
   @override
   Future<void> serve() async {
     await initialize();
+    _logger.info('Starting server on $url');
+    final requestHandler = RequestHandler(router, modulesContainer, config);
+    final wsHandler = WebSocketHandler(router, modulesContainer, config);
+    Future<void> Function(InternalRequest, InternalResponse) handler;
     try {
-      _logger.info('Starting server on $url');
-      final handler = RequestConsumer(router, modulesContainer, config);
-      await config.serverAdapter.listen(
-        handler.handleRequest,
+      adapter.listen(
+        (request, response) {
+          handler = requestHandler.handle;
+          if (request.isWebSocket && config.wsAdapter != null) {
+            handler = wsHandler.handle;
+          }
+          return handler(request, response);
+        },
         errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );
     } on SocketException catch (_) {
@@ -124,7 +136,10 @@ class SerinusApplication extends Application {
       throw InitializationError(
           'The entry point of the application cannot be a DeferredModule');
     }
-    await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
+    if (!modulesContainer.isInitialized) {
+      await modulesContainer.registerModules(
+          entrypoint, entrypoint.runtimeType);
+    }
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
@@ -140,5 +155,10 @@ class SerinusApplication extends Application {
         await provider.onApplicationShutdown();
       }
     }
+  }
+
+  @override
+  Future<void> register() async {
+    await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
   }
 }

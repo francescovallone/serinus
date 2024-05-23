@@ -39,7 +39,7 @@ class SimpleModuleWithInjectables extends Module {
   List<Pipe> get pipes => [
         TestPipe(),
       ];
-  
+
   @override
   List<Guard> get guards => [TestGuard()];
 }

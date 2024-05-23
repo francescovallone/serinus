@@ -11,7 +11,11 @@ final config = ApplicationConfig(
     port: 3000,
     poweredByHeader: 'Powered by Serinus',
     securityContext: null,
-    serverAdapter: SerinusHttpServer());
+    serverAdapter: SerinusHttpAdapter(
+      host: 'localhost',
+      port: 3000,
+      poweredByHeader: 'Powered by Serinus',
+    ));
 
 void main() {
   group('$Explorer', () {
@@ -80,7 +84,11 @@ void main() {
           port: 3000,
           poweredByHeader: 'Powered by Serinus',
           securityContext: null,
-          serverAdapter: SerinusHttpServer());
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ));
       config.globalPrefix = GlobalPrefix(prefix: 'api');
       final router = Router();
       final modulesContainer = ModulesContainer(config);
@@ -100,7 +108,11 @@ void main() {
           port: 3000,
           poweredByHeader: 'Powered by Serinus',
           securityContext: null,
-          serverAdapter: SerinusHttpServer());
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ));
       config.globalPrefix = GlobalPrefix(prefix: 'api');
       config.versioningOptions =
           VersioningOptions(type: VersioningType.uri, version: 1);

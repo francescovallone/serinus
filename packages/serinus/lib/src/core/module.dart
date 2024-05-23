@@ -9,7 +9,7 @@ abstract class Module {
   List<Type> exports;
   List<Middleware> middlewares;
   List<Provider> get exportedProviders {
-    if(exports.isEmpty) {
+    if (exports.isEmpty) {
       return [];
     }
     return [
@@ -17,6 +17,7 @@ abstract class Module {
         providers.firstWhere((element) => element.runtimeType == export)
     ];
   }
+
   final ModuleOptions? options;
 
   List<Guard> get guards => [];
@@ -32,7 +33,7 @@ abstract class Module {
     this.options,
   });
 
-  Future<Module> registerAsync() async {
+  Future<Module> registerAsync(ApplicationConfig config) async {
     return this;
   }
 }

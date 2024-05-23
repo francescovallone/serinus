@@ -17,15 +17,15 @@ class SerinusFactory {
       String poweredByHeader = 'Powered by Serinus',
       SecurityContext? securityContext,
       bool enableCompression = true}) async {
-    final server = SerinusHttpServer();
     final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
     final serverHost = Platform.environment['HOST'] ?? host;
-    await server.init(
-        securityContext: securityContext,
-        poweredByHeader: poweredByHeader,
-        port: serverPort,
+    final server = SerinusHttpAdapter(
         host: serverHost,
+        port: serverPort,
+        poweredByHeader: poweredByHeader,
+        securityContext: securityContext,
         enableCompression: enableCompression);
+    await server.init();
     final app = SerinusApplication(
         entrypoint: entrypoint,
         config: ApplicationConfig(

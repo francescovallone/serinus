@@ -23,4 +23,23 @@ class Body {
 
   /// Factory constructor to create an empty body.
   factory Body.empty() => Body(ContentType.text);
+
+  Body change({
+    FormData? formData,
+    ContentType? contentType,
+    String? text,
+    List<int>? bytes,
+    Map<String, dynamic>? json,
+  }) {
+    if (formData != null) {
+      return Body(contentType ?? this.contentType, formData: formData);
+    } else if (text != null) {
+      return Body(contentType ?? this.contentType, text: text);
+    } else if (bytes != null) {
+      return Body(contentType ?? this.contentType, bytes: bytes);
+    } else if (json != null) {
+      return Body(contentType ?? this.contentType, json: json);
+    }
+    return this;
+  }
 }

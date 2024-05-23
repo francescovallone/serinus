@@ -82,7 +82,7 @@ class Cors {
       /// If the request method is OPTIONS, return a response with status 200.
       request.response.status(200);
       request.response.headers(stringHeaders);
-      request.response.send(null);
+      request.response.send([]);
       return null;
     }
 

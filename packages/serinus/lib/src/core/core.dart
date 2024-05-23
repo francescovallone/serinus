@@ -8,3 +8,4 @@ export 'module.dart';
 export 'pipe.dart';
 export 'provider.dart';
 export 'route.dart';
+export 'websockets/websockets.dart';
