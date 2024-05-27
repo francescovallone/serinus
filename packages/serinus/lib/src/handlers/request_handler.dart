@@ -68,23 +68,32 @@ class RequestHandler extends Handler {
     await wrappedRequest.parseBody();
     final body = wrappedRequest.body!;
     final context = buildRequestContext(scopedProviders, wrappedRequest, body);
-    await handleMiddlewares(
+    final middlewares = injectables.filterMiddlewaresByRoute(
+            routeData.path, wrappedRequest.params);
+    ExecutionContext? executionContext;
+    if(middlewares.isNotEmpty){
+      await handleMiddlewares(
         context,
         wrappedRequest,
         response,
-        injectables.filterMiddlewaresByRoute(
-            routeData.path, wrappedRequest.params));
-    var executionContext = await handleGuards(
+        middlewares,
+      );
+    }
+    if([...route.guards, ...controller.guards, ...injectables.guards].isNotEmpty){
+      executionContext = await handleGuards(
         route.guards, controller.guards, [...injectables.guards], context);
-    executionContext = await handlePipes(route.pipes, controller.pipes,
+    }
+    if([...route.pipes, ...controller.pipes, ...injectables.pipes].isNotEmpty){
+      executionContext = await handlePipes(route.pipes, controller.pipes,
         [...injectables.pipes], context, executionContext);
+    }
     if (config.cors != null) {
       result = await config.cors?.call(request, wrappedRequest, context,
-          handler, config.cors?.allowedOrigins ?? ['*']);
+          handler);
     } else {
       result = await handler.call(context);
     }
-    await response.finalize(result ?? Response.text(''),
+    response.finalize(result ?? Response.text(''),
         viewEngine: config.viewEngine);
   }
 
@@ -128,7 +137,7 @@ class RequestHandler extends Handler {
     List<Pipe> controllerPipes,
     List<Pipe> globalPipes,
     RequestContext requestContext,
-    ExecutionContext executionContext,
+    ExecutionContext? executionContext,
   ) async {
     final pipesConsumer =
         PipesConsumer(requestContext, context: executionContext);

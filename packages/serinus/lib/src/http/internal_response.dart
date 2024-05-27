@@ -10,7 +10,6 @@ import 'response.dart';
 
 class InternalResponse {
   final HttpResponse _original;
-  bool _statusChanged = false;
   final String? baseUrl;
 
   InternalResponse(this._original, {this.baseUrl}) {
@@ -22,15 +21,11 @@ class InternalResponse {
   }
 
   Future<void> send(List<int> data) async {
-    if (!_statusChanged) {
-      _original.statusCode = HttpStatus.ok;
-    }
     await _original.addStream(Stream.fromIterable([data]));
     await _original.close();
   }
 
   void status(int statusCode) {
-    _statusChanged = true;
     _original.statusCode = statusCode;
   }
 

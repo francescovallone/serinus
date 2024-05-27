@@ -60,5 +60,5 @@ class RouteData {
       required this.controller,
       required this.routeCls,
       required this.moduleToken,
-      this.queryParameters = const {}});
+      this.queryParameters = const {},});
 }

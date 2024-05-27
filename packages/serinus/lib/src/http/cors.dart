@@ -51,8 +51,7 @@ class Cors {
 
   /// The class behaves as a callable class.
   Future<Response?> call(InternalRequest request, Request wrappedRequest,
-      RequestContext? context, ReqResHandler? handler,
-      [List<String> allowedOrigins = const ['*']]) async {
+      RequestContext? context, ReqResHandler? handler,) async {
     /// Get the origin from the request headers.
     final origin = request.headers['origin'];
 
