@@ -25,19 +25,18 @@ abstract class Controller {
   Map<RouteSpec, ReqResHandler> get routes => UnmodifiableMapView(_routes);
 
   RouteSpec? get(RouteData routeData, [int? version]) {
+    String routeDataPath = routeData.path
+      .replaceFirst(path, '');
+    if (!routeDataPath.endsWith('/')) {
+      routeDataPath = '$routeDataPath/';
+    }
     return _routes.keys.firstWhereOrNull((r) {
       String routePath = r.path.replaceFirst(path, '');
       if (!routePath.endsWith('/')) {
         routePath = '$routePath/';
       }
-      String routeDataPath = routeData.path
-          .replaceFirst(path, '')
-          .replaceFirst('/v${r.route.version ?? version ?? 0}', '');
-      if (!routeDataPath.endsWith('/')) {
-        routeDataPath = '$routeDataPath/';
-      }
-      return r.route.runtimeType == routeData.routeCls &&
-          routePath == routeDataPath &&
+      routeDataPath = routeDataPath.replaceAll('/v${r.route.version ?? version ?? 0}', '');
+      return routePath == routeDataPath &&
           r.method == routeData.method;
     });
   }
@@ -45,7 +44,6 @@ abstract class Controller {
   @mustCallSuper
   void on<R extends Route>(R route, ReqResHandler handler) {
     final routeExists = _routes.keys.any((r) =>
-        r.route.runtimeType == R &&
         r.path == route.path &&
         r.method == route.method);
     if (routeExists) {

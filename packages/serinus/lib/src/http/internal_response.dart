@@ -21,8 +21,8 @@ class InternalResponse {
   }
 
   Future<void> send(List<int> data) async {
-    await _original.addStream(Stream.fromIterable([data]));
-    await _original.close();
+    _original.add(data);
+    _original.close();
   }
 
   void status(int statusCode) {

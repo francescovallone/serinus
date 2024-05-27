@@ -27,10 +27,9 @@ final class ModulesContainer {
   final Map<String, Iterable<DeferredProvider>> _deferredProviders = {};
 
   /// The list of all the global providers registered in the application
-  List<Provider> get globalProviders => _providers.values
+  Iterable<Provider> get globalProviders => _providers.values
       .flatten()
-      .where((provider) => provider.isGlobal)
-      .toList();
+      .where((provider) => provider.isGlobal);
 
   /// The list of all the modules registered in the application
   List<Module> get modules => _modules.values.toList();
