@@ -1,15 +1,15 @@
 ## shelf
 ### Requests per second
-Requests/sec: 15181.7
-Transfer/sec: 38.50 KB/s
+Requests/sec: 19788.91
+Transfer/sec: 4.81MB
 Requests/sec DIFF: +0.00%
 ### Latency
-Avg Latency: 6.58688
-Stdev Latency: 4.3228
-Max Latency: 91.2231
-Stdev Perc: 0.0
+Avg Latency: 66.37
+Stdev Latency: 103.6
+Max Latency: 1.14
+Stdev Perc: 92.66
 ### Req/Sec
-Rps Avg: 0.0
-Rps Max: 0.0
-Rps Stdev: 0.0
-Rps Perc: 0.0
+Rps Avg: 2.5
+Rps Max: 3.7
+Rps Stdev: 1.22
+Rps Perc: 78.22

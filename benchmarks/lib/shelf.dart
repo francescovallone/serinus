@@ -14,7 +14,6 @@ class ShelfAppBenchmark extends SerinusBenchmark {
   Future<void> setup() async {
     var handler = const Pipeline().addHandler(_echoRequest);
     server = await serve(handler, 'localhost', 3000);
-    server.autoCompress = true;
   }
 
   @override

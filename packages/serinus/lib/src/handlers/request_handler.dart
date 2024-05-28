@@ -81,11 +81,11 @@ class RequestHandler extends Handler {
     }
     if([...route.guards, ...controller.guards, ...injectables.guards].isNotEmpty){
       executionContext = await handleGuards(
-        route.guards, controller.guards, [...injectables.guards], context);
+        route.guards, controller.guards, injectables.guards, context);
     }
     if([...route.pipes, ...controller.pipes, ...injectables.pipes].isNotEmpty){
       executionContext = await handlePipes(route.pipes, controller.pipes,
-        [...injectables.pipes], context, executionContext);
+        injectables.pipes, context, executionContext);
     }
     if (config.cors != null) {
       result = await config.cors?.call(request, wrappedRequest, context,
@@ -115,9 +115,9 @@ class RequestHandler extends Handler {
   }
 
   Future<ExecutionContext> handleGuards(
-    List<Guard> routeGuards,
-    List<Guard> controllerGuards,
-    List<Guard> globalGuards,
+    Iterable<Guard> routeGuards,
+    Iterable<Guard> controllerGuards,
+    Iterable<Guard> globalGuards,
     RequestContext context,
   ) async {
     final guardsConsumer = GuardsConsumer(context);
@@ -133,9 +133,9 @@ class RequestHandler extends Handler {
   }
 
   Future<ExecutionContext> handlePipes(
-    List<Pipe> routePipes,
-    List<Pipe> controllerPipes,
-    List<Pipe> globalPipes,
+    Iterable<Pipe> routePipes,
+    Iterable<Pipe> controllerPipes,
+    Iterable<Pipe> globalPipes,
     RequestContext requestContext,
     ExecutionContext? executionContext,
   ) async {

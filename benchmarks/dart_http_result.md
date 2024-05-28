@@ -1,15 +1,15 @@
 ## dart_http
 ### Requests per second
-Requests/sec: 30269.14
-Transfer/sec: 5.72MB
-Requests/sec DIFF: +20.03%
+Requests/sec: 28831.05
+Transfer/sec: 5.44MB
+Requests/sec DIFF: +45.69%
 ### Latency
-Avg Latency: 33.46
-Stdev Latency: 49.49
-Max Latency: 832.78
-Stdev Perc: 97.93
+Avg Latency: 33.74
+Stdev Latency: 27.64
+Max Latency: 773.87
+Stdev Perc: 96.36
 ### Req/Sec
-Rps Avg: 4.06
-Rps Max: 5.98
-Rps Stdev: 1.45
-Rps Perc: 86.84
+Rps Avg: 3.9
+Rps Max: 5.35
+Rps Stdev: 1.21
+Rps Perc: 87.13
