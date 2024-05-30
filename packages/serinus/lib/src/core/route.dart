@@ -6,13 +6,16 @@ import 'pipe.dart';
 abstract class Route {
   /// The path of the route.
   final String path;
+
   /// The HTTP method of the route.
   final HttpMethod method;
+
   /// The query parameters of the route.
   final Map<String, Type> queryParameters;
 
   /// The [guards] property contains the guards of the route.
   List<Guard> get guards => [];
+
   /// The [pipes] property contains the pipes of the route.
   List<Pipe> get pipes => [];
 

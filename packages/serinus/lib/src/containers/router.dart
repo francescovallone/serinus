@@ -22,10 +22,10 @@ final class Router {
   }
 
   /// The [getRouteByPathAndMethod] method is used to get the route by path and method.
-  /// 
+  ///
   /// The [path] parameter is the path of the route.
   /// The [method] parameter is the method of the route.
-  /// 
+  ///
   /// The method will return the route data and the parameters of the route.
   ({RouteData? route, Map<String, dynamic> params}) getRouteByPathAndMethod(
       String path, HttpMethod method) {
@@ -57,22 +57,29 @@ final class Router {
 class RouteData {
   /// The [path] property contains the path of the route.
   final String path;
+
   /// The [method] property contains the method of the route.
   final HttpMethod method;
+
   /// The [controller] property contains the controller of the route.
   final Controller controller;
+
   /// The [routeCls] property contains the route class of the route.
   final Type routeCls;
+
   /// The [moduleToken] property contains the module token of the route.
   final String moduleToken;
+
   /// The [queryParameters] property contains the query parameters of the route.
   final Map<String, Type> queryParameters;
+
   /// The [RouteData] constructor is used to create a new instance of the [RouteData] class.
-  RouteData(
-      {required this.path,
-      required this.method,
-      required this.controller,
-      required this.routeCls,
-      required this.moduleToken,
-      this.queryParameters = const {},});
+  RouteData({
+    required this.path,
+    required this.method,
+    required this.controller,
+    required this.routeCls,
+    required this.moduleToken,
+    this.queryParameters = const {},
+  });
 }

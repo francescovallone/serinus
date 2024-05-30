@@ -93,7 +93,7 @@ class Logger {
   /// Logs a message at level [logging.Level.WARNING]. it is used to log warning messages.
   void warning(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.log(logging.Level.WARNING, message, error, stackTrace);
-  
+
   /// Logs a message at level [logging.Level.DEBUG]. it is used to log config messages.
   void debug(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.log(logging.Level('DEBUG', 100), message, error, stackTrace);

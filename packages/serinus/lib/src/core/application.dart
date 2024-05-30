@@ -25,15 +25,20 @@ import 'core.dart';
 sealed class Application {
   /// The [level] property contains the log level of the application.
   final LogLevel level;
+
   /// The [entrypoint] property contains the entry point of the application.
   final Module entrypoint;
   bool _enableShutdownHooks = false;
+
   /// The [loggerService] property contains the logger service of the application.
   LoggerService? loggerService;
+
   /// The [modulesContainer] property contains the modules container of the application.
   ModulesContainer modulesContainer;
+
   /// The [router] property contains the router of the application.
   Router router;
+
   /// The [config] property contains the application configuration.
   final ApplicationConfig config;
 
@@ -84,7 +89,6 @@ sealed class Application {
 
   /// The [close] method is used to close the application.
   Future<void> close();
-
 }
 
 /// The [SerinusApplication] class is used to create a new instance of the [Application] class.

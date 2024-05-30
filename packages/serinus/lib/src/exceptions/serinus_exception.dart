@@ -23,6 +23,7 @@ class SerinusException implements HttpException {
   final String message;
   @override
   final Uri? uri;
+
   /// The [statusCode] parameter is used to define the status code of the exception
   final int statusCode;
 

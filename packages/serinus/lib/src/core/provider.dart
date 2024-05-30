@@ -15,8 +15,9 @@ abstract class Provider {
 class DeferredProvider extends Provider {
   /// The [init] function is called when the provider is initialized.
   final Future<Provider> Function(ApplicationContext context) init;
+
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
-  final List<Type> inject;  
+  final List<Type> inject;
 
   /// The [DeferredProvider] constructor is used to create a new instance of the [DeferredProvider] class.
   const DeferredProvider(

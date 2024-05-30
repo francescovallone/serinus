@@ -9,10 +9,11 @@ import '../versioning.dart';
 import 'response.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
-/// 
+///
 /// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
 class InternalResponse {
   final HttpResponse _original;
+
   /// The base url of the server
   final String? baseUrl;
 
@@ -22,7 +23,7 @@ class InternalResponse {
   }
 
   /// This method is used to detach the socket from the response.
-  /// 
+  ///
   /// It will return a [Future<Socket>].
   /// It can be used to initiate a WebSocket connection.
   Future<Socket> detachSocket() {
@@ -30,7 +31,7 @@ class InternalResponse {
   }
 
   /// This method is used to send data to the response.
-  /// 
+  ///
   /// After sending the data, the response will be closed.
   Future<void> send(List<int> data) async {
     _original.add(data);
@@ -60,9 +61,9 @@ class InternalResponse {
   }
 
   /// This method is used to finalize the response.
-  /// 
+  ///
   /// It will set the status code, headers, content type, and send the data.
-  /// 
+  ///
   /// If the response is a view, it will render the view using the view engine.
   Future<void> finalize(Response result,
       {ViewEngine? viewEngine, VersioningOptions? versioning}) async {

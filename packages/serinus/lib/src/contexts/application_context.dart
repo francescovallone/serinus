@@ -4,6 +4,7 @@ import '../core/core.dart';
 class ApplicationContext {
   /// The [providers] property contains the providers of the application context.
   final Map<Type, Provider> providers;
+
   /// The [applicationId] property contains the ID of the application.
   final String applicationId;
 

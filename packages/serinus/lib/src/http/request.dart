@@ -16,9 +16,9 @@ class Request {
   final InternalRequest _original;
 
   /// The [Request] constructor is used to create a new instance of the [Request] class.
-  /// 
+  ///
   /// It accepts an [InternalRequest] object and an optional [params] parameter.
-  /// 
+  ///
   /// The [params] parameter is used to pass parameters to the request.
   Request(this._original, {this.params = const {}}) {
     /// This loop is used to parse the query parameters of the request.

@@ -5,16 +5,22 @@ import 'core.dart';
 abstract class Module {
   /// The [imports] property contains the modules that are imported in the module.
   final String token;
+
   /// The [imports] property contains the modules that are imported in the module.
   List<Module> imports;
+
   /// The [controllers] property contains the controllers of the module.
   List<Controller> controllers;
+
   /// The [providers] property contains the providers of the module.
   List<Provider> providers;
+
   /// The [exports] property contains the exports of the module.
   List<Type> exports;
+
   /// The [middlewares] property contains the middlewares of the module.
   List<Middleware> middlewares;
+
   /// The [options] property contains the options of the module.
   List<Provider> get exportedProviders {
     if (exports.isEmpty) {
@@ -31,6 +37,7 @@ abstract class Module {
 
   /// The [guards] property contains the guards of the module.
   List<Guard> get guards => [];
+
   /// The [pipes] property contains the pipes of the module.
   List<Pipe> get pipes => [];
 

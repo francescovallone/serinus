@@ -21,7 +21,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   final Map<String, WebSocketContext> _contexts = {};
 
   /// The [addContext] method is used to add a context to the adapter
-  /// 
+  ///
   /// It takes a [key] and a [WebSocketContext] and returns [void]
   void addContext(String key, WebSocketContext context) {
     _contexts[key] = context;
@@ -66,7 +66,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   }
 
   /// The [upgrade] method is used to upgrade the request to a web socket request
-  /// 
+  ///
   /// It takes an [InternalRequest] and returns [void]
   /// It detach the socket from the response and upgrade it to a web socket
   /// It adds the web socket to the server
@@ -91,7 +91,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
 
   /// The [send] method is used to send data to the client
   /// It takes [data], [broadcast] and [key] and returns [void]
-  /// 
+  ///
   /// If [broadcast] is true, it sends the data to all clients
   void send(dynamic data, {bool broadcast = false, String? key}) {
     if (broadcast) {

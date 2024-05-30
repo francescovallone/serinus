@@ -1,9 +1,9 @@
 import 'enums/enums.dart';
 
 /// Options for versioning the API
-/// 
+///
 /// The versioning can be done in two ways:
-/// 
+///
 /// - [VersioningType.uri] - The version is added to the uri of the api
 /// - [VersioningType.header] - The version is added to the headers of the api
 final class VersioningOptions {
@@ -19,7 +19,7 @@ final class VersioningOptions {
   final VersioningType type;
 
   /// The header name to be used when the versioning type is [VersioningType.header]
-  /// 
+  ///
   /// This is a required field when the versioning type is [VersioningType.header]
   final String? header;
 

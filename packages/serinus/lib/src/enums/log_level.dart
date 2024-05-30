@@ -1,9 +1,11 @@
 /// The log level of the logger.
-enum LogLevel { 
+enum LogLevel {
   /// No logs will be shown.
-  none, 
+  none,
+
   /// Only errors will be shown.
-  errors, 
+  errors,
+
   /// All logs will be shown.
-  debug 
+  debug
 }

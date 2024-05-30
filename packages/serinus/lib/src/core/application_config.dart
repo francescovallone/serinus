@@ -116,16 +116,16 @@ final class ApplicationConfig {
 
   /// The body size limit for the application
   BodySizeLimit bodySizeLimit = const BodySizeLimit();
-  
+
   /// The ws adapter for the application
   WsAdapter? wsAdapter;
 
   /// The application config constructor
-  ApplicationConfig(
-      {required this.host,
-      required this.port,
-      required this.poweredByHeader,
-      required this.serverAdapter,
-      this.securityContext,
-    });
+  ApplicationConfig({
+    required this.host,
+    required this.port,
+    required this.poweredByHeader,
+    required this.serverAdapter,
+    this.securityContext,
+  });
 }

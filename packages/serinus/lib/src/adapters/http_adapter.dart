@@ -5,8 +5,10 @@ import 'server_adapter.dart';
 abstract class HttpAdapter<TServer> extends Adapter<TServer> {
   /// The [host] property contains the host of the server.
   final String host;
+
   /// The [port] property contains the port of the server.
   final int port;
+
   /// The [poweredByHeader] property contains the powered by header.
   final String poweredByHeader;
 

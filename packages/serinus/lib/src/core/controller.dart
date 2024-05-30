@@ -16,8 +16,10 @@ typedef ReqResHandler = Future<Response> Function(RequestContext context);
 abstract class Controller {
   /// The [path] property contains the path of the controller.
   final String path;
+
   /// The [guards] property contains the guards of the controller.
   List<Guard> get guards => [];
+
   /// The [pipes] property contains the pipes of the controller.
   List<Pipe> get pipes => [];
 
@@ -33,8 +35,7 @@ abstract class Controller {
 
   /// The [get] method is used to get a route.
   RouteSpec? get(RouteData routeData, [int? version]) {
-    String routeDataPath = routeData.path
-      .replaceFirst(path, '');
+    String routeDataPath = routeData.path.replaceFirst(path, '');
     if (!routeDataPath.endsWith('/')) {
       routeDataPath = '$routeDataPath/';
     }
@@ -43,22 +44,21 @@ abstract class Controller {
       if (!routePath.endsWith('/')) {
         routePath = '$routePath/';
       }
-      routeDataPath = routeDataPath.replaceAll('/v${r.route.version ?? version ?? 0}', '');
-      return routePath == routeDataPath &&
-          r.method == routeData.method;
+      routeDataPath =
+          routeDataPath.replaceAll('/v${r.route.version ?? version ?? 0}', '');
+      return routePath == routeDataPath && r.method == routeData.method;
     });
   }
 
   /// The [on] method is used to register a route.
-  /// 
+  ///
   /// It takes a [Route] and a [ReqResHandler].
-  /// 
+  ///
   /// It should not be overridden.
   @mustCallSuper
   void on<R extends Route>(R route, ReqResHandler handler) {
-    final routeExists = _routes.keys.any((r) =>
-        r.path == route.path &&
-        r.method == route.method);
+    final routeExists = _routes.keys
+        .any((r) => r.path == route.path && r.method == route.method);
     if (routeExists) {
       throw StateError('A route of type $R already exists in this controller');
     }
@@ -75,8 +75,10 @@ abstract class Controller {
 class RouteSpec {
   /// The path of the route.
   final String path;
+
   /// The HTTP method of the route.
   final HttpMethod method;
+
   /// The [Route] that the route specification is for.
   final Route route;
 

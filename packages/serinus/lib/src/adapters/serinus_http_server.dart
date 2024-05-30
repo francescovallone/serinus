@@ -9,11 +9,13 @@ import 'server_adapter.dart';
 class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
   /// The [io.SecurityContext] property contains the security context of the server.
   final io.SecurityContext? securityContext;
+
   /// The [enableCompression] property is used to enable compression.
   final bool enableCompression;
 
   /// The [isSecure] property returns true if the server is secure.
   bool get isSecure => securityContext != null;
+
   /// The [isRunning] property returns true if the server is running.
   bool get isRunning => server != null;
 

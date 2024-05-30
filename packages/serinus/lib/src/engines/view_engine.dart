@@ -17,8 +17,10 @@ abstract class ViewEngine {
 class View {
   /// The view data.
   final String view;
+
   /// The variables that will be used in the view.
   final Map<String, dynamic> variables;
+
   /// Constructor for the [View] class.
   View(this.view, this.variables);
 }
@@ -28,6 +30,7 @@ class View {
 class ViewString {
   /// The view data.
   final String viewData;
+
   /// The variables that will be used in the view.
   final Map<String, dynamic> variables;
 

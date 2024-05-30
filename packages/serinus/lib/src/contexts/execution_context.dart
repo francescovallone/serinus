@@ -6,6 +6,7 @@ import 'request_context.dart';
 sealed class ExecutionContext {
   /// The [providers] property contains the providers of the execution context.
   final Map<Type, Provider> providers;
+
   /// The [request] property contains the request of the context.
   final Request request;
 

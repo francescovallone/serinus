@@ -8,6 +8,7 @@ import '../services/logger_service.dart';
 final class Explorer {
   final ModulesContainer _modulesContainer;
   final Router _router;
+
   /// The [ApplicationConfig] object.
   /// It is used to get the global prefix and the versioning options.
   final ApplicationConfig config;
@@ -16,7 +17,7 @@ final class Explorer {
   const Explorer(this._modulesContainer, this._router, this.config);
 
   /// The [resolveRoutes] method is used to resolve the routes of the application.
-  /// 
+  ///
   /// It resolves the routes of the controllers and registers them in the router.
   void resolveRoutes() {
     final Logger logger = Logger('RoutesResolver');
@@ -38,7 +39,7 @@ final class Explorer {
   }
 
   /// The [exploreRoutes] method is used to explore the routes of the controller.
-  /// 
+  ///
   /// It registers the routes in the router.
   /// It also logs the mapped routes.
   void exploreRoutes(
@@ -66,7 +67,7 @@ final class Explorer {
   }
 
   /// The [normalizePath] method is used to normalize the path.
-  /// 
+  ///
   /// It removes the trailing slash and adds a leading slash if it is missing.
   /// It also removes multiple slashes.
   String normalizePath(String path) {

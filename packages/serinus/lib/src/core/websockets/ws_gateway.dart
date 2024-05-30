@@ -16,15 +16,17 @@ abstract class MessageDeserializer<TOutput> {
 /// The [WebSocketGateway] class is used to define a WebSocketGateway.
 abstract class WebSocketGateway extends Provider {
   /// The [path] property contains the path of the WebSocketGateway.
-  /// 
+  ///
   /// If the path is not provided, the WebSocketGateway will be available at the root path.
   final String? path;
+
   /// The [serializer] property contains the serializer of the WebSocketGateway.
-  /// 
+  ///
   /// It is used to serialize the data before sending it to the client.
   final MessageSerializer? serializer;
+
   /// The [deserializer] property contains the deserializer of the WebSocketGateway.
-  /// 
+  ///
   /// It is used to deserialize the data received from the client.
   final MessageDeserializer? deserializer;
 
@@ -32,9 +34,9 @@ abstract class WebSocketGateway extends Provider {
   const WebSocketGateway({this.path, this.serializer, this.deserializer});
 
   /// The [onMessage] method will be called when a message from the client is received.
-  /// 
+  ///
   /// It takes a [dynamic] data and a [WebSocketContext] context and returns a [Future] of [void].
-  /// 
+  ///
   /// The [WebSocketContext] contains the context of the WebSocket and the methods to send messages to the client.
   Future<void> onMessage(dynamic data, WebSocketContext context);
 }

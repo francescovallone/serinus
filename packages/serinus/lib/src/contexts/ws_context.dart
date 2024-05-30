@@ -1,7 +1,7 @@
 import '../../../serinus.dart';
 
 /// The [WebSocketContext] class is used to create a WebSocket context.
-/// 
+///
 /// It contains the request, the WebSocket adapter, the ID of the context, the providers, and the serializer.
 class WebSocketContext {
   /// The [request] property contains the request of the context.
@@ -27,9 +27,9 @@ class WebSocketContext {
       this._serializer);
 
   /// This method is used to send data to the client.
-  /// 
+  ///
   /// The [data] parameter is the data to be sent.
-  /// 
+  ///
   /// The [broadcast] parameter is used to broadcast the data to all clients.
   void send(dynamic data, {bool broadcast = false}) {
     if (_serializer != null) {

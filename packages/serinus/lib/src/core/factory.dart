@@ -11,9 +11,9 @@ final class SerinusFactory {
   const SerinusFactory();
 
   /// The [createApplication] method is used to create a new instance of the [SerinusApplication] class.
-  /// 
+  ///
   /// It takes an [entrypoint] module, a [host] string, a [port] integer, a [loggingLevel] LogLevel, a [loggerService] LoggerService, a [poweredByHeader] string, a [securityContext] SecurityContext, and an [enableCompression] boolean.
-  /// 
+  ///
   /// It returns a [Future] of [SerinusApplication].
   Future<SerinusApplication> createApplication(
       {required Module entrypoint,

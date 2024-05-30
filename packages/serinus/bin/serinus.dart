@@ -206,18 +206,14 @@ class ReAppModule extends Module {
 }
 
 void main(List<String> arguments) async {
-  SerinusApplication application =
-      await serinus.createApplication(entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
+  SerinusApplication application = await serinus.createApplication(
+      entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
   // application.enableVersioning(
   //   type: VersioningType.uri,
   //   version: 1
   // );
   application.changeBodySizeLimit(
-    BodySizeLimit.change(
-      textLimit: 10,
-      size: BodySizeValue.b
-    )
-  );
+      BodySizeLimit.change(textLimit: 10, size: BodySizeValue.b));
   await application.serve();
 }

@@ -5,8 +5,10 @@ import '../http/http.dart';
 sealed class RequestContext {
   /// The [providers] property contains the providers of the request context.
   final Map<Type, Provider> providers;
+
   /// The [request] property contains the request of the context.
   final Request request;
+
   /// The [body] property contains the body of the context.
   late final Body body;
 

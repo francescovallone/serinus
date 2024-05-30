@@ -27,9 +27,8 @@ final class ModulesContainer {
   final Map<String, Iterable<DeferredProvider>> _deferredProviders = {};
 
   /// The list of all the global providers registered in the application
-  Iterable<Provider> get globalProviders => _providers.values
-      .flatten()
-      .where((provider) => provider.isGlobal);
+  Iterable<Provider> get globalProviders =>
+      _providers.values.flatten().where((provider) => provider.isGlobal);
 
   /// The list of all the modules registered in the application
   List<Module> get modules => _modules.values.toList();
@@ -223,11 +222,11 @@ final class ModulesContainer {
   }
 
   /// Gets the module scoped providers
-  /// 
+  ///
   /// The [module] is the module to get the scoped providers
-  /// 
+  ///
   /// The method returns the scoped providers of the module
-  /// 
+  ///
   /// Throws a [StateError] if the module is not found
   ({Set<Provider> providers, Set<Provider> exportedProviders})
       getModuleScopedProviders(Module module, [bool isRoot = false]) {
@@ -334,10 +333,13 @@ final class ModulesContainer {
 class ModuleInjectables {
   /// The [guards] property contains the guards of the module
   final Set<Guard> guards;
+
   /// The [pipes] property contains the pipes of the module
   final Set<Pipe> pipes;
+
   /// The [middlewares] property contains the middlewares of the module
   final Set<Middleware> middlewares;
+
   /// The [providers] property contains the providers of the module
   final Set<Provider> providers;
 

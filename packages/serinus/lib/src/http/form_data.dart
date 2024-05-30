@@ -22,20 +22,23 @@ class FormData {
   /// This method is used to get the values of the form data
   Map<String, dynamic> get values =>
       Map.unmodifiable({'fields': fields, 'files': files});
+
   /// This method is used to get the fields of the form data
-  /// 
+  ///
   /// The fields are the key-value pairs of the form data
   Map<String, dynamic> get fields => Map.unmodifiable(_fields);
+
   /// This method is used to get the files of the form data
   Map<String, UploadedFile> get files => Map.unmodifiable(_files);
 
   /// This method is used to get the length of the form data
-  /// 
+  ///
   /// The length is the total length of the form data
-  /// 
+  ///
   /// The length is calculated by getting the length of the fields and the files
   int get length {
-    return jsonEncode(fields).length + _files.values.fold(0, (p, e) => p + e._data.length);
+    return jsonEncode(fields).length +
+        _files.values.fold(0, (p, e) => p + e._data.length);
   }
 
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
@@ -108,8 +111,10 @@ class FormData {
 class UploadedFile with JsonObject {
   /// The content type of the file
   final ContentType contentType;
+
   /// The stream of bytes of the file
   final Stream<List<int>> stream;
+
   /// The name of the file
   final String name;
   String _data = '';

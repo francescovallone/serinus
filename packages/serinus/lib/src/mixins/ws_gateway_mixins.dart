@@ -13,7 +13,7 @@ mixin OnClientDisconnect on WebSocketGateway {
 }
 
 /// The [OnClientError] mixin is used to handle the client errors.
-/// 
+///
 /// The [onClientError] method is called when an error occurs on the client.
 mixin OnClientError on WebSocketGateway {
   /// The [onClientError] method is called when an error occurs on the client.

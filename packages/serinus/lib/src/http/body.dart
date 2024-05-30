@@ -27,7 +27,7 @@ class Body {
   factory Body.empty() => Body(ContentType.text);
 
   /// This method is used to change the body of the request.
-  /// 
+  ///
   /// It will return a new instance of the [Body] class.
   Body change({
     FormData? formData,
@@ -50,11 +50,9 @@ class Body {
 
   /// This method is used to get the length of the body.
   int get length {
-    if(json != null) {
+    if (json != null) {
       return jsonEncode(json).length;
     }
     return text?.length ?? bytes?.length ?? formData?.length ?? 0;
   }
-  
-
 }
