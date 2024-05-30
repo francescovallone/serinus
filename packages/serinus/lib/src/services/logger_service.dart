@@ -5,6 +5,7 @@ import 'package:logging/logging.dart' as logging;
 
 import '../enums/log_level.dart';
 
+/// The [LogCallback] is used to style the logs.
 typedef LogCallback = void Function(logging.LogRecord record, double deltaTime);
 
 /// The [LoggerService] is used to bootstrap the logging in the application.
@@ -17,6 +18,7 @@ class LoggerService {
   /// The [level] of the logger.
   LogLevel level;
 
+  /// The [LoggerService] constructor is used to create a new instance of the [LoggerService] class.
   factory LoggerService({
     LogCallback? onLog,
     LogLevel level = LogLevel.debug,
@@ -62,32 +64,41 @@ class LoggerService {
 ///
 /// It is used to log messages in the application.
 class Logger {
+  /// The name of the logger.
   final String name;
   late logging.Logger _logger;
 
+  /// The [Logger] constructor is used to create a new instance of the [Logger] class.
   Logger(this.name) {
     _logger = logging.Logger(name);
   }
 
+  /// Logs a message at level [logging.Level.INFO]. it is used to log info messages.
   void info(Object? message, [Object? error, StackTrace? stackTrace]) {
     _logger.log(logging.Level.INFO, message, error, stackTrace);
   }
 
+  /// Logs a message at level [logging.Level.ERROR]. it is used to log error messages.
   void error(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.log(logging.Level('ERROR', 1900), message, error, stackTrace);
 
+  /// Logs a message at level [logging.Level.VERBOSE]. it is used to log verbose messages.
   void verbose(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.log(logging.Level('VERBOSE', 2000), message, error, stackTrace);
 
+  /// Logs a message at level [logging.Level.SHOUT]. it is used to shout messages.
   void shout(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.log(logging.Level('SHOUT', 3000), message, error, stackTrace);
 
+  /// Logs a message at level [logging.Level.WARNING]. it is used to log warning messages.
   void warning(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.log(logging.Level.WARNING, message, error, stackTrace);
-
+  
+  /// Logs a message at level [logging.Level.DEBUG]. it is used to log config messages.
   void debug(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.log(logging.Level('DEBUG', 100), message, error, stackTrace);
 
+  /// Logs a message at level [logging.Level.SEVERE]. it is used to log severe messages.
   void severe(Object? message, [Object? error, StackTrace? stackTrace]) =>
       _logger.log(logging.Level.SEVERE, message, error, stackTrace);
 }

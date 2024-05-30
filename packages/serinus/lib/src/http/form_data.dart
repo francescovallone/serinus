@@ -19,9 +19,14 @@ class FormData {
       : _fields = fields,
         _files = files;
 
+  /// This method is used to get the values of the form data
   Map<String, dynamic> get values =>
       Map.unmodifiable({'fields': fields, 'files': files});
+  /// This method is used to get the fields of the form data
+  /// 
+  /// The fields are the key-value pairs of the form data
   Map<String, dynamic> get fields => Map.unmodifiable(_fields);
+  /// This method is used to get the files of the form data
   Map<String, UploadedFile> get files => Map.unmodifiable(_files);
 
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
@@ -92,13 +97,18 @@ class FormData {
 /// The [contentType] property is used to get the content type of the file
 /// The [name] property is used to get the name of the file
 class UploadedFile with JsonObject {
+  /// The content type of the file
   final ContentType contentType;
+  /// The stream of bytes of the file
   final Stream<List<int>> stream;
+  /// The name of the file
   final String name;
   String _data = '';
 
+  /// The [UploadedFile] constructor is used to create a [UploadedFile] object
   UploadedFile(this.stream, this.contentType, this.name);
 
+  /// This method is used to read the file as a string
   Future<void> readAsString() async {
     List<String> data = [];
     await for (final part in stream) {

@@ -62,17 +62,23 @@ final class ApplicationConfig {
   /// If not set, the default value is an empty string
   GlobalPrefix? _globalPrefix;
 
+  /// The versioning options for the application
   VersioningOptions? get versioningOptions => _versioningOptions;
 
+  /// The cors options for the application
   Cors? get cors => _cors;
 
+  /// The view engine for the application
   ViewEngine? get viewEngine => _viewEngine;
 
+  /// The global prefix for the application
   GlobalPrefix? get globalPrefix => _globalPrefix;
 
+  /// The base url for the application
   String get baseUrl =>
       '${securityContext != null ? 'https' : 'http'}://$host:$port';
 
+  /// The versioning options for the application
   set versioningOptions(VersioningOptions? value) {
     if (_versioningOptions != null) {
       throw StateError('Versioning options already set');
@@ -80,6 +86,7 @@ final class ApplicationConfig {
     _versioningOptions = value;
   }
 
+  /// The global prefix for the application
   set globalPrefix(GlobalPrefix? value) {
     if (_globalPrefix != null) {
       throw StateError('Global prefix already set');
@@ -87,6 +94,7 @@ final class ApplicationConfig {
     _globalPrefix = value;
   }
 
+  /// The cors options for the application
   set cors(Cors? value) {
     if (_cors != null) {
       throw StateError('Cors options already set');
@@ -94,6 +102,7 @@ final class ApplicationConfig {
     _cors = value;
   }
 
+  /// The view engine for the application
   set viewEngine(ViewEngine? value) {
     if (_viewEngine != null) {
       throw StateError('View engine already set');
@@ -101,10 +110,13 @@ final class ApplicationConfig {
     _viewEngine = value;
   }
 
+  /// The server adapter for the application
   final Adapter serverAdapter;
-
+  
+  /// The ws adapter for the application
   WsAdapter? wsAdapter;
 
+  /// The application config constructor
   ApplicationConfig(
       {required this.host,
       required this.port,

@@ -19,11 +19,15 @@ class Body {
   /// The content of the body if it is json.
   final Map<String, dynamic>? json;
 
+  /// The [Body] constructor is used to create a new instance of the [Body] class.
   Body(this.contentType, {this.formData, this.text, this.bytes, this.json});
 
   /// Factory constructor to create an empty body.
   factory Body.empty() => Body(ContentType.text);
 
+  /// This method is used to change the body of the request.
+  /// 
+  /// It will return a new instance of the [Body] class.
   Body change({
     FormData? formData,
     ContentType? contentType,

@@ -39,6 +39,9 @@ abstract class Handler {
     }
   }
 
+  /// Handles the request and sends the response
+  /// 
+  /// This is the method to be implemented by the handler
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response);
 

@@ -13,6 +13,7 @@ import 'exceptions.dart';
 ///
 /// The [statusCode] is 502
 class BadGatewayException extends SerinusException {
+  /// The [BadGatewayException] constructor is used to throw a bad gateway exception
   const BadGatewayException({super.message = 'Bad Gateway!', super.uri})
       : super(statusCode: 502);
 }
@@ -30,6 +31,7 @@ class BadGatewayException extends SerinusException {
 ///
 /// The [statusCode] is 400
 class BadRequestException extends SerinusException {
+  /// The [BadRequestException] constructor is used to throw a bad request exception
   const BadRequestException({super.message = 'Bad Request!', super.uri})
       : super(statusCode: 400);
 }
@@ -48,6 +50,7 @@ class BadRequestException extends SerinusException {
 ///
 /// The [statusCode] is 409
 class ConflictException extends SerinusException {
+  /// The [ConflictException] constructor is used to throw a conflict exception
   const ConflictException({super.message = 'Conflict!', super.uri})
       : super(statusCode: 409);
 }
@@ -65,6 +68,7 @@ class ConflictException extends SerinusException {
 ///
 /// The [statusCode] is 403
 class ForbiddenException extends SerinusException {
+  /// The [ForbiddenException] constructor is used to throw a forbidden exception
   const ForbiddenException({super.message = 'Forbidden!', super.uri})
       : super(statusCode: 403);
 }
@@ -82,6 +86,7 @@ class ForbiddenException extends SerinusException {
 ///
 /// The [statusCode] is 504
 class GatewayTimeoutException extends SerinusException {
+  /// The [GatewayTimeoutException] constructor is used to throw a gateway timeout exception
   const GatewayTimeoutException({super.message = 'Gateway Timeout!', super.uri})
       : super(statusCode: 504);
 }
@@ -99,6 +104,7 @@ class GatewayTimeoutException extends SerinusException {
 ///
 /// The [statusCode] is 410
 class GoneException extends SerinusException {
+  /// The [GoneException] constructor is used to throw a gone exception
   const GoneException({super.message = 'Gone!', super.uri})
       : super(statusCode: 410);
 }
@@ -116,6 +122,7 @@ class GoneException extends SerinusException {
 ///
 /// The [statusCode] is 505
 class HttpVersionNotSupportedException extends SerinusException {
+  /// The [HttpVersionNotSupportedException] constructor is used to throw an http version not supported exception
   const HttpVersionNotSupportedException(
       {super.message = 'HTTP Version Not Supported!', super.uri})
       : super(statusCode: 505);
@@ -134,6 +141,7 @@ class HttpVersionNotSupportedException extends SerinusException {
 ///
 /// The [statusCode] is 500
 class InternalServerErrorException extends SerinusException {
+  /// The [InternalServerErrorException] constructor is used to throw a internal server error exception
   const InternalServerErrorException(
       {super.message = 'Internal server error!', super.uri})
       : super(statusCode: 500);
@@ -152,6 +160,7 @@ class InternalServerErrorException extends SerinusException {
 ///
 /// The [statusCode] is 405
 class MethodNotAllowedException extends SerinusException {
+  /// The [MethodNotAllowedException] constructor is used to throw a method not allowed exception
   const MethodNotAllowedException(
       {super.message = 'Method not allowed!', super.uri})
       : super(statusCode: 405);
@@ -170,6 +179,7 @@ class MethodNotAllowedException extends SerinusException {
 ///
 /// The [statusCode] is 406
 class NotAcceptableException extends SerinusException {
+  /// The [NotAcceptableException] constructor is used to throw a not acceptable exception
   const NotAcceptableException({super.message = 'Not acceptable!', super.uri})
       : super(statusCode: 406);
 }
@@ -187,6 +197,7 @@ class NotAcceptableException extends SerinusException {
 ///
 /// The [statusCode] is 404
 class NotFoundException extends SerinusException {
+  /// The [NotFoundException] constructor is used to throw a not found exception
   const NotFoundException({super.message = 'Not Found!', super.uri})
       : super(statusCode: 404);
 }
@@ -204,6 +215,7 @@ class NotFoundException extends SerinusException {
 ///
 /// The [statusCode] is 501
 class NotImplementedException extends SerinusException {
+  /// The [NotImplementedException] constructor is used to throw a not implemented exception
   const NotImplementedException({super.message = 'Not Implemented!', super.uri})
       : super(statusCode: 501);
 }
@@ -221,6 +233,7 @@ class NotImplementedException extends SerinusException {
 ///
 /// The [statusCode] is 413
 class PayloadTooLargeException extends SerinusException {
+  /// The [PayloadTooLargeException] constructor is used to throw a payload too large exception
   const PayloadTooLargeException(
       {super.message = 'Payload too large!', super.uri})
       : super(statusCode: 413);
@@ -239,6 +252,7 @@ class PayloadTooLargeException extends SerinusException {
 ///
 /// The [statusCode] is 412
 class PreconditionFailedException extends SerinusException {
+  /// The [PreconditionFailedException] constructor is used to throw a precondition failed exception
   const PreconditionFailedException(
       {super.message = 'Precondition failed!', super.uri})
       : super(statusCode: 412);
@@ -257,6 +271,7 @@ class PreconditionFailedException extends SerinusException {
 ///
 /// The [statusCode] is 408
 class RequestTimeoutException extends SerinusException {
+  /// The [RequestTimeoutException] constructor is used to throw a request timeout exception
   const RequestTimeoutException({super.message = 'Request timeout!', super.uri})
       : super(statusCode: 408);
 }
@@ -274,6 +289,7 @@ class RequestTimeoutException extends SerinusException {
 ///
 /// The [statusCode] is 503
 class ServiceUnavailableException extends SerinusException {
+  /// The [ServiceUnavailableException] constructor is used to throw a service unavailable exception
   const ServiceUnavailableException(
       {super.message = 'Service unavailable!', super.uri})
       : super(statusCode: 503);
@@ -292,6 +308,7 @@ class ServiceUnavailableException extends SerinusException {
 ///
 /// The [statusCode] is 401
 class UnauthorizedException extends SerinusException {
+  /// The [UnauthorizedException] constructor is used to throw a unauthorized exception
   const UnauthorizedException({super.message = 'Not authorized!', super.uri})
       : super(statusCode: 401);
 }
@@ -309,6 +326,7 @@ class UnauthorizedException extends SerinusException {
 ///
 /// The [statusCode] is 422
 class UnprocessableEntityException extends SerinusException {
+  /// The [UnprocessableEntityException] constructor is used to throw a unprocessable entity exception
   const UnprocessableEntityException(
       {super.message = 'Unprocessable entity!', super.uri})
       : super(statusCode: 422);
@@ -327,6 +345,7 @@ class UnprocessableEntityException extends SerinusException {
 ///
 /// The [statusCode] is 415
 class UnsupportedMediaTypeException extends SerinusException {
+  /// The [UnsupportedMediaTypeException] constructor is used to throw a unsupported media type exception
   const UnsupportedMediaTypeException(
       {super.message = 'Unsupported media type!', super.uri})
       : super(statusCode: 415);

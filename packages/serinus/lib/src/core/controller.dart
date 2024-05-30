@@ -9,21 +9,29 @@ import '../enums/http_method.dart';
 import '../http/response.dart';
 import 'core.dart';
 
+/// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
 typedef ReqResHandler = Future<Response> Function(RequestContext context);
 
+/// The [Controller] class is used to define a controller.
 abstract class Controller {
+  /// The [path] property contains the path of the controller.
   final String path;
+  /// The [guards] property contains the guards of the controller.
   List<Guard> get guards => [];
+  /// The [pipes] property contains the pipes of the controller.
   List<Pipe> get pipes => [];
 
+  /// The [Controller] constructor is used to create a new instance of the [Controller] class.
   Controller({
     required this.path,
   });
 
   final Map<RouteSpec, ReqResHandler> _routes = {};
 
+  /// The [routes] property contains the routes of the controller.
   Map<RouteSpec, ReqResHandler> get routes => UnmodifiableMapView(_routes);
 
+  /// The [get] method is used to get a route.
   RouteSpec? get(RouteData routeData, [int? version]) {
     String routeDataPath = routeData.path
       .replaceFirst(path, '');
@@ -41,6 +49,11 @@ abstract class Controller {
     });
   }
 
+  /// The [on] method is used to register a route.
+  /// 
+  /// It takes a [Route] and a [ReqResHandler].
+  /// 
+  /// It should not be overridden.
   @mustCallSuper
   void on<R extends Route>(R route, ReqResHandler handler) {
     final routeExists = _routes.keys.any((r) =>
@@ -58,11 +71,16 @@ abstract class Controller {
   }
 }
 
+/// The [RouteSpec] class is used to define a route specification.
 class RouteSpec {
+  /// The path of the route.
   final String path;
+  /// The HTTP method of the route.
   final HttpMethod method;
+  /// The [Route] that the route specification is for.
   final Route route;
 
+  /// The [RouteSpec] constructor is used to create a new instance of the [RouteSpec] class.
   const RouteSpec({
     required this.route,
     required this.path,

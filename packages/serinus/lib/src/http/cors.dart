@@ -9,6 +9,7 @@ class Cors {
   /// The list of allowed origins.
   final List<String> allowedOrigins;
 
+  /// The [Cors] constructor is used to create a [Cors] object.
   Cors({this.allowedOrigins = const ['*']}) {
     /// The default headers for the CORS requests.
     _defaultHeaders = {

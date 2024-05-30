@@ -8,41 +8,62 @@ import '../enums/enums.dart';
 import '../versioning.dart';
 import 'response.dart';
 
+/// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
+/// 
+/// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
 class InternalResponse {
   final HttpResponse _original;
+  /// The base url of the server
   final String? baseUrl;
 
+  /// The [InternalResponse] constructor is used to create a new instance of the [InternalResponse] class.
   InternalResponse(this._original, {this.baseUrl}) {
     _original.headers.chunkedTransferEncoding = false;
   }
 
+  /// This method is used to detach the socket from the response.
+  /// 
+  /// It will return a [Future<Socket>].
+  /// It can be used to initiate a WebSocket connection.
   Future<Socket> detachSocket() {
     return _original.detachSocket(writeHeaders: false);
   }
 
+  /// This method is used to send data to the response.
+  /// 
+  /// After sending the data, the response will be closed.
   Future<void> send(List<int> data) async {
     _original.add(data);
     _original.close();
   }
 
+  /// This method is used to set the status code of the response.
   void status(int statusCode) {
     _original.statusCode = statusCode;
   }
 
+  /// This method is used to set the content type of the response.
   void contentType(ContentType contentType) {
     _original.headers.set(HttpHeaders.contentTypeHeader, contentType.value);
   }
 
+  /// This method is used to set the headers of the response.
   void headers(Map<String, String> headers) {
     headers.forEach((key, value) {
       _original.headers.add(key, value);
     });
   }
 
+  /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
   Future<void> redirect(String path) async {
     await _original.redirect(Uri.parse('$baseUrl$path'));
   }
 
+  /// This method is used to finalize the response.
+  /// 
+  /// It will set the status code, headers, content type, and send the data.
+  /// 
+  /// If the response is a view, it will render the view using the view engine.
   Future<void> finalize(Response result,
       {ViewEngine? viewEngine, VersioningOptions? versioning}) async {
     status(result.statusCode);

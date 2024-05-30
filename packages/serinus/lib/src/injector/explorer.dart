@@ -4,13 +4,20 @@ import '../core/core.dart';
 import '../enums/versioning_type.dart';
 import '../services/logger_service.dart';
 
-class Explorer {
+/// The [Explorer] class is used to explore the routes of the application.
+final class Explorer {
   final ModulesContainer _modulesContainer;
   final Router _router;
+  /// The [ApplicationConfig] object.
+  /// It is used to get the global prefix and the versioning options.
   final ApplicationConfig config;
 
+  /// The [Explorer] constructor is used to create a new instance of the [Explorer] class.
   const Explorer(this._modulesContainer, this._router, this.config);
 
+  /// The [resolveRoutes] method is used to resolve the routes of the application.
+  /// 
+  /// It resolves the routes of the controllers and registers them in the router.
   void resolveRoutes() {
     final Logger logger = Logger('RoutesResolver');
     final modules = _modulesContainer.modules;
@@ -30,6 +37,10 @@ class Explorer {
     }
   }
 
+  /// The [exploreRoutes] method is used to explore the routes of the controller.
+  /// 
+  /// It registers the routes in the router.
+  /// It also logs the mapped routes.
   void exploreRoutes(
       Controller controller, Module module, String controllerPath) {
     final logger = Logger('RoutesExplorer');
@@ -54,6 +65,10 @@ class Explorer {
     }
   }
 
+  /// The [normalizePath] method is used to normalize the path.
+  /// 
+  /// It removes the trailing slash and adds a leading slash if it is missing.
+  /// It also removes multiple slashes.
   String normalizePath(String path) {
     if (!path.startsWith('/')) {
       path = '/$path';

@@ -12,7 +12,10 @@ import '../http/http.dart';
 import '../http/internal_request.dart';
 import 'handler.dart';
 
+/// The [RequestHandler] class is used to handle the HTTP requests.
 class RequestHandler extends Handler {
+
+  /// The [RequestHandler] constructor is used to create a new instance of the [RequestHandler] class.
   const RequestHandler(super.router, super.modulesContainer, super.config);
 
   /// Handles the request and sends the response
@@ -97,6 +100,9 @@ class RequestHandler extends Handler {
         viewEngine: config.viewEngine);
   }
 
+  /// Handles the middlewares
+  /// 
+  /// If the completer is not completed, the request will be blocked until the completer is completed.
   Future<void> handleMiddlewares(RequestContext context, Request request,
       InternalResponse response, Iterable<Middleware> middlewares) async {
     if (middlewares.isEmpty) {
@@ -114,6 +120,9 @@ class RequestHandler extends Handler {
     return completer.future;
   }
 
+  /// Handles the guards
+  /// 
+  /// Executes them and returns the [ExecutionContext] updated with the data from the guards.
   Future<ExecutionContext> handleGuards(
     Iterable<Guard> routeGuards,
     Iterable<Guard> controllerGuards,
@@ -132,6 +141,9 @@ class RequestHandler extends Handler {
     return guardsConsumer.context!;
   }
 
+  /// Handles the pipes
+  /// 
+  /// Executes them and returns the [ExecutionContext] updated with the data from the pipes.
   Future<ExecutionContext> handlePipes(
     Iterable<Pipe> routePipes,
     Iterable<Pipe> controllerPipes,

@@ -3,7 +3,10 @@ import '../extensions/iterable_extansions.dart';
 import '../http/internal_request.dart';
 import 'handler.dart';
 
+/// The [WebSocketHandler] class is used to handle the WebSocket requests.
 class WebSocketHandler extends Handler {
+
+  /// The [WebSocketHandler] constructor is used to create a new instance of the [WebSocketHandler] class.
   WebSocketHandler(super.router, super.modulesContainer, super.config);
 
   @override
@@ -14,6 +17,11 @@ class WebSocketHandler extends Handler {
         ?.listen(handlers, onDone: onDoneHandlers, request: request);
   }
 
+  /// The [upgradeRequest] method is used to upgrade the request when a WebSocket request is received.
+  /// 
+  /// It takes an [InternalRequest] and returns a [Future] of a [Record] of [WsRequestHandler] and [void Function()].
+  /// 
+  /// It should not be overridden.
   Future<
       ({
         List<WsRequestHandler> handlers,

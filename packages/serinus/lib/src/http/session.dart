@@ -7,6 +7,7 @@ class Session {
   /// The original [HttpSession] object.
   final HttpSession _original;
 
+  /// The [Session] constructor is used to create a new instance of the [Session] class.
   Session(this._original);
 
   /// This method is used to get a value from the session.

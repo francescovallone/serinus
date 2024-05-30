@@ -65,6 +65,7 @@ class InternalRequest {
         baseUrl: baseUrl);
   }
 
+  /// The [ifModifiedSince] getter is used to get the if-modified-since header of the request
   DateTime? get ifModifiedSince {
     if (_ifModifiedSinceCache != null) {
       return _ifModifiedSinceCache;
@@ -78,6 +79,7 @@ class InternalRequest {
 
   DateTime? _ifModifiedSinceCache;
 
+  /// The [encoding] property contains the encoding of the request
   Encoding? get encoding {
     var contentType = this.contentType;
     if (!contentType.parameters.containsKey('charset')) {
@@ -86,6 +88,7 @@ class InternalRequest {
     return Encoding.getByName(contentType.parameters['charset']);
   }
 
+  /// The [Request] constructor is used to create a new instance of the [Request] class
   InternalRequest({
     required this.path,
     required this.uri,
@@ -98,6 +101,7 @@ class InternalRequest {
     required this.baseUrl,
   });
 
+  /// The [response] getter is used to get the response of the request
   InternalResponse get response {
     return InternalResponse(original.response, baseUrl: baseUrl);
   }
@@ -158,6 +162,7 @@ class InternalRequest {
     }
   }
 
+  /// This getter is used to check if the request is a web socket request
   bool get isWebSocket {
     if (method != 'GET') {
       return false;
