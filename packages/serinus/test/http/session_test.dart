@@ -29,7 +29,7 @@ class TestController extends Controller {
       }
       return Response.json({
         'isSessionNew': context.request.session.get('sessionNew'),
-      });
+      }, contentType: ContentType.json);
     });
   }
 }
@@ -46,7 +46,7 @@ Future<void> main() async {
       app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController()]),
           loggingLevel: LogLevel.none,
-          port: 3001);
+          port: 3006);
       await app?.serve();
     });
     tearDownAll(() async {
@@ -56,7 +56,7 @@ Future<void> main() async {
         '''when the first request of session is handled, then the session should be new''',
         () async {
       final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:3001/session'));
+          await HttpClient().getUrl(Uri.parse('http://localhost:3006/session'));
       final response = await request.close();
       final body = await response.transform(Utf8Decoder()).join();
 
@@ -68,10 +68,10 @@ Future<void> main() async {
         '''when the second request of session is handled, then the session should not be new''',
         () async {
       var request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:3001/session'));
+          await HttpClient().getUrl(Uri.parse('http://localhost:3006/session'));
       var response = await request.close();
       request = await HttpClient().getUrl(
-        Uri.parse('http://localhost:3001/session'),
+        Uri.parse('http://localhost:3006/session'),
       );
       request.headers.add('Cookie', response.headers['set-cookie']!);
       response = await request.close();
