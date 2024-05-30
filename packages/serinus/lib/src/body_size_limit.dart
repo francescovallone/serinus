@@ -30,12 +30,6 @@ final class BodySizeLimit {
     int? bytesLimit,
     BodySizeValue size = BodySizeValue.mb,
   }) {
-    if (jsonLimit == null &&
-        formLimit == null &&
-        textLimit == null &&
-        bytesLimit == null) {
-      throw Exception('At least one limit must be provided');
-    }
     if ([
       if (jsonLimit != null) jsonLimit,
       if (formLimit != null) formLimit,
