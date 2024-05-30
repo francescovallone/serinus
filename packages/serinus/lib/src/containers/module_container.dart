@@ -38,13 +38,16 @@ final class ModulesContainer {
 
   bool _isInitialized = false;
 
+  /// The [isInitialized] property contains the initialization status of the application
   bool get isInitialized => _isInitialized;
 
   /// The config of the application
   final ApplicationConfig config;
 
+  /// The constructor of the [ModulesContainer] class
   ModulesContainer(this.config);
 
+  /// The [moduleToken] method is used to get the token of a module
   String moduleToken(Module module) =>
       module.token.isEmpty ? module.runtimeType.toString() : module.token;
 
@@ -219,6 +222,13 @@ final class ModulesContainer {
     );
   }
 
+  /// Gets the module scoped providers
+  /// 
+  /// The [module] is the module to get the scoped providers
+  /// 
+  /// The method returns the scoped providers of the module
+  /// 
+  /// Throws a [StateError] if the module is not found
   ({Set<Provider> providers, Set<Provider> exportedProviders})
       getModuleScopedProviders(Module module, [bool isRoot = false]) {
     final providers = {...module.providers};
@@ -274,6 +284,7 @@ final class ModulesContainer {
     return module;
   }
 
+  /// Gets the module injectables by its token
   ModuleInjectables getModuleInjectablesByToken(String token) {
     ModuleInjectables? moduleInjectables = _moduleInjectables[token];
     if (moduleInjectables == null) {
@@ -293,6 +304,7 @@ final class ModulesContainer {
     return parents;
   }
 
+  /// Gets the module by a provider
   Module getModuleByProvider(Type provider) {
     final module = _modules.values.firstWhereOrNull((module) =>
         module.providers.map((e) => e.runtimeType).contains(provider));
@@ -310,6 +322,7 @@ final class ModulesContainer {
         as T?;
   }
 
+  /// Gets all the providers of a type
   List<T> getAll<T extends Provider>() {
     final providers =
         _modules.values.expand((element) => element.providers).toList();
@@ -317,12 +330,18 @@ final class ModulesContainer {
   }
 }
 
+/// The [ModuleInjectables] class is used to create the module injectables.
 class ModuleInjectables {
+  /// The [guards] property contains the guards of the module
   final Set<Guard> guards;
+  /// The [pipes] property contains the pipes of the module
   final Set<Pipe> pipes;
+  /// The [middlewares] property contains the middlewares of the module
   final Set<Middleware> middlewares;
+  /// The [providers] property contains the providers of the module
   final Set<Provider> providers;
 
+  /// The constructor of the [ModuleInjectables] class
   ModuleInjectables({
     required this.guards,
     required this.pipes,
@@ -330,6 +349,7 @@ class ModuleInjectables {
     this.providers = const {},
   });
 
+  /// Concatenates the module injectables with another module injectables
   ModuleInjectables concatTo(ModuleInjectables? moduleInjectables) {
     return ModuleInjectables(
       guards: guards..addAllIfAbsent(moduleInjectables?.guards ?? {}),
@@ -340,6 +360,7 @@ class ModuleInjectables {
     );
   }
 
+  /// Copies the module injectables with the new values
   ModuleInjectables copyWith({
     Set<Guard>? guards,
     Set<Pipe>? pipes,
@@ -354,6 +375,7 @@ class ModuleInjectables {
     );
   }
 
+  /// Filters the guards by route
   Set<Middleware> filterMiddlewaresByRoute(
       String path, Map<String, dynamic> params) {
     Set<Middleware> executedMiddlewares = {};

@@ -70,6 +70,11 @@ class RequestHandler extends Handler {
     );
     await wrappedRequest.parseBody();
     final body = wrappedRequest.body!;
+    final bodySizeLimit = config.bodySizeLimit;
+    if (bodySizeLimit.isExceeded(body)) {
+      throw PayloadTooLargeException(
+          message: 'Request body size is too large', uri: Uri.parse(request.path));
+    }
     final context = buildRequestContext(scopedProviders, wrappedRequest, body);
     final middlewares = injectables.filterMiddlewaresByRoute(
             routeData.path, wrappedRequest.params);

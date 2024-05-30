@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/body_size_limit.dart';
+import 'package:serinus/src/enums/size_value.dart';
 
 class TestMiddleware extends Middleware {
   int counter = 0;
@@ -211,5 +213,11 @@ void main(List<String> arguments) async {
   //   type: VersioningType.uri,
   //   version: 1
   // );
+  application.changeBodySizeLimit(
+    BodySizeLimit.change(
+      textLimit: 10,
+      size: BodySizeValue.b
+    )
+  );
   await application.serve();
 }

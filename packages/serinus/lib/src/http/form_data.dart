@@ -29,6 +29,15 @@ class FormData {
   /// This method is used to get the files of the form data
   Map<String, UploadedFile> get files => Map.unmodifiable(_files);
 
+  /// This method is used to get the length of the form data
+  /// 
+  /// The length is the total length of the form data
+  /// 
+  /// The length is calculated by getting the length of the fields and the files
+  int get length {
+    return jsonEncode(fields).length + _files.values.fold(0, (p, e) => p + e._data.length);
+  }
+
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
   static Future<FormData> parseMultipart({required HttpRequest request}) async {
     try {

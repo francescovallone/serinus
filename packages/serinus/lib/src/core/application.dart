@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/serinus_http_server.dart';
+import '../body_size_limit.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -116,6 +117,11 @@ class SerinusApplication extends Application {
       {required VersioningType type, int version = 1, String? header}) {
     config.versioningOptions =
         VersioningOptions(type: type, version: version, header: header);
+  }
+
+  /// The [changeBodySizeLimit] method is used to change the body size limit of the application.
+  void changeBodySizeLimit(BodySizeLimit value) {
+    config.bodySizeLimit = value;
   }
 
   /// The [setGlobalPrefix] method is used to set the global prefix of the application.

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'form_data.dart';
@@ -46,4 +47,14 @@ class Body {
     }
     return this;
   }
+
+  /// This method is used to get the length of the body.
+  int get length {
+    if(json != null) {
+      return jsonEncode(json).length;
+    }
+    return text?.length ?? bytes?.length ?? formData?.length ?? 0;
+  }
+  
+
 }

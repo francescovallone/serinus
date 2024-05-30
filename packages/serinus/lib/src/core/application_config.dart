@@ -4,6 +4,7 @@ import 'package:uuid/v4.dart';
 
 import '../adapters/server_adapter.dart';
 import '../adapters/ws_adapter.dart';
+import '../body_size_limit.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../http/cors.dart';
@@ -112,6 +113,9 @@ final class ApplicationConfig {
 
   /// The server adapter for the application
   final Adapter serverAdapter;
+
+  /// The body size limit for the application
+  BodySizeLimit bodySizeLimit = const BodySizeLimit();
   
   /// The ws adapter for the application
   WsAdapter? wsAdapter;
@@ -122,5 +126,6 @@ final class ApplicationConfig {
       required this.port,
       required this.poweredByHeader,
       required this.serverAdapter,
-      this.securityContext});
+      this.securityContext,
+    });
 }
