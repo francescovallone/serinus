@@ -4,13 +4,13 @@ enum BodySizeValue implements Comparable<BodySizeValue> {
   b(1),
 
   /// Kilobyte
-  kb(1024),
+  kb(1000),
 
   /// Megabyte
-  mb(1024 * 1024),
+  mb(1000 * 1000),
 
   /// Gigabyte
-  gb(1024 * 1024 * 1024);
+  gb(1000 * 1000 * 1000);
 
   /// Value of the size
   final int value;

@@ -46,6 +46,8 @@ export default defineConfig({
             items: [
               { text: 'Model View Controller', link: '/techniques/mvc' },
               { text: 'Versioning', link: '/techniques/versioning' },
+              { text: 'Global Prefix', link: '/techniques/global_prefix' },
+              { text: 'Body Size Limit', link: '/techniques/body_size_limit' },
             ]
           },
           {
