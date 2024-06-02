@@ -4,6 +4,7 @@ import '../core/core.dart';
 ///
 /// The method [onApplicationInit] is called in the providers when the application is initializing itself.
 mixin OnApplicationInit on Provider {
+  /// The [onApplicationInit] method is called in the providers when the application is initializing itself.
   Future<void> onApplicationInit();
 }
 
@@ -11,5 +12,6 @@ mixin OnApplicationInit on Provider {
 ///
 /// The method [onApplicationShutdown] is called in the providers when the application is shutting down.
 mixin OnApplicationShutdown on Provider {
+  /// The [onApplicationShutdown] method is called in the providers when the application is shutting down.
   Future<void> onApplicationShutdown();
 }

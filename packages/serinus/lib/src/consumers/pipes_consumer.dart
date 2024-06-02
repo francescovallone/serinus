@@ -4,7 +4,9 @@ import '../../serinus.dart';
 import '../contexts/execution_context.dart';
 import 'consumer.dart';
 
+/// The [PipesConsumer] class is used to consume the pipes.
 class PipesConsumer extends ExecutionContextConsumer<Pipe, void> {
+  /// The constructor of the [PipesConsumer] class.
   PipesConsumer(super.requestContext, {super.context});
 
   @override

@@ -4,7 +4,9 @@ import '../../serinus.dart';
 import '../contexts/execution_context.dart';
 import 'consumer.dart';
 
+/// The [GuardsConsumer] class is used to consume the guards.
 class GuardsConsumer extends ExecutionContextConsumer<Guard, bool> {
+  /// The constructor of the [GuardsConsumer] class.
   GuardsConsumer(super.requestContext, {super.context});
 
   @override

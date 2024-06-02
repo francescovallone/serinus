@@ -9,6 +9,7 @@ class Cors {
   /// The list of allowed origins.
   final List<String> allowedOrigins;
 
+  /// The [Cors] constructor is used to create a [Cors] object.
   Cors({this.allowedOrigins = const ['*']}) {
     /// The default headers for the CORS requests.
     _defaultHeaders = {
@@ -50,9 +51,12 @@ class Cors {
   Map<String, String> responseHeaders = {};
 
   /// The class behaves as a callable class.
-  Future<Response?> call(InternalRequest request, Request wrappedRequest,
-      RequestContext? context, ReqResHandler? handler,
-      [List<String> allowedOrigins = const ['*']]) async {
+  Future<Response?> call(
+    InternalRequest request,
+    Request wrappedRequest,
+    RequestContext? context,
+    ReqResHandler? handler,
+  ) async {
     /// Get the origin from the request headers.
     final origin = request.headers['origin'];
 

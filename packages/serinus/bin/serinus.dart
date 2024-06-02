@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:serinus/serinus.dart';
 
 class TestMiddleware extends Middleware {
@@ -83,8 +85,7 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
-      context.use<TestProviderTwo>().testMethod();
-      return Response.text(context.use<TestProviderTwo>().testMethod());
+      return Response.text('Hello world');
     });
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
@@ -168,12 +169,12 @@ class AppModule extends Module {
           TestWsProvider(),
           TestWs2Provider()
         ], middlewares: [
-          TestMiddleware()
+          // TestMiddleware()
         ]);
 
   @override
   List<Pipe> get pipes => [
-        TestPipe(),
+        // TestPipe(),
       ];
 
   @override
@@ -203,12 +204,14 @@ class ReAppModule extends Module {
 }
 
 void main(List<String> arguments) async {
-  SerinusApplication application =
-      await serinus.createApplication(entrypoint: AppModule(), host: '0.0.0.0');
+  SerinusApplication application = await serinus.createApplication(
+      entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
   // application.enableVersioning(
   //   type: VersioningType.uri,
   //   version: 1
   // );
+  application.changeBodySizeLimit(
+      BodySizeLimit.change(text: 10, size: BodySizeValue.b));
   await application.serve();
 }

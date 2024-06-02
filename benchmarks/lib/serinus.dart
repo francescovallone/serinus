@@ -29,7 +29,7 @@ class SerinusAppBenchmark extends SerinusBenchmark {
   @override
   Future<void> setup() async {
     app = await serinus.createApplication(
-        entrypoint: TestModule(), loggingLevel: LogLevel.none);
+        entrypoint: TestModule(), loggingLevel: LogLevel.none, enableCompression: false);
     await app!.serve();
   }
 

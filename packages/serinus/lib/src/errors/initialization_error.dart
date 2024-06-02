@@ -5,6 +5,7 @@ class InitializationError extends Error {
   /// Message describing the initialization error.
   final String? message;
 
+  /// The [InitializationError] constructor is used to create a new instance of the [InitializationError] class.
   InitializationError([this.message]);
 
   @override

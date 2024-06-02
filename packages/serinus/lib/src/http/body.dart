@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'form_data.dart';
@@ -19,11 +20,15 @@ class Body {
   /// The content of the body if it is json.
   final Map<String, dynamic>? json;
 
+  /// The [Body] constructor is used to create a new instance of the [Body] class.
   Body(this.contentType, {this.formData, this.text, this.bytes, this.json});
 
   /// Factory constructor to create an empty body.
   factory Body.empty() => Body(ContentType.text);
 
+  /// This method is used to change the body of the request.
+  ///
+  /// It will return a new instance of the [Body] class.
   Body change({
     FormData? formData,
     ContentType? contentType,
@@ -41,5 +46,13 @@ class Body {
       return Body(contentType ?? this.contentType, json: json);
     }
     return this;
+  }
+
+  /// This method is used to get the length of the body.
+  int get length {
+    if (json != null) {
+      return jsonEncode(json).length;
+    }
+    return text?.length ?? bytes?.length ?? formData?.length ?? 0;
   }
 }

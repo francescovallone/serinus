@@ -29,6 +29,7 @@ export default defineConfig({
           { text: 'Introduction', link: '/introduction' },
           {
             text: 'Overview',
+            collapsed: false,
             items: [
               { text: 'Getting Started', link: '/overview/getting_started' },
               { text: 'Modules', link: '/overview/modules' },
@@ -43,13 +44,17 @@ export default defineConfig({
           },
           {
             text: 'Techniques',
+            collapsed: true,
             items: [
               { text: 'Model View Controller', link: '/techniques/mvc' },
               { text: 'Versioning', link: '/techniques/versioning' },
+              { text: 'Global Prefix', link: '/techniques/global_prefix' },
+              { text: 'Body Size Limit', link: '/techniques/body_size_limit' },
             ]
           },
           {
             text: 'Plugins',
+            collapsed: true,
             items: [
               { text: 'Configuration', link: '/plugins/configuration' },
               { text: 'Serve Static Files', link: '/plugins/serve_static' },

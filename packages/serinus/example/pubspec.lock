@@ -101,10 +101,10 @@ packages:
     dependency: "direct main"
     description:
       name: serinus
-      sha256: "7067d9b144cd1bae425ab796c5c02f1091a0426632e416515e944a431bdf36d3"
+      sha256: "7dbdf481c038461f4519f8f4e8c3e9a03b910285af75a43dd7e5ba1b9e8082fe"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.2.3"
   source_span:
     dependency: transitive
     description:
@@ -177,13 +177,21 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.1"
+  web_socket:
+    dependency: transitive
+    description:
+      name: web_socket
+      sha256: "24301d8c293ce6fe327ffe6f59d8fd8834735f0ec36e4fd383ec7ff8a64aa078"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.5"
   web_socket_channel:
     dependency: transitive
     description:
       name: web_socket_channel
-      sha256: "58c6666b342a38816b2e7e50ed0f1e261959630becd4c879c4f26bfa14aa5a42"
+      sha256: a2d56211ee4d35d9b344d9d4ce60f362e4f5d1aafb988302906bd732bc731276
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.5"
+    version: "3.0.0"
 sdks:
   dart: ">=3.3.0 <4.0.0"

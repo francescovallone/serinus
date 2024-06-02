@@ -15,6 +15,11 @@ class Request {
   /// The original [InternalRequest] object.
   final InternalRequest _original;
 
+  /// The [Request] constructor is used to create a new instance of the [Request] class.
+  ///
+  /// It accepts an [InternalRequest] object and an optional [params] parameter.
+  ///
+  /// The [params] parameter is used to pass parameters to the request.
   Request(this._original, {this.params = const {}}) {
     /// This loop is used to parse the query parameters of the request.
     /// It will try to parse the query parameters to the correct type.
@@ -72,7 +77,7 @@ class Request {
     final contentType = _original.contentType;
 
     /// If the content type is multipart, it will parse the body as a multipart form data.
-    if (contentType.isMultipart()) {
+    if (contentType.isMultipart) {
       final formData =
           await FormData.parseMultipart(request: _original.original);
       body = Body(contentType, formData: formData);
@@ -87,7 +92,7 @@ class Request {
     }
 
     /// If the content type is url encoded, it will parse the body as a url encoded form data.
-    if (contentType.isUrlEncoded()) {
+    if (contentType.isUrlEncoded) {
       final formData = FormData.parseUrlEncoded(parsedBody);
       body = Body(contentType, formData: formData);
       return;

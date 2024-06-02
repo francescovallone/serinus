@@ -9,18 +9,25 @@ import '../../serinus.dart';
 import '../http/internal_request.dart';
 import '../services/logger_service.dart';
 
+/// The [WsRequestHandler] is used to handle the web socket request
 typedef WsRequestHandler = Future<void> Function(
     dynamic data, WebSocketContext context);
 
+/// The [WsAdapter] class is used to create a new web socket adapter
 class WsAdapter extends Adapter<Map<String, WebSocket>> {
+  /// The [logger] property contains the logger
   Logger logger = Logger('WsAdapter');
   bool _isOpen = false;
   final Map<String, WebSocketContext> _contexts = {};
 
+  /// The [addContext] method is used to add a context to the adapter
+  ///
+  /// It takes a [key] and a [WebSocketContext] and returns [void]
   void addContext(String key, WebSocketContext context) {
     _contexts[key] = context;
   }
 
+  /// The [isOpen] property contains the status of the adapter
   bool get isOpen => _isOpen;
 
   @override
@@ -58,6 +65,12 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     return;
   }
 
+  /// The [upgrade] method is used to upgrade the request to a web socket request
+  ///
+  /// It takes an [InternalRequest] and returns [void]
+  /// It detach the socket from the response and upgrade it to a web socket
+  /// It adds the web socket to the server
+  /// It sets the status of the adapter to open
   Future<void> upgrade(InternalRequest request) async {
     final socket = await request.response.detachSocket();
     final channel = StreamChannel<List<int>>(socket, socket);
@@ -76,6 +89,10 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     _isOpen = true;
   }
 
+  /// The [send] method is used to send data to the client
+  /// It takes [data], [broadcast] and [key] and returns [void]
+  ///
+  /// If [broadcast] is true, it sends the data to all clients
   void send(dynamic data, {bool broadcast = false, String? key}) {
     if (broadcast) {
       for (var key in server!.keys) {

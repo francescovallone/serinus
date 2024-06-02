@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:benchmarks/benchmarks.dart' as benchmarks;
+
 import 'package:benchmarks/shared/serinus_benchmark.dart';
 
 Map<String, Result?> results = {};
@@ -13,6 +14,7 @@ Future<void> main(List<String> arguments) async {
   // results['angel3'] = await benchmarks.Angel3AppBenchmark().report();
   results['dart_frog (no_cli)'] =
       await benchmarks.DartFrogAppBenchmark().report();
+  results['dart_http'] = await benchmarks.DartHttpAppBenchmark().report();
   await saveToFile();
 }
 

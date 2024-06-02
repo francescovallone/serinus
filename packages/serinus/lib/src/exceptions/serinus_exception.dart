@@ -24,8 +24,10 @@ class SerinusException implements HttpException {
   @override
   final Uri? uri;
 
+  /// The [statusCode] parameter is used to define the status code of the exception
   final int statusCode;
 
+  /// The [SerinusException] constructor is used to create a new instance of the [SerinusException] class.
   const SerinusException(
       {required this.message, required this.statusCode, this.uri});
 

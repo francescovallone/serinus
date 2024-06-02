@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/serinus_http_server.dart';
+import '../body_size_limit.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -20,13 +21,25 @@ import '../services/logger_service.dart';
 import '../versioning.dart';
 import 'core.dart';
 
+/// The [Application] class is used to create an application.
 sealed class Application {
+  /// The [level] property contains the log level of the application.
   final LogLevel level;
+
+  /// The [entrypoint] property contains the entry point of the application.
   final Module entrypoint;
   bool _enableShutdownHooks = false;
+
+  /// The [loggerService] property contains the logger service of the application.
   LoggerService? loggerService;
+
+  /// The [modulesContainer] property contains the modules container of the application.
   ModulesContainer modulesContainer;
+
+  /// The [router] property contains the router of the application.
   Router router;
+
+  /// The [config] property contains the application configuration.
   final ApplicationConfig config;
 
   Application({
@@ -40,12 +53,16 @@ sealed class Application {
         loggerService = loggerService ?? LoggerService(level: level),
         modulesContainer = modulesContainer ?? ModulesContainer(config);
 
+  /// The [url] property contains the URL of the application.
   String get url;
 
+  /// The [server] property contains the server of the application.
   HttpServer get server => config.serverAdapter.server;
 
+  /// The [adapter] property contains the adapter of the application.
   SerinusHttpAdapter get adapter => config.serverAdapter as SerinusHttpAdapter;
 
+  /// The [enableShutdownHooks] method is used to enable the shutdown hooks.
   void enableShutdownHooks() {
     if (!_enableShutdownHooks) {
       _enableShutdownHooks = true;
@@ -56,22 +73,29 @@ sealed class Application {
     }
   }
 
+  /// The [initialize] method is used to initialize the application.
   @internal
   Future<void> initialize();
 
+  /// The [shutdown] method is used to shutdown the application.
   @internal
   Future<void> shutdown();
 
+  /// The [register] method is used to register the application.
   Future<void> register();
 
+  /// The [serve] method is used to serve the application.
   Future<void> serve();
 
+  /// The [close] method is used to close the application.
   Future<void> close();
 }
 
+/// The [SerinusApplication] class is used to create a new instance of the [Application] class.
 class SerinusApplication extends Application {
   final Logger _logger = Logger('SerinusApplication');
 
+  /// The [SerinusApplication] constructor is used to create a new instance of the [SerinusApplication] class.
   SerinusApplication({
     required super.entrypoint,
     required super.config,
@@ -82,20 +106,29 @@ class SerinusApplication extends Application {
   @override
   String get url => config.baseUrl;
 
+  /// The [enableCors] method is used to enable CORS in the application.
   void enableCors(Cors cors) {
     config.cors = cors;
   }
 
+  /// The [useViewEngine] method is used to set the view engine of the application.
   void useViewEngine(ViewEngine viewEngine) {
     config.viewEngine = viewEngine;
   }
 
+  /// The [enableVersioning] method is used to enable versioning.
   void enableVersioning(
       {required VersioningType type, int version = 1, String? header}) {
     config.versioningOptions =
         VersioningOptions(type: type, version: version, header: header);
   }
 
+  /// The [changeBodySizeLimit] method is used to change the body size limit of the application.
+  void changeBodySizeLimit(BodySizeLimit value) {
+    config.bodySizeLimit = value;
+  }
+
+  /// The [setGlobalPrefix] method is used to set the global prefix of the application.
   void setGlobalPrefix(GlobalPrefix prefix) {
     config.globalPrefix = prefix;
   }

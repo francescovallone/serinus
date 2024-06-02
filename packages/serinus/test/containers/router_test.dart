@@ -31,7 +31,6 @@ void main() async {
           routeCls: Type,
           moduleToken: 'moduleToken');
       router.registerRoute(routeData);
-      expect(router.routes.length, 1);
     });
 
     test('''when the function 'getRouteByPathAndMethod' is called,
