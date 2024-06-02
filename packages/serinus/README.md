@@ -1,10 +1,12 @@
 [![Serinus Logo][logo_white]][repo_link]
 
 [![codecov](https://codecov.io/gh/francescovallone/serinus/branch/main/graph/badge.svg?token=A2337C1XGG)](https://codecov.io/gh/francescovallone/serinus)
-![Pub Likes](https://img.shields.io/pub/likes/serinus?style=flat&logo=dart&label=Package%20likes&color=%23FF9800)
+[![Pub Likes](https://img.shields.io/pub/likes/serinus?style=flat&logo=dart&label=Package%20likes&color=%23FF9800)](https://pub.dev/packages/serinus/score)
 [![Pub Points](https://img.shields.io/pub/points/serinus?label=Package%20points&logo=dart)](https://pub.dev/packages/serinus/score)
 [![Pub Version](https://img.shields.io/pub/v/serinus?color=green&label=Latest%20Version&logo=dart)](https://pub.dev/packages/serinus)
 [![popularity](https://img.shields.io/pub/popularity/serinus?logo=dart&label=Package%20Popularity)](https://pub.dev/packages/serinus/score)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/francescovallone/serinus/serinus_tests.yml?logo=dart&label=Tests)
+[![Discord](https://img.shields.io/discord/1099781506978807919?logo=discord&logoColor=white)](https://discord.gg/FPwH2fEUVF)
 
 Serinus is a framework written in Dart for building efficient and scalable server-side applications.
 
