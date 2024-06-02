@@ -57,7 +57,7 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Configuration', link: '/plugins/configuration' },
-              { text: 'Serve Static Files [WIP]' },
+              { text: 'Serve Static Files', link: '/plugins/serve_static' },
               { text: 'Swagger [WIP]' }
             ],
             link: '/plugins/'
