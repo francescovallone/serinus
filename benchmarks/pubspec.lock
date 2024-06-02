@@ -441,14 +441,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.11.1"
-  pharaoh:
-    dependency: "direct main"
-    description:
-      name: pharaoh
-      sha256: "5a0906b6efc78637ec08851a389f4470b74b672fbc0e06be11dfe36dfb5f9c58"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.6+4"
   pointycastle:
     dependency: transitive
     description:
@@ -527,7 +519,7 @@ packages:
       path: "../packages/serinus"
       relative: true
     source: path
-    version: "0.3.0"
+    version: "0.3.1"
   shelf:
     dependency: "direct main"
     description:
@@ -552,6 +544,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  shelf_router:
+    dependency: "direct main"
+    description:
+      name: shelf_router
+      sha256: f5e5d492440a7fb165fe1e2e1a623f31f734d3370900070b2b1e0d0428d59864
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.4"
   shelf_static:
     dependency: transitive
     description:
@@ -596,10 +596,10 @@ packages:
     dependency: transitive
     description:
       name: spanner
-      sha256: "6e7c83fda01e046f2b4088f22a0f09bff75ec0d5aa999b8de9356b722eb1acac"
+      sha256: "72295ca005a56105fccb59d44303505685eaffecc738b0987b04fdf8e4b2190f"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1+4"
+    version: "1.0.1+5"
   sprintf:
     dependency: transitive
     description:

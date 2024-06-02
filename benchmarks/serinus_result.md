@@ -1,15 +1,15 @@
 ## serinus
 ### Requests per second
-Requests/sec: 23610.69
-Transfer/sec: 5.29MB
-Requests/sec DIFF: +19.31%
+Requests/sec: 27003.96
+Transfer/sec: 6.05MB
+Requests/sec DIFF: +0.00%
 ### Latency
-Avg Latency: 41.01
-Stdev Latency: 55.97
-Max Latency: 1.09
-Stdev Perc: 98.39
+Avg Latency: 37.41
+Stdev Latency: 30.63
+Max Latency: 927.88
+Stdev Perc: 97.95
 ### Req/Sec
-Rps Avg: 3.33
-Rps Max: 4.0
-Rps Stdev: 767.33
-Rps Perc: 91.34
+Rps Avg: 3.4
+Rps Max: 4.43
+Rps Stdev: 0.87
+Rps Perc: 89.5

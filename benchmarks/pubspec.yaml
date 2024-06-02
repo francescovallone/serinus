@@ -16,8 +16,9 @@ dependencies:
   shelf: ^1.4.1
   benchmark_harness: ^2.2.2 
   vania: ^0.1.7+3
-  pharaoh: ^0.0.6+4
+  # pharaoh: ^0.0.7
   angel3_framework: ^8.3.2
+  shelf_router: ^1.1.4
   
 
 dev_dependencies:
