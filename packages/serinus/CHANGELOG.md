@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+- Update Spanner to 1.0.1+5
+- Add Body size limit to the application
+- Improve performances of the application (up to 25%)
+
 ## 0.3.0
 
 - Add WebSocket support

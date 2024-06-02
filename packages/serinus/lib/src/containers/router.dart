@@ -33,9 +33,6 @@ final class Router {
     return (route: result?.values.firstOrNull, params: result?.params ?? {});
   }
 
-  /// The [routes] property contains the routes of the router.
-  List<RouteEntry> get routes => _routeTree.routes;
-
   /// The [getHttpMethod] method is used to get the HTTP method.
   HTTPMethod getHttpMethod(HttpMethod method) {
     switch (method) {

@@ -28,7 +28,6 @@ void main() {
           SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
-      expect(router.routes.length, 1);
     });
 
     test(
