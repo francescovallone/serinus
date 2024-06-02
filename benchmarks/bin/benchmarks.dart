@@ -21,8 +21,8 @@ Future<void> main(List<String> arguments) async {
 Future<void> saveToFile() async {
   final file = File('all_results.md');
   final lines = [
-    ' |                | Req/sec | Trans/sec | Req/sec DIFF | Avg Latency |',
-    ' |----------------|---------|-----------|-------------|-----------|'
+    ' | Server | Req/sec | Trans/sec | Req/sec DIFF | Avg Latency |',
+    ' |:-|:-|:-|:-|:-|'
   ];
   final sorted = Map<String, Result?>.fromEntries(results.entries.toList()
     ..sort((a, b) => a.value!.rps.compareTo(b.value!.rps)));
