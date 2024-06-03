@@ -14,23 +14,24 @@ class TestMiddleware extends Middleware {
 }
 
 class Test2Middleware extends Middleware {
-
   Test2Middleware() : super(routes: ['*']);
 
   @override
   Future<void> use(RequestContext context, InternalResponse response,
       NextFunction next) async {
-            DateTime time = DateTime.now();
+    DateTime time = DateTime.now();
     response.on(ResponseEvent.all, (e) async {
-      switch(e){
+      switch (e) {
         case ResponseEvent.beforeSend:
           final newDate = DateTime.now();
-          print('Before send event ${newDate.millisecondsSinceEpoch - time.millisecondsSinceEpoch}ms');
+          print(
+              'Before send event ${newDate.millisecondsSinceEpoch - time.millisecondsSinceEpoch}ms');
           time = newDate;
           break;
         case ResponseEvent.afterSend:
           final newDate = DateTime.now();
-          print('After send event ${newDate.millisecondsSinceEpoch - time.millisecondsSinceEpoch}ms');
+          print(
+              'After send event ${newDate.millisecondsSinceEpoch - time.millisecondsSinceEpoch}ms');
           time = newDate;
           break;
         default:

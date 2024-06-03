@@ -14,7 +14,8 @@ import '../enums/response_event.dart';
 class InternalResponse {
   final HttpResponse _original;
 
-  final StreamController<ResponseEvent> _events = StreamController<ResponseEvent>.broadcast();
+  final StreamController<ResponseEvent> _events =
+      StreamController<ResponseEvent>.broadcast();
 
   /// The base url of the server
   final String? baseUrl;

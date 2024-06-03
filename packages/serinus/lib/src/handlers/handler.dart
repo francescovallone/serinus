@@ -33,9 +33,8 @@ abstract class Handler {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
-      response.headers(config.cors?.responseHeaders ?? {});
-      response.status(e.statusCode);
-      return response.send(utf8.encode(e.toString()));
+      return response.finalize(
+          Response.json(jsonDecode(e.toString()), statusCode: e.statusCode));
     }
   }
 
