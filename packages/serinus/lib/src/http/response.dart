@@ -145,7 +145,7 @@ class Response {
   factory Response.file(File file,
       {int statusCode = 200, ContentType? contentType}) {
     return Response._(
-        file.readAsBytesSync(), statusCode, contentType ?? ContentType.binary);
+        file, statusCode, contentType ?? ContentType.binary);
   }
 
   /// Factory constructor to create a response with a redirect status code.

@@ -139,7 +139,7 @@ void main() async {
 
       expect(
           response.headers.contentType?.mimeType, 'application/octet-stream');
-      expect(body, '[111, 107, 33]');
+      expect(body, 'ok!');
     });
     test(
         '''when a 'Response.redirect' is called, then the request should be redirected to the corresponding route''',

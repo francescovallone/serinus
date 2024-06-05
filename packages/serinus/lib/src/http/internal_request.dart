@@ -113,12 +113,7 @@ class InternalRequest {
   /// String body = await request.body();
   /// ```
   Future<String> body() async {
-    final data = await bytes();
-    if (data.isEmpty) {
-      return '';
-    }
-    final en = encoding ?? utf8;
-    return en.decode(data);
+    return await (encoding ?? utf8).decoder.bind(original).join();
   }
 
   /// This method is used to get the body of the request as a [dynamic] json object
@@ -145,7 +140,8 @@ class InternalRequest {
   /// it is used internally by the [body], the [json] and the [stream] methods
   Future<Uint8List> bytes() async {
     try {
-      _bytes ??= await original.firstWhere((element) => element.isNotEmpty);
+      final data = await body();
+      _bytes ??= Uint8List.fromList((encoding ?? utf8).encode(data));
       return _bytes!;
     } catch (_) {
       return Uint8List(0);
