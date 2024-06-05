@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import 'internal_request.dart';
@@ -84,9 +86,9 @@ class Cors {
     /// Check if the request method is OPTIONS.
     if (request.method == 'OPTIONS') {
       /// If the request method is OPTIONS, return a response with status 200.
-      request.response.status(200);
       request.response.headers(stringHeaders);
-      request.response.send([]);
+      await request.response
+          .finalize(Response.bytes(Uint8List(0), statusCode: 200));
       return null;
     }
 

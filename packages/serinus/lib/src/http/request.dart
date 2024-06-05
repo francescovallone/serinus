@@ -69,11 +69,10 @@ class Request {
   ///
   /// It will try to parse the body of the request to the correct type.
   Future<void> parseBody() async {
+    /// If the body is already parsed, it will return.
     if (body != null) {
       return;
     }
-
-    /// If the body is already parsed, it will return.
     final contentType = _original.contentType;
 
     /// If the content type is multipart, it will parse the body as a multipart form data.

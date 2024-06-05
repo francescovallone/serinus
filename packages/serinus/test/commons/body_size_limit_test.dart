@@ -42,7 +42,6 @@ void main() {
       app?.enableCors(Cors());
       app?.changeBodySizeLimit(
           BodySizeLimit.change(json: 5, size: BodySizeValue.b));
-      print(app?.url);
       await app?.serve();
     });
     tearDownAll(() async {

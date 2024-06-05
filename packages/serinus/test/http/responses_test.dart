@@ -43,18 +43,40 @@ class TestController extends Controller {
   }
 }
 
+class TestMiddleware extends Middleware {
+
+  bool hasBeenCalled = false;
+
+  @override
+  Future<void> use(RequestContext context, InternalResponse response,
+      NextFunction next) async {
+    response.on(ResponseEvent.close, (p0) async {
+      hasBeenCalled = true;
+    });
+    next();
+  }
+}
+
 class TestModule extends Module {
   TestModule(
-      {super.controllers, super.imports, super.providers, super.exports});
+      {
+        super.controllers, 
+        super.imports, 
+        super.providers, 
+        super.exports,
+        super.middlewares,
+      }
+    );
 }
 
 void main() async {
   group('$Response', () {
     SerinusApplication? app;
     final controller = TestController();
+    final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
-          entrypoint: TestModule(controllers: [controller]),
+          entrypoint: TestModule(controllers: [controller], middlewares: [middleware]),
           loggingLevel: LogLevel.none);
       app?.enableCors(Cors());
       await app?.serve();
@@ -150,12 +172,12 @@ void main() async {
       expect(body, 'test');
     });
     test(
-        '''when a non-existent route is called, then it should return a 404 status code''',
+        '''when a middleware is listening on response events, then it should be called when the response is closed''',
         () async {
-      final request = await HttpClient()
-          .getUrl(Uri.parse('http://localhost:3000/status-error'));
-      final response = await request.close();
-      expect(response.statusCode, 404);
+            final request =
+          await HttpClient().getUrl(Uri.parse('http://localhost:3000/text'));
+      await request.close();
+      expect(middleware.hasBeenCalled, true);
     });
     test(
         '''when a non-existent route is called, then it should return a 404 status code''',

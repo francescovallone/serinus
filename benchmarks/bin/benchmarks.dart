@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:benchmarks/benchmarks.dart' as benchmarks;
@@ -20,10 +21,12 @@ Future<void> main(List<String> arguments) async {
 
 Future<void> saveToFile() async {
   final file = File('all_results.md');
+  final jsonFile = File('all_results.json');
   final lines = [
     ' | Server | Req/sec | Trans/sec | Req/sec DIFF | Avg Latency |',
     ' |:-|:-|:-|:-|:-|'
   ];
+  final objs = [];
   final sorted = Map<String, Result?>.fromEntries(results.entries.toList()
     ..sort((a, b) => a.value!.rps.compareTo(b.value!.rps)));
   for (var entry in sorted.entries) {
@@ -37,6 +40,13 @@ Future<void> saveToFile() async {
     ;
     lines.add(
         ' | ${entry.key} | ${entry.value!.rps} | ${entry.value!.transferRate} | ${reqSecDiff.sign == -1.0 ? '' : '+'}${reqSecDiff.toStringAsFixed(2)}% | ${entry.value?.avgLatency} |');
+    objs.add({
+      'server': entry.key,
+      'rps': entry.value!.rps,
+      'transferRate': entry.value!.transferRate,
+      'reqSecDiff': reqSecDiff,
+      'avgLatency': entry.value?.avgLatency,
+    });
     final entryLines = [
       '## ${entry.key}',
       '### Requests per second',
@@ -55,6 +65,8 @@ Future<void> saveToFile() async {
       'Rps Perc: ${entry.value?.rpsPerc}',
     ];
     await entryFile.writeAsString(entryLines.join('\n'));
+    
   }
   await file.writeAsString(lines.join('\n'));
+  await jsonFile.writeAsString(jsonEncode({'results': objs}));
 }

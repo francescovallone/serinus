@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -6,13 +7,16 @@ import 'package:collection/collection.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../versioning.dart';
-import 'response.dart';
+import 'http.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
 /// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
 class InternalResponse {
   final HttpResponse _original;
+
+  final StreamController<ResponseEvent> _events =
+      StreamController<ResponseEvent>.broadcast();
 
   /// The base url of the server
   final String? baseUrl;
@@ -55,6 +59,15 @@ class InternalResponse {
     });
   }
 
+  /// This method is used to listen to a response event.
+  void on(ResponseEvent event, Future<void> Function(ResponseEvent) listener) {
+    _events.stream.listen((ResponseEvent e) {
+      if (e == event || event == ResponseEvent.all) {
+        listener(e);
+      }
+    });
+  }
+
   /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
   Future<void> redirect(String path) async {
     await _original.redirect(Uri.parse('$baseUrl$path'));
@@ -67,12 +80,16 @@ class InternalResponse {
   /// If the response is a view, it will render the view using the view engine.
   Future<void> finalize(Response result,
       {ViewEngine? viewEngine, VersioningOptions? versioning}) async {
+    _events.add(ResponseEvent.beforeSend);
     status(result.statusCode);
     if (result.shouldRedirect) {
+      _events.add(ResponseEvent.redirect);
+      _events.add(ResponseEvent.close);
       return redirect(result.data);
     }
     if ((result.data is View || result.data is ViewString) &&
         viewEngine == null) {
+      _events.add(ResponseEvent.error);
       throw StateError('ViewEngine is required to render views');
     }
     if (result.data is View || result.data is ViewString) {
@@ -80,6 +97,9 @@ class InternalResponse {
       final rendered = await (result.data is View
           ? viewEngine!.render(result.data)
           : viewEngine!.renderString(result.data));
+      _events.add(ResponseEvent.data);
+      _events.add(ResponseEvent.afterSend);
+      _events.add(ResponseEvent.close);
       return send(utf8.encode(rendered));
     }
     headers(result.headers);
@@ -110,6 +130,9 @@ class InternalResponse {
     if (!result.headers.containsKey(HttpHeaders.dateHeader)) {
       _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
     }
+    _events.add(ResponseEvent.data);
+    _events.add(ResponseEvent.afterSend);
+    _events.add(ResponseEvent.close);
     return send(utf8.encode(data.toString()));
   }
 }
