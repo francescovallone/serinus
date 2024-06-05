@@ -39,7 +39,21 @@ class InternalResponse {
   /// After sending the data, the response will be closed.
   Future<void> send(List<int> data) async {
     _original.add(data);
+    _events.add(ResponseEvent.data);
     _original.close();
+    _events.add(ResponseEvent.afterSend);
+    _events.add(ResponseEvent.close);
+  }
+
+  /// This method is used to send a stream of data to the response.
+  /// 
+  /// After sending the stream, the response will be closed.
+  Future<void> sendStream(Stream<List<int>> stream) async {
+    await _original.addStream(stream);
+    _events.add(ResponseEvent.data);
+    _original.close();
+    _events.add(ResponseEvent.afterSend);
+    _events.add(ResponseEvent.close);
   }
 
   /// This method is used to set the status code of the response.
@@ -97,9 +111,6 @@ class InternalResponse {
       final rendered = await (result.data is View
           ? viewEngine!.render(result.data)
           : viewEngine!.renderString(result.data));
-      _events.add(ResponseEvent.data);
-      _events.add(ResponseEvent.afterSend);
-      _events.add(ResponseEvent.close);
       return send(utf8.encode(rendered));
     }
     headers(result.headers);
@@ -111,8 +122,13 @@ class InternalResponse {
     if (result.contentLength != null) {
       _original.headers.contentLength = result.contentLength!;
     }
-    var data = result.data;
-    var coding = _original.headers['transfer-encoding']?.join(';');
+    final data = result.data;
+    final coding = _original.headers['transfer-encoding']?.join(';');
+    if(data is File) {
+      final readPipe = data.openRead();
+      await sendStream(readPipe);
+      return;
+    }
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
       // If the response is already in a chunked encoding, de-chunk it because
       // otherwise `dart:io` will try to add another layer of chunking.
@@ -131,8 +147,6 @@ class InternalResponse {
       _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
     }
     _events.add(ResponseEvent.data);
-    _events.add(ResponseEvent.afterSend);
-    _events.add(ResponseEvent.close);
     return send(utf8.encode(data.toString()));
   }
 }
