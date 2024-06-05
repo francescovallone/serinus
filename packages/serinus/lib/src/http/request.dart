@@ -40,6 +40,13 @@ class Request {
     }
   }
 
+  /// This method is used to set the parameters of the request.
+  void setParams({
+    Map<String, dynamic> params = const {},
+  }) {
+    params.addAll(params);
+  }
+
   final Map<String, dynamic> _queryParamters = {};
 
   /// The path of the request.

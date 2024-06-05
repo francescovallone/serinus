@@ -26,10 +26,6 @@ abstract class Handler {
   /// This method is responsible for handling the request.
   Future<void> handle(
       InternalRequest request, InternalResponse response) async {
-    if (request.method == 'OPTIONS') {
-      await config.cors?.call(request, Request(request), null, null);
-      return;
-    }
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
@@ -46,10 +42,10 @@ abstract class Handler {
 
   /// Build the request context from the request and body
   RequestContext buildRequestContext(
-      Iterable<Provider> providers, Request request, Body body) {
+      Iterable<Provider> providers, Request request) {
     RequestContextBuilder builder = RequestContextBuilder(providers: {
       for (final provider in providers) provider.runtimeType: provider
     });
-    return builder.build(request, body);
+    return builder.build(request);
   }
 }

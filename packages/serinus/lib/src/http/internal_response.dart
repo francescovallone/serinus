@@ -21,6 +21,11 @@ class InternalResponse {
   /// The base url of the server
   final String? baseUrl;
 
+  bool _isClosed = false;
+
+  /// This method is used to check if the response is closed.
+  bool get isClosed => _isClosed;
+
   /// The [InternalResponse] constructor is used to create a new instance of the [InternalResponse] class.
   InternalResponse(this._original, {this.baseUrl}) {
     _original.headers.chunkedTransferEncoding = false;
@@ -37,12 +42,13 @@ class InternalResponse {
   /// This method is used to send data to the response.
   ///
   /// After sending the data, the response will be closed.
-  Future<void> send(List<int> data) async {
+  Future<void> send([List<int> data = const []]) async {
     _original.add(data);
     _events.add(ResponseEvent.data);
     _original.close();
     _events.add(ResponseEvent.afterSend);
     _events.add(ResponseEvent.close);
+    _isClosed = true;
   }
 
   /// This method is used to send a stream of data to the response.
@@ -54,6 +60,7 @@ class InternalResponse {
     _original.close();
     _events.add(ResponseEvent.afterSend);
     _events.add(ResponseEvent.close);
+    _isClosed = true;
   }
 
   /// This method is used to set the status code of the response.

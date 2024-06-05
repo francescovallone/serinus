@@ -8,6 +8,7 @@ import '../body_size_limit.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../http/cors.dart';
+import '../services/hook.dart';
 import '../versioning.dart';
 
 /// The configuration for the application
@@ -119,6 +120,14 @@ final class ApplicationConfig {
 
   /// The ws adapter for the application
   WsAdapter? wsAdapter;
+
+  /// The hooks for the application
+  final Set<Hook> hooks = {};
+
+  /// Add a hook to the application
+  void addHook(Hook hook) {
+    hooks.add(hook);
+  }
 
   /// The application config constructor
   ApplicationConfig({

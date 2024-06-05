@@ -34,6 +34,21 @@ class RequestHandler extends Handler {
   @override
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
+    final Request wrappedRequest = Request(request);
+    await wrappedRequest.parseBody();
+    final body = wrappedRequest.body!;
+    final bodySizeLimit = config.bodySizeLimit;
+    if (bodySizeLimit.isExceeded(body)) {
+      throw PayloadTooLargeException(
+          message: 'Request body size is too large',
+          uri: Uri.parse(request.path));
+    }
+    for(final hook in config.hooks) {
+      if(response.isClosed){
+        return;
+      }
+      await hook.beforeRequest(wrappedRequest, response);
+    }
     Response? result;
     final routeLookup = router.getRouteByPathAndMethod(
         request.path.endsWith('/')
@@ -41,6 +56,7 @@ class RequestHandler extends Handler {
             : request.path,
         request.method.toHttpMethod());
     final routeData = routeLookup.route;
+    wrappedRequest.setParams(params: routeLookup.params);
     if (routeData == null) {
       throw NotFoundException(
           message:
@@ -63,19 +79,7 @@ class RequestHandler extends Handler {
     }
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
-    final wrappedRequest = Request(
-      request,
-      params: routeLookup.params,
-    );
-    await wrappedRequest.parseBody();
-    final body = wrappedRequest.body!;
-    final bodySizeLimit = config.bodySizeLimit;
-    if (bodySizeLimit.isExceeded(body)) {
-      throw PayloadTooLargeException(
-          message: 'Request body size is too large',
-          uri: Uri.parse(request.path));
-    }
-    final context = buildRequestContext(scopedProviders, wrappedRequest, body);
+    final context = buildRequestContext(scopedProviders, wrappedRequest);
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
     ExecutionContext? executionContext;
@@ -97,14 +101,21 @@ class RequestHandler extends Handler {
       executionContext = await handlePipes(route.pipes, controller.pipes,
           injectables.pipes, context, executionContext);
     }
-    if (config.cors != null) {
-      result =
-          await config.cors?.call(request, wrappedRequest, context, handler);
+    if (config.hooks.isNotEmpty) {
+      for (final hook in config.hooks) {
+        if (response.isClosed) {
+          return;
+        }
+        result = await hook.onRequest(wrappedRequest, context, handler, response);
+      }
     } else {
       result = await handler.call(context);
     }
     await response.finalize(result ?? Response.text(''),
         viewEngine: config.viewEngine);
+    for(final hook in config.hooks) {
+      await hook.afterRequest(request, response);
+    }
   }
 
   /// Handles the middlewares
