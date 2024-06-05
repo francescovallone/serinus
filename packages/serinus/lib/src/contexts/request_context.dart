@@ -10,7 +10,7 @@ sealed class RequestContext {
   final Request request;
 
   /// The [body] property contains the body of the context.
-  late final Body body;
+  Body get body => request.body ?? Body.empty();
 
   /// The [path] property contains the path of the request.
   String get path => request.path;
@@ -32,7 +32,6 @@ sealed class RequestContext {
   RequestContext(
     this.providers,
     this.request,
-    this.body,
   );
 
   /// This method is used to retrieve a provider from the context.
@@ -45,7 +44,7 @@ sealed class RequestContext {
 }
 
 class _RequestContextImpl extends RequestContext {
-  _RequestContextImpl(super.providers, super.request, super.body);
+  _RequestContextImpl(super.providers, super.request);
 
   @override
   T use<T>() {
@@ -69,8 +68,8 @@ final class RequestContextBuilder {
   });
 
   /// The [build] method is used to build the request context.
-  RequestContext build(Request request, Body body) {
-    _context = _RequestContextImpl(providers, request, body);
+  RequestContext build(Request request) {
+    _context = _RequestContextImpl(providers, request);
     return _context!;
   }
 }
