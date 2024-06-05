@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/enums/response_event.dart';
 
 class TestMiddleware extends Middleware {
   int counter = 0;

@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/router.dart';
-import 'package:serinus/src/enums/response_event.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {

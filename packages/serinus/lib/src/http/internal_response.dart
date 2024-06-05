@@ -4,9 +4,10 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 
-import '../../serinus.dart';
 import '../engines/view_engine.dart';
-import '../enums/response_event.dart';
+import '../enums/enums.dart';
+import '../versioning.dart';
+import 'http.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
