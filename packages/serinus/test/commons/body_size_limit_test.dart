@@ -138,7 +138,6 @@ void main() {
       request.add(utf8.encode(jsonEncode({'id': 'json-obj'})));
       final response = await request.close();
       expect(response, isA<HttpClientResponse>());
-      print(await utf8.decoder.bind(response).join());
       expect(response.statusCode, 413);
     });
   });
