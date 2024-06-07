@@ -4,6 +4,7 @@ import '../consumers/guards_consumer.dart';
 import '../consumers/pipes_consumer.dart';
 import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
+import '../contexts/request_context.dart';
 import '../core/core.dart';
 import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
@@ -79,10 +80,9 @@ class RequestHandler extends Handler {
     }
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
-    final context = buildRequestContext(scopedProviders, wrappedRequest);
+    RequestContext context = buildRequestContext(scopedProviders, wrappedRequest);
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
-    ExecutionContext? executionContext;
     if (middlewares.isNotEmpty) {
       await handleMiddlewares(
         context,
@@ -93,13 +93,13 @@ class RequestHandler extends Handler {
     }
     if ([...route.guards, ...controller.guards, ...injectables.guards]
         .isNotEmpty) {
-      executionContext = await handleGuards(
+      context = await handleGuards(
           route.guards, controller.guards, injectables.guards, context);
     }
     if ([...route.pipes, ...controller.pipes, ...injectables.pipes]
         .isNotEmpty) {
-      executionContext = await handlePipes(route.pipes, controller.pipes,
-          injectables.pipes, context, executionContext);
+      context = await handlePipes(route.pipes, controller.pipes,
+          injectables.pipes, context);
     }
     if (config.hooks.isNotEmpty) {
       for (final hook in config.hooks) {
@@ -141,7 +141,7 @@ class RequestHandler extends Handler {
   /// Handles the guards
   ///
   /// Executes them and returns the [ExecutionContext] updated with the data from the guards.
-  Future<ExecutionContext> handleGuards(
+  Future<RequestContext> handleGuards(
     Iterable<Guard> routeGuards,
     Iterable<Guard> controllerGuards,
     Iterable<Guard> globalGuards,
@@ -151,24 +151,23 @@ class RequestHandler extends Handler {
     await guardsConsumer.consume(globalGuards);
     await guardsConsumer.consume(controllerGuards);
     await guardsConsumer.consume(routeGuards);
-    return guardsConsumer.context!;
+    return guardsConsumer.context;
   }
 
   /// Handles the pipes
   ///
   /// Executes them and returns the [ExecutionContext] updated with the data from the pipes.
-  Future<ExecutionContext> handlePipes(
+  Future<RequestContext> handlePipes(
     Iterable<Pipe> routePipes,
     Iterable<Pipe> controllerPipes,
     Iterable<Pipe> globalPipes,
     RequestContext requestContext,
-    ExecutionContext? executionContext,
   ) async {
     final pipesConsumer =
-        PipesConsumer(requestContext, context: executionContext);
+        PipesConsumer(requestContext);
     await pipesConsumer.consume(globalPipes);
     await pipesConsumer.consume(controllerPipes);
     await pipesConsumer.consume(routePipes);
-    return pipesConsumer.context!;
+    return pipesConsumer.context;
   }
 }

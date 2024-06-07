@@ -2,7 +2,7 @@ import '../core/core.dart';
 import '../http/http.dart';
 
 /// The [RequestContext] class is used to create the request context.
-sealed class RequestContext {
+final class RequestContext {
   /// The [providers] property contains the providers of the request context.
   final Map<Type, Provider> providers;
 
@@ -40,36 +40,5 @@ sealed class RequestContext {
       throw StateError('Provider not found in request context');
     }
     return providers[T] as T;
-  }
-}
-
-class _RequestContextImpl extends RequestContext {
-  _RequestContextImpl(super.providers, super.request);
-
-  @override
-  T use<T>() {
-    if (!providers.containsKey(T)) {
-      throw StateError('Provider not found in request context');
-    }
-    return providers[T] as T;
-  }
-}
-
-/// The [RequestContextBuilder] class is used to create the request context builder.
-final class RequestContextBuilder {
-  RequestContext? _context;
-
-  /// The [providers] property contains the providers of the request context.
-  final Map<Type, Provider> providers;
-
-  /// The [RequestContextBuilder] constructor is used to create a new instance of the [RequestContextBuilder] class.
-  RequestContextBuilder({
-    this.providers = const {},
-  });
-
-  /// The [build] method is used to build the request context.
-  RequestContext build(Request request) {
-    _context = _RequestContextImpl(providers, request);
-    return _context!;
   }
 }

@@ -35,7 +35,7 @@ class TestModule extends Module {
 
 class TestModuleGuard extends Guard {
   @override
-  Future<bool> canActivate(ExecutionContext context) async {
+  Future<bool> canActivate(RequestContext context) async {
     context.request.headers['x-guard'] = 'ok!';
     return true;
   }

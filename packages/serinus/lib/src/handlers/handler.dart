@@ -44,9 +44,12 @@ abstract class Handler {
   /// Build the request context from the request and body
   RequestContext buildRequestContext(
       Iterable<Provider> providers, Request request) {
-    RequestContextBuilder builder = RequestContextBuilder(providers: {
-      for (final provider in providers) provider.runtimeType: provider
-    });
-    return builder.build(request);
+    return RequestContext(
+      providers.fold<Map<Type, Provider>>({}, (acc, provider) {
+        acc[provider.runtimeType] = provider;
+        return acc;
+      }),
+      request,
+    );
   }
 }

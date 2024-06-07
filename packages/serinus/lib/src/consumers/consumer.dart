@@ -9,19 +9,14 @@ abstract class Consumer<TObj, O> {
 }
 
 /// The [ExecutionContextConsumer] class is used to consume the execution context.
-abstract class ExecutionContextConsumer<TObj, O> extends Consumer<TObj, O> {
+abstract class ContextConsumer<TObj, O> extends Consumer<TObj, O> {
   /// The request context.
-  final RequestContext requestContext;
+  final RequestContext context;
 
-  /// The execution context.
-  ExecutionContext? context;
-
-  /// The constructor of the [ExecutionContextConsumer] class.
-  ExecutionContextConsumer(this.requestContext, {this.context});
+  /// The constructor of the [ContextConsumer] class.
+  ContextConsumer(this.context);
 
   @override
   Future<O> consume(Iterable<TObj> consumables);
 
-  /// This method is used to create the execution context.
-  ExecutionContext createContext(RequestContext context);
 }

@@ -28,7 +28,7 @@ class TestGuard extends Guard {
   TestGuard();
 
   @override
-  Future<bool> canActivate(ExecutionContext context) async {
+  Future<bool> canActivate(RequestContext context) async {
     return true;
   }
 }
@@ -47,5 +47,5 @@ class TestPipe extends Pipe {
   TestPipe();
 
   @override
-  Future<void> transform(ExecutionContext context) async {}
+  Future<void> transform(RequestContext context) async {}
 }
