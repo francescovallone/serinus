@@ -64,6 +64,9 @@ class Request {
   /// The session of the request.
   Session get session => Session(_original.original.session);
 
+  /// The client of the request.
+  HttpConnectionInfo? get clientInfo => _original.clientInfo;
+
   /// The params of the request.
   final Map<String, dynamic> params;
 
@@ -127,14 +130,14 @@ class Request {
 
   /// This method is used to add data to the request.
   ///
-  /// Helper function to pass information between [Pipe]s, [Guard]s, [Middleware]s and [Route]s.
+  /// Helper function to pass information between [Hook]s [Guard]s, [Middleware]s and [Route]s.
   void addData(String key, dynamic value) {
     _data[key] = value;
   }
 
   /// This method is used to get data from the request.
   ///
-  /// Helper function to pass information between [Pipe]s, [Guard]s, [Middleware]s and [Route]s.
+  /// Helper function to pass information between [Hook]s, [Guard]s, [Middleware]s and [Route]s.
   dynamic getData(String key) {
     return _data[key];
   }

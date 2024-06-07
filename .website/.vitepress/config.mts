@@ -38,8 +38,8 @@ export default defineConfig({
               { text: 'Providers', link: '/overview/providers' },
               { text: 'Middlewares', link: '/overview/middlewares' },
               { text: 'Guards', link: '/overview/guards' },
-              { text: 'Pipes', link: '/overview/pipes' },
               { text: 'WebSockets', link: '/overview/websockets' },
+              { text: 'Hooks', link: '/overview/hooks' },
             ]
           },
           {

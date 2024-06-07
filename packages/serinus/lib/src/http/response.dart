@@ -18,6 +18,9 @@ class Response {
   /// The status code of the response.
   int statusCode;
 
+  /// A boolean value to check if the response is an error.
+  bool get isError => statusCode >= 400;
+
   /// The content type of the response.
   final ContentType _contentType;
 
@@ -144,8 +147,7 @@ class Response {
   /// If the [contentType] is not provided, it defaults to [ContentType.binary].
   factory Response.file(File file,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(
-        file, statusCode, contentType ?? ContentType.binary);
+    return Response._(file, statusCode, contentType ?? ContentType.binary);
   }
 
   /// Factory constructor to create a response with a redirect status code.

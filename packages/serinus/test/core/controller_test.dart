@@ -48,14 +48,20 @@ void main() async {
       controller.on(route2, (context) async => Response.text('ok!'));
       expect(
           controller.get(RouteData(
-              path: '/leading/test', controller: controller, method: HttpMethod.get, moduleToken: '', routeCls: GetRoute)),
-          isA<RouteSpec>()
-          );
+              path: '/leading/test',
+              controller: controller,
+              method: HttpMethod.get,
+              moduleToken: '',
+              routeCls: GetRoute)),
+          isA<RouteSpec>());
       expect(
           controller.get(RouteData(
-              path: '/leading/', controller: controller, method: HttpMethod.get, moduleToken: '', routeCls: GetRoute)),
-          isA<RouteSpec>()
-          );
+              path: '/leading/',
+              controller: controller,
+              method: HttpMethod.get,
+              moduleToken: '',
+              routeCls: GetRoute)),
+          isA<RouteSpec>());
     });
   });
 }

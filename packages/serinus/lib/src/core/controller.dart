@@ -41,7 +41,7 @@ abstract class Controller {
       if (!routePath.endsWith('/')) {
         routePath = '$routePath/';
       }
-      if(routePath.startsWith('/') && routePath.length > 1){
+      if (routePath.startsWith('/') && routePath.length > 1) {
         routePath = routePath.substring(1);
       }
       routeDataPath =

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 
-
 class TestMiddleware extends Middleware {
   int counter = 0;
 
@@ -228,7 +227,7 @@ void main(List<String> arguments) async {
   //   type: VersioningType.uri,
   //   version: 1
   // );
-  //application.use(CorsHook());
+  // application.use(CorsHook());
   //application.use(BearerHook());
   application.changeBodySizeLimit(
       BodySizeLimit.change(text: 10, size: BodySizeValue.b));

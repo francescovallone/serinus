@@ -1,6 +1,6 @@
 # Controllers
 
-Controllers in Serinus are groups of routes that shares the same base path, pipes and guards.
+Controllers in Serinus are groups of routes that shares the same base base path and guards.
 
 ## Creating a Controller
 
@@ -43,62 +43,6 @@ class GetRoute extends Route {
     super.method = HttpMethod.get,
   });
 
-}
-```
-
-:::
-
-## Adding Pipes
-
-To add pipes to a controller, you can override the `pipes` getter and add to the list the pipes that you need.
-
-::: info
-Pipes defined in a controller will be executed before the pipes defined in the routes.
-:::
-
-::: code-group
-
-```dart [my_controller.dart]
-import 'package:serinus/serinus.dart';
-import 'my_routes.dart';
-import 'my_pipes.dart';
-
-class MyController extends Controller {
-  
-  @override
-  List<Pipe> get pipes => [MyPipe()];
-
-  MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context) {
-      return Response.text(
-        data: 'Hello World!',
-      );
-    });
-  }
-}
-```
-
-```dart [my_routes.dart]
-import 'package:serinus/serinus.dart';
-
-class GetRoute extends Route {
-
-  const GetRoute({
-    required super.path, 
-    super.method = HttpMethod.get,
-  });
-
-}
-```
-
-```dart [my_pipes.dart]
-import 'package:serinus/serinus.dart';
-
-class MyPipe extends Pipe {
-  @override
-  Future<void> transform(ExecutionContext context){
-    print('Pipe executed');
-  }
 }
 ```
 
@@ -157,3 +101,5 @@ class MyGuard extends Guard {
   }
 }
 ```
+
+:::

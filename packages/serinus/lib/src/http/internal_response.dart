@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:collection/collection.dart';
 
+import '../core/hook.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../versioning.dart';
@@ -48,11 +49,10 @@ class InternalResponse {
     _original.close();
     _events.add(ResponseEvent.afterSend);
     _events.add(ResponseEvent.close);
-    _isClosed = true;
   }
 
   /// This method is used to send a stream of data to the response.
-  /// 
+  ///
   /// After sending the stream, the response will be closed.
   Future<void> sendStream(Stream<List<int>> stream) async {
     await _original.addStream(stream);
@@ -91,7 +91,7 @@ class InternalResponse {
 
   /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
   Future<void> redirect(String path) async {
-    await _original.redirect(Uri.parse('$baseUrl$path'));
+    await _original.redirect(Uri.parse(path));
   }
 
   /// This method is used to finalize the response.
@@ -100,7 +100,9 @@ class InternalResponse {
   ///
   /// If the response is a view, it will render the view using the view engine.
   Future<void> finalize(Response result,
-      {ViewEngine? viewEngine, VersioningOptions? versioning}) async {
+      {ViewEngine? viewEngine,
+      VersioningOptions? versioning,
+      Set<Hook> hooks = const {}}) async {
     _events.add(ResponseEvent.beforeSend);
     status(result.statusCode);
     if (result.shouldRedirect) {
@@ -118,6 +120,9 @@ class InternalResponse {
       final rendered = await (result.data is View
           ? viewEngine!.render(result.data)
           : viewEngine!.renderString(result.data));
+      for (final hook in hooks) {
+        await hook.onResponse(result);
+      }
       return send(utf8.encode(rendered));
     }
     headers(result.headers);
@@ -131,7 +136,10 @@ class InternalResponse {
     }
     final data = result.data;
     final coding = _original.headers['transfer-encoding']?.join(';');
-    if(data is File) {
+    if (data is File) {
+      for (final hook in hooks) {
+        await hook.onResponse(result);
+      }
       final readPipe = data.openRead();
       await sendStream(readPipe);
       return;
@@ -154,6 +162,9 @@ class InternalResponse {
       _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
     }
     _events.add(ResponseEvent.data);
+    for (final hook in hooks) {
+      await hook.onResponse(result);
+    }
     return send(utf8.encode(data.toString()));
   }
 }

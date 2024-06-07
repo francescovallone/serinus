@@ -44,7 +44,6 @@ class TestController extends Controller {
 }
 
 class TestMiddleware extends Middleware {
-
   bool hasBeenCalled = false;
 
   @override
@@ -58,15 +57,13 @@ class TestMiddleware extends Middleware {
 }
 
 class TestModule extends Module {
-  TestModule(
-      {
-        super.controllers, 
-        super.imports, 
-        super.providers, 
-        super.exports,
-        super.middlewares,
-      }
-    );
+  TestModule({
+    super.controllers,
+    super.imports,
+    super.providers,
+    super.exports,
+    super.middlewares,
+  });
 }
 
 void main() async {
@@ -76,7 +73,8 @@ void main() async {
     final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
-          entrypoint: TestModule(controllers: [controller], middlewares: [middleware]),
+          entrypoint:
+              TestModule(controllers: [controller], middlewares: [middleware]),
           loggingLevel: LogLevel.none);
       app?.enableCors(Cors());
       await app?.serve();
@@ -174,7 +172,7 @@ void main() async {
     test(
         '''when a middleware is listening on response events, then it should be called when the response is closed''',
         () async {
-            final request =
+      final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/text'));
       await request.close();
       expect(middleware.hasBeenCalled, true);

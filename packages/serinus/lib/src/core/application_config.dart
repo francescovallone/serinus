@@ -8,8 +8,8 @@ import '../body_size_limit.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../http/cors.dart';
-import '../services/hook.dart';
 import '../versioning.dart';
+import 'hook.dart';
 
 /// The configuration for the application
 /// This is used to configure the application

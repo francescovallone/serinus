@@ -122,33 +122,3 @@ class AppModule extends Module {
   List<Guard> get guards => [MyGuard()];
 }
 ```
-
-## Adding pipes
-
-Modules can have pipes, and they will be executed before the pipes defined in the controllers and routes.
-Also if a module has submodules, the pipes will be executed before the pipes defined in the submodules.
-
-To add a pipe to a module, you can override the `pipes` getter and add to the list the pipes that you need.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-class MyPipe extends Pipe {
-  @override
-  Future<void> transform(ExecutionContext context) async {
-    print('Pipe executed');
-  }
-}
-
-class AppModule extends Module {
-  AppModule() : super(
-    imports: [], // Add the modules that you want to import
-    controllers: [],
-    providers: [],
-    middlewares: [],
-  );
-
-  @override
-  List<Pipe> get pipes => [MyPipe()];
-}
-```

@@ -17,7 +17,6 @@ import '../http/http.dart';
 import '../http/internal_request.dart';
 import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
-import '../services/hook.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
 import 'core.dart';
@@ -201,5 +200,4 @@ class SerinusApplication extends Application {
     config.addHook(hook);
     _logger.info('Hook ${hook.runtimeType} added to application');
   }
-
 }

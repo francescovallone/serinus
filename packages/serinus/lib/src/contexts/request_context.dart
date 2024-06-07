@@ -29,6 +29,7 @@ final class RequestContext {
   /// The [queryParameters] property contains the query parameters of the request.
   Map<String, dynamic> get queryParameters => request.queryParameters;
 
+  /// The constructor of the [RequestContext] class.
   RequestContext(
     this.providers,
     this.request,

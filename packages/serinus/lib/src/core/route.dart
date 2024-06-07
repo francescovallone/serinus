@@ -27,13 +27,12 @@ abstract class Route {
   });
 
   /// The [transform] method is used to transform the request context.
-  /// 
+  ///
   /// It can be overridden if needed.
   Future<void> transform(RequestContext context) async {}
 
   /// The [parse] method is used to parse and validate the request context.
-  /// 
+  ///
   /// It can be overridden if needed.
   Future<void> parse(RequestContext context) async {}
-
 }

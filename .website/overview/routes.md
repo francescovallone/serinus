@@ -1,6 +1,6 @@
 # Routes
 
-Routes in Serinus are the endpoints of your application. They are grouped in controllers and can have pipes and guards.
+Routes in Serinus are the endpoints of your application. They are grouped in controllers and can have guards.
 They only exposes the endpoint and the method that the route will respond to so you can create reusable routes that can be added to multiple controllers.
 
 ## Create a route
@@ -96,47 +96,6 @@ class GetRoute extends Route {
 
 :::
 
-## Adding Pipes
-
-To add pipes to a route, you can override the `pipes` getter and add to the list the pipes that you need.
-
-::: info
-Pipes defined in a route will be executed after the pipes defined in the controller.
-:::
-
-::: code-group
-
-```dart [my_routes.dart]
-import 'package:serinus/serinus.dart';
-import 'my_pipes.dart';
-
-
-class GetRoute extends Route {
-
-  const GetRoute({
-    required super.path, 
-    super.method = HttpMethod.get,
-  });
-
-  @override
-  List<Pipe> get pipes => [MyPipe()];
-
-}
-```
-
-```dart [my_pipes.dart]
-import 'package:serinus/serinus.dart';
-
-class MyPipe extends Pipe {
-  @override
-  Future<void> transform(ExecutionContext context){
-    print('Pipe executed');
-  }
-}
-```
-
-:::
-
 ## Adding Guards
 
 To add guards to a route, you can override the `guards` getter and add to the list the guards that you need.
@@ -176,4 +135,49 @@ class MyGuard extends Guard {
 }
 ```
 
+:::
+
+## Transform the RequestContext
+
+You can transform the `RequestContext` before it reaches the route handler by overriding the `transform` method.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class GetRoute extends Route {
+    const GetRoute({
+        required super.path, 
+        super.method = HttpMethod.get,
+    });
+
+    @override
+    Future<RequestContext> transform(RequestContext context) async {
+      return context;
+    }
+}
+```
+
+## Parsing (and validate) the RequestContext
+
+You can parse the `RequestContext` before it reaches the route handler by overriding the `parse` method.
+Serinus follows the [Parse, don't validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) principle, so if the parsing fails, the request is not valid and should be rejected.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class GetRoute extends Route {
+    const GetRoute({
+        required super.path, 
+        super.method = HttpMethod.get,
+    });
+
+    @override
+    Future<RequestContext> parse(RequestContext context) async {
+      return context;
+    }
+}
+```
+
+::: info
+If you need an amazing validation library you can try [Acanthis](https://pub.dev/packages/acanthis). 🐤
 :::

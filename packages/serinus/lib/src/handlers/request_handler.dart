@@ -35,6 +35,12 @@ class RequestHandler extends Handler {
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
     final Request wrappedRequest = Request(request);
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
+      }
+      await hook.onRequest(wrappedRequest, response);
+    }
     await wrappedRequest.parseBody();
     final body = wrappedRequest.body!;
     final bodySizeLimit = config.bodySizeLimit;
@@ -42,12 +48,6 @@ class RequestHandler extends Handler {
       throw PayloadTooLargeException(
           message: 'Request body size is too large',
           uri: Uri.parse(request.path));
-    }
-    for(final hook in config.hooks) {
-      if(response.isClosed){
-        return;
-      }
-      await hook.beforeRequest(wrappedRequest, response);
     }
     Response? result;
     final routeLookup = router.getRouteByPathAndMethod(
@@ -79,7 +79,16 @@ class RequestHandler extends Handler {
     }
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
-    RequestContext context = buildRequestContext(scopedProviders, wrappedRequest);
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
+      }
+      await hook.beforeHandle(wrappedRequest, response);
+    }
+    RequestContext context =
+        buildRequestContext(scopedProviders, wrappedRequest);
+    await route.transform(context);
+    await route.parse(context);
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
@@ -95,21 +104,15 @@ class RequestHandler extends Handler {
       context = await handleGuards(
           route.guards, controller.guards, injectables.guards, context);
     }
-    if (config.hooks.isNotEmpty) {
-      for (final hook in config.hooks) {
-        if (response.isClosed) {
-          return;
-        }
-        result = await hook.onRequest(wrappedRequest, context, handler, response);
+    result = await handler.call(context);
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
       }
-    } else {
-      result = await handler.call(context);
+      await hook.afterHandle(wrappedRequest, response);
     }
-    await response.finalize(result ?? Response.text(''),
-        viewEngine: config.viewEngine);
-    for(final hook in config.hooks) {
-      await hook.afterRequest(request, response);
-    }
+    await response.finalize(result,
+        viewEngine: config.viewEngine, hooks: config.hooks);
   }
 
   /// Handles the middlewares
@@ -147,5 +150,4 @@ class RequestHandler extends Handler {
     await guardsConsumer.consume(routeGuards);
     return guardsConsumer.context;
   }
-
 }

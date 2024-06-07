@@ -18,5 +18,4 @@ abstract class ContextConsumer<TObj, O> extends Consumer<TObj, O> {
 
   @override
   Future<O> consume(Iterable<TObj> consumables);
-
 }
