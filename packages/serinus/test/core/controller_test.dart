@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/router.dart';
 import 'package:test/test.dart';
 
 class TestController extends Controller {
@@ -10,6 +11,10 @@ class GetRoute extends Route {
     required super.path,
     super.method = HttpMethod.get,
   });
+}
+
+class LeadingSlashController extends Controller {
+  LeadingSlashController() : super(path: '/leading/');
 }
 
 void main() async {
@@ -31,6 +36,26 @@ void main() async {
       expect(
           () => controller.on(route, (context) async => Response.text('ok!')),
           throwsStateError);
+    });
+
+    test(
+        'when two routes with the same type and path are added to a controller, then it should throw an error',
+        () {
+      final controller = LeadingSlashController();
+      final route = GetRoute(path: '/test');
+      final route2 = GetRoute(path: '/');
+      controller.on(route, (context) async => Response.text('ok!'));
+      controller.on(route2, (context) async => Response.text('ok!'));
+      expect(
+          controller.get(RouteData(
+              path: '/leading/test', controller: controller, method: HttpMethod.get, moduleToken: '', routeCls: GetRoute)),
+          isA<RouteSpec>()
+          );
+      expect(
+          controller.get(RouteData(
+              path: '/leading/', controller: controller, method: HttpMethod.get, moduleToken: '', routeCls: GetRoute)),
+          isA<RouteSpec>()
+          );
     });
   });
 }
