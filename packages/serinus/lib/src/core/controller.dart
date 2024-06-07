@@ -20,9 +20,6 @@ abstract class Controller {
   /// The [guards] property contains the guards of the controller.
   List<Guard> get guards => [];
 
-  /// The [pipes] property contains the pipes of the controller.
-  List<Pipe> get pipes => [];
-
   /// The [Controller] constructor is used to create a new instance of the [Controller] class.
   Controller({
     required this.path,

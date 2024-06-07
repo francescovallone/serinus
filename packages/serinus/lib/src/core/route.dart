@@ -1,6 +1,6 @@
+import '../contexts/request_context.dart';
 import '../enums/http_method.dart';
 import 'guard.dart';
-import 'pipe.dart';
 
 /// The [Route] class is used to define the routes of the application.
 abstract class Route {
@@ -16,9 +16,6 @@ abstract class Route {
   /// The [guards] property contains the guards of the route.
   List<Guard> get guards => [];
 
-  /// The [pipes] property contains the pipes of the route.
-  List<Pipe> get pipes => [];
-
   /// The [version] property contains the version of the route.
   int? get version => null;
 
@@ -28,4 +25,15 @@ abstract class Route {
     required this.method,
     this.queryParameters = const {},
   });
+
+  /// The [transform] method is used to transform the request context.
+  /// 
+  /// It can be overridden if needed.
+  Future<void> transform(RequestContext context) async {}
+
+  /// The [parse] method is used to parse and validate the request context.
+  /// 
+  /// It can be overridden if needed.
+  Future<void> parse(RequestContext context) async {}
+
 }

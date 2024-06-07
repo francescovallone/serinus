@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import '../consumers/guards_consumer.dart';
-import '../consumers/pipes_consumer.dart';
 import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
 import '../contexts/request_context.dart';
@@ -96,11 +95,6 @@ class RequestHandler extends Handler {
       context = await handleGuards(
           route.guards, controller.guards, injectables.guards, context);
     }
-    if ([...route.pipes, ...controller.pipes, ...injectables.pipes]
-        .isNotEmpty) {
-      context = await handlePipes(route.pipes, controller.pipes,
-          injectables.pipes, context);
-    }
     if (config.hooks.isNotEmpty) {
       for (final hook in config.hooks) {
         if (response.isClosed) {
@@ -154,20 +148,4 @@ class RequestHandler extends Handler {
     return guardsConsumer.context;
   }
 
-  /// Handles the pipes
-  ///
-  /// Executes them and returns the [ExecutionContext] updated with the data from the pipes.
-  Future<RequestContext> handlePipes(
-    Iterable<Pipe> routePipes,
-    Iterable<Pipe> controllerPipes,
-    Iterable<Pipe> globalPipes,
-    RequestContext requestContext,
-  ) async {
-    final pipesConsumer =
-        PipesConsumer(requestContext);
-    await pipesConsumer.consume(globalPipes);
-    await pipesConsumer.consume(controllerPipes);
-    await pipesConsumer.consume(routePipes);
-    return pipesConsumer.context;
-  }
 }

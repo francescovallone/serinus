@@ -202,19 +202,7 @@ class AppModule extends Module {
         ]);
 
   @override
-  List<Pipe> get pipes => [
-        // TestPipe(),
-      ];
-
-  @override
   List<Guard> get guards => [];
-}
-
-class TestPipe extends Pipe {
-  @override
-  Future<void> transform(RequestContext context) async {
-    print('Pipe executed');
-  }
 }
 
 class ReAppModule extends Module {

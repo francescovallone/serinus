@@ -74,7 +74,6 @@ final class ModulesContainer {
     } else {
       final newInjectables = ModuleInjectables(
         guards: {...module.guards},
-        pipes: {...module.pipes},
         middlewares: {...module.middlewares},
       );
       _moduleInjectables[token] =
@@ -141,7 +140,6 @@ final class ModulesContainer {
     final currentModuleInjectables =
         _moduleInjectables[token] ??= ModuleInjectables(
       guards: {...module.guards},
-      pipes: {...module.pipes},
       middlewares: {...module.middlewares},
     );
     for (var subModule in eagerSubModules) {
@@ -334,9 +332,6 @@ class ModuleInjectables {
   /// The [guards] property contains the guards of the module
   final Set<Guard> guards;
 
-  /// The [pipes] property contains the pipes of the module
-  final Set<Pipe> pipes;
-
   /// The [middlewares] property contains the middlewares of the module
   final Set<Middleware> middlewares;
 
@@ -346,7 +341,6 @@ class ModuleInjectables {
   /// The constructor of the [ModuleInjectables] class
   ModuleInjectables({
     required this.guards,
-    required this.pipes,
     required this.middlewares,
     this.providers = const {},
   });
@@ -355,7 +349,6 @@ class ModuleInjectables {
   ModuleInjectables concatTo(ModuleInjectables? moduleInjectables) {
     return ModuleInjectables(
       guards: guards..addAllIfAbsent(moduleInjectables?.guards ?? {}),
-      pipes: pipes..addAllIfAbsent(moduleInjectables?.pipes ?? {}),
       middlewares: middlewares
         ..addAllIfAbsent(moduleInjectables?.middlewares ?? {}),
       providers: providers..addAllIfAbsent(moduleInjectables?.providers ?? {}),
@@ -365,13 +358,11 @@ class ModuleInjectables {
   /// Copies the module injectables with the new values
   ModuleInjectables copyWith({
     Set<Guard>? guards,
-    Set<Pipe>? pipes,
     Set<Middleware>? middlewares,
     Set<Provider>? providers,
   }) {
     return ModuleInjectables(
       guards: guards ?? this.guards,
-      pipes: pipes ?? this.pipes,
       middlewares: middlewares ?? this.middlewares,
       providers: providers ?? this.providers,
     );
