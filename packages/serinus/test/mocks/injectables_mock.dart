@@ -42,10 +42,3 @@ class TestMiddleware extends Middleware {
     return next();
   }
 }
-
-class TestPipe extends Pipe {
-  TestPipe();
-
-  @override
-  Future<void> transform(RequestContext context) async {}
-}
