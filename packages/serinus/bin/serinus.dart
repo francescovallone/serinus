@@ -78,7 +78,7 @@ class TestProviderTwo extends Provider
 
 class TestGuard extends Guard {
   @override
-  Future<bool> canActivate(ExecutionContext context) async {
+  Future<bool> canActivate(RequestContext context) async {
     context.addDataToRequest('test', 'Hello world');
     return true;
   }
@@ -197,8 +197,8 @@ class AppModule extends Module {
           TestWsProvider(),
           TestWs2Provider()
         ], middlewares: [
-          TestMiddleware(),
-          Test2Middleware()
+          // TestMiddleware(),
+          // Test2Middleware()
         ]);
 
   @override
@@ -212,7 +212,7 @@ class AppModule extends Module {
 
 class TestPipe extends Pipe {
   @override
-  Future<void> transform(ExecutionContext context) async {
+  Future<void> transform(RequestContext context) async {
     print('Pipe executed');
   }
 }
