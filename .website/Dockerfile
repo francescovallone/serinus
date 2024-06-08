@@ -12,7 +12,7 @@ RUN npm run docs:build
 
 FROM nginx:alpine
 
-COPY --from=build /app/.vuepress/dist /usr/share/nginx/html
+COPY --from=build /app/.vitepress/dist /usr/share/nginx/html
 
 EXPOSE 80
 
