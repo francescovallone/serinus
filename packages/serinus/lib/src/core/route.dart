@@ -35,4 +35,15 @@ abstract class Route {
   ///
   /// It can be overridden if needed.
   Future<void> parse(RequestContext context) async {}
+
+  /// The [beforeHandle] method is used to execute code before the route is handled.
+  /// 
+  /// It can be overridden if needed.
+  Future<void> beforeHandle(RequestContext context) async {}
+
+  /// The [afterHandle] method is used to execute code after the route is handled.
+  /// 
+  /// It can be overridden if needed.
+  Future<void> afterHandle(RequestContext context) async {}
+
 }
