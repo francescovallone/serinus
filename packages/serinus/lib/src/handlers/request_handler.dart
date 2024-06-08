@@ -49,14 +49,14 @@ class RequestHandler extends Handler {
           message: 'Request body size is too large',
           uri: Uri.parse(request.path));
     }
-    Response? result;
+    Response result;
     final routeLookup = router.getRouteByPathAndMethod(
         request.path.endsWith('/')
             ? request.path.substring(0, request.path.length - 1)
             : request.path,
         request.method.toHttpMethod());
     final routeData = routeLookup.route;
-    wrappedRequest.setParams(params: routeLookup.params);
+    wrappedRequest.params = routeLookup.params;
     if (routeData == null) {
       throw NotFoundException(
           message:
@@ -79,31 +79,31 @@ class RequestHandler extends Handler {
     }
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
+    RequestContext context =
+      buildRequestContext(scopedProviders, wrappedRequest);
     for (final hook in config.hooks) {
       if (response.isClosed) {
         return;
       }
-      await hook.beforeHandle(wrappedRequest, response);
+      await hook.beforeHandle(context);
     }
-    RequestContext context =
-        buildRequestContext(scopedProviders, wrappedRequest);
     await route.transform(context);
     await route.parse(context);
-    final middlewares = injectables.filterMiddlewaresByRoute(
-        routeData.path, wrappedRequest.params);
-    if (middlewares.isNotEmpty) {
-      await handleMiddlewares(
-        context,
-        wrappedRequest,
-        response,
-        middlewares,
-      );
-    }
-    if ([...route.guards, ...controller.guards, ...injectables.guards]
-        .isNotEmpty) {
-      context = await handleGuards(
-          route.guards, controller.guards, injectables.guards, context);
-    }
+    // final middlewares = injectables.filterMiddlewaresByRoute(
+    //     routeData.path, wrappedRequest.params);
+    // if (middlewares.isNotEmpty) {
+    //   await handleMiddlewares(
+    //     context,
+    //     wrappedRequest,
+    //     response,
+    //     middlewares,
+    //   );
+    // }
+    // if ([...route.guards, ...controller.guards, ...injectables.guards]
+    //     .isNotEmpty) {
+    //   context = await handleGuards(
+    //       route.guards, controller.guards, injectables.guards, context);
+    // }
     await route.beforeHandle(context);
     result = await handler.call(context);
     await route.afterHandle(context);
@@ -111,7 +111,7 @@ class RequestHandler extends Handler {
       if (response.isClosed) {
         return;
       }
-      await hook.afterHandle(wrappedRequest, response);
+      await hook.afterHandle(context, result);
     }
     await response.finalize(result,
         viewEngine: config.viewEngine, hooks: config.hooks);

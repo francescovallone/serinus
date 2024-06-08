@@ -43,9 +43,9 @@ class CorsHook extends Hook {
   Map<String, String> responseHeaders = {};
 
   @override
-  Future<void> beforeHandle(Request request, InternalResponse response) async {
+  Future<void> beforeHandle(RequestContext context) async {
     /// Get the origin from the request headers.
-    final origin = request.headers['origin'];
+    final origin = context.headers['origin'];
 
     /// Check if the origin is allowed.
     if ((origin == null ||
@@ -72,9 +72,9 @@ class CorsHook extends Hook {
   }
 
   @override
-  Future<void> afterHandle(Request request, InternalResponse response) async {
+  Future<void> afterHandle(RequestContext context, Response response) async {
     /// Add the headers to the response.
-    response.headers(responseHeaders);
+    response.addHeaders(responseHeaders);
   }
 
   @override

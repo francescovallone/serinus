@@ -78,7 +78,7 @@ class TestProviderTwo extends Provider
 class TestGuard extends Guard {
   @override
   Future<bool> canActivate(RequestContext context) async {
-    context.addDataToRequest('test', 'Hello world');
+    context.add('test', 'Hello world');
     return true;
   }
 }

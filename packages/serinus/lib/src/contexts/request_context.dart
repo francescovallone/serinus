@@ -18,9 +18,14 @@ final class RequestContext {
   /// The [method] property contains the method of the request.
   Map<String, dynamic> get headers => request.headers;
 
-  /// The [addDataToRequest] method is used to add data to the request.
-  void addDataToRequest(String key, dynamic value) {
+  /// The [add] method is used to add data to the request.
+  void add(String key, dynamic value) {
     request.addData(key, value);
+  }
+
+  /// The [get] method is used to get data from the request.
+  dynamic get(String key) {
+    return request.getData(key);
   }
 
   /// The [pathParameters] property contains the path parameters of the request.

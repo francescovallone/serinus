@@ -9,10 +9,10 @@ abstract class Hook {
   Future<void> onRequest(Request request, InternalResponse response) async {}
 
   /// The [beforeHandle] method is used to execute code before the request is handled
-  Future<void> beforeHandle(Request request, InternalResponse response) async {}
+  Future<void> beforeHandle(RequestContext context) async {}
 
   /// The [afterHandle] method is used to execute code after the request is handled
-  Future<void> afterHandle(Request request, InternalResponse response) async {}
+  Future<void> afterHandle(RequestContext context, Response response) async {}
 
   /// The [onResponse] method is used to execute code after the response is sent
   Future<void> onResponse(Response response) async {}
