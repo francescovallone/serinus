@@ -10,6 +10,7 @@ export default defineConfig({
     ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png"}],
   ],
   lastUpdated: true,
+  appearance: 'force-dark',
   themeConfig: {
     footer: {
       copyright: 'Copyright © 2024 Francesco Vallone',
@@ -17,6 +18,9 @@ export default defineConfig({
     },
     // https://vitepress.dev/reference/default-theme-config
     logo: '/serinus-logo.png',
+    search: {
+      provider: 'local'
+    },
     nav: [
       {
         text: 'pub.dev',
@@ -29,50 +33,54 @@ export default defineConfig({
           { text: 'Introduction', link: '/introduction' },
           {
             text: 'Overview',
+            base: '/overview/',
             collapsed: false,
             items: [
-              { text: 'Getting Started', link: '/overview/getting_started' },
-              { text: 'Modules', link: '/overview/modules' },
-              { text: 'Controllers', link: '/overview/controllers' },
-              { text: 'Routes', link: '/overview/routes' },
-              { text: 'Providers', link: '/overview/providers' },
-              { text: 'Middlewares', link: '/overview/middlewares' },
-              { text: 'Guards', link: '/overview/guards' },
-              { text: 'Pipes', link: '/overview/pipes' },
-              { text: 'WebSockets', link: '/overview/websockets' },
+              { text: 'Getting Started', link: 'getting_started' },
+              { text: 'Modules', link: 'modules' },
+              { text: 'Controllers', link: 'controllers' },
+              { text: 'Routes', link: 'routes' },
+              { text: 'Providers', link: 'providers' },
+              { text: 'Middlewares', link: 'middlewares' },
+              { text: 'Guards', link: 'guards' },
+              { text: 'Pipes', link: 'pipes' },
+              { text: 'WebSockets', link: 'websockets' },
             ]
           },
           {
             text: 'Techniques',
+            base: '/techniques/',
             collapsed: true,
             items: [
-              { text: 'Model View Controller', link: '/techniques/mvc' },
-              { text: 'Versioning', link: '/techniques/versioning' },
-              { text: 'Global Prefix', link: '/techniques/global_prefix' },
-              { text: 'Body Size Limit', link: '/techniques/body_size_limit' },
+              { text: 'Model View Controller', link: 'mvc' },
+              { text: 'Versioning', link: 'versioning' },
+              { text: 'Global Prefix', link: 'global_prefix' },
+              { text: 'Body Size Limit', link: 'body_size_limit' },
             ]
           },
           {
+            text: 'Request Lifecycle',
+            link: '/request_lifecycle'
+          },
+          {
             text: 'Plugins',
+            base: '/plugins/',
             collapsed: true,
             items: [
-              { text: 'Configuration', link: '/plugins/configuration' },
-              { text: 'Serve Static Files', link: '/plugins/serve_static' },
+              { text: 'Configuration', link: 'configuration' },
+              { text: 'Serve Static Files', link: 'serve_static' },
+              { text: 'CRON [WIP]' },
               { text: 'Swagger [WIP]' }
             ],
-            link: '/plugins/'
+            link: '/'
           }
         ]
       },
-      // {
-      //   text: 'Roadmap',
-      //   link: '/roadmap',
-      // },
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
       { icon: 'twitter', link: 'https://twitter.com/serinus_nest'},
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
-    ]
-  }
+    ],
+  },
 })
