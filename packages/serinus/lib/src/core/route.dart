@@ -1,6 +1,5 @@
 import '../contexts/request_context.dart';
 import '../enums/http_method.dart';
-import 'guard.dart';
 
 /// The [Route] class is used to define the routes of the application.
 abstract class Route {
@@ -12,9 +11,6 @@ abstract class Route {
 
   /// The query parameters of the route.
   final Map<String, Type> queryParameters;
-
-  /// The [guards] property contains the guards of the route.
-  List<Guard> get guards => [];
 
   /// The [version] property contains the version of the route.
   int? get version => null;

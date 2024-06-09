@@ -17,9 +17,6 @@ abstract class Controller {
   /// The [path] property contains the path of the controller.
   final String path;
 
-  /// The [guards] property contains the guards of the controller.
-  List<Guard> get guards => [];
-
   /// The [Controller] constructor is used to create a new instance of the [Controller] class.
   Controller({
     required this.path,

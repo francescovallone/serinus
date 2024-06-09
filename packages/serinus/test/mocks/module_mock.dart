@@ -34,9 +34,6 @@ class SimpleModuleWithInjectables extends Module {
           exports: [],
           middlewares: [TestMiddleware()],
         );
-
-  @override
-  List<Guard> get guards => [TestGuard()];
 }
 
 class ImportableModuleWithProvider extends Module {
@@ -71,6 +68,4 @@ class SimpleModuleWithImportsAndInjects extends Module {
           middlewares: [TestMiddleware()],
         );
 
-  @override
-  List<Guard> get guards => [TestGuard()];
 }

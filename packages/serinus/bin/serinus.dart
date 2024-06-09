@@ -75,14 +75,6 @@ class TestProviderTwo extends Provider
   }
 }
 
-class TestGuard extends Guard {
-  @override
-  Future<bool> canActivate(RequestContext context) async {
-    context.add('test', 'Hello world');
-    return true;
-  }
-}
-
 class GetRoute extends Route {
   const GetRoute({
     required super.path,
@@ -91,9 +83,6 @@ class GetRoute extends Route {
 
   @override
   int? get version => 2;
-
-  @override
-  List<Guard> get guards => [];
 }
 
 class PostRoute extends Route {
@@ -105,8 +94,6 @@ class PostRoute extends Route {
     },
   });
 
-  @override
-  List<Guard> get guards => [];
 }
 
 class HomeController extends Controller {
@@ -200,8 +187,6 @@ class AppModule extends Module {
           // Test2Middleware()
         ]);
 
-  @override
-  List<Guard> get guards => [];
 }
 
 class ReAppModule extends Module {

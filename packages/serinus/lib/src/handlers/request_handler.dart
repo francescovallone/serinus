@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import '../consumers/guards_consumer.dart';
 import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
 import '../contexts/request_context.dart';
@@ -137,19 +136,4 @@ class RequestHandler extends Handler {
     return completer.future;
   }
 
-  /// Handles the guards
-  ///
-  /// Executes them and returns the [ExecutionContext] updated with the data from the guards.
-  Future<RequestContext> handleGuards(
-    Iterable<Guard> routeGuards,
-    Iterable<Guard> controllerGuards,
-    Iterable<Guard> globalGuards,
-    RequestContext context,
-  ) async {
-    final guardsConsumer = GuardsConsumer(context);
-    await guardsConsumer.consume(globalGuards);
-    await guardsConsumer.consume(controllerGuards);
-    await guardsConsumer.consume(routeGuards);
-    return guardsConsumer.context;
-  }
 }

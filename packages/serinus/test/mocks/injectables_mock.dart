@@ -24,15 +24,6 @@ class TestProviderThree extends Provider {
   }
 }
 
-class TestGuard extends Guard {
-  TestGuard();
-
-  @override
-  Future<bool> canActivate(RequestContext context) async {
-    return true;
-  }
-}
-
 class TestMiddleware extends Middleware {
   TestMiddleware() : super(routes: ['*']);
 
