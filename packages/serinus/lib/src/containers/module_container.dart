@@ -72,7 +72,9 @@ final class ModulesContainer {
       _moduleInjectables[token] =
           moduleInjectables!.concatTo(_moduleInjectables[token]);
     } else {
-      final newInjectables = ModuleInjectables();
+      final newInjectables = ModuleInjectables(
+        middlewares: {...module.middlewares},
+      );
       _moduleInjectables[token] =
           moduleInjectables?.concatTo(newInjectables) ?? newInjectables;
     }
@@ -136,6 +138,7 @@ final class ModulesContainer {
     final token = moduleToken(module);
     final currentModuleInjectables =
         _moduleInjectables[token] ??= ModuleInjectables(
+      middlewares: {...module.middlewares},
     );
     for (var subModule in eagerSubModules) {
       await _callForRecursiveRegistration(
@@ -324,28 +327,64 @@ final class ModulesContainer {
 
 /// The [ModuleInjectables] class is used to create the module injectables.
 class ModuleInjectables {
-
   /// The [providers] property contains the providers of the module
   final Set<Provider> providers;
 
+  /// The [middlewares] property contains the middlewares of the module
+  final Set<Middleware> middlewares;
+
   /// The constructor of the [ModuleInjectables] class
   ModuleInjectables({
+    required this.middlewares,
     this.providers = const {},
   });
 
   /// Concatenates the module injectables with another module injectables
   ModuleInjectables concatTo(ModuleInjectables? moduleInjectables) {
     return ModuleInjectables(
+      middlewares: middlewares
+        ..addAllIfAbsent(moduleInjectables?.middlewares ?? {}),
       providers: providers..addAllIfAbsent(moduleInjectables?.providers ?? {}),
     );
   }
 
   /// Copies the module injectables with the new values
   ModuleInjectables copyWith({
+    Set<Middleware>? middlewares,
     Set<Provider>? providers,
   }) {
     return ModuleInjectables(
+      middlewares: middlewares ?? this.middlewares,
       providers: providers ?? this.providers,
     );
+  }
+
+  /// Filters the guards by route
+  Set<Middleware> filterMiddlewaresByRoute(
+      String path, Map<String, dynamic> params) {
+    Set<Middleware> executedMiddlewares = {};
+    for (Middleware middleware in middlewares) {
+      for (final route in middleware.routes) {
+        final segments = route.split('/');
+        final routeSegments = path.split('/');
+        if (segments.last == '*') {
+          executedMiddlewares.add(middleware);
+        }
+        if (routeSegments.length == segments.length) {
+          bool match = true;
+          for (int i = 0; i < segments.length; i++) {
+            if (segments[i] != routeSegments[i] &&
+                segments[i] != '*' &&
+                params.isEmpty) {
+              match = false;
+            }
+          }
+          if (match) {
+            executedMiddlewares.add(middleware);
+          }
+        }
+      }
+    }
+    return executedMiddlewares;
   }
 }

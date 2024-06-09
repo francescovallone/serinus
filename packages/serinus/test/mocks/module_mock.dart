@@ -67,5 +67,4 @@ class SimpleModuleWithImportsAndInjects extends Module {
           exports: [],
           middlewares: [TestMiddleware()],
         );
-
 }

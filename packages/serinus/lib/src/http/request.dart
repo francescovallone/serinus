@@ -20,7 +20,7 @@ class Request {
   /// It accepts an [InternalRequest] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
-  Request(this._original, {this.params = const {}}) {
+  Request(this._original, {Map<String, dynamic> params = const {}}) {
     /// This loop is used to parse the query parameters of the request.
     /// It will try to parse the query parameters to the correct type.
     for (final entry in _original.queryParameters.entries) {
@@ -38,6 +38,7 @@ class Request {
           _queryParamters[entry.key] = entry.value;
       }
     }
+    this.params = params;
   }
 
   /// This method is used to set the parameters of the request.
@@ -66,7 +67,10 @@ class Request {
   HttpConnectionInfo? get clientInfo => _original.clientInfo;
 
   /// The params of the request.
-  final Map<String, dynamic> params;
+  Map<String, dynamic> get params => _params;
+
+  /// The params of the request.
+  final Map<String, dynamic> _params = {};
 
   final Map<String, dynamic> _data = {};
 

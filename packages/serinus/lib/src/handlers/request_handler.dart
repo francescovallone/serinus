@@ -79,7 +79,7 @@ class RequestHandler extends Handler {
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
     RequestContext context =
-      buildRequestContext(scopedProviders, wrappedRequest);
+        buildRequestContext(scopedProviders, wrappedRequest);
     for (final hook in config.hooks) {
       if (response.isClosed) {
         return;
@@ -88,21 +88,15 @@ class RequestHandler extends Handler {
     }
     await route.transform(context);
     await route.parse(context);
-    // final middlewares = injectables.filterMiddlewaresByRoute(
-    //     routeData.path, wrappedRequest.params);
-    // if (middlewares.isNotEmpty) {
-    //   await handleMiddlewares(
-    //     context,
-    //     wrappedRequest,
-    //     response,
-    //     middlewares,
-    //   );
-    // }
-    // if ([...route.guards, ...controller.guards, ...injectables.guards]
-    //     .isNotEmpty) {
-    //   context = await handleGuards(
-    //       route.guards, controller.guards, injectables.guards, context);
-    // }
+    final middlewares = injectables.filterMiddlewaresByRoute(
+        routeData.path, wrappedRequest.params);
+    if (middlewares.isNotEmpty) {
+      await handleMiddlewares(
+        context,
+        response,
+        middlewares,
+      );
+    }
     await route.beforeHandle(context);
     result = await handler.call(context);
     await route.afterHandle(context);
@@ -119,7 +113,7 @@ class RequestHandler extends Handler {
   /// Handles the middlewares
   ///
   /// If the completer is not completed, the request will be blocked until the completer is completed.
-  Future<void> handleMiddlewares(RequestContext context, Request request,
+  Future<void> handleMiddlewares(RequestContext context,
       InternalResponse response, Iterable<Middleware> middlewares) async {
     if (middlewares.isEmpty) {
       return;
@@ -135,5 +129,4 @@ class RequestHandler extends Handler {
     }
     return completer.future;
   }
-
 }

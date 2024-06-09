@@ -93,7 +93,6 @@ class PostRoute extends Route {
       'hello': String,
     },
   });
-
 }
 
 class HomeController extends Controller {
@@ -186,7 +185,6 @@ class AppModule extends Module {
           // TestMiddleware(),
           // Test2Middleware()
         ]);
-
 }
 
 class ReAppModule extends Module {
