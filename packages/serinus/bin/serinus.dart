@@ -75,14 +75,6 @@ class TestProviderTwo extends Provider
   }
 }
 
-class TestGuard extends Guard {
-  @override
-  Future<bool> canActivate(ExecutionContext context) async {
-    context.addDataToRequest('test', 'Hello world');
-    return true;
-  }
-}
-
 class GetRoute extends Route {
   const GetRoute({
     required super.path,
@@ -91,9 +83,6 @@ class GetRoute extends Route {
 
   @override
   int? get version => 2;
-
-  @override
-  List<Guard> get guards => [];
 }
 
 class PostRoute extends Route {
@@ -104,9 +93,6 @@ class PostRoute extends Route {
       'hello': String,
     },
   });
-
-  @override
-  List<Guard> get guards => [];
 }
 
 class HomeController extends Controller {
@@ -199,24 +185,9 @@ class AppModule extends Module {
           TestWsProvider(),
           TestWs2Provider()
         ], middlewares: [
-          TestMiddleware(),
-          Test2Middleware()
+          // TestMiddleware(),
+          // Test2Middleware()
         ]);
-
-  @override
-  List<Pipe> get pipes => [
-        // TestPipe(),
-      ];
-
-  @override
-  List<Guard> get guards => [];
-}
-
-class TestPipe extends Pipe {
-  @override
-  Future<void> transform(ExecutionContext context) async {
-    print('Pipe executed');
-  }
 }
 
 class ReAppModule extends Module {
@@ -242,6 +213,8 @@ void main(List<String> arguments) async {
   //   type: VersioningType.uri,
   //   version: 1
   // );
+  // application.use(CorsHook());
+  //application.use(BearerHook());
   application.changeBodySizeLimit(
       BodySizeLimit.change(text: 10, size: BodySizeValue.b));
   await application.serve();

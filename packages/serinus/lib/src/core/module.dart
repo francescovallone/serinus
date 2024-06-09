@@ -35,12 +35,6 @@ abstract class Module {
   /// optional options for the module
   final ModuleOptions? options;
 
-  /// The [guards] property contains the guards of the module.
-  List<Guard> get guards => [];
-
-  /// The [pipes] property contains the pipes of the module.
-  List<Pipe> get pipes => [];
-
   /// The [Module] constructor is used to create a new instance of the [Module] class.
   Module({
     this.imports = const [],

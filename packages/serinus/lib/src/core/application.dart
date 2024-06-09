@@ -194,4 +194,10 @@ class SerinusApplication extends Application {
   Future<void> register() async {
     await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
   }
+
+  /// The [use] method is used to add a hook to the application.
+  void use(Hook hook) {
+    config.addHook(hook);
+    _logger.info('Hook ${hook.runtimeType} added to application');
+  }
 }

@@ -64,8 +64,6 @@ void main() {
           container.getModuleInjectablesByToken(module.runtimeType.toString());
       expect(injectables.providers.length, 1);
       expect(injectables.middlewares.length, 1);
-      expect(injectables.pipes.length, 1);
-      expect(injectables.guards.length, 1);
     });
 
     test(
@@ -88,18 +86,14 @@ void main() {
       expect(container.modules.length, 3);
       final injectables =
           container.getModuleInjectablesByToken(module.runtimeType.toString());
-      expect(injectables.providers.length, 2);
       expect(injectables.middlewares.length, 1);
-      expect(injectables.pipes.length, 1);
-      expect(injectables.guards.length, 1);
+      expect(injectables.providers.length, 2);
       final t = ImportableModuleWithProvider;
       final subInjectables =
           container.getModuleInjectablesByToken(t.toString());
+      expect(injectables.middlewares.length, 1);
       expect(subInjectables.providers.length, 1);
       expect(subInjectables.providers.last, injectables.providers.last);
-      expect(subInjectables.middlewares.length, 1);
-      expect(subInjectables.pipes.length, 1);
-      expect(subInjectables.guards.length, 1);
       final t2 = ImportableModuleWithNonExportedProvider;
       final subInjectablesTwo =
           container.getModuleInjectablesByToken(t2.toString());

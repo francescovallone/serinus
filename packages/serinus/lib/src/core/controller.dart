@@ -17,12 +17,6 @@ abstract class Controller {
   /// The [path] property contains the path of the controller.
   final String path;
 
-  /// The [guards] property contains the guards of the controller.
-  List<Guard> get guards => [];
-
-  /// The [pipes] property contains the pipes of the controller.
-  List<Pipe> get pipes => [];
-
   /// The [Controller] constructor is used to create a new instance of the [Controller] class.
   Controller({
     required this.path,
@@ -44,7 +38,7 @@ abstract class Controller {
       if (!routePath.endsWith('/')) {
         routePath = '$routePath/';
       }
-      if(routePath.startsWith('/') && routePath.length > 1){
+      if (routePath.startsWith('/') && routePath.length > 1) {
         routePath = routePath.substring(1);
       }
       routeDataPath =

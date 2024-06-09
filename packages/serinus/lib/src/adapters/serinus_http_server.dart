@@ -49,7 +49,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       {InternalRequest? request, ErrorHandler? errorHandler}) async {
     try {
       server?.listen((req) {
-        final request = InternalRequest.from(req, baseUrl: '');
+        final request = InternalRequest.from(req);
         final response = request.response;
         requestCallback.call(request, response);
       }, onError: errorHandler);
