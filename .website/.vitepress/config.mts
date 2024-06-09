@@ -10,6 +10,7 @@ export default defineConfig({
     ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png"}],
   ],
   lastUpdated: true,
+  appearance: 'force-dark',
   themeConfig: {
     footer: {
       copyright: 'Copyright © 2024 Francesco Vallone',
@@ -75,15 +76,11 @@ export default defineConfig({
           }
         ]
       },
-      // {
-      //   text: 'Roadmap',
-      //   link: '/roadmap',
-      // },
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
       { icon: 'twitter', link: 'https://twitter.com/serinus_nest'},
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
-    ]
-  }
+    ],
+  },
 })

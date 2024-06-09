@@ -6,9 +6,14 @@
 /**
  * Colors
  * -------------------------------------------------------------------------- */
+ @tailwind base;
+ @tailwind components;
+ @tailwind utilities;
+ 
 
 :root {
 	--vp-c-brand-1: #FF9800;
+	--vp-c-brand-2: #FFB74D;
 	--vp-c-brand-light: #FFA726;
 	--vp-c-brand-lighter: #FFB74D;
 	--vp-c-brand-lightest: #FFCC80;
@@ -90,9 +95,40 @@
 .logo {
 	height: 64px !important;
 }
-
+.image-container {
+	position: relative;
+	width: 320px;
+	height: 320px;
+}
+.image-container > img {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	max-width: 320px;
+	max-height: 320px;
+	transform: translate(-50%,-50%);
+}
 .image-bg {
 	background-image: linear-gradient(-45deg, rgba(255, 152, 0, 0.6) 50%, rgba(245, 124, 0, 0.6) 50%) !important;
 	background-image: -moz-linear-gradient(-45deg, rgba(255, 152, 0, 0.6) 50%, rgba(245, 124, 0, 0.6) 50%) !important;
 	background-image: -webkit-linear-gradient(-45deg, rgba(255, 152, 0, 0.6) 50%, rgba(245, 124, 0, 0.6) 50%) !important;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	border-radius: 50%;
+	width: 320px;
+	height: 320px;
+	filter: var(--vp-home-hero-image-filter);
+	transform: translate(-50%,-50%);
+}
+.vp-btn-custom, .vp-doc a.vp-btn-custom{
+	background-color: var(--vp-c-brand-2);
+	color: rgb(23,23,23);
+	padding: 0.5rem 1rem;
+	border-radius: 0.5rem;
+	text-decoration: none;
+	border-radius: 20px;
+}
+.vp-btn-custom:hover, .vp-doc a.vp-btn-custom:hover {
+	color: rgb(23,23,23);
 }
