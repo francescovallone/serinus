@@ -16,15 +16,11 @@ hero:
       text: Source code
       link: http://github.com/francescovallone/serinus
 
-features:
-  - icon: 📦
-    title: Extensible
-    details: Serinus is designed to be extensible and flexible. It allows you to create your own modules and plugins to extend its functionality.
-  - icon: ✨
-    title: Well-structured
-    details: Serinus is designed to be well-structured and easy to use. And it helps you to build scalable and maintainable applications.
-  - icon: 🚀
-    title: Fast
-    details: Serinus is designed to be fast and efficient. It is built on top of the Dart language, which is known for its performance and efficiency.
-
 ---
+
+<script setup>
+  import Home from './components/home.vue';
+  // import Modular from './components/modular.vue';
+</script>
+
+<Home />

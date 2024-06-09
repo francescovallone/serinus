@@ -104,6 +104,9 @@ class HomeController extends Controller {
       return Response.text(
           '${context.request.getData('test')} ${context.pathParameters}');
     });
+    on(Route.get('/test'), (context) async {
+      return Response.text('Hello world from test');
+    });
   }
 }
 

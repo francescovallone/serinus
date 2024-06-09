@@ -2,7 +2,7 @@ import '../contexts/request_context.dart';
 import '../enums/http_method.dart';
 
 /// The [Route] class is used to define the routes of the application.
-abstract class Route {
+class Route {
   /// The path of the route.
   final String path;
 
@@ -41,4 +41,30 @@ abstract class Route {
   ///
   /// It can be overridden if needed.
   Future<void> afterHandle(RequestContext context) async {}
+
+  /// The [Route.get] factory constructor is used to create a new instance of the [Route] class with the GET method.
+  factory Route.get(String path) {
+    return Route(path: path, method: HttpMethod.get);
+  }
+
+  /// The [Route.post] factory constructor is used to create a new instance of the [Route] class with the POST method.
+  factory Route.post(String path) {
+    return Route(path: path, method: HttpMethod.post);
+  }
+
+  /// The [Route.put] factory constructor is used to create a new instance of the [Route] class with the PUT method.
+  factory Route.put(String path) {
+    return Route(path: path, method: HttpMethod.put);
+  }
+
+  /// The [Route.delete] factory constructor is used to create a new instance of the [Route] class with the DELETE method.
+  factory Route.delete(String path) {
+    return Route(path: path, method: HttpMethod.delete);
+  }
+
+  /// The [Route.patch] factory constructor is used to create a new instance of the [Route] class with the PATCH method.
+  factory Route.patch(String path) {
+    return Route(path: path, method: HttpMethod.patch);
+  }
+
 }

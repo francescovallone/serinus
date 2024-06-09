@@ -5,7 +5,19 @@ They only exposes the endpoint and the method that the route will respond to so 
 
 ## Create a route
 
-To add routes you first need to create a class that extends the `Route` class and then add it to the controller using the `on` method.
+To add routes you can either create a class that extends the `Route` class or use the following methods to create one. 
+
+- `Route.get`
+- `Route.post`
+- `Route.put`
+- `Route.delete`
+- `Route.patch`
+
+All this methods has a required parameter `path` that is the path of the route and the method signature corresponds to the method that the route will respond to.
+
+This change was made to reduce the boilerplate code needed to create a route and to make the code more readable.
+
+Then you can add it to the controller using the `on` method.
 
 ::: code-group
 
@@ -16,6 +28,11 @@ import 'my_routes.dart';
 class MyController extends Controller {
   MyController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) {
+      return Response.text(
+        data: 'Hello World!',
+      );
+    });
+    on(Route.get(path: '/'), (context) { // This is the same as the previous route
       return Response.text(
         data: 'Hello World!',
       );
