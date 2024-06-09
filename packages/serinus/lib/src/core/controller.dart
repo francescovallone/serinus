@@ -41,6 +41,9 @@ abstract class Controller {
       if (routePath.startsWith('/') && routePath.length > 1) {
         routePath = routePath.substring(1);
       }
+      if (routeDataPath.startsWith('/') && routeDataPath.length > 1) {
+        routeDataPath = routeDataPath.substring(1);
+      }
       routeDataPath =
           routeDataPath.replaceAll('/v${r.route.version ?? version ?? 0}', '');
       return routePath == routeDataPath && r.method == routeData.method;

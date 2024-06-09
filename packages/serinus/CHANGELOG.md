@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- Fix another bug in the normalization route of the Controllers (#22)
+
 ## 0.4.0
 
 - Add event-based response state (#14)
