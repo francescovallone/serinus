@@ -6,3 +6,4 @@ This is a list of plugins that are available for Serinus. If you would like to a
 
 - [Configuration](/plugins/configuration)
 - [Serve Static Files](/plugins/serve_static)
+- [Cors](/plugins/cors)

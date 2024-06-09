@@ -68,6 +68,7 @@ export default defineConfig({
             items: [
               { text: 'Configuration', link: 'configuration' },
               { text: 'Serve Static Files', link: 'serve_static' },
+              { text: 'Cors', link: 'cors' },
               { text: 'CRON [WIP]' },
               { text: 'Swagger [WIP]' }
             ],
