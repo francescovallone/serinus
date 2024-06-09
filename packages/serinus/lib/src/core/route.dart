@@ -66,5 +66,4 @@ class Route {
   factory Route.patch(String path) {
     return Route(path: path, method: HttpMethod.patch);
   }
-
 }
