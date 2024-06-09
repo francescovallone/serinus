@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import '../consumers/guards_consumer.dart';
-import '../consumers/pipes_consumer.dart';
 import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
+import '../contexts/request_context.dart';
 import '../core/core.dart';
 import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
@@ -34,13 +33,29 @@ class RequestHandler extends Handler {
   @override
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
-    Response? result;
+    final Request wrappedRequest = Request(request);
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
+      }
+      await hook.onRequest(wrappedRequest, response);
+    }
+    await wrappedRequest.parseBody();
+    final body = wrappedRequest.body!;
+    final bodySizeLimit = config.bodySizeLimit;
+    if (bodySizeLimit.isExceeded(body)) {
+      throw PayloadTooLargeException(
+          message: 'Request body size is too large',
+          uri: Uri.parse(request.path));
+    }
+    Response result;
     final routeLookup = router.getRouteByPathAndMethod(
         request.path.endsWith('/')
             ? request.path.substring(0, request.path.length - 1)
             : request.path,
         request.method.toHttpMethod());
     final routeData = routeLookup.route;
+    wrappedRequest.params = routeLookup.params;
     if (routeData == null) {
       throw NotFoundException(
           message:
@@ -63,54 +78,42 @@ class RequestHandler extends Handler {
     }
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
-    final wrappedRequest = Request(
-      request,
-      params: routeLookup.params,
-    );
-    await wrappedRequest.parseBody();
-    final body = wrappedRequest.body!;
-    final bodySizeLimit = config.bodySizeLimit;
-    if (bodySizeLimit.isExceeded(body)) {
-      throw PayloadTooLargeException(
-          message: 'Request body size is too large',
-          uri: Uri.parse(request.path));
+    RequestContext context =
+        buildRequestContext(scopedProviders, wrappedRequest);
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
+      }
+      await hook.beforeHandle(context);
     }
-    final context = buildRequestContext(scopedProviders, wrappedRequest, body);
+    await route.transform(context);
+    await route.parse(context);
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
-    ExecutionContext? executionContext;
     if (middlewares.isNotEmpty) {
       await handleMiddlewares(
         context,
-        wrappedRequest,
         response,
         middlewares,
       );
     }
-    if ([...route.guards, ...controller.guards, ...injectables.guards]
-        .isNotEmpty) {
-      executionContext = await handleGuards(
-          route.guards, controller.guards, injectables.guards, context);
+    await route.beforeHandle(context);
+    result = await handler.call(context);
+    await route.afterHandle(context);
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
+      }
+      await hook.afterHandle(context, result);
     }
-    if ([...route.pipes, ...controller.pipes, ...injectables.pipes]
-        .isNotEmpty) {
-      executionContext = await handlePipes(route.pipes, controller.pipes,
-          injectables.pipes, context, executionContext);
-    }
-    if (config.cors != null) {
-      result =
-          await config.cors?.call(request, wrappedRequest, context, handler);
-    } else {
-      result = await handler.call(context);
-    }
-    await response.finalize(result ?? Response.text(''),
-        viewEngine: config.viewEngine);
+    await response.finalize(result,
+        viewEngine: config.viewEngine, hooks: config.hooks);
   }
 
   /// Handles the middlewares
   ///
   /// If the completer is not completed, the request will be blocked until the completer is completed.
-  Future<void> handleMiddlewares(RequestContext context, Request request,
+  Future<void> handleMiddlewares(RequestContext context,
       InternalResponse response, Iterable<Middleware> middlewares) async {
     if (middlewares.isEmpty) {
       return;
@@ -125,39 +128,5 @@ class RequestHandler extends Handler {
       });
     }
     return completer.future;
-  }
-
-  /// Handles the guards
-  ///
-  /// Executes them and returns the [ExecutionContext] updated with the data from the guards.
-  Future<ExecutionContext> handleGuards(
-    Iterable<Guard> routeGuards,
-    Iterable<Guard> controllerGuards,
-    Iterable<Guard> globalGuards,
-    RequestContext context,
-  ) async {
-    final guardsConsumer = GuardsConsumer(context);
-    await guardsConsumer.consume(globalGuards);
-    await guardsConsumer.consume(controllerGuards);
-    await guardsConsumer.consume(routeGuards);
-    return guardsConsumer.context!;
-  }
-
-  /// Handles the pipes
-  ///
-  /// Executes them and returns the [ExecutionContext] updated with the data from the pipes.
-  Future<ExecutionContext> handlePipes(
-    Iterable<Pipe> routePipes,
-    Iterable<Pipe> controllerPipes,
-    Iterable<Pipe> globalPipes,
-    RequestContext requestContext,
-    ExecutionContext? executionContext,
-  ) async {
-    final pipesConsumer =
-        PipesConsumer(requestContext, context: executionContext);
-    await pipesConsumer.consume(globalPipes);
-    await pipesConsumer.consume(controllerPipes);
-    await pipesConsumer.consume(routePipes);
-    return pipesConsumer.context!;
   }
 }

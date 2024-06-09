@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0
+
+- Add event-based response state (#14)
+- Fix a bug in the normalization route of the Controllers when a leading slash is present (#22)
+- Add request lifecycle hooks to the application both global and local (#18)
+- Add Request Lifecycle documentation (#15)
+- The Route class is now concrete and has several factory constructors to simplify the creation of routes (#16)
+- The Response.file method now uses streams to send the file to the client (#17)
+
 ## 0.3.1
 
 - Update Spanner to 1.0.1+5

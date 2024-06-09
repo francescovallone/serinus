@@ -12,16 +12,16 @@ import 'internal_response.dart';
 
 class InternalRequest {
   /// The [path] property contains the path of the request
-  final String path;
+  String get path => uri.path;
 
   /// The [uri] property contains the uri of the request
-  final Uri uri;
+  Uri get uri => original.requestedUri;
 
   /// The [method] property contains the method of the request
-  final String method;
+  String get method => original.method;
 
   /// The [segments] property contains the segments of the request
-  final List<String> segments;
+  List<String> get segments => original.requestedUri.pathSegments;
 
   /// The [original] property contains the [HttpRequest] object from dart:io
   final HttpRequest original;
@@ -33,36 +33,27 @@ class InternalRequest {
   Uint8List? _bytes;
 
   /// The [queryParameters] property contains the query parameters of the request
-  final Map<String, String> queryParameters;
-
-  /// The base url of the server
-  final String baseUrl;
+  Map<String, String> get queryParameters =>
+      original.requestedUri.queryParameters;
 
   /// The [contentType] property contains the content type of the request
-  ContentType contentType;
+  ContentType get contentType =>
+      original.headers.contentType ?? ContentType('text', 'plain');
 
   /// The [webSocketKey] property contains the key of the web socket
   String webSocketKey = '';
 
+  /// The [clientInfo] property contains the connection info of the request
+  HttpConnectionInfo? get clientInfo => original.connectionInfo;
+
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
-  factory InternalRequest.from(HttpRequest request, {String baseUrl = ''}) {
+  factory InternalRequest.from(HttpRequest request) {
     Map<String, String> headers = {};
     request.headers.forEach((name, values) {
       headers[name] = values.join(';');
     });
     headers.remove(HttpHeaders.transferEncodingHeader);
-    final segments = Uri(path: request.requestedUri.path).pathSegments;
-    return InternalRequest(
-        path: request.requestedUri.path,
-        uri: request.requestedUri,
-        method: request.method,
-        segments: segments,
-        queryParameters: request.requestedUri.queryParameters,
-        headers: headers,
-        original: request,
-        contentType:
-            request.headers.contentType ?? ContentType('text', 'plain'),
-        baseUrl: baseUrl);
+    return InternalRequest(headers: headers, original: request);
   }
 
   /// The [ifModifiedSince] getter is used to get the if-modified-since header of the request
@@ -90,20 +81,13 @@ class InternalRequest {
 
   /// The [Request] constructor is used to create a new instance of the [Request] class
   InternalRequest({
-    required this.path,
-    required this.uri,
-    required this.method,
-    required this.segments,
-    required this.queryParameters,
     required this.headers,
-    required this.contentType,
     required this.original,
-    required this.baseUrl,
   });
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {
-    return InternalResponse(original.response, baseUrl: baseUrl);
+    return InternalResponse(original.response);
   }
 
   /// This method is used to get the body of the request as a [String]
@@ -113,12 +97,7 @@ class InternalRequest {
   /// String body = await request.body();
   /// ```
   Future<String> body() async {
-    final data = await bytes();
-    if (data.isEmpty) {
-      return '';
-    }
-    final en = encoding ?? utf8;
-    return en.decode(data);
+    return await (encoding ?? utf8).decoder.bind(original).join();
   }
 
   /// This method is used to get the body of the request as a [dynamic] json object
@@ -134,7 +113,6 @@ class InternalRequest {
     }
     try {
       dynamic jsonData = jsonDecode(data);
-      contentType = ContentType('application', 'json');
       return jsonData;
     } catch (e) {
       throw BadRequestException(message: 'The json body is malformed');
@@ -145,7 +123,8 @@ class InternalRequest {
   /// it is used internally by the [body], the [json] and the [stream] methods
   Future<Uint8List> bytes() async {
     try {
-      _bytes ??= await original.firstWhere((element) => element.isNotEmpty);
+      final data = await body();
+      _bytes ??= Uint8List.fromList((encoding ?? utf8).encode(data));
       return _bytes!;
     } catch (_) {
       return Uint8List(0);

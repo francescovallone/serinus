@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
 
+import '../core/hook.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../versioning.dart';
-import 'response.dart';
+import 'http.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
@@ -14,8 +16,16 @@ import 'response.dart';
 class InternalResponse {
   final HttpResponse _original;
 
+  final StreamController<ResponseEvent> _events =
+      StreamController<ResponseEvent>.broadcast();
+
   /// The base url of the server
   final String? baseUrl;
+
+  bool _isClosed = false;
+
+  /// This method is used to check if the response is closed.
+  bool get isClosed => _isClosed;
 
   /// The [InternalResponse] constructor is used to create a new instance of the [InternalResponse] class.
   InternalResponse(this._original, {this.baseUrl}) {
@@ -33,9 +43,24 @@ class InternalResponse {
   /// This method is used to send data to the response.
   ///
   /// After sending the data, the response will be closed.
-  Future<void> send(List<int> data) async {
+  Future<void> send([List<int> data = const []]) async {
     _original.add(data);
+    _events.add(ResponseEvent.data);
     _original.close();
+    _events.add(ResponseEvent.afterSend);
+    _events.add(ResponseEvent.close);
+  }
+
+  /// This method is used to send a stream of data to the response.
+  ///
+  /// After sending the stream, the response will be closed.
+  Future<void> sendStream(Stream<List<int>> stream) async {
+    await _original.addStream(stream);
+    _events.add(ResponseEvent.data);
+    _original.close();
+    _events.add(ResponseEvent.afterSend);
+    _events.add(ResponseEvent.close);
+    _isClosed = true;
   }
 
   /// This method is used to set the status code of the response.
@@ -55,9 +80,18 @@ class InternalResponse {
     });
   }
 
+  /// This method is used to listen to a response event.
+  void on(ResponseEvent event, Future<void> Function(ResponseEvent) listener) {
+    _events.stream.listen((ResponseEvent e) {
+      if (e == event || event == ResponseEvent.all) {
+        listener(e);
+      }
+    });
+  }
+
   /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
   Future<void> redirect(String path) async {
-    await _original.redirect(Uri.parse('$baseUrl$path'));
+    await _original.redirect(Uri.parse(path));
   }
 
   /// This method is used to finalize the response.
@@ -66,13 +100,19 @@ class InternalResponse {
   ///
   /// If the response is a view, it will render the view using the view engine.
   Future<void> finalize(Response result,
-      {ViewEngine? viewEngine, VersioningOptions? versioning}) async {
+      {ViewEngine? viewEngine,
+      VersioningOptions? versioning,
+      Set<Hook> hooks = const {}}) async {
+    _events.add(ResponseEvent.beforeSend);
     status(result.statusCode);
     if (result.shouldRedirect) {
+      _events.add(ResponseEvent.redirect);
+      _events.add(ResponseEvent.close);
       return redirect(result.data);
     }
     if ((result.data is View || result.data is ViewString) &&
         viewEngine == null) {
+      _events.add(ResponseEvent.error);
       throw StateError('ViewEngine is required to render views');
     }
     if (result.data is View || result.data is ViewString) {
@@ -80,6 +120,9 @@ class InternalResponse {
       final rendered = await (result.data is View
           ? viewEngine!.render(result.data)
           : viewEngine!.renderString(result.data));
+      for (final hook in hooks) {
+        await hook.onResponse(result);
+      }
       return send(utf8.encode(rendered));
     }
     headers(result.headers);
@@ -91,8 +134,16 @@ class InternalResponse {
     if (result.contentLength != null) {
       _original.headers.contentLength = result.contentLength!;
     }
-    var data = result.data;
-    var coding = _original.headers['transfer-encoding']?.join(';');
+    final data = result.data;
+    final coding = _original.headers['transfer-encoding']?.join(';');
+    if (data is File) {
+      for (final hook in hooks) {
+        await hook.onResponse(result);
+      }
+      final readPipe = data.openRead();
+      await sendStream(readPipe);
+      return;
+    }
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
       // If the response is already in a chunked encoding, de-chunk it because
       // otherwise `dart:io` will try to add another layer of chunking.
@@ -109,6 +160,10 @@ class InternalResponse {
     }
     if (!result.headers.containsKey(HttpHeaders.dateHeader)) {
       _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
+    }
+    _events.add(ResponseEvent.data);
+    for (final hook in hooks) {
+      await hook.onResponse(result);
     }
     return send(utf8.encode(data.toString()));
   }

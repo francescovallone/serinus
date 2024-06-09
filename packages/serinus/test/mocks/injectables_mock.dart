@@ -24,15 +24,6 @@ class TestProviderThree extends Provider {
   }
 }
 
-class TestGuard extends Guard {
-  TestGuard();
-
-  @override
-  Future<bool> canActivate(ExecutionContext context) async {
-    return true;
-  }
-}
-
 class TestMiddleware extends Middleware {
   TestMiddleware() : super(routes: ['*']);
 
@@ -41,11 +32,4 @@ class TestMiddleware extends Middleware {
       NextFunction next) async {
     return next();
   }
-}
-
-class TestPipe extends Pipe {
-  TestPipe();
-
-  @override
-  Future<void> transform(ExecutionContext context) async {}
 }

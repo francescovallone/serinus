@@ -3,7 +3,7 @@ import '../../../serinus.dart';
 /// The [WebSocketContext] class is used to create a WebSocket context.
 ///
 /// It contains the request, the WebSocket adapter, the ID of the context, the providers, and the serializer.
-class WebSocketContext {
+final class WebSocketContext {
   /// The [request] property contains the request of the context.
   final Request request;
 

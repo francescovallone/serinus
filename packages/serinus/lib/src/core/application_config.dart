@@ -9,6 +9,7 @@ import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../http/cors.dart';
 import '../versioning.dart';
+import 'hook.dart';
 
 /// The configuration for the application
 /// This is used to configure the application
@@ -119,6 +120,14 @@ final class ApplicationConfig {
 
   /// The ws adapter for the application
   WsAdapter? wsAdapter;
+
+  /// The hooks for the application
+  final Set<Hook> hooks = {};
+
+  /// Add a hook to the application
+  void addHook(Hook hook) {
+    hooks.add(hook);
+  }
 
   /// The application config constructor
   ApplicationConfig({

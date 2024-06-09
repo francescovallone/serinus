@@ -20,7 +20,7 @@ class Request {
   /// It accepts an [InternalRequest] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
-  Request(this._original, {this.params = const {}}) {
+  Request(this._original, {Map<String, dynamic> params = const {}}) {
     /// This loop is used to parse the query parameters of the request.
     /// It will try to parse the query parameters to the correct type.
     for (final entry in _original.queryParameters.entries) {
@@ -38,6 +38,12 @@ class Request {
           _queryParamters[entry.key] = entry.value;
       }
     }
+    this.params = params;
+  }
+
+  /// This method is used to set the parameters of the request.
+  set params(Map<String, dynamic> params) {
+    this.params.addAll(params);
   }
 
   final Map<String, dynamic> _queryParamters = {};
@@ -57,8 +63,14 @@ class Request {
   /// The session of the request.
   Session get session => Session(_original.original.session);
 
+  /// The client of the request.
+  HttpConnectionInfo? get clientInfo => _original.clientInfo;
+
   /// The params of the request.
-  final Map<String, dynamic> params;
+  Map<String, dynamic> get params => _params;
+
+  /// The params of the request.
+  final Map<String, dynamic> _params = {};
 
   final Map<String, dynamic> _data = {};
 
@@ -69,11 +81,10 @@ class Request {
   ///
   /// It will try to parse the body of the request to the correct type.
   Future<void> parseBody() async {
+    /// If the body is already parsed, it will return.
     if (body != null) {
       return;
     }
-
-    /// If the body is already parsed, it will return.
     final contentType = _original.contentType;
 
     /// If the content type is multipart, it will parse the body as a multipart form data.
@@ -121,14 +132,14 @@ class Request {
 
   /// This method is used to add data to the request.
   ///
-  /// Helper function to pass information between [Pipe]s, [Guard]s, [Middleware]s and [Route]s.
+  /// Helper function to pass information between [Hook]s and [Route]s.
   void addData(String key, dynamic value) {
     _data[key] = value;
   }
 
   /// This method is used to get data from the request.
   ///
-  /// Helper function to pass information between [Pipe]s, [Guard]s, [Middleware]s and [Route]s.
+  /// Helper function to pass information between [Hook]s and [Route]s.
   dynamic getData(String key) {
     return _data[key];
   }

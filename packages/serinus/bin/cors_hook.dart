@@ -1,19 +1,9 @@
-import 'dart:typed_data';
+import 'package:serinus/serinus.dart';
 
-import '../contexts/contexts.dart';
-import '../core/core.dart';
-import 'internal_request.dart';
-import 'request.dart';
-import 'response.dart';
-
-/// The class [Cors] is used to handle the CORS requests.
-class Cors {
-  /// The list of allowed origins.
+class CorsHook extends Hook {
   final List<String> allowedOrigins;
 
-  /// The [Cors] constructor is used to create a [Cors] object.
-  Cors({this.allowedOrigins = const ['*']}) {
-    /// The default headers for the CORS requests.
+  CorsHook({this.allowedOrigins = const ['*']}) {
     _defaultHeaders = {
       'Access-Control-Expose-Headers': '',
       'Access-Control-Allow-Credentials': 'true',
@@ -52,20 +42,15 @@ class Cors {
   /// The response headers.
   Map<String, String> responseHeaders = {};
 
-  /// The class behaves as a callable class.
-  Future<Response?> call(
-    InternalRequest request,
-    Request wrappedRequest,
-    RequestContext? context,
-    ReqResHandler? handler,
-  ) async {
+  @override
+  Future<void> beforeHandle(RequestContext context) async {
     /// Get the origin from the request headers.
-    final origin = request.headers['origin'];
+    final origin = context.headers['origin'];
 
     /// Check if the origin is allowed.
-    if (origin == null ||
-        (!allowedOrigins.contains('*') && !allowedOrigins.contains(origin))) {
-      return handler!(context!);
+    if ((origin == null ||
+        (!allowedOrigins.contains('*') && !allowedOrigins.contains(origin)))) {
+      return;
     }
 
     /// Set the response headers.
@@ -83,24 +68,28 @@ class Cors {
       ...stringHeaders,
     };
 
-    /// Check if the request method is OPTIONS.
-    if (request.method == 'OPTIONS') {
-      /// If the request method is OPTIONS, return a response with status 200.
-      request.response.headers(stringHeaders);
-      await request.response
-          .finalize(Response.bytes(Uint8List(0), statusCode: 200));
-      return null;
-    }
+    return;
+  }
 
-    /// Call the handler.
-    final response = await handler!(context!);
-
+  @override
+  Future<void> afterHandle(RequestContext context, Response response) async {
     /// Add the headers to the response.
-    response.addHeaders({
-      ...stringHeaders,
-    });
+    response.addHeaders(responseHeaders);
+  }
 
-    /// Return the response.
-    return response;
+  @override
+  Future<void> onRequest(Request request, InternalResponse response) async {
+    if (request.method == 'OPTIONS') {
+      response.headers({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400',
+      });
+      response.status(200);
+      await response.send();
+      return;
+    }
+    return;
   }
 }
