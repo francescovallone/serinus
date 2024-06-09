@@ -36,15 +36,14 @@ export default defineConfig({
             base: '/overview/',
             collapsed: false,
             items: [
-              { text: 'Getting Started', link: '/overview/getting_started' },
-              { text: 'Modules', link: '/overview/modules' },
-              { text: 'Controllers', link: '/overview/controllers' },
-              { text: 'Routes', link: '/overview/routes' },
-              { text: 'Providers', link: '/overview/providers' },
-              { text: 'Middlewares', link: '/overview/middlewares' },
-              { text: 'Guards', link: '/overview/guards' },
-              { text: 'WebSockets', link: '/overview/websockets' },
-              { text: 'Hooks', link: '/overview/hooks' },
+              { text: 'Getting Started', link: 'getting_started' },
+              { text: 'Modules', link: 'modules' },
+              { text: 'Controllers', link: 'controllers' },
+              { text: 'Routes', link: 'routes' },
+              { text: 'Providers', link: 'providers' },
+              { text: 'Middlewares', link: 'middlewares' },
+              { text: 'WebSockets', link: 'websockets' },
+              { text: 'Hooks', link: 'hooks' },
             ]
           },
           {

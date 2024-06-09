@@ -113,33 +113,6 @@ class GetRoute extends Route {
 
 :::
 
-## Adding Guards
-
-To add guards to a route, you can override the `guards` getter and add to the list the guards that you need.
-
-::: info
-Guards defined in a route will be executed after the guards defined in the controller.
-:::
-
-::: code-group
-
-```dart [my_routes.dart]
-import 'package:serinus/serinus.dart';
-import 'my_guards.dart';
-
-class GetRoute extends Route {
-
-  const GetRoute({
-    required super.path, 
-    super.method = HttpMethod.get,
-  });
-
-  @override
-  List<Guard> get guards => [MyGuard()];
-
-}
-```
-
 ```dart [my_guards.dart]
 import 'package:serinus/serinus.dart';
 
