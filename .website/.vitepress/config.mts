@@ -73,6 +73,16 @@ export default defineConfig({
               { text: 'Swagger [WIP]' }
             ],
             link: '/'
+          },
+          {
+            text: 'Deployment',
+            base: '/deployment/',
+            collapsed: true,
+            items: [
+              { text: 'Docker', link: 'docker' },
+              { text: 'Globe', link: 'globe' },
+              { text: 'VPS', link: 'vps' },
+            ],
           }
         ]
       },
