@@ -51,13 +51,12 @@ To add a hook to your application, you can use the `use` method on the `SerinusA
 ```dart
 import 'package:serinus/serinus.dart';
 
-void main() {
-  final app = SerinusApplication();
-
-  app.use(MyHook());
-
-  await app.serve();
-
+void main(List<String> arguments) async {
+  SerinusApplication application = await serinus.createApplication(
+    entrypoint: AppModule()
+  );
+  application.use(MyHook());
+  await application.serve();
 }
 ```
 
