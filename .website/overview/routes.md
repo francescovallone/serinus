@@ -113,20 +113,6 @@ class GetRoute extends Route {
 
 :::
 
-```dart [my_guards.dart]
-import 'package:serinus/serinus.dart';
-
-class MyGuard extends Guard {
-  @override
-  Future<bool> canActivate(ExecutionContext context){
-    print('Guard executed');
-    return Future.value(true);
-  }
-}
-```
-
-:::
-
 ## Transform the RequestContext
 
 You can transform the `RequestContext` before it reaches the route handler by overriding the `transform` method.
@@ -171,3 +157,30 @@ class GetRoute extends Route {
 ::: info
 If you need an amazing validation library you can try [Acanthis](https://pub.dev/packages/acanthis). 🐤
 :::
+
+## Manage what happens before and after the route
+
+You can manage what happens before and after the route is executed by overriding the `beforeHandle` and `afterHandle` methods.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class GetRoute extends Route {
+    const GetRoute({
+        required super.path, 
+        super.method = HttpMethod.get,
+    });
+
+    @override
+    Future<void> beforeHandle(RequestContext context) async {
+      // Do something before the route is executed
+    }
+
+    @override
+    Future<void> afterHandle(RequestContext context, Response response) async {
+      // Do something after the route is executed
+    }
+}
+```
+
+These two methods are actually local hooks. You can check when they will be executed in the [Request Lifecycle](../request_lifecycle) section.
