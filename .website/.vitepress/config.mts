@@ -68,11 +68,21 @@ export default defineConfig({
             items: [
               { text: 'Configuration', link: 'configuration' },
               { text: 'Serve Static Files', link: 'serve_static' },
-              { text: 'Cors', link: 'cors' },
-              { text: 'CRON [WIP]' },
+              { text: 'CORS', link: 'cors' },
+              { text: 'Cron [WIP]' },
               { text: 'Swagger [WIP]' }
             ],
             link: '/'
+          },
+          {
+            text: 'Deployment',
+            base: '/deployment/',
+            collapsed: true,
+            items: [
+              { text: 'Docker', link: 'docker' },
+              { text: 'Globe', link: 'globe' },
+              { text: 'VPS', link: 'vps' },
+            ],
           }
         ]
       },
