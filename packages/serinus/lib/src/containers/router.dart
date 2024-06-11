@@ -52,6 +52,8 @@ final class Router {
 
 /// The [RouteData] class is used to create a route data object.
 class RouteData {
+  /// The [id] property contains the id of the route.
+  final String id;
   /// The [path] property contains the path of the route.
   final String path;
 
@@ -72,6 +74,7 @@ class RouteData {
 
   /// The [RouteData] constructor is used to create a new instance of the [RouteData] class.
   RouteData({
+    required this.id,
     required this.path,
     required this.method,
     required this.controller,

@@ -71,21 +71,11 @@ class RequestHandler extends Handler {
           message: 'Route spec not found for route ${routeData.path}');
     }
     final route = routeSpec.route;
-    final handler = controller.routes[routeSpec];
-    if (handler == null) {
-      throw InternalServerErrorException(
-          message: 'Route handler not found for route ${routeData.path}');
-    }
+    final handler = routeSpec.handler;
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest);
-    for (final hook in config.hooks) {
-      if (response.isClosed) {
-        return;
-      }
-      await hook.beforeHandle(context);
-    }
     await route.transform(context);
     await route.parse(context);
     final middlewares = injectables.filterMiddlewaresByRoute(
@@ -96,6 +86,12 @@ class RequestHandler extends Handler {
         response,
         middlewares,
       );
+    }
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
+      }
+      await hook.beforeHandle(context);
     }
     await route.beforeHandle(context);
     result = await handler.call(context);

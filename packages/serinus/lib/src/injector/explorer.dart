@@ -47,12 +47,20 @@ final class Explorer {
     final logger = Logger('RoutesExplorer');
     final routes = controller.routes;
     final maybeUriVers = config.versioningOptions?.type == VersioningType.uri;
-    for (var spec in routes.keys) {
-      String routePath = normalizePath(
-          '${config.globalPrefix != null ? '${config.globalPrefix?.prefix}/' : ''}${maybeUriVers ? 'v${spec.route.version ?? config.versioningOptions?.version}/' : ''}$controllerPath${spec.path}');
-      final routeMethod = spec.method;
+    for (var entry in routes.entries) {
+      final spec = entry.value;
+      String routePath = '$controllerPath${spec.route.path}';
+      if(maybeUriVers){
+        routePath = 'v${spec.route.version ?? config.versioningOptions?.version}/$routePath';
+      }
+      if(config.globalPrefix != null) {
+        routePath = '${config.globalPrefix?.prefix}/$routePath';
+      }
+      routePath = normalizePath(routePath);
+      final routeMethod = spec.route.method;
       _router.registerRoute(
         RouteData(
+            id: entry.key,
             path: routePath,
             controller: controller,
             routeCls: spec.route.runtimeType,

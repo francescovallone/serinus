@@ -178,9 +178,10 @@ void main() async {
       expect(middleware.hasBeenCalled, true);
     });
     test(
-        '''when a non-existent route is called, then it should return a 404 status code''',
+        '''when a non-existent route in the controllers is called, then it should return a 500 status code''',
         () async {
       app?.router.registerRoute(RouteData(
+          id: 'id',
           path: 'path-error',
           method: HttpMethod.get,
           controller: controller,
