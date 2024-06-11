@@ -41,13 +41,6 @@ class RequestHandler extends Handler {
       await hook.onRequest(wrappedRequest, response);
     }
     await wrappedRequest.parseBody();
-    final body = wrappedRequest.body!;
-    final bodySizeLimit = config.bodySizeLimit;
-    if (bodySizeLimit.isExceeded(body)) {
-      throw PayloadTooLargeException(
-          message: 'Request body size is too large',
-          uri: Uri.parse(request.path));
-    }
     Response result;
     final routeLookup = router.getRouteByPathAndMethod(
         request.path.endsWith('/')

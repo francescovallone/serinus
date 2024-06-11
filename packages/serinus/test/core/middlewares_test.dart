@@ -50,7 +50,6 @@ void main() {
           entrypoint: TestModule(controllers: [TestController()]),
           port: 3003,
           loggingLevel: LogLevel.none);
-      app?.enableCors(Cors());
       await app?.serve();
     });
     tearDownAll(() async {

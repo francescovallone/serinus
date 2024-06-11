@@ -77,6 +77,9 @@ class Request {
   /// The body of the request.
   Body? body;
 
+  /// The content type of the request.
+  int get contentLength => _original.contentLength > -1 ? _original.contentLength : body?.length ?? 0;
+
   /// This method is used to parse the body of the request.
   ///
   /// It will try to parse the body of the request to the correct type.

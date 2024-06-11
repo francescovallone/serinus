@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/serinus_http_server.dart';
-import '../body_size_limit.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -106,11 +105,6 @@ class SerinusApplication extends Application {
   @override
   String get url => config.baseUrl;
 
-  /// The [enableCors] method is used to enable CORS in the application.
-  void enableCors(Cors cors) {
-    config.cors = cors;
-  }
-
   /// The [useViewEngine] method is used to set the view engine of the application.
   void useViewEngine(ViewEngine viewEngine) {
     config.viewEngine = viewEngine;
@@ -121,11 +115,6 @@ class SerinusApplication extends Application {
       {required VersioningType type, int version = 1, String? header}) {
     config.versioningOptions =
         VersioningOptions(type: type, version: version, header: header);
-  }
-
-  /// The [changeBodySizeLimit] method is used to change the body size limit of the application.
-  void changeBodySizeLimit(BodySizeLimit value) {
-    config.bodySizeLimit = value;
   }
 
   /// The [setGlobalPrefix] method is used to set the global prefix of the application.

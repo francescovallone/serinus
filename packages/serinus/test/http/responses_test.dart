@@ -76,7 +76,6 @@ void main() async {
           entrypoint:
               TestModule(controllers: [controller], middlewares: [middleware]),
           loggingLevel: LogLevel.none);
-      app?.enableCors(Cors());
       await app?.serve();
     });
     tearDownAll(() async {

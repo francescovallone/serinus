@@ -209,13 +209,5 @@ void main(List<String> arguments) async {
   SerinusApplication application = await serinus.createApplication(
       entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
-  // application.enableVersioning(
-  //   type: VersioningType.uri,
-  //   version: 1
-  // );
-  // application.use(CorsHook());
-  //application.use(BearerHook());
-  application.changeBodySizeLimit(
-      BodySizeLimit.change(text: 10, size: BodySizeValue.b));
   await application.serve();
 }
