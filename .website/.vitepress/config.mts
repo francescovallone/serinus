@@ -69,6 +69,7 @@ export default defineConfig({
               { text: 'Configuration', link: 'configuration' },
               { text: 'Serve Static Files', link: 'serve_static' },
               { text: 'CORS', link: 'cors' },
+              { text: 'Rate Limiter', link: 'rate_limiter' },
               { text: 'Cron [WIP]' },
               { text: 'Swagger [WIP]' }
             ],
