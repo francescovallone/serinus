@@ -3,6 +3,7 @@ import '../http/http.dart';
 
 /// The [RequestContext] class is used to create the request context.
 final class RequestContext {
+  
   /// The [providers] property contains the providers of the request context.
   final Map<Type, Provider> providers;
 
@@ -28,8 +29,8 @@ final class RequestContext {
     return request.getData(key);
   }
 
-  /// The [pathParameters] property contains the path parameters of the request.
-  Map<String, dynamic> get pathParameters => request.params;
+  /// The [params] property contains the path parameters of the request.
+  Map<String, dynamic> get params => request.params;
 
   /// The [queryParameters] property contains the query parameters of the request.
   Map<String, dynamic> get queryParameters => request.queryParameters;

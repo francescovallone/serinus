@@ -102,7 +102,7 @@ class HomeController extends Controller {
     });
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
-          '${context.request.getData('test')} ${context.pathParameters}');
+          '${context.request.getData('test')} ${context.params}');
     });
     on(Route.get('/test'), (context) async {
       return Response.text('Hello world from test');
@@ -120,7 +120,7 @@ class HomeAController extends Controller {
 
   Future<Response> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
-    return Response.text('Hello world from a ${context.pathParameters}');
+    return Response.text('Hello world from a ${context.params}');
   }
 }
 
