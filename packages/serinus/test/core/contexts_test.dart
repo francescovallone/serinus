@@ -21,7 +21,7 @@ void main() async {
       final context = ApplicationContext({}, 'test');
       final provider = TestProvider();
 
-      context.addProviderToContext(provider);
+      context.add(provider);
 
       expect(context.use<TestProvider>(), provider);
     });

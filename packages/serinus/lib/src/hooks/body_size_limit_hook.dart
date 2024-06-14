@@ -7,7 +7,7 @@ class BodySizeLimitHook extends Hook {
   final int maxSize;
 
   /// The [BodySizeLimitHook] constructor is used to create a new instance of the [BodySizeLimitHook] class.
-  BodySizeLimitHook(this.maxSize);
+  const BodySizeLimitHook({this.maxSize = 1024 * 1024});
 
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {

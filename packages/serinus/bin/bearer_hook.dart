@@ -1,16 +1,34 @@
 import 'package:serinus/serinus.dart';
 
 class BearerHook extends Hook {
-  const BearerHook();
+  
+  final String header;
+  
+  final String body;
+
+  final String query;
+
+  const BearerHook({
+    this.header = 'Bearer',
+    this.body = 'access_token',
+    this.query = 'access_token',
+  });
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
-    String? authValue = context.headers['authorization'];
-    authValue = authValue?.toLowerCase();
-    if (authValue == null || !authValue.contains('bearer')) {
-      throw UnauthorizedException();
+  Future<void> onRequest(Request request, InternalResponse response) async {
+    final String? authValue = request.headers['authorization'];
+    if(request.body == null){
+      await request.parseBody();
     }
-    final String token = authValue.split('bearer ')[1];
-    context.add('token', token);
+    if(authValue?.startsWith(header) ?? false){
+      request['bearer'] = authValue!.substring(header.length + 1);
+    }
+    if(request.query.containsKey('access_token')){
+      request['bearer'] = request.query['access_token'];
+    }
+    if(request.body?.containsKey('access_token') ?? false){
+      request['bearer'] = request.body?['access_token'];
+    }
+    return;
   }
 }

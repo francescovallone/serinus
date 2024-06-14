@@ -133,7 +133,7 @@ class TestWsProvider extends WebSocketGateway
     if (message == 'broadcast') {
       context.send('Hello from server', broadcast: true);
     }
-    print(context.queryParameters);
+    print(context.query);
     context.send('Message received: $message');
     print('Message received: $message');
   }

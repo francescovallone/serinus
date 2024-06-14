@@ -88,7 +88,7 @@ class RequestHandler extends Handler {
     }
     await route.beforeHandle(context);
     result = await handler.call(context);
-    await route.afterHandle(context);
+    await route.afterHandle(context, result);
     for (final hook in config.hooks) {
       if (response.isClosed) {
         return;

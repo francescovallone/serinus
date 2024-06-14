@@ -164,10 +164,10 @@ class InternalResponse {
     if (!result.headers.containsKey(HttpHeaders.dateHeader)) {
       _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
     }
-    _events.add(ResponseEvent.data);
     for (final hook in hooks) {
       await hook.onResponse(result);
     }
+    headers(result.headers);
     return send(utf8.encode(data.toString()));
   }
 }

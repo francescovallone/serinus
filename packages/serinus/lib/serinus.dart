@@ -8,6 +8,7 @@ export 'src/enums/enums.dart';
 export 'src/errors/initialization_error.dart';
 export 'src/exceptions/exceptions.dart';
 export 'src/global_prefix.dart';
+export 'src/hooks/body_size_limit_hook.dart';
 export 'src/http/http.dart';
 export 'src/mixins/mixins.dart';
 export 'src/versioning.dart';

@@ -58,7 +58,7 @@ class Request {
   Map<String, dynamic> get headers => _original.headers;
 
   /// The query parameters of the request.
-  Map<String, dynamic> get queryParameters => _queryParamters;
+  Map<String, dynamic> get query => _queryParamters;
 
   /// The session of the request.
   Session get session => Session(_original.original.session);
@@ -73,6 +73,14 @@ class Request {
   final Map<String, dynamic> _params = {};
 
   final Map<String, dynamic> _data = {};
+
+  /// The operator [] is used to get data from the request.
+  dynamic operator [](String key) => _data[key];
+
+  /// The operator []= is used to set data to the request.
+  void operator []=(String key, dynamic value) {
+    _data[key] = value;
+  }
 
   /// The body of the request.
   Body? body;

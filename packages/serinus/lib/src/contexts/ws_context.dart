@@ -17,13 +17,13 @@ final class WebSocketContext {
   final MessageSerializer? _serializer;
 
   /// The [queryParamters] property contains the query parameters of the request.
-  Map<String, dynamic> get queryParameters => request.queryParameters;
+  Map<String, dynamic> get query => request.query;
 
   /// The [headers] property contains the headers of the request.
   Map<String, dynamic> get headers => request.headers;
 
   /// The constructor of the [WebSocketContext] class.
-  WebSocketContext(this._wsAdapter, this.id, this._providers, this.request,
+  const WebSocketContext(this._wsAdapter, this.id, this._providers, this.request,
       this._serializer);
 
   /// This method is used to send data to the client.

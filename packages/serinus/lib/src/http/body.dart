@@ -55,4 +55,11 @@ class Body {
     }
     return text?.length ?? bytes?.length ?? formData?.length ?? 0;
   }
+
+  /// This method is used to get the content of the json body.
+  dynamic operator [](String key) => json?[key];
+
+  /// This method is used to set the content of the json body.
+  bool containsKey(String key) => json?.containsKey(key) ?? false;
+
 }

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/hooks/body_size_limit_hook.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
@@ -40,7 +39,7 @@ void main() {
           port: 3010,
           entrypoint: TestModule(controllers: [controller]),
           loggingLevel: LogLevel.none);
-      app?.use(BodySizeLimitHook(5));
+      app?.use(BodySizeLimitHook(maxSize: 5));
       await app?.serve();
     });
     tearDownAll(() async {
