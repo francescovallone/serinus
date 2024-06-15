@@ -46,6 +46,10 @@ final class Router {
         return HTTPMethod.DELETE;
       case HttpMethod.patch:
         return HTTPMethod.PATCH;
+      case HttpMethod.head:
+        return HTTPMethod.HEAD;
+      case HttpMethod.options:
+        return HTTPMethod.OPTIONS;
     }
   }
 }
