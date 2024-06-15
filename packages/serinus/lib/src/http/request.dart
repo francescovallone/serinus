@@ -1,12 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
 
 import '../extensions/content_type_extensions.dart';
 import '../extensions/string_extensions.dart';
-import 'body.dart';
-import 'form_data.dart';
+import 'http.dart';
 import 'internal_request.dart';
-import 'session.dart';
 
 /// The class [Request] is used to create a request object.
 ///
@@ -122,8 +119,8 @@ class Request {
 
     /// If the content type is json, it will parse the body as a json object.
     final parsedJson = parsedBody.tryParse();
-    if (parsedJson != null || contentType == ContentType.json) {
-      final json = parsedJson ?? jsonDecode(parsedBody);
+    if (parsedJson != null && contentType == ContentType.json) {
+      final json = parsedJson;
       body = Body(contentType, json: json);
       return;
     }
