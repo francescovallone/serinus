@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import '../../serinus.dart';
 import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
 import '../contexts/request_context.dart';
+import '../core/controller.dart';
 import '../core/core.dart';
 import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
@@ -27,58 +29,33 @@ class RequestHandler extends Handler {
   ///
   /// 1. Incoming request
   /// 2. [Middleware] execution
-  /// 3. [Guard] execution
   /// 4. [Route] handler execution
   /// 5. Outgoing response
   @override
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
-    final Request wrappedRequest = Request(request);
-    for (final hook in config.hooks) {
-      if (response.isClosed) {
-        return;
-      }
-      await hook.onRequest(wrappedRequest, response);
+    for(final tracer in config.tracers){
+      tracer.startTracing();
     }
+    final Request wrappedRequest = Request(request);
+    await onRequest(wrappedRequest, response);
     await wrappedRequest.parseBody();
     Response result;
-    final routeLookup = router.getRouteByPathAndMethod(
-        request.path.endsWith('/')
-            ? request.path.substring(0, request.path.length - 1)
-            : request.path,
-        request.method.toHttpMethod());
-    final routeData = routeLookup.route;
-    wrappedRequest.params = routeLookup.params;
-    if (routeData == null) {
-      throw NotFoundException(
-          message:
-              'No route found for path ${request.path} and method ${request.method}');
-    }
-    final injectables =
-        modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
-    final controller = routeData.controller;
-    final routeSpec =
-        controller.get(routeData, config.versioningOptions?.version);
-    if (routeSpec == null) {
-      throw InternalServerErrorException(
-          message: 'Route spec not found for route ${routeData.path}');
-    }
-    final route = routeSpec.route;
-    final handler = routeSpec.handler;
-    final scopedProviders = (injectables.providers
-        .addAllIfAbsent(modulesContainer.globalProviders));
-    RequestContext context =
-        buildRequestContext(scopedProviders, wrappedRequest);
-    await route.transform(context);
-    await route.parse(context);
-    final middlewares = injectables.filterMiddlewaresByRoute(
-        routeData.path, wrappedRequest.params);
+    final specifications = getRoute(wrappedRequest);
+    final context = specifications.context;
+    final route = specifications.route;
+    final handler = specifications.handler;
+    final middlewares = specifications.middlewares;
+    await onTransformAndParse(context, route);
     if (middlewares.isNotEmpty) {
       await handleMiddlewares(
         context,
         response,
         middlewares,
       );
+      for(final tracer in config.tracers){
+        tracer.onMiddlewares(context);
+      }
     }
     for (final hook in config.hooks) {
       if (response.isClosed) {
@@ -87,7 +64,13 @@ class RequestHandler extends Handler {
       await hook.beforeHandle(context);
     }
     await route.beforeHandle(context);
+    for(final tracer in config.tracers){
+      tracer.onBeforeHandle(context);
+    }
     result = await handler.call(context);
+    for(final tracer in config.tracers){
+      tracer.onHandle(context);
+    }
     await route.afterHandle(context, result);
     for (final hook in config.hooks) {
       if (response.isClosed) {
@@ -95,8 +78,11 @@ class RequestHandler extends Handler {
       }
       await hook.afterHandle(context, result);
     }
+    for(final tracer in config.tracers){
+      tracer.onAfterHandle(context);
+    }
     await response.finalize(result,
-        viewEngine: config.viewEngine, hooks: config.hooks);
+        viewEngine: config.viewEngine, hooks: config.hooks, tracers: config.tracers);
   }
 
   /// Handles the middlewares
@@ -118,4 +104,73 @@ class RequestHandler extends Handler {
     }
     return completer.future;
   }
+
+  Future<void> onRequest(Request request, InternalResponse response) async {
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
+      }
+      await hook.onRequest(request, response);
+    }
+    for (final tracer in config.tracers){
+      tracer.onRequest(request);
+    }
+  }
+
+  /// Transforms and parses the request
+  Future<void> onTransformAndParse(RequestContext context, Route route) async {
+    await route.transform(context);
+    for (final tracer in config.tracers){
+      tracer.onTranform(context);
+    }
+    await route.parse(context);
+    for (final tracer in config.tracers){
+      tracer.onParse(context);
+    }
+  }
+
+  /// Gets the route data from the [Router] and the controller from the [ModulesContainer]
+  ({
+    RequestContext context,
+    Route route,
+    ReqResHandler handler,
+    Iterable<Middleware> middlewares,
+  }) getRoute(Request request) {
+    final routeLookup = router.getRouteByPathAndMethod(
+        request.path.endsWith('/')
+            ? request.path.substring(0, request.path.length - 1)
+            : request.path,
+        request.method.toHttpMethod());
+    final routeData = routeLookup.route;
+    request.params = routeLookup.params;
+    if (routeData == null) {
+      throw NotFoundException(
+          message:
+              'No route found for path ${request.path} and method ${request.method}');
+    }
+    final injectables =
+        modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
+    final controller = routeData.controller;
+    final routeSpec =
+        controller.get(routeData, config.versioningOptions?.version);
+    if (routeSpec == null) {
+      throw InternalServerErrorException(
+          message: 'Route spec not found for route ${routeData.path}');
+    }
+    final route = routeSpec.route;
+    final handler = routeSpec.handler;
+    final scopedProviders = (injectables.providers
+        .addAllIfAbsent(modulesContainer.globalProviders));
+    RequestContext context =
+        buildRequestContext(scopedProviders, request);
+
+    return (
+      context: context,
+      route: route,
+      handler: handler,
+      middlewares: injectables.filterMiddlewaresByRoute(
+        routeData.path, request.params)
+    );
+  }
+
 }

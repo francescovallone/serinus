@@ -7,4 +7,5 @@ export 'middleware.dart';
 export 'module.dart';
 export 'provider.dart';
 export 'route.dart';
+export 'tracer.dart';
 export 'websockets/websockets.dart';

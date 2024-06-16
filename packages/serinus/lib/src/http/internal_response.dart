@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 
 import '../core/hook.dart';
+import '../core/tracer.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../versioning.dart';
@@ -105,7 +106,7 @@ class InternalResponse {
   Future<void> finalize(Response result,
       {ViewEngine? viewEngine,
       VersioningOptions? versioning,
-      Set<Hook> hooks = const {}}) async {
+      Set<Hook> hooks = const {}, Set<Tracer> tracers = const {}}) async {
     _events.add(ResponseEvent.beforeSend);
     status(result.statusCode);
     if (result.shouldRedirect) {
@@ -126,6 +127,10 @@ class InternalResponse {
       for (final hook in hooks) {
         await hook.onResponse(result);
       }
+      for(final tracer in tracers){
+        tracer.onResponse(result);
+      }
+      headers(result.headers);
       return send(utf8.encode(rendered));
     }
     headers(result.headers);
@@ -143,6 +148,10 @@ class InternalResponse {
       for (final hook in hooks) {
         await hook.onResponse(result);
       }
+      for(final tracer in tracers){
+        tracer.onResponse(result);
+      }
+      headers(result.headers);
       final readPipe = data.openRead();
       await sendStream(readPipe);
       return;
@@ -166,6 +175,9 @@ class InternalResponse {
     }
     for (final hook in hooks) {
       await hook.onResponse(result);
+    }
+    for(final tracer in tracers){
+      tracer.onResponse(result);
     }
     headers(result.headers);
     return send(utf8.encode(data.toString()));

@@ -17,14 +17,14 @@ class BearerHook extends Hook {
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {
     final String? authValue = request.headers['authorization'];
-    if(request.body == null){
-      await request.parseBody();
-    }
     if(authValue?.startsWith(header) ?? false){
       request['bearer'] = authValue!.substring(header.length + 1);
     }
     if(request.query.containsKey('access_token')){
       request['bearer'] = request.query['access_token'];
+    }
+    if(request.body == null){
+      await request.parseBody();
     }
     if(request.body?.containsKey('access_token') ?? false){
       request['bearer'] = request.body?['access_token'];

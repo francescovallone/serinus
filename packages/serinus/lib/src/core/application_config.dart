@@ -8,6 +8,7 @@ import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../versioning.dart';
 import 'hook.dart';
+import 'tracer.dart';
 
 /// The configuration for the application
 /// This is used to configure the application
@@ -101,6 +102,9 @@ final class ApplicationConfig {
 
   /// The hooks for the application
   final Set<Hook> hooks = {};
+
+  /// The tracer for the application
+  final Set<Tracer> tracers = {};
 
   /// Add a hook to the application
   void addHook(Hook hook) {

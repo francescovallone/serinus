@@ -189,4 +189,9 @@ class SerinusApplication extends Application {
     config.addHook(hook);
     _logger.info('Hook ${hook.runtimeType} added to application');
   }
+
+  void trace(Tracer tracer) {
+    config.tracers.add(tracer);
+    _logger.info('Tracer ${tracer.name}(${tracer.runtimeType}) added to application');
+  }
 }
