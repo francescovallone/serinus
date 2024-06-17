@@ -1,5 +1,5 @@
 <script setup>
-const max = 6738;
+const max = 6831;
 const scale = (value) => (value / max) * 100
 const scaleStyle = (value) =>
     `width: ${((value / max) * 100).toFixed(2)}%`
@@ -8,9 +8,9 @@ const scalePadding = (value) =>
 const format = new Intl.NumberFormat().format
 const graphs = [
     {
-		title: 'Vania',
-		lang: 'Dart',
-		value: 6685
+		title: 'Express',
+		lang: 'Node',
+		value: 6799
 	},
 	{
 		title: 'Nest',
