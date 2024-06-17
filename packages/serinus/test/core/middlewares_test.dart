@@ -1,6 +1,5 @@
 import 'package:http/http.dart' as http;
 import 'package:serinus/serinus.dart';
-import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
@@ -29,8 +28,7 @@ class TestController extends Controller {
 final shelfMiddleware = Middleware.shelf((handler) {
   return (request) {
     return Future.sync(() => handler(request)).then((response) {
-      final res = response as shelf.Response;
-      return res.change(headers: {'x-shelf-middleware': 'ok!'});
+      return response.change(headers: {'x-shelf-middleware': 'ok!'});
     });
   };
 });
