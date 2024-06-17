@@ -1,6 +1,8 @@
+// ignore_for_file: avoid_print
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 class TestMiddleware extends Middleware {
   int counter = 0;
@@ -186,7 +188,8 @@ class AppModule extends Module {
           TestWs2Provider()
         ], middlewares: [
           // TestMiddleware(),
-          // Test2Middleware()
+          // Test2Middleware(),
+          Middleware.shelf(shelf.logRequests())
         ]);
 }
 
@@ -201,7 +204,7 @@ class ReAppModule extends Module {
             return TestProviderTwo(prov);
           })
         ], middlewares: [], exports: [
-          TestProviderTwo
+          TestProviderTwo,
         ]);
 }
 

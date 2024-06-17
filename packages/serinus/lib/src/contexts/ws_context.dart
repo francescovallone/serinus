@@ -23,8 +23,8 @@ final class WebSocketContext {
   Map<String, dynamic> get headers => request.headers;
 
   /// The constructor of the [WebSocketContext] class.
-  const WebSocketContext(this._wsAdapter, this.id, this._providers, this.request,
-      this._serializer);
+  const WebSocketContext(this._wsAdapter, this.id, this._providers,
+      this.request, this._serializer);
 
   /// This method is used to send data to the client.
   ///

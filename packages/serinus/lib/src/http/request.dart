@@ -48,6 +48,9 @@ class Request {
   /// The path of the request.
   String get path => _original.path;
 
+  /// The uri of the request.
+  Uri get uri => _original.uri;
+
   /// The method of the request.
   String get method => _original.method;
 
@@ -83,7 +86,9 @@ class Request {
   Body? body;
 
   /// The content type of the request.
-  int get contentLength => _original.contentLength > -1 ? _original.contentLength : body?.length ?? 0;
+  int get contentLength => _original.contentLength > -1
+      ? _original.contentLength
+      : body?.length ?? 0;
 
   /// This method is used to parse the body of the request.
   ///

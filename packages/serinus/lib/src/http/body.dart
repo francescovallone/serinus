@@ -62,4 +62,14 @@ class Body {
   /// This method is used to set the content of the json body.
   bool containsKey(String key) => json?.containsKey(key) ?? false;
 
+  @override
+  String toString() {
+    if (json != null) {
+      return jsonEncode(json);
+    }
+    if (formData != null) {
+      return jsonEncode(formData!.fields);
+    }
+    return text ?? utf8.decoder.convert(bytes ?? []);
+  }
 }
