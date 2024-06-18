@@ -25,18 +25,18 @@ abstract class Middleware {
 
   /// The [shelf] factory constructor is used to create a new instance of the [Middleware] class.
   ///
-  /// It accepts a [shelf.Middleware] object.
+  /// It accepts a [shelf.Middleware] or a [shelf.Handler] object.
   ///
   /// It is used to create a middleware from a shelf middleware giving interoperability between Serinus and Shelf.
-  factory Middleware.shelf(shelf.Middleware handler) {
-    return _ShelfMiddleware(handler);
+  factory Middleware.shelf(Function handler, {List<String> routes = const ['*']}) {
+    return _ShelfMiddleware(handler, routes: routes);
   }
 }
 
 class _ShelfMiddleware extends Middleware {
-  final shelf.Middleware _handler;
+  final dynamic _handler;
 
-  _ShelfMiddleware(this._handler);
+  _ShelfMiddleware(this._handler, {super.routes = const ['*']});
 
   /// Most of the code has been taken from
   /// https://github.com/codekeyz/pharaoh/tree/main/packages/pharaoh/lib/src/shelf_interop
@@ -47,8 +47,14 @@ class _ShelfMiddleware extends Middleware {
   Future<void> use(RequestContext context, InternalResponse response,
       NextFunction next) async {
     final shelf.Request request = _createShelfRequest(context);
-    shelf.Response shelfResponse =
-          await _handler((req) => shelf.Response.ok(req.read()))(request);
+    late shelf.Response shelfResponse;
+    if (_handler is shelf.Middleware) {
+      shelfResponse = await _handler((req) => shelf.Response.ok(req.read()))(request);
+    } else if (_handler is shelf.Handler) {
+      shelfResponse = await _handler.call(request);
+    } else {
+      throw Exception('Handler must be a shelf.Middleware or a shelf.Handler');
+    }
     await _responseFromShelf(context.request, response, shelfResponse);
     return next();
   }
@@ -64,7 +70,7 @@ class _ShelfMiddleware extends Middleware {
     res.headers(headers);
     final responseBody = await response.readAsString();
     if (responseBody.isNotEmpty) {
-      res.send(utf8.encode(responseBody));
+      await res.send(utf8.encode(responseBody));
     }
   }
 

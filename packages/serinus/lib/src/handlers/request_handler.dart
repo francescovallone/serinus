@@ -40,6 +40,9 @@ class RequestHandler extends Handler {
       }
       await hook.onRequest(wrappedRequest, response);
     }
+    if (response.isClosed) {
+      return;
+    }
     await wrappedRequest.parseBody();
     Response result;
     final routeLookup = router.getRouteByPathAndMethod(
@@ -79,6 +82,9 @@ class RequestHandler extends Handler {
         response,
         middlewares,
       );
+      if(response.isClosed){
+        return;
+      }
     }
     for (final hook in config.hooks) {
       await hook.beforeHandle(context);
@@ -98,10 +104,10 @@ class RequestHandler extends Handler {
   /// If the completer is not completed, the request will be blocked until the completer is completed.
   Future<void> handleMiddlewares(RequestContext context,
       InternalResponse response, Iterable<Middleware> middlewares) async {
+    final completer = Completer<void>();
     if (middlewares.isEmpty) {
       return;
     }
-    final completer = Completer<void>();
     for (int i = 0; i < middlewares.length; i++) {
       final middleware = middlewares.elementAt(i);
       await middleware.use(context, response, () async {
@@ -109,6 +115,10 @@ class RequestHandler extends Handler {
           completer.complete();
         }
       });
+      if (response.isClosed && !completer.isCompleted) {
+        completer.complete();
+        break;
+      }
     }
     return completer.future;
   }

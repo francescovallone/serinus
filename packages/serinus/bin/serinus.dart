@@ -189,7 +189,9 @@ class AppModule extends Module {
         ], middlewares: [
           // TestMiddleware(),
           // Test2Middleware(),
-          Middleware.shelf(shelf.logRequests())
+          Middleware.shelf(shelf.logRequests()),
+          Middleware.shelf((req) => shelf.Response.ok('Hello world from shelf')),
+          Middleware.shelf(shelf.logRequests()),
         ]);
 }
 
