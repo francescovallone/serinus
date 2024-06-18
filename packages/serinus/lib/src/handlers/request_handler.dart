@@ -82,7 +82,7 @@ class RequestHandler extends Handler {
         response,
         middlewares,
       );
-      if(response.isClosed){
+      if (response.isClosed) {
         return;
       }
     }

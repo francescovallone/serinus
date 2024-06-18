@@ -28,7 +28,8 @@ abstract class Middleware {
   /// It accepts a [shelf.Middleware] or a [shelf.Handler] object.
   ///
   /// It is used to create a middleware from a shelf middleware giving interoperability between Serinus and Shelf.
-  factory Middleware.shelf(Function handler, {List<String> routes = const ['*']}) {
+  factory Middleware.shelf(Function handler,
+      {List<String> routes = const ['*']}) {
     return _ShelfMiddleware(handler, routes: routes);
   }
 }
@@ -49,7 +50,8 @@ class _ShelfMiddleware extends Middleware {
     final shelf.Request request = _createShelfRequest(context);
     late shelf.Response shelfResponse;
     if (_handler is shelf.Middleware) {
-      shelfResponse = await _handler((req) => shelf.Response.ok(req.read()))(request);
+      shelfResponse =
+          await _handler((req) => shelf.Response.ok(req.read()))(request);
     } else if (_handler is shelf.Handler) {
       shelfResponse = await _handler.call(request);
     } else {

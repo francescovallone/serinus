@@ -26,12 +26,13 @@ class TestController extends Controller {
   }
 }
 
-final shelfAltMiddleware = Middleware.shelf((req) => shelf.Response.ok('Hello world from shelf', headers: req.headers));
+final shelfAltMiddleware = Middleware.shelf(
+    (req) => shelf.Response.ok('Hello world from shelf', headers: req.headers));
 
 final shelfMiddleware = Middleware.shelf((shelf.Handler innerHandler) {
   return (shelf.Request request) {
-    return Future.sync(() => innerHandler(request)).then((shelf.Response response) {
-
+    return Future.sync(() => innerHandler(request))
+        .then((shelf.Response response) {
       return response.change(headers: {
         'x-shelf-middleware': 'ok!',
       });
@@ -44,7 +45,8 @@ class TestModule extends Module {
       {super.controllers, super.imports, super.providers, super.exports});
 
   @override
-  List<Middleware> get middlewares => [TestModuleMiddleware(), shelfMiddleware, shelfAltMiddleware];
+  List<Middleware> get middlewares =>
+      [TestModuleMiddleware(), shelfMiddleware, shelfAltMiddleware];
 }
 
 class TestModuleMiddleware extends Middleware {
@@ -93,7 +95,7 @@ void main() {
         '''when a request is made to a route with a shelf handler as a Middleware in the module, then the shelf middleware should be executed''',
         () async {
       final response = await http.get(
-        Uri.parse('http://localhost:3003/middleware'), 
+        Uri.parse('http://localhost:3003/middleware'),
       );
       expect(response.statusCode, 200);
       expect(response.body.contains('Hello world from shelf'), true);
