@@ -34,13 +34,10 @@ class RequestHandler extends Handler {
   @override
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
-    for(final tracer in config.tracers){
-      tracer.startTracing();
-    }
+    config.tracer?.startTracing();
     final Request wrappedRequest = Request(request);
     await onRequest(wrappedRequest, response);
     await wrappedRequest.parseBody();
-    Response result;
     final specifications = getRoute(wrappedRequest);
     final context = specifications.context;
     final route = specifications.route;
@@ -48,41 +45,16 @@ class RequestHandler extends Handler {
     final middlewares = specifications.middlewares;
     await onTransformAndParse(context, route);
     if (middlewares.isNotEmpty) {
-      await handleMiddlewares(
-        context,
-        response,
-        middlewares,
-      );
-      for(final tracer in config.tracers){
-        tracer.onMiddlewares(context);
-      }
-    }
-    for (final hook in config.hooks) {
+      await onMiddlewares(context, response, middlewares);
       if (response.isClosed) {
         return;
       }
-      await hook.beforeHandle(context);
     }
-    await route.beforeHandle(context);
-    for(final tracer in config.tracers){
-      tracer.onBeforeHandle(context);
-    }
-    result = await handler.call(context);
-    for(final tracer in config.tracers){
-      tracer.onHandle(context);
-    }
-    await route.afterHandle(context, result);
-    for (final hook in config.hooks) {
-      if (response.isClosed) {
-        return;
-      }
-      await hook.afterHandle(context, result);
-    }
-    for(final tracer in config.tracers){
-      tracer.onAfterHandle(context);
-    }
+    await onBeforeHandle(context, route);
+    final Response result = await onHandle(context, route, handler);
+    await onAfterHandle(context, route, result);
     await response.finalize(result,
-        viewEngine: config.viewEngine, hooks: config.hooks, tracers: config.tracers);
+        viewEngine: config.viewEngine, hooks: config.hooks, tracer: config.tracer);
   }
 
   /// Handles the middlewares
@@ -112,21 +84,42 @@ class RequestHandler extends Handler {
       }
       await hook.onRequest(request, response);
     }
-    for (final tracer in config.tracers){
-      tracer.onRequest(request);
-    }
+    await config.tracer?.onRequest(request);
   }
 
   /// Transforms and parses the request
   Future<void> onTransformAndParse(RequestContext context, Route route) async {
     await route.transform(context);
-    for (final tracer in config.tracers){
-      tracer.onTranform(context);
-    }
+    await config.tracer?.onTranform(context);
     await route.parse(context);
-    for (final tracer in config.tracers){
-      tracer.onParse(context);
+    await config.tracer?.onParse(context);
+  }
+
+  Future<void> onMiddlewares(RequestContext context, InternalResponse response, Iterable<Middleware> middlewares) async {
+    await handleMiddlewares(context, response, middlewares);
+    await config.tracer?.onMiddlewares(context);
+  }
+
+  Future<void> onBeforeHandle(RequestContext context, Route route) async {
+    for (final hook in config.hooks) {
+      await hook.beforeHandle(context);
     }
+    await route.beforeHandle(context);
+    await config.tracer?.onBeforeHandle(context);
+  }
+
+  Future<Response> onHandle(RequestContext context, Route route, ReqResHandler handler) async {
+    final result = await handler.call(context);
+    await config.tracer?.onHandle(context);
+    return result;
+  }
+
+  Future<void> onAfterHandle(RequestContext context, Route route, Response response) async {
+    await route.afterHandle(context, response);
+    for (final hook in config.hooks) {
+      await hook.afterHandle(context, response);
+    }
+    await config.tracer?.onAfterHandle(context);
   }
 
   /// Gets the route data from the [Router] and the controller from the [ModulesContainer]

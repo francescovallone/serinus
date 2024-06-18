@@ -106,7 +106,7 @@ class InternalResponse {
   Future<void> finalize(Response result,
       {ViewEngine? viewEngine,
       VersioningOptions? versioning,
-      Set<Hook> hooks = const {}, Set<Tracer> tracers = const {}}) async {
+      Set<Hook> hooks = const {}, Tracer? tracer}) async {
     _events.add(ResponseEvent.beforeSend);
     status(result.statusCode);
     if (result.shouldRedirect) {
@@ -127,9 +127,7 @@ class InternalResponse {
       for (final hook in hooks) {
         await hook.onResponse(result);
       }
-      for(final tracer in tracers){
-        tracer.onResponse(result);
-      }
+      await tracer?.onResponse(result);
       headers(result.headers);
       return send(utf8.encode(rendered));
     }
@@ -148,9 +146,7 @@ class InternalResponse {
       for (final hook in hooks) {
         await hook.onResponse(result);
       }
-      for(final tracer in tracers){
-        tracer.onResponse(result);
-      }
+      await tracer?.onResponse(result);
       headers(result.headers);
       final readPipe = data.openRead();
       await sendStream(readPipe);
@@ -176,9 +172,7 @@ class InternalResponse {
     for (final hook in hooks) {
       await hook.onResponse(result);
     }
-    for(final tracer in tracers){
-      tracer.onResponse(result);
-    }
+    await tracer?.onResponse(result);
     headers(result.headers);
     return send(utf8.encode(data.toString()));
   }

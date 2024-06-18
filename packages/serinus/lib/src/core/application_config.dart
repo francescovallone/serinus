@@ -104,11 +104,19 @@ final class ApplicationConfig {
   final Set<Hook> hooks = {};
 
   /// The tracer for the application
-  final Set<Tracer> tracers = {};
+  Tracer? _tracer;
+
+  /// The tracer for the application
+  Tracer? get tracer => _tracer;
 
   /// Add a hook to the application
   void addHook(Hook hook) {
     hooks.add(hook);
+  }
+
+  /// Add a tracer to the application
+  void addTracer(Tracer tracer) {
+    _tracer = tracer;
   }
 
   /// The application config constructor
