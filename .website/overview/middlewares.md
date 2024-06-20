@@ -27,6 +27,7 @@ The `use` method must return the next function, otherwise the request will not b
 To use a middleware, you need to add it to the `middlewares` list in your module.
 
 ::: code-group
+
 ```dart [my_middleware.dart]
 import 'package:serinus/serinus.dart';
 
@@ -51,6 +52,7 @@ class MyModule extends Module {
   );
 }
 ```
+
 :::
 
 Doing this will make the middleware available to all controllers and routes in the module and its submodules.
@@ -72,3 +74,23 @@ class MyMiddleware extends Middleware {
 ```
 
 This will make the middleware only be applied to the routes that match the pattern `/`.
+
+## Shelf Middlewares
+
+You can also use Shelf middlewares in Serinus. To do this, you can use the `Middleware.shelf` constructor. This constructor takes a `shelf.Middleware` object and returns a Serinus middleware.
+
+```dart
+import 'package:serinus/serinus.dart';
+import 'package:shelf/shelf.dart' as shelf;
+
+class MyModule extends Module {
+  MyModule() : super(
+    middlewares: [
+      Middleware.shelf(shelf.logRequests()),
+    ],
+  );
+}
+
+```
+
+This will apply the `shelf.logRequests()` middleware to all routes in the module and its submodules.

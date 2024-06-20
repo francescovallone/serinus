@@ -176,6 +176,15 @@ void main() async {
       await request.close();
       expect(middleware.hasBeenCalled, true);
     });
+
+    test(
+        '''when a non existent route is called, then it should throw a NotFoundException''',
+        () async {
+      final request =
+          await HttpClient().getUrl(Uri.parse('http://localhost:3000/texss'));
+      final response = await request.close();
+      expect(response.statusCode, 404);
+    });
     test(
         '''when a non-existent route in the controllers is called, then it should return a 500 status code''',
         () async {

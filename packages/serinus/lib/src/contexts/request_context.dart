@@ -3,7 +3,6 @@ import '../http/http.dart';
 
 /// The [RequestContext] class is used to create the request context.
 final class RequestContext {
-  
   /// The [providers] property contains the providers of the request context.
   final Map<Type, Provider> providers;
 
@@ -22,7 +21,7 @@ final class RequestContext {
   /// The [operator []] is used to get data from the request.
   dynamic operator [](String key) => request[key];
 
-  /// The [operator []=] is used to set data to the request. 
+  /// The [operator []=] is used to set data to the request.
   void operator []=(String key, dynamic value) {
     request[key] = value;
   }

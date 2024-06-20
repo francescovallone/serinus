@@ -92,6 +92,9 @@ class InternalResponse {
     });
   }
 
+  /// This method is used to get the current headers of the response.
+  HttpHeaders get currentHeaders => _original.headers;
+
   /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
   Future<void> redirect(String path) async {
     await _original.redirect(Uri.parse(path));

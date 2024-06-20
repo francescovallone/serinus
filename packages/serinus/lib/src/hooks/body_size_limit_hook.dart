@@ -2,7 +2,6 @@ import '../../serinus.dart';
 
 /// The [BodySizeLimitHook] class is used to define a body size limit hook.
 class BodySizeLimitHook extends Hook {
-
   /// The maximum size of the body in bytes.
   final int maxSize;
 
@@ -19,5 +18,4 @@ class BodySizeLimitHook extends Hook {
       );
     }
   }
-
 }
