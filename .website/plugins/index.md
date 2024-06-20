@@ -8,3 +8,4 @@ This is a list of plugins that are available for Serinus. If you would like to a
 - [Serve Static Files](/plugins/serve_static)
 - [CORS](/plugins/cors)
 - [Rate Limiter](/plugins/rate_limiter)
+- [Swagger](/plugins/swagger)

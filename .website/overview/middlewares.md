@@ -74,23 +74,3 @@ class MyMiddleware extends Middleware {
 ```
 
 This will make the middleware only be applied to the routes that match the pattern `/`.
-
-## Shelf Middlewares
-
-You can also use Shelf middlewares in Serinus. To do this, you can use the `Middleware.shelf` constructor. This constructor takes a `shelf.Middleware` object and returns a Serinus middleware.
-
-```dart
-import 'package:serinus/serinus.dart';
-import 'package:shelf/shelf.dart' as shelf;
-
-class MyModule extends Module {
-  MyModule() : super(
-    middlewares: [
-      Middleware.shelf(shelf.logRequests()),
-    ],
-  );
-}
-
-```
-
-This will apply the `shelf.logRequests()` middleware to all routes in the module and its submodules.

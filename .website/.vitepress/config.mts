@@ -44,6 +44,7 @@ export default defineConfig({
               { text: 'Middlewares', link: 'middlewares' },
               { text: 'WebSockets', link: 'websockets' },
               { text: 'Hooks', link: 'hooks' },
+              { text: 'Shelf Interoperability', link: 'shelf_interop' }
             ]
           },
           {
@@ -71,7 +72,17 @@ export default defineConfig({
               { text: 'CORS', link: 'cors' },
               { text: 'Rate Limiter', link: 'rate_limiter' },
               { text: 'Cron [WIP]' },
-              { text: 'Swagger [WIP]' }
+              { 
+                text: 'Swagger', 
+                collapsed: true,
+                base: '/plugins/swagger/',
+                items: [
+                  { text: 'Introduction', link: '/' },
+                  { text: 'Document', link: 'document' },
+                  { text: 'Api Specification', link: 'api_spec' },
+                  { text: 'Components', link: 'components' },
+                ],
+              },
             ],
             link: '/'
           },
