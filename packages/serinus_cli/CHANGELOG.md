@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0
+
+- Add deploy command to the CLI. (#10)
+
 ## 0.2.3
 
 - Re-add the dynamic fetch of the serinus version in the create command.
