@@ -71,7 +71,6 @@ export default defineConfig({
               { text: 'Serve Static Files', link: 'serve_static' },
               { text: 'CORS', link: 'cors' },
               { text: 'Rate Limiter', link: 'rate_limiter' },
-              { text: 'Cron [WIP]' },
               { 
                 text: 'Swagger', 
                 collapsed: true,
@@ -83,6 +82,7 @@ export default defineConfig({
                   { text: 'Components', link: 'components' },
                 ],
               },
+              { text: 'Cron [WIP]' },
             ],
             link: '/'
           },
