@@ -108,7 +108,7 @@ const graphs = [
 
 <style scoped>
 p {
-	margin: 0;
+	margin: 0 !important;
 }
 .results{
 	line-height: 1rem;
