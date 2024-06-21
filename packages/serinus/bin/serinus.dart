@@ -101,26 +101,27 @@ class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
       return Response.text('Hello world');
-    }, ParsingSchema(
-      query: object({
-        'test': string().contains('a'),
-      }),
-      headers: object({
-        'test': string().contains('a'),
-      }),
-      // error: (errors) {
-      //   return BadRequestException(message: 'Invalid query parameters');
-      // }
-    ));
+    },
+        ParsingSchema(
+          query: object({
+            'test': string().contains('a'),
+          }),
+          headers: object({
+            'test': string().contains('a'),
+          }),
+          // error: (errors) {
+          //   return BadRequestException(message: 'Invalid query parameters');
+          // }
+        ));
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
           '${context.request.getData('test')} ${context.params}');
-    }, ParsingSchema(
-      body: string(),
-      error: (errors) {
-        return BadRequestException(message: 'Invalid query parameters');
-      }
-    ));
+    },
+        ParsingSchema(
+            body: string(),
+            error: (errors) {
+              return BadRequestException(message: 'Invalid query parameters');
+            }));
     on(Route.get('/test'), (context) async {
       return Response.text('Hello world from test');
     });

@@ -28,11 +28,10 @@ abstract class Handler {
       InternalRequest request, InternalResponse response) async {
     try {
       await handleRequest(request, response);
-    } on SerinusException catch(e) {
+    } on SerinusException catch (e) {
       return response.finalize(
-        Response.json(jsonDecode(e.toString()), statusCode: e.statusCode),
-        hooks: config.hooks
-      );
+          Response.json(jsonDecode(e.toString()), statusCode: e.statusCode),
+          hooks: config.hooks);
     }
   }
 

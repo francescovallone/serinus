@@ -1,4 +1,5 @@
-export 'package:acanthis/acanthis.dart' show object, string, number, boolean, union, date;
+export 'package:acanthis/acanthis.dart'
+    show object, string, number, boolean, union, date;
 export 'application.dart';
 export 'application_config.dart';
 export 'controller.dart';

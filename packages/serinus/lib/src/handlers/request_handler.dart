@@ -74,7 +74,7 @@ class RequestHandler extends Handler {
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest);
     await route.transform(context);
-    if(schema != null){
+    if (schema != null) {
       schema.tryParse(value: {
         'body': wrappedRequest.body?.value,
         'query': wrappedRequest.query,

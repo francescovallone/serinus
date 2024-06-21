@@ -16,7 +16,7 @@ class Session {
   dynamic get(String key) {
     return _original[key];
   }
-  
+
   /// This method is used to get all the values from the session.
   Map<dynamic, dynamic> get all => Map.fromEntries(_original.entries);
 

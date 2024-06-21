@@ -45,8 +45,12 @@ class TestModule extends Module {
       {super.controllers, super.imports, super.providers, super.exports});
 
   @override
-  List<Middleware> get middlewares =>
-      [TestModuleMiddleware(), shelfMiddleware, shelfAltMiddleware, TestModuleMiddleware()];
+  List<Middleware> get middlewares => [
+        TestModuleMiddleware(),
+        shelfMiddleware,
+        shelfAltMiddleware,
+        TestModuleMiddleware()
+      ];
 }
 
 class TestModuleMiddleware extends Middleware {
