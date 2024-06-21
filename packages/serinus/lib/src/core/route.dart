@@ -28,11 +28,6 @@ class Route {
   /// It can be overridden if needed.
   Future<void> transform(RequestContext context) async {}
 
-  /// The [parse] method is used to parse and validate the request context.
-  ///
-  /// It can be overridden if needed.
-  Future<void> parse(RequestContext context) async {}
-
   /// The [beforeHandle] method is used to execute code before the route is handled.
   ///
   /// It can be overridden if needed.

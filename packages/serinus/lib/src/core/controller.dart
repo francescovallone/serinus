@@ -4,14 +4,17 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/v4.dart';
 
-import '../../serinus.dart';
 import '../containers/router.dart';
+import '../contexts/contexts.dart';
+import '../http/http.dart';
+import 'parsing_schema.dart';
+import 'route.dart';
 
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
 typedef ReqResHandler = Future<Response> Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
-typedef RouteHandler = ({Route route, ReqResHandler handler});
+typedef RouteHandler = ({Route route, ReqResHandler handler, ParsingSchema? schema});
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
@@ -39,7 +42,7 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route>(R route, ReqResHandler handler) {
+  void on<R extends Route>(R route, ReqResHandler handler, [ParsingSchema? schema]) {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);
     if (routeExists) {
@@ -49,25 +52,7 @@ abstract class Controller {
     _routes[UuidV4().generate()] = (
       handler: handler,
       route: route,
+      schema: schema
     );
   }
-}
-
-/// The [RouteSpec] class is used to define a route specification.
-class RouteSpec {
-  /// The path of the route.
-  final String path;
-
-  /// The HTTP method of the route.
-  final HttpMethod method;
-
-  /// The [Route] that the route specification is for.
-  final Route route;
-
-  /// The [RouteSpec] constructor is used to create a new instance of the [RouteSpec] class.
-  const RouteSpec({
-    required this.route,
-    required this.path,
-    required this.method,
-  });
 }

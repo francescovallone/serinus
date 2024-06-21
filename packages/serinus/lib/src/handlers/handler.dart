@@ -26,12 +26,14 @@ abstract class Handler {
   /// This method is responsible for handling the request.
   Future<void> handle(
       InternalRequest request, InternalResponse response) async {
-    handleRequest(request, response).catchError((error) {
-      final e = error as SerinusException;
+    try {
+      await handleRequest(request, response);
+    } on SerinusException catch(e) {
       return response.finalize(
-          Response.json(jsonDecode(e.toString()), statusCode: e.statusCode),
-          hooks: config.hooks);
-    }, test: (error) => error is SerinusException);
+        Response.json(jsonDecode(e.toString()), statusCode: e.statusCode),
+        hooks: config.hooks
+      );
+    }
   }
 
   /// Handles the request and sends the response
