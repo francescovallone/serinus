@@ -2,8 +2,6 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/core/core.dart';
-import 'package:serinus/src/core/parse_schema.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 class TestMiddleware extends Middleware {
