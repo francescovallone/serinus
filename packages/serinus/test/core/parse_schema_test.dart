@@ -23,7 +23,7 @@ class TestController extends Controller {
     on(
         Route.get('/'),
         (context) async => Response.text('ok!'),
-        ParsingSchema(
+        ParseSchema(
             query: object({
               'test': string().contains('a'),
             }),
@@ -33,7 +33,7 @@ class TestController extends Controller {
     on(
         Route.get('/<id>'),
         (context) async => Response.text('ok!'),
-        ParsingSchema(
+        ParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,
@@ -47,7 +47,7 @@ class TestController extends Controller {
     on(
         Route.post('/<id>'),
         (context) async => Response.text('ok!'),
-        ParsingSchema(
+        ParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,
@@ -64,7 +64,7 @@ class TestController extends Controller {
     on(
         Route.get('/<id>/sub'),
         (context) async => Response.text('ok!'),
-        ParsingSchema(
+        ParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,
@@ -109,7 +109,7 @@ void main() async {
       await app?.close();
     });
     test(
-        '''when a route has a $ParsingSchema, and the parse operation fails, and no custom error is defined, then the response should have a status code of 400''',
+        '''when a route has a $ParseSchema, and the parse operation fails, and no custom error is defined, then the response should have a status code of 400''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3015/'));
@@ -118,7 +118,7 @@ void main() async {
     });
 
     test(
-        '''when a route has a $ParsingSchema, and the parse operation succeeds, then the response should be the same as the one returned by the handler''',
+        '''when a route has a $ParseSchema, and the parse operation succeeds, then the response should be the same as the one returned by the handler''',
         () async {
       final request = await HttpClient()
           .getUrl(Uri.parse('http://localhost:3015/?test=abc'));
@@ -127,7 +127,7 @@ void main() async {
     });
 
     test(
-        '''when a route has a $ParsingSchema, and the parse operation fails, and a custom error is defined, then the response should have the status code defined by the custom error''',
+        '''when a route has a $ParseSchema, and the parse operation fails, and a custom error is defined, then the response should have the status code defined by the custom error''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3015/abc'));
@@ -136,7 +136,7 @@ void main() async {
     });
 
     test(
-        '''when a route has a $ParsingSchema, and the parse operation succeeds, then the response should be the same as the one returned by the handler''',
+        '''when a route has a $ParseSchema, and the parse operation succeeds, then the response should be the same as the one returned by the handler''',
         () async {
       final request =
           await HttpClient().postUrl(Uri.parse('http://localhost:3015/1'));
@@ -147,7 +147,7 @@ void main() async {
     });
 
     test(
-        '''when a route has a $ParsingSchema, and the parse operation fails because of wrong data format, then the response should be 412''',
+        '''when a route has a $ParseSchema, and the parse operation fails because of wrong data format, then the response should be 412''',
         () async {
       final request =
           await HttpClient().postUrl(Uri.parse('http://localhost:3015/1'));
@@ -157,7 +157,7 @@ void main() async {
     });
 
     test(
-        '''when a route has a $ParsingSchema, and the parse operation fails because of wrong data format, then the response should be 412''',
+        '''when a route has a $ParseSchema, and the parse operation fails because of wrong data format, then the response should be 412''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3015/1/sub'));

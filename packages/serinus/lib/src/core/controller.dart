@@ -7,7 +7,7 @@ import 'package:uuid/v4.dart';
 import '../containers/router.dart';
 import '../contexts/contexts.dart';
 import '../http/http.dart';
-import 'parsing_schema.dart';
+import 'parse_schema.dart';
 import 'route.dart';
 
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
@@ -17,7 +17,7 @@ typedef ReqResHandler = Future<Response> Function(RequestContext context);
 typedef RouteHandler = ({
   Route route,
   ReqResHandler handler,
-  ParsingSchema? schema
+  ParseSchema? schema
 });
 
 /// The [Controller] class is used to define a controller.
@@ -47,7 +47,7 @@ abstract class Controller {
   /// It should not be overridden.
   @mustCallSuper
   void on<R extends Route>(R route, ReqResHandler handler,
-      [ParsingSchema? schema]) {
+      [ParseSchema? schema]) {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);
     if (routeExists) {

@@ -4,15 +4,15 @@ import 'package:acanthis/acanthis.dart';
 
 import '../exceptions/exceptions.dart';
 
-/// The [ParsingSchema] class is used to define the schema of the parsing process.
-final class ParsingSchema {
+/// The [ParseSchema] class is used to define the schema of the parsing process.
+final class ParseSchema {
   late AcanthisType _schema;
 
   /// The [error] property contains the error that will be thrown if the parsing fails.
   final SerinusException Function(Map<String, dynamic>)? error;
 
-  /// The [ParsingSchema] constructor is used to create a new instance of the [ParsingSchema] class.
-  ParsingSchema(
+  /// The [ParseSchema] constructor is used to create a new instance of the [ParseSchema] class.
+  ParseSchema(
       {AcanthisType? body,
       AcanthisMap? query,
       AcanthisMap? params,

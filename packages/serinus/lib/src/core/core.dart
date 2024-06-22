@@ -7,7 +7,7 @@ export 'factory.dart' hide SerinusFactory;
 export 'hook.dart';
 export 'middleware.dart';
 export 'module.dart';
-export 'parsing_schema.dart';
+export 'parse_schema.dart';
 export 'provider.dart';
 export 'route.dart';
 export 'websockets/websockets.dart';
