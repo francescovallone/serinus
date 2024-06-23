@@ -101,11 +101,27 @@ class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
       return Response.text('Hello world');
-    });
+    },
+        ParseSchema(
+          query: object({
+            'test': string().contains('a'),
+          }),
+          headers: object({
+            'test': string().contains('a'),
+          }),
+          // error: (errors) {
+          //   return BadRequestException(message: 'Invalid query parameters');
+          // }
+        ));
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
           '${context.request.getData('test')} ${context.params}');
-    });
+    },
+        ParseSchema(
+            body: string(),
+            error: (errors) {
+              return BadRequestException(message: 'Invalid query parameters');
+            }));
     on(Route.get('/test'), (context) async {
       return Response.text('Hello world from test');
     });
@@ -190,8 +206,8 @@ class AppModule extends Module {
           // TestMiddleware(),
           // Test2Middleware(),
           Middleware.shelf(shelf.logRequests()),
-          Middleware.shelf(
-              (req) => shelf.Response.ok('Hello world from shelf')),
+          // Middleware.shelf(
+          //     (req) => shelf.Response.ok('Hello world from shelf')),
           Middleware.shelf(shelf.logRequests()),
         ]);
 }

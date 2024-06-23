@@ -124,7 +124,8 @@ class Request {
 
     /// If the content type is json, it will parse the body as a json object.
     final parsedJson = parsedBody.tryParse();
-    if (parsedJson != null && contentType == ContentType.json) {
+    if ((parsedJson != null && contentType == ContentType.json) ||
+        parsedJson != null) {
       final json = parsedJson;
       body = Body(contentType, json: json);
       return;

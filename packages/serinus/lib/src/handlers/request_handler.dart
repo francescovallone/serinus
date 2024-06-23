@@ -68,12 +68,21 @@ class RequestHandler extends Handler {
     }
     final route = routeSpec.route;
     final handler = routeSpec.handler;
+    final schema = routeSpec.schema;
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest);
     await route.transform(context);
-    await route.parse(context);
+    if (schema != null) {
+      schema.tryParse(value: {
+        'body': wrappedRequest.body?.value,
+        'query': wrappedRequest.query,
+        'params': wrappedRequest.params,
+        'headers': wrappedRequest.headers,
+        'session': wrappedRequest.session.all,
+      });
+    }
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
