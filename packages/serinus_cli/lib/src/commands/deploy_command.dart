@@ -12,17 +12,18 @@ class DeployCommand extends Command<int> {
   /// {@macro update_command}
   DeployCommand({
     required Logger logger,
-  })  : _logger = logger {
-    argParser..addOption(
-      'port',
-      help: 'The port to expose the application on.',
-      defaultsTo: '3000',
-    )
-    ..addOption(
-      'output',
-      help: 'The name of the output file.',
-      defaultsTo: 'app',
-    );
+  }) : _logger = logger {
+    argParser
+      ..addOption(
+        'port',
+        help: 'The port to expose the application on.',
+        defaultsTo: '3000',
+      )
+      ..addOption(
+        'output',
+        help: 'The name of the output file.',
+        defaultsTo: 'app',
+      );
   }
 
   final Logger _logger;
@@ -63,7 +64,7 @@ class DeployCommand extends Command<int> {
       entrypoint = content['entrypoint'] as String;
     }
     File(path.join(Directory.current.path, 'Dockerfile'))
-      .writeAsStringSync(dockerFile(entrypoint, output, port));
+        .writeAsStringSync(dockerFile(entrypoint, output, port));
     progress.complete('Dockerfile created');
     return ExitCode.success.code;
   }
@@ -72,7 +73,8 @@ class DeployCommand extends Command<int> {
     String entrypoint,
     String output,
     String port,
-  ) => '''
+  ) =>
+      '''
 FROM dart:latest AS build
 
 WORKDIR /app
@@ -92,5 +94,4 @@ COPY --from=build /app/dist/$output /app/bin/
 
 CMD ["/app/bin/$output"]
   ''';
-
 }

@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0
+## 0.3.0
 
 - Add deploy command to the CLI. (#10)
 
