@@ -20,7 +20,7 @@ const plugins = [
 
 <template>
 	<div class="container flex w-full gap-8 flex-col my-8">
-		<div class="container flex w-full gap-8 flex-row">
+		<div class="container flex w-full gap-8 flex-col lg:flex-row">
 			<section class="flex flex-col gap-6 flex-1">
 				<h1 class="text-2xl font-bold">Modular 📦</h1>
 				<p class="text-xl text-gray-400">

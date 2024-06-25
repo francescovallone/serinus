@@ -37,7 +37,7 @@ const graphs = [
 </script>
 
 <template>
-	<div class="container flex w-full gap-8 flex-row my-8">
+	<div class="container flex w-full gap-8 lg:flex-row flex-col my-8">
 		<section class="flex flex-col gap-6 flex-1">
 			<h1 class="text-2xl font-bold">Fast 🚀</h1>
 			<p class="text-xl text-gray-400">
