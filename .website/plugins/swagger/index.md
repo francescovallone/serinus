@@ -10,7 +10,7 @@ dart pub add serinus_swagger
 
 ## Usage
 
-By default the plugin will expose the OpenAPI Specification at the `/swagger` endpoint. You can customize the endpoint by passing the `endpoint` parameter to the `SwaggerPlugin` constructor.
+The plugin will expose the OpenAPI Specification in one endpoint. You can customize the endpoint by passing the `endpoint` parameter to the `setup` method.
 
 ```dart
 import 'package:serinus/serinus.dart';
