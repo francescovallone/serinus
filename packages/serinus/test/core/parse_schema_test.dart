@@ -23,7 +23,7 @@ class TestController extends Controller {
     on(
         Route.get('/'),
         (context) async => Response.text('ok!'),
-        ParseSchema(
+        schema: ParseSchema(
             query: object({
               'test': string().contains('a'),
             }),
@@ -33,7 +33,7 @@ class TestController extends Controller {
     on(
         Route.get('/<id>'),
         (context) async => Response.text('ok!'),
-        ParseSchema(
+        schema: ParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,
@@ -47,7 +47,7 @@ class TestController extends Controller {
     on(
         Route.post('/<id>'),
         (context) async => Response.text('ok!'),
-        ParseSchema(
+        schema: ParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,
@@ -64,7 +64,7 @@ class TestController extends Controller {
     on(
         Route.get('/<id>/sub'),
         (context) async => Response.text('ok!'),
-        ParseSchema(
+        schema: ParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,

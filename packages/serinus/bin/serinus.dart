@@ -102,7 +102,7 @@ class HomeController extends Controller {
     on(GetRoute(path: '/'), (context) async {
       return Response.text('Hello world');
     },
-        ParseSchema(
+        schema: ParseSchema(
           query: object({
             'test': string().contains('a'),
           }),
@@ -117,7 +117,7 @@ class HomeController extends Controller {
       return Response.text(
           '${context.request.getData('test')} ${context.params}');
     },
-        ParseSchema(
+        schema: ParseSchema(
             body: string(),
             error: (errors) {
               return BadRequestException(message: 'Invalid query parameters');

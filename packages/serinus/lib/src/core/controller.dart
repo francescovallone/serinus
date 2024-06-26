@@ -47,7 +47,7 @@ abstract class Controller {
   /// It should not be overridden.
   @mustCallSuper
   void on<R extends Route>(R route, ReqResHandler handler,
-      [ParseSchema? schema]) {
+      {ParseSchema? schema}) {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);
     if (routeExists) {
