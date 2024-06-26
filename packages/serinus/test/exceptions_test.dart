@@ -91,7 +91,7 @@ void main() {
     expect(exception.statusCode, 500);
     expect(exception.message, 'Custom message!');
     expect(exception.toJson(),
-        {'message':'Custom message!','statusCode':500,'uri':'No Uri'});
+        {'message': 'Custom message!', 'statusCode': 500, 'uri': 'No Uri'});
   });
 
   test('should instantiate a BadGatewayException with custom message', () {

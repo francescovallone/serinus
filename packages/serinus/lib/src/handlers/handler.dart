@@ -27,8 +27,7 @@ abstract class Handler {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
-      return response.finalize(
-          Response.json(e, statusCode: e.statusCode),
+      return response.finalize(Response.json(e, statusCode: e.statusCode),
           hooks: config.hooks);
     }
   }

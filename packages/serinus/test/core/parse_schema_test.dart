@@ -20,9 +20,7 @@ class TestJsonObject with JsonObject {
 
 class TestController extends Controller {
   TestController({super.path = '/'}) {
-    on(
-        Route.get('/'),
-        (context) async => Response.text('ok!'),
+    on(Route.get('/'), (context) async => Response.text('ok!'),
         schema: ParseSchema(
             query: object({
               'test': string().contains('a'),
@@ -30,9 +28,7 @@ class TestController extends Controller {
             error: (errors) {
               return BadRequestException(message: 'Invalid query parameters');
             }));
-    on(
-        Route.get('/<id>'),
-        (context) async => Response.text('ok!'),
+    on(Route.get('/<id>'), (context) async => Response.text('ok!'),
         schema: ParseSchema(
             params: object({
               'id': string().customCheck(
@@ -44,9 +40,7 @@ class TestController extends Controller {
               return PreconditionFailedException(
                   message: 'Invalid query parameters');
             }));
-    on(
-        Route.post('/<id>'),
-        (context) async => Response.text('ok!'),
+    on(Route.post('/<id>'), (context) async => Response.text('ok!'),
         schema: ParseSchema(
             params: object({
               'id': string().customCheck(
@@ -61,9 +55,7 @@ class TestController extends Controller {
               return PreconditionFailedException(
                   message: 'Invalid query parameters');
             }));
-    on(
-        Route.get('/<id>/sub'),
-        (context) async => Response.text('ok!'),
+    on(Route.get('/<id>/sub'), (context) async => Response.text('ok!'),
         schema: ParseSchema(
             params: object({
               'id': string().customCheck(
