@@ -82,6 +82,7 @@ export default defineConfig({
                   { text: 'Components', link: 'components' },
                 ],
               },
+              { text: 'Health Check [WIP]' },
               { text: 'Cron [WIP]' },
             ],
             link: '/'
