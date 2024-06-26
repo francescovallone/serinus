@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../contexts/request_context.dart';
@@ -26,12 +24,12 @@ abstract class Handler {
   /// This method is responsible for handling the request.
   Future<void> handle(
       InternalRequest request, InternalResponse response) async {
-    handleRequest(request, response).catchError((error) {
-      final e = error as SerinusException;
-      return response.finalize(
-          Response.json(jsonDecode(e.toString()), statusCode: e.statusCode),
+    try {
+      await handleRequest(request, response);
+    } on SerinusException catch (e) {
+      return response.finalize(Response.json(e, statusCode: e.statusCode),
           hooks: config.hooks);
-    }, test: (error) => error is SerinusException);
+    }
   }
 
   /// Handles the request and sends the response

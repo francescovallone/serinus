@@ -1,6 +1,8 @@
+// ignore_for_file: avoid_print
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:shelf/shelf.dart' as shelf;
 
 class TestMiddleware extends Middleware {
   int counter = 0;
@@ -99,11 +101,27 @@ class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
       return Response.text('Hello world');
-    });
+    },
+        schema: ParseSchema(
+          query: object({
+            'test': string().contains('a'),
+          }),
+          headers: object({
+            'test': string().contains('a'),
+          }),
+          // error: (errors) {
+          //   return BadRequestException(message: 'Invalid query parameters');
+          // }
+        ));
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
-          '${context.request.getData('test')} ${context.pathParameters}');
-    });
+          '${context.request.getData('test')} ${context.params}');
+    },
+        schema: ParseSchema(
+            body: string(),
+            error: (errors) {
+              return BadRequestException(message: 'Invalid query parameters');
+            }));
     on(Route.get('/test'), (context) async {
       return Response.text('Hello world from test');
     });
@@ -120,7 +138,7 @@ class HomeAController extends Controller {
 
   Future<Response> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
-    return Response.text('Hello world from a ${context.pathParameters}');
+    return Response.text('Hello world from a ${context.params}');
   }
 }
 
@@ -133,7 +151,7 @@ class TestWsProvider extends WebSocketGateway
     if (message == 'broadcast') {
       context.send('Hello from server', broadcast: true);
     }
-    print(context.queryParameters);
+    print(context.query);
     context.send('Message received: $message');
     print('Message received: $message');
   }
@@ -186,7 +204,11 @@ class AppModule extends Module {
           TestWs2Provider()
         ], middlewares: [
           // TestMiddleware(),
-          // Test2Middleware()
+          // Test2Middleware(),
+          Middleware.shelf(shelf.logRequests()),
+          // Middleware.shelf(
+          //     (req) => shelf.Response.ok('Hello world from shelf')),
+          Middleware.shelf(shelf.logRequests()),
         ]);
 }
 
@@ -201,7 +223,7 @@ class ReAppModule extends Module {
             return TestProviderTwo(prov);
           })
         ], middlewares: [], exports: [
-          TestProviderTwo
+          TestProviderTwo,
         ]);
 }
 
@@ -209,13 +231,5 @@ void main(List<String> arguments) async {
   SerinusApplication application = await serinus.createApplication(
       entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
-  // application.enableVersioning(
-  //   type: VersioningType.uri,
-  //   version: 1
-  // );
-  // application.use(CorsHook());
-  //application.use(BearerHook());
-  application.changeBodySizeLimit(
-      BodySizeLimit.change(text: 10, size: BodySizeValue.b));
   await application.serve();
 }

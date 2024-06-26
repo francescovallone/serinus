@@ -40,14 +40,10 @@ class RequestHandler extends Handler {
       }
       await hook.onRequest(wrappedRequest, response);
     }
-    await wrappedRequest.parseBody();
-    final body = wrappedRequest.body!;
-    final bodySizeLimit = config.bodySizeLimit;
-    if (bodySizeLimit.isExceeded(body)) {
-      throw PayloadTooLargeException(
-          message: 'Request body size is too large',
-          uri: Uri.parse(request.path));
+    if (response.isClosed) {
+      return;
     }
+    await wrappedRequest.parseBody();
     Response result;
     final routeLookup = router.getRouteByPathAndMethod(
         request.path.endsWith('/')
@@ -71,23 +67,22 @@ class RequestHandler extends Handler {
           message: 'Route spec not found for route ${routeData.path}');
     }
     final route = routeSpec.route;
-    final handler = controller.routes[routeSpec];
-    if (handler == null) {
-      throw InternalServerErrorException(
-          message: 'Route handler not found for route ${routeData.path}');
-    }
+    final handler = routeSpec.handler;
+    final schema = routeSpec.schema;
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest);
-    for (final hook in config.hooks) {
-      if (response.isClosed) {
-        return;
-      }
-      await hook.beforeHandle(context);
-    }
     await route.transform(context);
-    await route.parse(context);
+    if (schema != null) {
+      schema.tryParse(value: {
+        'body': wrappedRequest.body?.value,
+        'query': wrappedRequest.query,
+        'params': wrappedRequest.params,
+        'headers': wrappedRequest.headers,
+        'session': wrappedRequest.session.all,
+      });
+    }
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
@@ -96,14 +91,17 @@ class RequestHandler extends Handler {
         response,
         middlewares,
       );
-    }
-    await route.beforeHandle(context);
-    result = await handler.call(context);
-    await route.afterHandle(context);
-    for (final hook in config.hooks) {
       if (response.isClosed) {
         return;
       }
+    }
+    for (final hook in config.hooks) {
+      await hook.beforeHandle(context);
+    }
+    await route.beforeHandle(context);
+    result = await handler.call(context);
+    await route.afterHandle(context, result);
+    for (final hook in config.hooks) {
       await hook.afterHandle(context, result);
     }
     await response.finalize(result,
@@ -115,10 +113,10 @@ class RequestHandler extends Handler {
   /// If the completer is not completed, the request will be blocked until the completer is completed.
   Future<void> handleMiddlewares(RequestContext context,
       InternalResponse response, Iterable<Middleware> middlewares) async {
+    final completer = Completer<void>();
     if (middlewares.isEmpty) {
       return;
     }
-    final completer = Completer<void>();
     for (int i = 0; i < middlewares.length; i++) {
       final middleware = middlewares.elementAt(i);
       await middleware.use(context, response, () async {
@@ -126,6 +124,10 @@ class RequestHandler extends Handler {
           completer.complete();
         }
       });
+      if (response.isClosed && !completer.isCompleted) {
+        completer.complete();
+        break;
+      }
     }
     return completer.future;
   }

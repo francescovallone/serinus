@@ -18,24 +18,22 @@ final class RequestContext {
   /// The [method] property contains the method of the request.
   Map<String, dynamic> get headers => request.headers;
 
-  /// The [add] method is used to add data to the request.
-  void add(String key, dynamic value) {
-    request.addData(key, value);
+  /// The [operator []] is used to get data from the request.
+  dynamic operator [](String key) => request[key];
+
+  /// The [operator []=] is used to set data to the request.
+  void operator []=(String key, dynamic value) {
+    request[key] = value;
   }
 
-  /// The [get] method is used to get data from the request.
-  dynamic get(String key) {
-    return request.getData(key);
-  }
-
-  /// The [pathParameters] property contains the path parameters of the request.
-  Map<String, dynamic> get pathParameters => request.params;
+  /// The [params] property contains the path parameters of the request.
+  Map<String, dynamic> get params => request.params;
 
   /// The [queryParameters] property contains the query parameters of the request.
-  Map<String, dynamic> get queryParameters => request.queryParameters;
+  Map<String, dynamic> get query => request.query;
 
   /// The constructor of the [RequestContext] class.
-  RequestContext(
+  const RequestContext(
     this.providers,
     this.request,
   );

@@ -20,7 +20,7 @@ class ApplicationContext {
   }
 
   /// This method is used to add a provider to the context.
-  void addProviderToContext(Provider provider) {
+  void add(Provider provider) {
     providers.putIfAbsent(provider.runtimeType, () => provider);
   }
 }

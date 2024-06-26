@@ -25,6 +25,7 @@ void main() async {
           ''', () {
       final router = Router();
       final routeData = RouteData(
+          id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),
@@ -39,6 +40,7 @@ void main() async {
           ''', () {
       final router = Router();
       final routeData = RouteData(
+          id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),
@@ -55,6 +57,7 @@ void main() async {
           ''', () {
       final router = Router();
       final routeData = RouteData(
+          id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),

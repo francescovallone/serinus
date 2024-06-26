@@ -76,7 +76,6 @@ void main() async {
           entrypoint:
               TestModule(controllers: [controller], middlewares: [middleware]),
           loggingLevel: LogLevel.none);
-      app?.enableCors(Cors());
       await app?.serve();
     });
     tearDownAll(() async {
@@ -177,10 +176,20 @@ void main() async {
       await request.close();
       expect(middleware.hasBeenCalled, true);
     });
+
     test(
-        '''when a non-existent route is called, then it should return a 404 status code''',
+        '''when a non existent route is called, then it should throw a NotFoundException''',
+        () async {
+      final request =
+          await HttpClient().getUrl(Uri.parse('http://localhost:3000/texss'));
+      final response = await request.close();
+      expect(response.statusCode, 404);
+    });
+    test(
+        '''when a non-existent route in the controllers is called, then it should return a 500 status code''',
         () async {
       app?.router.registerRoute(RouteData(
+          id: 'id',
           path: 'path-error',
           method: HttpMethod.get,
           controller: controller,

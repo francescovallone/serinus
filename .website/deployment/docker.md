@@ -2,35 +2,24 @@
 
 Serinus can be run in a Docker container and the creation of the Dockerfile is automated by the `serinus` command line tool.
 
-We can use the following code for the Dockerfile:
+To create a Dockerfile for your Serinus application, run the following command:
 
-```dockerfile
-FROM dart:latest AS build
-
-
-WORKDIR /app
-
-COPY . ./
-COPY pubspec.* ./
-RUN dart pub get
-COPY . .
-
-RUN dart pub get --offline
-RUN dart compile exe bin/${ENTRYPOINT}.dart -o bin/${OUTPUT}
-
-FROM scratch
-EXPOSE ${PORT}
-COPY --from=build /runtime/ /
-COPY --from=build /app/bin/${OUTPUT} /app/bin/
-
-CMD ["/app/bin/${OUTPUT}"]
+```bash
+serinus deploy
 ```
 
-To use it we need to replace `${ENTRYPOINT}` with the name of the entrypoint file and `${OUTPUT}` with the name of the output file and `${PORT}` with the port that the application will run on.
+The deploy command has the following options:
 
-Perfect! We are set to build the image and run the container on our server.
+- `--port`: The port to expose the application on. Default is `3000`.
+- `--output`: The output file for the application. Default is `app`.
+
+## Build and Run the Docker Image
 
 ```bash
 docker build -t myapp .
-docker run -d -p 8080:8080 myapp
+docker run -d -p 3000:3000 myapp
 ```
+
+This will build the Docker image and run the container on port `3000`.
+
+And that's it! Your Serinus application is now running in a Docker container.

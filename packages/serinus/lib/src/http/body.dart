@@ -55,4 +55,32 @@ class Body {
     }
     return text?.length ?? bytes?.length ?? formData?.length ?? 0;
   }
+
+  /// This method is used to get the content of the json body.
+  dynamic operator [](String key) => json?[key];
+
+  /// This method is used to set the content of the json body.
+  bool containsKey(String key) => json?.containsKey(key) ?? false;
+
+  /// This method is used to get the content of the json body.
+  dynamic get value {
+    if (json != null) {
+      return json;
+    }
+    if (formData != null) {
+      return formData!.fields;
+    }
+    return text ?? bytes;
+  }
+
+  @override
+  String toString() {
+    if (json != null) {
+      return jsonEncode(json);
+    }
+    if (formData != null) {
+      return jsonEncode(formData!.fields);
+    }
+    return text ?? utf8.decoder.convert(bytes ?? []);
+  }
 }

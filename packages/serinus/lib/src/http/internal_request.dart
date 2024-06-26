@@ -70,6 +70,9 @@ class InternalRequest {
 
   DateTime? _ifModifiedSinceCache;
 
+  /// The [contentLength] getter is used to get the content length of the request
+  int get contentLength => original.contentLength;
+
   /// The [encoding] property contains the encoding of the request
   Encoding? get encoding {
     var contentType = this.contentType;

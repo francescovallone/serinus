@@ -44,23 +44,26 @@ class InternalResponse {
   ///
   /// After sending the data, the response will be closed.
   Future<void> send([List<int> data = const []]) async {
-    _original.add(data);
     _events.add(ResponseEvent.data);
-    _original.close();
-    _events.add(ResponseEvent.afterSend);
-    _events.add(ResponseEvent.close);
+    return _original.addStream(Stream.fromIterable([data])).then((value) {
+      _events.add(ResponseEvent.afterSend);
+      _original.close();
+      _isClosed = true;
+      _events.add(ResponseEvent.close);
+    });
   }
 
   /// This method is used to send a stream of data to the response.
   ///
   /// After sending the stream, the response will be closed.
   Future<void> sendStream(Stream<List<int>> stream) async {
-    await _original.addStream(stream);
     _events.add(ResponseEvent.data);
-    _original.close();
-    _events.add(ResponseEvent.afterSend);
-    _events.add(ResponseEvent.close);
-    _isClosed = true;
+    return _original.addStream(stream).then((value) {
+      _events.add(ResponseEvent.afterSend);
+      _original.close();
+      _isClosed = true;
+      _events.add(ResponseEvent.close);
+    });
   }
 
   /// This method is used to set the status code of the response.
@@ -88,6 +91,9 @@ class InternalResponse {
       }
     });
   }
+
+  /// This method is used to get the current headers of the response.
+  HttpHeaders get currentHeaders => _original.headers;
 
   /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
   Future<void> redirect(String path) async {
@@ -161,10 +167,10 @@ class InternalResponse {
     if (!result.headers.containsKey(HttpHeaders.dateHeader)) {
       _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
     }
-    _events.add(ResponseEvent.data);
     for (final hook in hooks) {
       await hook.onResponse(result);
     }
+    headers(result.headers);
     return send(utf8.encode(data.toString()));
   }
 }

@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:shelf/shelf.dart' as shelf;
+
 import '../contexts/request_context.dart';
 import '../http/http.dart';
 
@@ -16,5 +21,68 @@ abstract class Middleware {
   Future<void> use(RequestContext context, InternalResponse response,
       NextFunction next) async {
     return next();
+  }
+
+  /// The [shelf] factory constructor is used to create a new instance of the [Middleware] class.
+  ///
+  /// It accepts a [shelf.Middleware] or a [shelf.Handler] object.
+  ///
+  /// It is used to create a middleware from a shelf middleware giving interoperability between Serinus and Shelf.
+  factory Middleware.shelf(Function handler,
+      {List<String> routes = const ['*']}) {
+    return _ShelfMiddleware(handler, routes: routes);
+  }
+}
+
+class _ShelfMiddleware extends Middleware {
+  final dynamic _handler;
+
+  _ShelfMiddleware(this._handler, {super.routes = const ['*']});
+
+  /// Most of the code has been taken from
+  /// https://github.com/codekeyz/pharaoh/tree/main/packages/pharaoh/lib/src/shelf_interop
+  /// and modified to fit the Serinus framework.
+  ///
+  /// Let's thank [codekeyz](https://github.com/codekeyz) for his work.
+  @override
+  Future<void> use(RequestContext context, InternalResponse response,
+      NextFunction next) async {
+    final shelf.Request request = _createShelfRequest(context);
+    late shelf.Response shelfResponse;
+    if (_handler is shelf.Middleware) {
+      shelfResponse =
+          await _handler((req) => shelf.Response.ok(req.read()))(request);
+    } else if (_handler is shelf.Handler) {
+      shelfResponse = await _handler.call(request);
+    } else {
+      throw Exception('Handler must be a shelf.Middleware or a shelf.Handler');
+    }
+    await _responseFromShelf(context.request, response, shelfResponse);
+    return next();
+  }
+
+  Future<void> _responseFromShelf(
+      Request req, InternalResponse res, shelf.Response response) async {
+    Map<String, String> headers = {
+      for (var key in response.headers.keys)
+        key: response.headers[key].toString()
+    };
+    response.headers.forEach((key, value) => headers[key] = value);
+    res.status(response.statusCode);
+    res.headers(headers);
+    final responseBody = await response.readAsString();
+    if (responseBody.isNotEmpty) {
+      await res.send(utf8.encode(responseBody));
+    }
+  }
+
+  shelf.Request _createShelfRequest(RequestContext context) {
+    return shelf.Request(
+      context.request.method,
+      context.request.uri,
+      body: context.request.body.toString(),
+      headers: Map<String, Object>.from(context.request.headers),
+      context: {'shelf.io.connection_info': context.request.clientInfo!},
+    );
   }
 }

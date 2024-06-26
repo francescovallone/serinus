@@ -15,7 +15,13 @@ enum HttpMethod {
   put,
 
   /// The PATCH method is used to apply partial modifications to a resource.
-  patch;
+  patch,
+
+  /// The HEAD method asks for a response identical to that of a GET request, but without the response body.
+  head,
+
+  /// The OPTIONS method is used to describe the communication options for the target resource.
+  options;
 
   /// Returns the string representation of the method
   @override
@@ -45,6 +51,10 @@ extension StringMethod on String {
         return HttpMethod.delete;
       case 'patch':
         return HttpMethod.patch;
+      case 'head':
+        return HttpMethod.head;
+      case 'options':
+        return HttpMethod.options;
       default:
         return HttpMethod.get;
     }

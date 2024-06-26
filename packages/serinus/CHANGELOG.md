@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+- feat(#36): add ParseSchema and remove parse hook to simplify validation in Serinus
+- feat(#33): add interoperability with Shelf
+- Add documentation for the Serinus CLI deploy command
+
 ## 0.4.1
 
 - Fix another bug in the normalization route of the Controllers (#22)

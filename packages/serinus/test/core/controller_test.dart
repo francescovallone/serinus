@@ -25,7 +25,7 @@ void main() async {
       final controller = TestController();
       final route = GetRoute(path: '/test');
       controller.on(route, (context) async => Response.text('ok!'));
-      expect(controller.routes.keys.map((e) => e.route), contains(route));
+      expect(controller.routes.values.map((e) => e.route), contains(route));
     });
     test(
         'when two routes with the same type and path are added to a controller, then it should throw an error',
@@ -48,20 +48,22 @@ void main() async {
       controller.on(route2, (context) async => Response.text('ok!'));
       expect(
           controller.get(RouteData(
+              id: controller.routes.keys.elementAt(0),
               path: '/leading/test',
               controller: controller,
               method: HttpMethod.get,
               moduleToken: '',
               routeCls: GetRoute)),
-          isA<RouteSpec>());
+          isA<RouteHandler>());
       expect(
           controller.get(RouteData(
+              id: controller.routes.keys.elementAt(1),
               path: '/leading/',
               controller: controller,
               method: HttpMethod.get,
               moduleToken: '',
               routeCls: GetRoute)),
-          isA<RouteSpec>());
+          isA<RouteHandler>());
     });
   });
 }

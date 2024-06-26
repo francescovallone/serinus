@@ -4,10 +4,8 @@ import 'package:uuid/v4.dart';
 
 import '../adapters/server_adapter.dart';
 import '../adapters/ws_adapter.dart';
-import '../body_size_limit.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
-import '../http/cors.dart';
 import '../versioning.dart';
 import 'hook.dart';
 
@@ -45,12 +43,6 @@ final class ApplicationConfig {
   /// If the versioning options are already set, a [StateError] will be thrown
   VersioningOptions? _versioningOptions;
 
-  /// The cors options for the application
-  /// This can be set using the [enableCors] method
-  /// The cors options can be set only once
-  /// If the cors options are already set, a [StateError] will be thrown
-  Cors? _cors;
-
   /// The view engine for the application
   /// This can be set using the [useViewEngine] method
   /// The view engine can be set only once
@@ -66,9 +58,6 @@ final class ApplicationConfig {
 
   /// The versioning options for the application
   VersioningOptions? get versioningOptions => _versioningOptions;
-
-  /// The cors options for the application
-  Cors? get cors => _cors;
 
   /// The view engine for the application
   ViewEngine? get viewEngine => _viewEngine;
@@ -96,14 +85,6 @@ final class ApplicationConfig {
     _globalPrefix = value;
   }
 
-  /// The cors options for the application
-  set cors(Cors? value) {
-    if (_cors != null) {
-      throw StateError('Cors options already set');
-    }
-    _cors = value;
-  }
-
   /// The view engine for the application
   set viewEngine(ViewEngine? value) {
     if (_viewEngine != null) {
@@ -114,9 +95,6 @@ final class ApplicationConfig {
 
   /// The server adapter for the application
   final Adapter serverAdapter;
-
-  /// The body size limit for the application
-  BodySizeLimit bodySizeLimit = const BodySizeLimit();
 
   /// The ws adapter for the application
   WsAdapter? wsAdapter;

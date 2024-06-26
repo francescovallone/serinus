@@ -5,10 +5,6 @@ import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:serinus_cli/src/commands/generate/templates/controller_template.dart';
-import 'package:serinus_cli/src/commands/generate/templates/module_template.dart';
-import 'package:serinus_cli/src/commands/generate/templates/resource_template.dart';
-import 'package:serinus_cli/src/commands/generate/templates/service_template.dart';
 
 final RegExp _identifierRegExp = RegExp('[a-z]*');
 
@@ -36,11 +32,7 @@ class GenerateCommand extends Command<int> {
       );
   }
 
-  Map<String, MasonBundle Function(String, String)> bundles = {
-    'service': generateServiceTemplate,
-    'module': generateModuleTemplate,
-    'controller': generateControllerTemplate,
-  };
+  Map<String, MasonBundle Function(String, String)> bundles = {};
 
   /// [ArgResults] used for testing purposes only.
   @visibleForTesting
@@ -176,18 +168,18 @@ class GenerateCommand extends Command<int> {
     final progress = _logger?.progress(
       'Generate $itemName resource...',
     );
-    final vars = <String, dynamic>{
+    final _ = <String, dynamic>{
       'name': _itemName,
       'output': outputDirectory.absolute.path,
-      'path': _itemName
+      'path': _itemName,
     };
-    final generator = await MasonGenerator.fromBundle(
-      generateResourceTemplate(_itemName),
-    );
-    await generator.generate(
-      DirectoryGeneratorTarget(outputDirectory),
-      vars: vars,
-    );
+    // final generator = await MasonGenerator.fromBundle(
+    //   generateResourceTemplate(_itemName),
+    // );
+    // await generator.generate(
+    //   DirectoryGeneratorTarget(outputDirectory),
+    //   vars: vars,
+    // );
     progress?.complete(
       'Resource $itemName successfully generated!',
     );
