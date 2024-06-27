@@ -206,30 +206,22 @@ void main() async {
     test(
       '''when a mixed json response is passed, then the data should be parsed correctly''',
       () async {
-        final res = Response.json(
-          [
-            {
-              'id': 1,
-              'name': 'John Doe',
-              'email': '',
-              'obj': TestJsonObject()
-            },
-            TestObj('Jane Doe')
-          ]
-        );
-        expect(res.data, jsonEncode([
-          {
-            'id': 1,
-            'name': 'John Doe',
-            'email': '',
-            'obj': {'id': 'json-obj'}
-          },
-          {
-            'name': 'Jane Doe'
-          }
-        ]));
+        final res = Response.json([
+          {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestJsonObject()},
+          TestObj('Jane Doe')
+        ]);
+        expect(
+            res.data,
+            jsonEncode([
+              {
+                'id': 1,
+                'name': 'John Doe',
+                'email': '',
+                'obj': {'id': 'json-obj'}
+              },
+              {'name': 'Jane Doe'}
+            ]));
       },
     );
-
   });
 }
