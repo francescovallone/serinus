@@ -5,9 +5,10 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import '../../serinus.dart';
+import '../contexts/contexts.dart';
 import '../http/internal_request.dart';
 import '../services/logger_service.dart';
+import 'server_adapter.dart';
 
 /// The [WsRequestHandler] is used to handle the web socket request
 typedef WsRequestHandler = Future<void> Function(
