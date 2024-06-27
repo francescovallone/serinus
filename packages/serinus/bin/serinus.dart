@@ -5,9 +5,7 @@ import 'package:serinus/serinus.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
 class TestObj with JsonObject {
-
   final String name;
-
 
   TestObj(this.name);
 
@@ -17,8 +15,6 @@ class TestObj with JsonObject {
       'name': name,
     };
   }
-
-
 }
 
 class TestMiddleware extends Middleware {
@@ -116,9 +112,12 @@ class PostRoute extends Route {
 
 class HomeController extends Controller {
   HomeController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context) async {
-      return Response.json([TestObj('Hello'), TestObj('World')]);
-    },);
+    on(
+      GetRoute(path: '/'),
+      (context) async {
+        return Response.json([TestObj('Hello'), TestObj('World')]);
+      },
+    );
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
           '${context.request.getData('test')} ${context.params}');

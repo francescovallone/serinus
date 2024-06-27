@@ -30,7 +30,8 @@ abstract class Middleware {
   /// It is used to create a middleware from a shelf middleware giving interoperability between Serinus and Shelf.
   factory Middleware.shelf(Function handler,
       {List<String> routes = const ['*'], bool ignoreResponse = true}) {
-    return _ShelfMiddleware(handler, routes: routes, ignoreResponse: ignoreResponse);
+    return _ShelfMiddleware(handler,
+        routes: routes, ignoreResponse: ignoreResponse);
   }
 }
 
@@ -39,7 +40,8 @@ class _ShelfMiddleware extends Middleware {
 
   final bool ignoreResponse;
 
-  _ShelfMiddleware(this._handler, {super.routes = const ['*'], this.ignoreResponse = true});
+  _ShelfMiddleware(this._handler,
+      {super.routes = const ['*'], this.ignoreResponse = true});
 
   /// Most of the code has been taken from
   /// https://github.com/codekeyz/pharaoh/tree/main/packages/pharaoh/lib/src/shelf_interop

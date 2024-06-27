@@ -71,12 +71,13 @@ class Response {
   /// This method is used to parse a JSON response.
   static dynamic _parseJsonableResponse(dynamic data) {
     dynamic responseData;
-    if(data is Map<String, dynamic>) {
+    if (data is Map<String, dynamic>) {
       responseData = data.map((key, value) {
-        if(value is JsonObject) {
+        if (value is JsonObject) {
           return MapEntry(key, _parseJsonableResponse(value.toJson()));
         } else if (value is List<JsonObject>) {
-          return MapEntry(key, value.map((e) => _parseJsonableResponse(e.toJson())).toList());
+          return MapEntry(key,
+              value.map((e) => _parseJsonableResponse(e.toJson())).toList());
         }
         return MapEntry(key, value);
       });
@@ -84,11 +85,11 @@ class Response {
       responseData = data.map((e) => _parseJsonableResponse(e)).toList();
     } else if (data is JsonObject) {
       responseData = _parseJsonableResponse(data.toJson());
-    } else if(data is List<JsonObject>) {
-      responseData = data.map((e) => _parseJsonableResponse(e.toJson())).toList();
+    } else if (data is List<JsonObject>) {
+      responseData =
+          data.map((e) => _parseJsonableResponse(e.toJson())).toList();
     } else {
-      throw FormatException(
-          'The data must be a json parsable type');
+      throw FormatException('The data must be a json parsable type');
     }
     return responseData;
   }

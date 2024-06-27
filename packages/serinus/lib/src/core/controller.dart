@@ -51,7 +51,8 @@ abstract class Controller {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);
     if (routeExists) {
-      throw StateError('A route of type $R already exists in this controller');
+      throw StateError(
+          'A route with the same path and method already exists. [${route.path}] [${route.method}]');
     }
 
     _routes[UuidV4().generate()] =
