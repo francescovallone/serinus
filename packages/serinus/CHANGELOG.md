@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1
+
+- Add exports for Logger and ViewEngine
+
 ## 0.5.0
 
 - feat(#36): add ParseSchema and remove parse hook to simplify validation in Serinus
