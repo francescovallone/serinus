@@ -4,6 +4,23 @@ import 'dart:io';
 import 'package:serinus/serinus.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
+class TestObj with JsonObject {
+
+  final String name;
+
+
+  TestObj(this.name);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+    };
+  }
+
+
+}
+
 class TestMiddleware extends Middleware {
   int counter = 0;
 
@@ -100,19 +117,8 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
-      return Response.text('Hello world');
-    },
-        schema: ParseSchema(
-          query: object({
-            'test': string().contains('a'),
-          }),
-          headers: object({
-            'test': string().contains('a'),
-          }),
-          // error: (errors) {
-          //   return BadRequestException(message: 'Invalid query parameters');
-          // }
-        ));
+      return Response.json([TestObj('Hello'), TestObj('World')]);
+    },);
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
           '${context.request.getData('test')} ${context.params}');
