@@ -62,30 +62,30 @@ class Response {
   /// Throws a [FormatException] if the data is not a [Map<String, dynamic], a [List<Map<String, dynamic>>] or a [JsonObject].
   factory Response.json(dynamic data,
       {int statusCode = 200, ContentType? contentType}) {
-    dynamic responseData = parseJsonableResponse(data);
+    dynamic responseData = _parseJsonableResponse(data);
     final value = jsonEncode(responseData);
     return Response._(value, statusCode, contentType ?? ContentType.json)
       .._contentLength = value.length;
   }
 
   /// This method is used to parse a JSON response.
-  static dynamic parseJsonableResponse(dynamic data) {
+  static dynamic _parseJsonableResponse(dynamic data) {
     dynamic responseData;
     if(data is Map<String, dynamic>) {
       responseData = data.map((key, value) {
         if(value is JsonObject) {
-          return MapEntry(key, parseJsonableResponse(value.toJson()));
+          return MapEntry(key, _parseJsonableResponse(value.toJson()));
         } else if (value is List<JsonObject>) {
-          return MapEntry(key, value.map((e) => parseJsonableResponse(e.toJson())).toList());
+          return MapEntry(key, value.map((e) => _parseJsonableResponse(e.toJson())).toList());
         }
         return MapEntry(key, value);
       });
     } else if (data is List<Map<String, dynamic>> || data is List<Object>) {
-      responseData = data.map((e) => parseJsonableResponse(e)).toList();
+      responseData = data.map((e) => _parseJsonableResponse(e)).toList();
     } else if (data is JsonObject) {
-      responseData = parseJsonableResponse(data.toJson());
+      responseData = _parseJsonableResponse(data.toJson());
     } else if(data is List<JsonObject>) {
-      responseData = data.map((e) => parseJsonableResponse(e.toJson())).toList();
+      responseData = data.map((e) => _parseJsonableResponse(e.toJson())).toList();
     } else {
       throw FormatException(
           'The data must be a json parsable type');
