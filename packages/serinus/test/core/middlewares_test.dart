@@ -27,7 +27,7 @@ class TestController extends Controller {
 }
 
 final shelfAltMiddleware = Middleware.shelf(
-    (req) => shelf.Response.ok('Hello world from shelf', headers: req.headers));
+    (req) => shelf.Response.ok('Hello world from shelf', headers: req.headers), ignoreResponse: false);
 
 final shelfMiddleware = Middleware.shelf((shelf.Handler innerHandler) {
   return (shelf.Request request) {
