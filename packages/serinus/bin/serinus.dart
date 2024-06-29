@@ -115,8 +115,13 @@ class HomeController extends Controller {
     on(
       GetRoute(path: '/'),
       (context) async {
-        return Response.json([TestObj('Hello'), TestObj('World')]);
+        return Response.json([TestObj('Hello'), TestObj('World'), {'test': context.query['test']}]);
       },
+      schema: ParseSchema(
+        query: object({
+          'test': string().encode(),
+        }).optionals(['test'])
+      )
     );
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
