@@ -6,7 +6,7 @@ import '../exceptions/exceptions.dart';
 
 /// The [ParseSchema] class is used to define the schema of the parsing process.
 final class ParseSchema {
-  late AcanthisType _schema;
+  late AcanthisMap _schema;
 
   /// The [error] property contains the error that will be thrown if the parsing fails.
   final SerinusException Function(Map<String, dynamic>)? error;
@@ -29,7 +29,7 @@ final class ParseSchema {
   }
 
   /// The [tryParse] method is used to validate the data.
-  void tryParse({required Map<String, dynamic> value}) {
+  Map<String, dynamic> tryParse({required Map<String, dynamic> value}) {
     AcanthisParseResult? result;
     try {
       result = _schema.tryParse(value);
@@ -40,5 +40,6 @@ final class ParseSchema {
       throw error?.call(result.errors) ??
           BadRequestException(message: jsonEncode(result.errors));
     }
+    return result.value;
   }
 }
