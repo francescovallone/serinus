@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.2
+
+- fix: accept List of JsonObject as possible data in Response.json. [#42](https://github.com/francescovallone/serinus/issues/42)
+- fix: Response.render & Response.renderString should close the request correctly. [#41](https://github.com/francescovallone/serinus/issues/41)
+- fix: ParseSchema should insert back the parsed values in the request. [#45](https://github.com/francescovallone/serinus/issues/45)
+- fix: The headers passed to the Response object are now set correctly.
+
 ## 0.5.1
 
 - Add exports for Logger and ViewEngine

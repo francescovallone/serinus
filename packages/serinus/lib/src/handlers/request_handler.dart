@@ -75,13 +75,19 @@ class RequestHandler extends Handler {
         buildRequestContext(scopedProviders, wrappedRequest);
     await route.transform(context);
     if (schema != null) {
-      schema.tryParse(value: {
+      final result = schema.tryParse(value: {
         'body': wrappedRequest.body?.value,
         'query': wrappedRequest.query,
         'params': wrappedRequest.params,
         'headers': wrappedRequest.headers,
         'session': wrappedRequest.session.all,
       });
+      wrappedRequest.headers.addAll(result['headers']);
+      wrappedRequest.params.addAll(result['params']);
+      wrappedRequest.query.addAll(result['query']);
+      for (final key in result['session'].keys) {
+        wrappedRequest.session.put(key, result['session'][key]);
+      }
     }
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);

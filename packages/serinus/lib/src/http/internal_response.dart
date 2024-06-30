@@ -79,7 +79,7 @@ class InternalResponse {
   /// This method is used to set the headers of the response.
   void headers(Map<String, String> headers) {
     headers.forEach((key, value) {
-      _original.headers.add(key, value);
+      _original.headers.set(key, value);
     });
   }
 
@@ -121,16 +121,6 @@ class InternalResponse {
       _events.add(ResponseEvent.error);
       throw StateError('ViewEngine is required to render views');
     }
-    if (result.data is View || result.data is ViewString) {
-      contentType(ContentType.html);
-      final rendered = await (result.data is View
-          ? viewEngine!.render(result.data)
-          : viewEngine!.renderString(result.data));
-      for (final hook in hooks) {
-        await hook.onResponse(result);
-      }
-      return send(utf8.encode(rendered));
-    }
     headers(result.headers);
     if (versioning != null && versioning.type == VersioningType.header) {
       _original.headers.add(versioning.header!, versioning.version.toString());
@@ -139,6 +129,19 @@ class InternalResponse {
     _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
     if (result.contentLength != null) {
       _original.headers.contentLength = result.contentLength!;
+    }
+    if (result.data is View || result.data is ViewString) {
+      contentType(ContentType.html);
+      final rendered = await (result.data is View
+          ? viewEngine!.render(result.data)
+          : viewEngine!.renderString(result.data));
+      for (final hook in hooks) {
+        await hook.onResponse(result);
+      }
+      headers({
+        HttpHeaders.contentLengthHeader: utf8.encode(rendered).length.toString()
+      });
+      return send(utf8.encode(rendered));
     }
     final data = result.data;
     final coding = _original.headers['transfer-encoding']?.join(';');

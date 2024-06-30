@@ -5,6 +5,8 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/router.dart';
 import 'package:test/test.dart';
 
+import '../../bin/serinus.dart';
+
 class TestRoute extends Route {
   const TestRoute({
     required super.path,
@@ -200,5 +202,26 @@ void main() async {
       final response = await request.close();
       expect(response.statusCode, 500);
     });
+
+    test(
+      '''when a mixed json response is passed, then the data should be parsed correctly''',
+      () async {
+        final res = Response.json([
+          {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestJsonObject()},
+          TestObj('Jane Doe')
+        ]);
+        expect(
+            res.data,
+            jsonEncode([
+              {
+                'id': 1,
+                'name': 'John Doe',
+                'email': '',
+                'obj': {'id': 'json-obj'}
+              },
+              {'name': 'Jane Doe'}
+            ]));
+      },
+    );
   });
 }
