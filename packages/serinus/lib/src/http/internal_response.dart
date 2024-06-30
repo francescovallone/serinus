@@ -79,7 +79,7 @@ class InternalResponse {
   /// This method is used to set the headers of the response.
   void headers(Map<String, String> headers) {
     headers.forEach((key, value) {
-      _original.headers.add(key, value);
+      _original.headers.set(key, value);
     });
   }
 
