@@ -85,7 +85,7 @@ class RequestHandler extends Handler {
       wrappedRequest.headers.addAll(result['headers']);
       wrappedRequest.params.addAll(result['params']);
       wrappedRequest.query.addAll(result['query']);
-      for(final key in result['session'].keys) {
+      for (final key in result['session'].keys) {
         wrappedRequest.session.put(key, result['session'][key]);
       }
     }

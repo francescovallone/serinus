@@ -112,17 +112,17 @@ class PostRoute extends Route {
 
 class HomeController extends Controller {
   HomeController({super.path = '/'}) {
-    on(
-      GetRoute(path: '/'),
-      (context) async {
-        return Response.json([TestObj('Hello'), TestObj('World'), {'test': context.query['test']}]);
-      },
-      schema: ParseSchema(
-        query: object({
+    on(GetRoute(path: '/'), (context) async {
+      return Response.json([
+        TestObj('Hello'),
+        TestObj('World'),
+        {'test': context.query['test']}
+      ]);
+    },
+        schema: ParseSchema(
+            query: object({
           'test': string().encode(),
-        }).optionals(['test'])
-      )
-    );
+        }).optionals(['test'])));
     on(PostRoute(path: '/*'), (context) async {
       return Response.text(
           '${context.request.getData('test')} ${context.params}');
