@@ -89,6 +89,7 @@ class GenerateCommand extends Command<int> {
         ? 'serinus.createApplication'
         : 'class ${_itemName.getSentenceCase()}Module';
     File? entrypointFile;
+    String? entrypointClass;
     for (final file in fileLists) {
       if (!file.path.endsWith('.dart')) {
         continue;
@@ -96,7 +97,27 @@ class GenerateCommand extends Command<int> {
       final fileContent = File(file.path).readAsStringSync();
       if (fileContent.contains(searchKeyword)) {
         entrypointFile = File(file.path);
+        if (type == 'module') {
+          final classIndex = fileContent.indexOf('entrypoint:');
+          final classEndIndex = fileContent.indexOf('(', classIndex);
+          entrypointClass = fileContent.substring(
+            classIndex + 11,
+            classEndIndex,
+          ).trim();
+        }
         break;
+      }
+    }
+    if (type == 'module') {
+      for (final file in fileLists) {
+        if (!file.path.endsWith('.dart')) {
+          continue;
+        }
+        final fileContent = File(file.path).readAsStringSync();
+        if (fileContent.contains('class $entrypointClass extends Module')) {
+          entrypointFile = File(file.path);
+          break;
+        }
       }
     }
     if (entrypointFile == null) {
@@ -106,39 +127,33 @@ class GenerateCommand extends Command<int> {
         'Entrypoint found: ${entrypointFile.uri.pathSegments.last}',
       );
     }
+    final Generator generator = Generator(
+      outputDirectory: outputDirectory, 
+      entrypointFile: entrypointFile, 
+      itemName: _itemName, 
+      analyzer: _analyzer
+    );
     switch (type) {
       case 'module':
-        await generateModule(
-          outputDirectory,
-          entrypointFile,
+        await generator.generateModule(
           GeneratedElement(
             type: ElementType.module,
             name: '${_itemName.getSentenceCase(separator: '')}Module()',
           ),
-          _itemName,
-          _analyzer,
         );
       case 'controller':
-        await generateController(
-          outputDirectory,
-          entrypointFile,
+        await generator.generateController(
           GeneratedElement(
             type: ElementType.controller,
             name: '${_itemName.getSentenceCase(separator: '')}Controller()',
           ),
-          _itemName,
-          _analyzer,
         );
       case 'provider':
-        await generateProvider(
-          outputDirectory,
-          entrypointFile,
+        await generator.generateProvider(
           GeneratedElement(
             type: ElementType.provider,
             name: '${_itemName.getSentenceCase(separator: '')}Provider()',
           ),
-          _itemName,
-          _analyzer,
         );
     }
     progress?.complete('$_itemName $type generated');
