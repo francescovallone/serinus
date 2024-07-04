@@ -71,11 +71,6 @@ class GenerateCommand extends Command<int> {
       await _generateItem('controller');
       await _generateItem('provider');
     }
-    // if (_itemType != 'resource') {
-    //   await _generateItem(_itemType, _itemName);
-    // } else {
-    //   await _generateResource(_itemName);
-    // }
     return ExitCode.success.code;
   }
 
