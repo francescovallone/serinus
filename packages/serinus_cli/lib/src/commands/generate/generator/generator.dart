@@ -29,10 +29,18 @@ Future<String> generateController(
               ),
             );
             co.body = Block.of([
-              const Code("on(Route.get('/'), (RequestContext context) async => Response.text('Hello, World!'));",),
-              const Code("on(Route.post('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",),
-              const Code("on(Route.put('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",),
-              const Code("on(Route.delete('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",),
+              const Code(
+                "on(Route.get('/'), (RequestContext context) async => Response.text('Hello, World!'));",
+              ),
+              const Code(
+                "on(Route.post('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",
+              ),
+              const Code(
+                "on(Route.put('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",
+              ),
+              const Code(
+                "on(Route.delete('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",
+              ),
             ]);
           }),
         );
@@ -42,7 +50,7 @@ Future<String> generateController(
   });
   final fileName = '${itemName.getSnakeCase()}_controller.dart';
   final filePath = '${fileName.split('_').first}/$fileName';
-  if(File(filePath).existsSync()) {
+  if (File(filePath).existsSync()) {
     return element.name;
   }
   if (entrypointFile != null) {
@@ -70,9 +78,13 @@ Future<String> generateController(
         );
       }
       final entrypointUri = entrypointFile.uri.toFilePath(
-        windows: Platform.isWindows,);
-      final outputUri = File('${outputDirectory.absolute.path}/$filePath').uri.toFilePath(windows: Platform.isWindows);
-      final sameFolder = (outputUri.split('/')..removeLast()).join('/') == (entrypointUri.split('/')..removeLast()).join('/');
+        windows: Platform.isWindows,
+      );
+      final outputUri = File('${outputDirectory.absolute.path}/$filePath')
+          .uri
+          .toFilePath(windows: Platform.isWindows);
+      final sameFolder = (outputUri.split('/')..removeLast()).join('/') ==
+          (entrypointUri.split('/')..removeLast()).join('/');
       if (!replaced.contains(sameFolder ? fileName : filePath)) {
         final lastImport = replaced.lastIndexOf('import ');
         final lastImportSemiColon = replaced.indexOf(';', lastImport);
@@ -126,7 +138,7 @@ Future<void> generateModule(
   });
   final fileName = '${itemName.getSnakeCase()}_module.dart';
   final filePath = '${fileName.split('_').first}/$fileName';
-  if(File(filePath).existsSync()) {
+  if (File(filePath).existsSync()) {
     return;
   }
   if (entrypointFile != null) {
@@ -154,9 +166,13 @@ Future<void> generateModule(
         );
       }
       final entrypointUri = entrypointFile.uri.toFilePath(
-        windows: Platform.isWindows,);
-      final outputUri = File('${outputDirectory.absolute.path}/$filePath').uri.toFilePath(windows: Platform.isWindows);
-      final sameFolder = (outputUri.split('/')..removeLast()).join('/') == (entrypointUri.split('/')..removeLast()).join('/');
+        windows: Platform.isWindows,
+      );
+      final outputUri = File('${outputDirectory.absolute.path}/$filePath')
+          .uri
+          .toFilePath(windows: Platform.isWindows);
+      final sameFolder = (outputUri.split('/')..removeLast()).join('/') ==
+          (entrypointUri.split('/')..removeLast()).join('/');
       if (!replaced.contains(sameFolder ? fileName : filePath)) {
         final lastImport = replaced.lastIndexOf('import ');
         final lastImportSemiColon = replaced.indexOf(';', lastImport);
@@ -177,7 +193,6 @@ Future<void> generateModule(
       ),
     );
 }
-
 
 Future<String> generateProvider(
   Directory outputDirectory,
@@ -204,7 +219,7 @@ Future<String> generateProvider(
   });
   final fileName = '${itemName.getSnakeCase()}_provider.dart';
   final filePath = '${fileName.split('_').first}/$fileName';
-  if(File(filePath).existsSync()) {
+  if (File(filePath).existsSync()) {
     return element.name;
   }
   if (entrypointFile != null) {
@@ -232,9 +247,13 @@ Future<String> generateProvider(
         );
       }
       final entrypointUri = entrypointFile.uri.toFilePath(
-        windows: Platform.isWindows,);
-      final outputUri = File('${outputDirectory.absolute.path}/$filePath').uri.toFilePath(windows: Platform.isWindows);
-      final sameFolder = (outputUri.split('/')..removeLast()).join('/') == (entrypointUri.split('/')..removeLast()).join('/');
+        windows: Platform.isWindows,
+      );
+      final outputUri = File('${outputDirectory.absolute.path}/$filePath')
+          .uri
+          .toFilePath(windows: Platform.isWindows);
+      final sameFolder = (outputUri.split('/')..removeLast()).join('/') ==
+          (entrypointUri.split('/')..removeLast()).join('/');
       if (!replaced.contains(sameFolder ? fileName : filePath)) {
         final lastImport = replaced.lastIndexOf('import ');
         final lastImportSemiColon = replaced.indexOf(';', lastImport);

@@ -64,7 +64,7 @@ class GenerateCommand extends Command<int> {
   @override
   Future<int> run() async {
     _checkIfPubspecExists();
-    if(_itemType != 'resource') {
+    if (_itemType != 'resource') {
       await _generateItem(_itemType);
     } else {
       await _generateItem('module');
@@ -91,40 +91,41 @@ class GenerateCommand extends Command<int> {
     );
     final fileLists = outputDirectory.listSync(recursive: true);
     final searchKeyword = type == 'module'
-      ? 'serinus.createApplication' 
-      : 'class ${_itemName.getSentenceCase()}Module';
+        ? 'serinus.createApplication'
+        : 'class ${_itemName.getSentenceCase()}Module';
     File? entrypointFile;
     for (final file in fileLists) {
-      if(!file.path.endsWith('.dart')) {
+      if (!file.path.endsWith('.dart')) {
         continue;
       }
       final fileContent = File(file.path).readAsStringSync();
-      if(fileContent.contains(searchKeyword)) {
+      if (fileContent.contains(searchKeyword)) {
         entrypointFile = File(file.path);
         break;
       }
     }
-    if(entrypointFile == null) {
+    if (entrypointFile == null) {
       getEntrypointProgress?.fail('No entrypoint found');
-    }else{
+    } else {
       getEntrypointProgress?.complete(
-        'Entrypoint found: ${entrypointFile.uri.pathSegments.last}',);
+        'Entrypoint found: ${entrypointFile.uri.pathSegments.last}',
+      );
     }
-    switch(type) {
+    switch (type) {
       case 'module':
         await generateModule(
-          outputDirectory, 
+          outputDirectory,
           entrypointFile,
           GeneratedElement(
             type: ElementType.module,
             name: '${_itemName.getSentenceCase(separator: '')}Module()',
           ),
           _itemName,
-          _analyzer
+          _analyzer,
         );
       case 'controller':
         await generateController(
-          outputDirectory, 
+          outputDirectory,
           entrypointFile,
           GeneratedElement(
             type: ElementType.controller,
@@ -135,7 +136,7 @@ class GenerateCommand extends Command<int> {
         );
       case 'provider':
         await generateProvider(
-          outputDirectory, 
+          outputDirectory,
           entrypointFile,
           GeneratedElement(
             type: ElementType.provider,
@@ -217,5 +218,4 @@ class GenerateCommand extends Command<int> {
       );
     }
   }
-
 }

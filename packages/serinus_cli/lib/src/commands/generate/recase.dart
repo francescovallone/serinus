@@ -36,7 +36,7 @@ class ReCase {
     return words;
   }
 
-    String getSentenceCase({String separator = ' '}) {
+  String getSentenceCase({String separator = ' '}) {
     final words = _words.map((word) => word.toLowerCase()).toList();
     if (_words.isNotEmpty) {
       words[0] = _upperCaseFirstLetter(words[0]);
@@ -57,5 +57,4 @@ class ReCase {
 
   @override
   String toString() => getSentenceCase();
-
 }
