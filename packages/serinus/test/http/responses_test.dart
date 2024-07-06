@@ -126,7 +126,7 @@ void main() async {
 
       expect(
           response.headers.contentType?.mimeType, 'application/octet-stream');
-      expect(body, '[111, 107, 33]');
+      expect(body, 'ok!');
     });
     test(
         '''when a 'Response.file' is called, then it should return a application/octet-stream response''',

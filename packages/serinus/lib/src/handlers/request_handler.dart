@@ -110,8 +110,14 @@ class RequestHandler extends Handler {
     for (final hook in config.hooks) {
       await hook.afterHandle(context, result);
     }
-    await response.finalize(result,
-        viewEngine: config.viewEngine, hooks: config.hooks);
+    return response.finalize(result,
+        viewEngine: config.viewEngine,
+        hooks: config.hooks,
+        configHeaders: {
+          if (config.versioningOptions != null)
+            '${config.versioningOptions?.header}':
+                '${config.versioningOptions?.version}'
+        });
   }
 
   /// Handles the middlewares

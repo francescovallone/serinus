@@ -2,7 +2,6 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:shelf/shelf.dart' as shelf;
 
 class TestObj with JsonObject {
   final String name;
@@ -204,7 +203,7 @@ class TestWs2Provider extends WebSocketGateway
 class AppModule extends Module {
   AppModule()
       : super(imports: [
-          ReAppModule(),
+          // ReAppModule(),
           WsModule()
         ], controllers: [
           HomeController()
@@ -215,10 +214,10 @@ class AppModule extends Module {
         ], middlewares: [
           // TestMiddleware(),
           // Test2Middleware(),
-          Middleware.shelf(shelf.logRequests()),
+          // Middleware.shelf(shelf.logRequests()),
           // Middleware.shelf(
           //     (req) => shelf.Response.ok('Hello world from shelf')),
-          Middleware.shelf(shelf.logRequests()),
+          // Middleware.shelf(shelf.logRequests()),
         ]);
 }
 

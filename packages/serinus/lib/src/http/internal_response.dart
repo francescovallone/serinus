@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
 import '../core/hook.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
-import '../versioning.dart';
 import 'http.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
@@ -96,8 +96,9 @@ class InternalResponse {
   HttpHeaders get currentHeaders => _original.headers;
 
   /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
-  Future<void> redirect(String path) async {
-    await _original.redirect(Uri.parse(path));
+  Future<void> redirect(Response response) async {
+    await _original.redirect(Uri.parse(response.data),
+        status: response.statusCode);
   }
 
   /// This method is used to finalize the response.
@@ -107,51 +108,43 @@ class InternalResponse {
   /// If the response is a view, it will render the view using the view engine.
   Future<void> finalize(Response result,
       {ViewEngine? viewEngine,
-      VersioningOptions? versioning,
+      Map<String, String> configHeaders = const {},
       Set<Hook> hooks = const {}}) async {
     _events.add(ResponseEvent.beforeSend);
-    status(result.statusCode);
-    if (result.shouldRedirect) {
-      _events.add(ResponseEvent.redirect);
-      _events.add(ResponseEvent.close);
-      return redirect(result.data);
-    }
     if ((result.data is View || result.data is ViewString) &&
         viewEngine == null) {
       _events.add(ResponseEvent.error);
       throw StateError('ViewEngine is required to render views');
     }
-    headers(result.headers);
-    if (versioning != null && versioning.type == VersioningType.header) {
-      _original.headers.add(versioning.header!, versioning.version.toString());
+    if (result.shouldRedirect) {
+      _events.add(ResponseEvent.redirect);
+      _events.add(ResponseEvent.close);
+      return redirect(result);
     }
+    status(result.statusCode);
+    headers({
+      ...result.headers,
+      ...configHeaders,
+    });
     contentType(result.contentType);
     _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-    if (result.contentLength != null) {
-      _original.headers.contentLength = result.contentLength!;
-    }
-    if (result.data is View || result.data is ViewString) {
-      contentType(ContentType.html);
+    Uint8List responseBody;
+    final data = result.data;
+    if (data is View || data is ViewString) {
       final rendered = await (result.data is View
           ? viewEngine!.render(result.data)
           : viewEngine!.renderString(result.data));
-      for (final hook in hooks) {
-        await hook.onResponse(result);
-      }
-      headers({
-        HttpHeaders.contentLengthHeader: utf8.encode(rendered).length.toString()
-      });
-      return send(utf8.encode(rendered));
+      responseBody = utf8.encode(rendered);
+      headers(
+          {HttpHeaders.contentLengthHeader: responseBody.length.toString()});
     }
-    final data = result.data;
     final coding = _original.headers['transfer-encoding']?.join(';');
     if (data is File) {
       for (final hook in hooks) {
         await hook.onResponse(result);
       }
       final readPipe = data.openRead();
-      await sendStream(readPipe);
-      return;
+      return sendStream(readPipe);
     }
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
       // If the response is already in a chunked encoding, de-chunk it because
@@ -173,7 +166,15 @@ class InternalResponse {
     for (final hook in hooks) {
       await hook.onResponse(result);
     }
-    headers(result.headers);
-    return send(utf8.encode(data.toString()));
+    if (data is! Uint8List) {
+      responseBody = utf8.encode(data);
+    } else {
+      responseBody = data;
+    }
+    headers({
+      ...result.headers,
+      HttpHeaders.contentLengthHeader: responseBody.length.toString()
+    });
+    return send(responseBody);
   }
 }

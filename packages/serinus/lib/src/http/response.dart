@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import '../engines/view_engine.dart';
+import '../extensions/content_type_extensions.dart';
 import '../mixins/mixins.dart';
 
 /// The class [Response] is used to create a response for the request.
@@ -62,15 +63,17 @@ class Response {
   /// Throws a [FormatException] if the data is not a [Map<String, dynamic], a [List<Map<String, dynamic>>] or a [JsonObject].
   factory Response.json(dynamic data,
       {int statusCode = 200, ContentType? contentType}) {
+    if (!(contentType?.isJson ?? true)) {
+      throw FormatException('The content type must be json');
+    }
     dynamic responseData = _parseJsonableResponse(data);
     final value = jsonEncode(responseData);
-    return Response._(value, statusCode, contentType ?? ContentType.json)
-      .._contentLength = value.length;
+    return Response._(value, statusCode, contentType ?? ContentType.json);
   }
 
   /// This method is used to parse a JSON response.
   static dynamic _parseJsonableResponse(dynamic data) {
-    dynamic responseData;
+    Object responseData;
     if (data is Map<String, dynamic>) {
       responseData = data.map((key, value) {
         if (value is JsonObject) {
@@ -82,12 +85,14 @@ class Response {
         return MapEntry(key, value);
       });
     } else if (data is List<Map<String, dynamic>> || data is List<Object>) {
-      responseData = data.map((e) => _parseJsonableResponse(e)).toList();
+      responseData =
+          data.map((e) => _parseJsonableResponse(e)).toList(growable: false);
     } else if (data is JsonObject) {
       responseData = _parseJsonableResponse(data.toJson());
     } else if (data is List<JsonObject>) {
-      responseData =
-          data.map((e) => _parseJsonableResponse(e.toJson())).toList();
+      responseData = data
+          .map((e) => _parseJsonableResponse(e.toJson()))
+          .toList(growable: false);
     } else {
       throw FormatException('The data must be a json parsable type');
     }
@@ -103,8 +108,7 @@ class Response {
   /// If the [contentType] is not provided, it defaults to [ContentType.html].
   factory Response.html(String data,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(data, statusCode, contentType ?? ContentType.html)
-      .._contentLength = data.length;
+    return Response._(data, statusCode, contentType ?? ContentType.html);
   }
 
   /// Factory constructor to create a response that will be rendered by [ViewEngine] if available.
@@ -112,11 +116,9 @@ class Response {
   /// It accepts a [View] value.
   ///
   /// The [statusCode] is optional and defaults to 200.
-  ///
-  /// If the [contentType] is not provided, it defaults to [ContentType.html].
-  factory Response.render(View view,
-      {int statusCode = 200, ContentType? contentType}) {
-    return Response._(view, statusCode, contentType ?? ContentType.html);
+  /// The content type is [ContentType.html].
+  factory Response.render(View view, {int statusCode = 200}) {
+    return Response._(view, statusCode, ContentType.html);
   }
 
   /// Factory constructor to create a response that will be rendered by [ViewEngine] if available.
@@ -124,11 +126,9 @@ class Response {
   /// It accepts a [ViewString] value.
   ///
   /// The [statusCode] is optional and defaults to 200.
-  ///
-  /// If the [contentType] is not provided, it defaults to [ContentType.html].
-  factory Response.renderString(ViewString view,
-      {int statusCode = 200, ContentType? contentType}) {
-    return Response._(view, statusCode, contentType ?? ContentType.html);
+  /// The content type is [ContentType.html].
+  factory Response.renderString(ViewString view, {int statusCode = 200}) {
+    return Response._(view, statusCode, ContentType.html);
   }
 
   /// Factory constructor to create a response with a text content type.
@@ -140,8 +140,7 @@ class Response {
   /// If the [contentType] is not provided, it defaults to [ContentType.text].
   factory Response.text(String data,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(data, statusCode, contentType ?? ContentType.text)
-      .._contentLength = data.length;
+    return Response._(data, statusCode, contentType ?? ContentType.text);
   }
 
   /// Factory constructor to create a response with a binary content type.

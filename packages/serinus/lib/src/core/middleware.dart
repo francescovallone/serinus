@@ -54,8 +54,8 @@ class _ShelfMiddleware extends Middleware {
     final shelf.Request request = _createShelfRequest(context);
     late shelf.Response shelfResponse;
     if (_handler is shelf.Middleware) {
-      shelfResponse =
-          await _handler((req) => shelf.Response.ok(req.read()))(request);
+      shelfResponse = await _handler(
+          (req) => shelf.Response.ok(context.body.toString()))(request);
     } else if (_handler is shelf.Handler) {
       shelfResponse = await _handler.call(request);
     } else {
