@@ -1,10 +1,10 @@
 # Serinus
 
-Serinus is a minimalistic framework for building efficient and scalable server-side applications and powered by Dart. 🎯
+Serinus is a minimalistic framework for building efficient and scalable server-side applications powered by Dart. 🎯
 
 ## Why Serinus?
 
-Serinus aims to be a simple and easy-to-use framework for building server-side applications. It is inspired by [NestJS](https://nestjs.com/) and it is designed to be easy to use and to integrate with your existing projects. It also has a shallow learning curve to ensure that developers can start building applications quickly.
+Serinus aims to be a simple framework for building server-side applications. It is inspired by [NestJS](https://nestjs.com/) and it is designed to be easy to use and to integrate with your existing projects.
 
 ## Installation
 

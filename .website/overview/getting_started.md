@@ -2,26 +2,29 @@
 
 ## Create a new project
 
+### Serinus CLI
+
+The easiest way to create a new project is to use the CLI tool that we provide. To install the CLI tool you can use the following command:
+
+```bash
+dart pub global activate serinus_cli
+```
+
+Then you can create a new project using the following command:
+
+```bash
+serinus create <project_name>
+```
+
+### Dart CLI
+
 To create a new project you can use the default command to build command-line applications in dart:
 
 ```bash
 dart create <project_name>
 ```
 
-Or you can use the CLI tool that we provide:
-
-```bash
-dart pub global activate serinus_cli
-serinus create <project_name>
-```
-
-::: tip
-The CLI tool will create a new project with the Serinus structure and it is the recommended way to create a new project.
-:::
-
-## Installation
-
-To install Serinus you can use the following command:
+Then to install Serinus you can use the following command:
 
 ```bash
 dart pub add serinus
@@ -47,7 +50,8 @@ class AppModule extends Module {
     imports: [], // Add the modules that you want to import
     controllers: [],
     providers: [],
-    middlewares: []
+    middlewares: [],
+    exports: []
   );
 }
 
@@ -91,4 +95,4 @@ If you are using the CLI tool, then there are some interesting options to run th
 
 - `--port`: The port to expose the application on. Default is `3000`.
 - `--host`: The host to expose the application on. Default is `localhost`.
-- `--dev`: Flag to run the application in development mode. If this flag is set, the application will be reloaded every time a file is changed.
+- `--dev`: Flag to run the application in development mode. If this flag is set, the application will be restarted every time a file is changed.
