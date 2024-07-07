@@ -7,6 +7,7 @@ import 'package:uuid/v4.dart';
 import '../containers/router.dart';
 import '../contexts/contexts.dart';
 import '../http/http.dart';
+import 'metadata.dart';
 import 'parse_schema.dart';
 import 'route.dart';
 
@@ -39,6 +40,9 @@ abstract class Controller {
   RouteHandler? get(RouteData routeData, [int? version]) {
     return _routes[routeData.id];
   }
+
+  /// The [metadata] property contains the metadata of the controller.
+  List<Metadata> get metadata => [];
 
   /// The [on] method is used to register a route.
   ///

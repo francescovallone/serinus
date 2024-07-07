@@ -58,7 +58,10 @@ class Test2Middleware extends Middleware {
 }
 
 class TestProvider extends Provider {
-  final List<String> testList = [];
+  final List<String> testList = [
+    'Hello',
+    'World',
+  ];
 
   TestProvider({super.isGlobal});
 
@@ -132,8 +135,18 @@ class HomeController extends Controller {
             error: (errors) {
               return BadRequestException(message: 'Invalid query parameters');
             }));
-    on(Route.get('/test'), (context) async {
-      return Response.text('Hello world from test');
+    on(
+        Route.get('/test', metadata: [
+          Metadata<bool>(name: 'public', value: true),
+          ContextualizedMetadata<List<String>>(
+            name: 'test_context',
+            value: (context) async {
+              return context.use<TestProvider>().testList;
+            },
+          )
+        ]), (context) async {
+      return Response.text(
+          'Hello world from ${context.stat<bool>('public') ? 'public' : 'private'} ${context.stat<List<String>>('test_context')}');
     });
   }
 }
