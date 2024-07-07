@@ -23,7 +23,11 @@ export default defineConfig({
     },
     nav: [
       {
-        text: 'pub.dev',
+        text: 'Guide',
+        link: '/introduction'
+      },
+      {
+        text: 'Pub.dev',
         link: 'https://pub.dev/packages/serinus'
       },
     ],
