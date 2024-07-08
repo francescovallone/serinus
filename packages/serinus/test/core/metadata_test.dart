@@ -6,22 +6,25 @@ import 'package:test/test.dart';
 
 import '../../bin/serinus.dart';
 
-
 class TestController extends Controller {
-
   @override
-  List<Metadata> get metadata => [
-    Metadata(name: 'controller', value: 'test')
-  ];
+  List<Metadata> get metadata => [Metadata(name: 'controller', value: 'test')];
 
   TestController({super.path = '/'}) {
-    on(Route.get('/meta', metadata: [
-      Metadata(name: 'meta', value: true)
-    ]), (context) async => Response.text('${context.stat('meta')} - ${context.stat('controller')}'));
-    on(Route.get('/meta-context', metadata: [
-      ContextualizedMetadata(value: (context) async => context.use<TestProvider>().testList, name: 'contextualized')
-    ]),
-        (context) async => Response.json({'message': context.stat('contextualized'), 'controller': context.stat('controller')}));
+    on(
+        Route.get('/meta', metadata: [Metadata(name: 'meta', value: true)]),
+        (context) async => Response.text(
+            '${context.stat('meta')} - ${context.stat('controller')}'));
+    on(
+        Route.get('/meta-context', metadata: [
+          ContextualizedMetadata(
+              value: (context) async => context.use<TestProvider>().testList,
+              name: 'contextualized')
+        ]),
+        (context) async => Response.json({
+              'message': context.stat('contextualized'),
+              'controller': context.stat('controller')
+            }));
   }
 }
 
@@ -42,8 +45,10 @@ void main() async {
     final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
-          entrypoint:
-              TestModule(controllers: [controller], middlewares: [middleware], providers: [TestProvider()]),
+          entrypoint: TestModule(
+              controllers: [controller],
+              middlewares: [middleware],
+              providers: [TestProvider()]),
           loggingLevel: LogLevel.none);
       await app?.serve();
     });
@@ -64,13 +69,16 @@ void main() async {
     test(
         '''when a 'ContextualizedMetadata' is added to the route and the controller, then the 'RequestContext' should solve the values and expose them on the 'stat' method''',
         () async {
-      final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:3000/meta-context'));
+      final request = await HttpClient()
+          .getUrl(Uri.parse('http://localhost:3000/meta-context'));
       final response = await request.close();
       final body = await response.transform(Utf8Decoder()).join();
 
       expect(response.headers.contentType?.mimeType, 'application/json');
-      expect(jsonDecode(body), {'message': ['Hello', 'World'], 'controller': 'test'});
+      expect(jsonDecode(body), {
+        'message': ['Hello', 'World'],
+        'controller': 'test'
+      });
     });
   });
 }

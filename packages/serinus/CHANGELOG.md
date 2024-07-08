@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0-dev.1
+
+- feat(#39): add metadata system to Serinus to specialize the behavior of routes and controllers.
+
 ## 0.5.2
 
 - fix: accept List of JsonObject as possible data in Response.json. [#42](https://github.com/francescovallone/serinus/issues/42)
