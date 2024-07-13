@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0-dev.3
+
+- fix(#39): fix canUse to use the correct type instead of dynamic.
+
 ## 0.6.0-dev.2
 
 - feat(#39): add canUse and canStat methods to the request context to check if a provider or a metadata is present in the context.
