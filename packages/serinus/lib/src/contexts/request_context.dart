@@ -63,10 +63,9 @@ final class RequestContext {
     }
     return providers[T] as T;
   }
-  
+
   /// The [canUse] method is used to check if a provider exists in the context.
   bool canUse<T>() {
     return providers.containsKey(T);
   }
-
 }

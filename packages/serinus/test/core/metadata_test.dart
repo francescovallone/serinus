@@ -45,7 +45,7 @@ void main() async {
     final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
-        port: 3030,
+          port: 3030,
           entrypoint: TestModule(
               controllers: [controller],
               middlewares: [middleware],
