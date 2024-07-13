@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0-dev.2
+
+- feat(#39): add canUse and canStat methods to the request context to check if a provider or a metadata is present in the context.
+
 ## 0.6.0-dev.1
 
 - feat(#39): add metadata system to Serinus to specialize the behavior of routes and controllers.
