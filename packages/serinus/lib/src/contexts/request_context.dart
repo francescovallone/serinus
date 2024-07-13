@@ -45,17 +45,28 @@ final class RequestContext {
 
   /// The [stat] method is used to retrieve a metadata from the context.
   T stat<T>(String name) {
-    if (!metadata.containsKey(name)) {
+    if (!canStat(name)) {
       throw StateError('Metadata $name not found in request context');
     }
     return metadata[name]!.value as T;
   }
 
+  /// The [canStat] method is used to check if a metadata exists in the context.
+  bool canStat(String name) {
+    return metadata.containsKey(name);
+  }
+
   /// This method is used to retrieve a provider from the context.
   T use<T>() {
-    if (!providers.containsKey(T)) {
+    if (!canUse()) {
       throw StateError('Provider not found in request context');
     }
     return providers[T] as T;
   }
+  
+  /// The [canUse] method is used to check if a provider exists in the context.
+  bool canUse<T>() {
+    return providers.containsKey(T);
+  }
+
 }
