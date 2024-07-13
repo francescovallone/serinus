@@ -45,6 +45,7 @@ void main() async {
     final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
+        port: 3030,
           entrypoint: TestModule(
               controllers: [controller],
               middlewares: [middleware],
@@ -59,7 +60,7 @@ void main() async {
         '''when a 'Metadata' is added to the route and the controller, then the 'RequestContext' should exposes them on the 'stat' method''',
         () async {
       final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:3000/meta'));
+          await HttpClient().getUrl(Uri.parse('http://localhost:3030/meta'));
       final response = await request.close();
       final body = await response.transform(Utf8Decoder()).join();
 
@@ -70,7 +71,7 @@ void main() async {
         '''when a 'ContextualizedMetadata' is added to the route and the controller, then the 'RequestContext' should solve the values and expose them on the 'stat' method''',
         () async {
       final request = await HttpClient()
-          .getUrl(Uri.parse('http://localhost:3000/meta-context'));
+          .getUrl(Uri.parse('http://localhost:3030/meta-context'));
       final response = await request.close();
       final body = await response.transform(Utf8Decoder()).join();
 

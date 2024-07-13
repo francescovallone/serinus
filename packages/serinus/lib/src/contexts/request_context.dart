@@ -58,7 +58,7 @@ final class RequestContext {
 
   /// This method is used to retrieve a provider from the context.
   T use<T>() {
-    if (!canUse()) {
+    if (!canUse<T>()) {
       throw StateError('Provider not found in request context');
     }
     return providers[T] as T;
