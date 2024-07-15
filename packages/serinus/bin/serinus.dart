@@ -240,7 +240,9 @@ class AppModule extends Module {
 
 class ReAppModule extends Module {
   ReAppModule()
-      : super(imports: [TestInject()], controllers: [
+      : super(imports: [
+          TestInject()
+        ], controllers: [
           HomeAController()
         ], providers: [
           DeferredProvider(inject: [TestProvider, TestProvider],
@@ -255,20 +257,20 @@ class ReAppModule extends Module {
 
 class TestInject extends Module {
   TestInject()
-      : super(imports: [], controllers: [
-        ], providers: [TestProviderThree()
-        ], middlewares: [], exports: [TestProviderThree
-        ]);
+      : super(
+            imports: [],
+            controllers: [],
+            providers: [TestProviderThree()],
+            middlewares: [],
+            exports: [TestProviderThree]);
 }
 
 class TestProviderThree extends Provider {
-
   TestProviderThree();
 
   String testMethod() {
     return 'Hello world from provider three';
   }
-
 }
 
 void main(List<String> arguments) async {

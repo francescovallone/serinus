@@ -4,7 +4,7 @@ import 'base_context.dart';
 /// The [WebSocketContext] class is used to create a WebSocket context.
 ///
 /// It contains the request, the WebSocket adapter, the ID of the context, the providers, and the serializer.
-final class WebSocketContext extends BaseContext{
+final class WebSocketContext extends BaseContext {
   /// The [request] property contains the request of the context.
   final Request request;
 
@@ -46,5 +46,4 @@ final class WebSocketContext extends BaseContext{
     }
     _wsAdapter.send(data, broadcast: true);
   }
-
 }

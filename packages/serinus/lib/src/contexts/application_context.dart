@@ -2,7 +2,7 @@ import '../core/core.dart';
 import 'base_context.dart';
 
 /// The [ApplicationContext] class is used to create the application context.
-class ApplicationContext extends BaseContext{
+class ApplicationContext extends BaseContext {
   /// The [applicationId] property contains the ID of the application.
   final String applicationId;
 

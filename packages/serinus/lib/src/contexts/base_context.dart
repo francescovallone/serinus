@@ -1,7 +1,7 @@
 import '../core/provider.dart';
 
 /// The [BaseContext] class must be used as the base class for all contexts.
-/// 
+///
 /// It contains the common properties and methods that are used in all contexts.
 abstract class BaseContext {
   /// The [providers] property contains the providers of the context.
@@ -22,6 +22,4 @@ abstract class BaseContext {
     }
     return providers[T] as T;
   }
-  
-
 }

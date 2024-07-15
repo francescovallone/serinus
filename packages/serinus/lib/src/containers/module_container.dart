@@ -195,9 +195,11 @@ final class ModulesContainer {
         parentModule.providers.add(initializedProvider);
       }
       final parentModuleInjectables = getModuleInjectablesByToken(token);
-        _moduleInjectables[token] = parentModuleInjectables.copyWith(
-          providers: parentModuleInjectables.providers.whereNot((e) => e is! DeferredProvider).toSet(),
-        );
+      _moduleInjectables[token] = parentModuleInjectables.copyWith(
+        providers: parentModuleInjectables.providers
+            .whereNot((e) => e is! DeferredProvider)
+            .toSet(),
+      );
       if (!parentModule.exports.every((element) =>
           _providers[token]?.map((e) => e.runtimeType).contains(element) ??
           false)) {

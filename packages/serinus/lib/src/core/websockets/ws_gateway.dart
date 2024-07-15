@@ -46,7 +46,7 @@ abstract class WebSocketGateway extends Provider {
   /// The [WebSocketContext] contains the context of the WebSocket and the methods to send messages to the client.
   Future<void> onMessage(dynamic data, WebSocketContext context);
 
-    /// This method is used to send data to the client.
+  /// This method is used to send data to the client.
   ///
   /// The [data] parameter is the data to be sent.
   ///

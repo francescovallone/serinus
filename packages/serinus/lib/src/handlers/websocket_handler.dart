@@ -3,10 +3,8 @@ import '../extensions/iterable_extansions.dart';
 import '../http/internal_request.dart';
 import 'handler.dart';
 
-typedef DisconnectHandler = ({
-  void Function(String)? onDone, 
-  String clientId
-});
+/// Type to define the record used to save an handler that will be called when a client disconnects.
+typedef DisconnectHandler = ({void Function(String)? onDone, String clientId});
 
 /// The [WebSocketHandler] class is used to handle the WebSocket requests.
 class WebSocketHandler extends Handler {
@@ -41,7 +39,7 @@ class WebSocketHandler extends Handler {
       final providerModule =
           modulesContainer.getModuleByProvider(provider.runtimeType);
       final injectables = modulesContainer.getModuleInjectablesByToken(
-        modulesContainer.moduleToken(providerModule));
+          modulesContainer.moduleToken(providerModule));
       final scopedProviders = List<Provider>.from(injectables.providers
           .addAllIfAbsent(modulesContainer.globalProviders));
       scopedProviders.remove(provider);

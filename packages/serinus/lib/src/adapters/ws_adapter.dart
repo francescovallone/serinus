@@ -45,7 +45,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     }, onDone: () {
       if (onDone != null) {
         for (var done in onDone) {
-          if(done.onDone == null) {
+          if (done.onDone == null) {
             return;
           }
           done.onDone?.call(done.clientId);

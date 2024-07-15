@@ -23,23 +23,19 @@ extension AddIfAbsent<T> on Iterable<T> {
 
 /// This extension is used to split a list into two lists based on the type
 /// of the elements
-/// 
+///
 /// Example:
 /// ```dart
 /// final list = [1, '2', 3, '4'];
 /// final split = list.splitBy<String>();
-/// 
+///
 /// print(split.notOfType); // [1, 3]
 /// print(split.ofType); // ['2', '4']
-/// 
+///
 /// ```
 extension SplitTypes<T> on Iterable<T> {
-
   /// This method is used to split a list into two lists based on the type
-  ({
-    Iterable<T> notOfType,
-    Iterable<R> ofType
-  }) splitBy<R>(){
+  ({Iterable<T> notOfType, Iterable<R> ofType}) splitBy<R>() {
     final notOfType = <T>[];
     final ofType = <R>[];
     for (final element in this) {
@@ -51,5 +47,4 @@ extension SplitTypes<T> on Iterable<T> {
     }
     return (notOfType: notOfType, ofType: ofType);
   }
-
 }
