@@ -5,6 +5,9 @@ import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:serinus_cli/src/commands/generate/builder.dart';
+import 'package:serinus_cli/src/commands/generate/generator/generator.dart';
+import 'package:serinus_cli/src/commands/generate/recase.dart';
 
 final RegExp _identifierRegExp = RegExp('[a-z]*');
 
@@ -27,7 +30,7 @@ class GenerateCommand extends Command<int> {
       ..addOption(
         'type',
         help: 'The type of the item.',
-        allowed: ['service', 'module', 'controller', 'resource'],
+        allowed: ['provider', 'module', 'controller', 'resource'],
         mandatory: true,
       );
   }
@@ -54,47 +57,112 @@ class GenerateCommand extends Command<int> {
   @override
   String get name => 'generate';
 
+  final SerinusAnalyzer _analyzer = SerinusAnalyzer();
+
   final Logger? _logger;
 
   @override
   Future<int> run() async {
     _checkIfPubspecExists();
     if (_itemType != 'resource') {
-      await _generateItem(_itemType, _itemName);
+      await _generateItem(_itemType);
     } else {
-      await _generateResource(_itemName);
+      await _generateItem('module');
+      await _generateItem('controller');
+      await _generateItem('provider');
     }
     return ExitCode.success.code;
   }
 
-  Future<void> _generateItem(String type, String name) async {
+  Future<void> _generateItem(String type) async {
     final outputDirectory = Directory(
-      path.join(Directory.current.path, 'lib', _itemName),
+      path.join(Directory.current.path, 'lib'),
     );
     final progress = _logger?.progress(
-      'Generate ${outputDirectory.path}/${_itemName}_$_itemType.dart...',
+      'Generate $_itemName $type...',
     );
-    final vars = <String, dynamic>{
-      'name': '$_itemName $_itemType',
-      'output': outputDirectory.absolute.path,
-      'path': _itemName,
-    };
-    final generator = await MasonGenerator.fromBundle(
-      bundles[_itemType]!(_itemType, _itemName),
+    final getEntrypointProgress = _logger?.progress(
+      'Get Application entrypoint...',
     );
-    await generator.generate(
-      DirectoryGeneratorTarget(outputDirectory),
-      vars: vars,
+    final fileLists = outputDirectory.listSync(recursive: true);
+    final searchKeyword = type == 'module'
+        ? 'serinus.createApplication'
+        : 'class ${_itemName.getSentenceCase()}Module';
+    File? entrypointFile;
+    String? entrypointClass;
+    for (final file in fileLists) {
+      if (!file.path.endsWith('.dart')) {
+        continue;
+      }
+      final fileContent = File(file.path).readAsStringSync();
+      if (fileContent.contains(searchKeyword)) {
+        entrypointFile = File(file.path);
+        if (type == 'module') {
+          final classIndex = fileContent.indexOf('entrypoint:');
+          final classEndIndex = fileContent.indexOf('(', classIndex);
+          entrypointClass = fileContent.substring(
+            classIndex + 11,
+            classEndIndex,
+          ).trim();
+        }
+        break;
+      }
+    }
+    if (type == 'module') {
+      for (final file in fileLists) {
+        if (!file.path.endsWith('.dart')) {
+          continue;
+        }
+        final fileContent = File(file.path).readAsStringSync();
+        if (fileContent.contains('class $entrypointClass extends Module')) {
+          entrypointFile = File(file.path);
+          break;
+        }
+      }
+    }
+    if (entrypointFile == null) {
+      getEntrypointProgress?.fail('No entrypoint found');
+    } else {
+      getEntrypointProgress?.complete(
+        'Entrypoint found: ${entrypointFile.uri.pathSegments.last}',
+      );
+    }
+    final Generator generator = Generator(
+      outputDirectory: outputDirectory, 
+      entrypointFile: entrypointFile, 
+      itemName: _itemName, 
+      analyzer: _analyzer
     );
-    progress?.complete(
-      '${_itemName}_$_itemType.dart successfully generated!',
-    );
+    switch (type) {
+      case 'module':
+        await generator.generateModule(
+          GeneratedElement(
+            type: ElementType.module,
+            name: '${_itemName.getSentenceCase(separator: '')}Module()',
+          ),
+        );
+      case 'controller':
+        await generator.generateController(
+          GeneratedElement(
+            type: ElementType.controller,
+            name: '${_itemName.getSentenceCase(separator: '')}Controller()',
+          ),
+        );
+      case 'provider':
+        await generator.generateProvider(
+          GeneratedElement(
+            type: ElementType.provider,
+            name: '${_itemName.getSentenceCase(separator: '')}Provider()',
+          ),
+        );
+    }
+    progress?.complete('$_itemName $type generated');
   }
 
-  String get _itemName {
+  ReCase get _itemName {
     final item = argResults['name'] as String;
     _validateItemName(item);
-    return item.toLowerCase();
+    return ReCase(item);
   }
 
   String get _itemType {
@@ -118,9 +186,9 @@ class GenerateCommand extends Command<int> {
       );
     }
 
-    if (!['service', 'module', 'controller', 'resource'].contains(type)) {
+    if (!['provider', 'module', 'controller', 'resource'].contains(type)) {
       throw UsageException(
-        'The item type must be either "service", "module", '
+        'The item type must be either "provider", "module", '
         '"controller", "resource".',
         usageString,
       );
@@ -159,29 +227,5 @@ class GenerateCommand extends Command<int> {
         usageString,
       );
     }
-  }
-
-  Future<void> _generateResource(String itemName) async {
-    final outputDirectory = Directory(
-      path.join(Directory.current.path, 'lib', _itemName),
-    );
-    final progress = _logger?.progress(
-      'Generate $itemName resource...',
-    );
-    final _ = <String, dynamic>{
-      'name': _itemName,
-      'output': outputDirectory.absolute.path,
-      'path': _itemName,
-    };
-    // final generator = await MasonGenerator.fromBundle(
-    //   generateResourceTemplate(_itemName),
-    // );
-    // await generator.generate(
-    //   DirectoryGeneratorTarget(outputDirectory),
-    //   vars: vars,
-    // );
-    progress?.complete(
-      'Resource $itemName successfully generated!',
-    );
   }
 }
