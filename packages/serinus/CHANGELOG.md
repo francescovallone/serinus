@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0-dev.4
+
+- refactor(#39): add parent providers in child providers to allow for a better specialization of the behavior of the providers.
+- refactor(#39): refactor contexts to unify common interfaces and methods.
+
 ## 0.6.0-dev.3
 
 - fix(#39): fix canUse to use the correct type instead of dynamic.
