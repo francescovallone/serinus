@@ -1,11 +1,9 @@
 import '../core/core.dart';
 import '../http/http.dart';
+import 'base_context.dart';
 
 /// The [RequestContext] class is used to create the request context.
-final class RequestContext {
-  /// The [providers] property contains the providers of the request context.
-  final Map<Type, Provider> providers;
-
+final class RequestContext extends BaseContext{
   /// The [request] property contains the request of the context.
   final Request request;
 
@@ -34,7 +32,7 @@ final class RequestContext {
 
   /// The constructor of the [RequestContext] class.
   RequestContext(
-    this.providers,
+    super.providers,
     this.request,
   );
 
@@ -54,18 +52,5 @@ final class RequestContext {
   /// The [canStat] method is used to check if a metadata exists in the context.
   bool canStat(String name) {
     return metadata.containsKey(name);
-  }
-
-  /// This method is used to retrieve a provider from the context.
-  T use<T>() {
-    if (!canUse<T>()) {
-      throw StateError('Provider not found in request context');
-    }
-    return providers[T] as T;
-  }
-
-  /// The [canUse] method is used to check if a provider exists in the context.
-  bool canUse<T>() {
-    return providers.containsKey(T);
   }
 }

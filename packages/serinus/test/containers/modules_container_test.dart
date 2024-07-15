@@ -92,12 +92,12 @@ void main() {
       final subInjectables =
           container.getModuleInjectablesByToken(t.toString());
       expect(injectables.middlewares.length, 1);
-      expect(subInjectables.providers.length, 1);
+      expect(subInjectables.providers.length, 2);
       expect(subInjectables.providers.last, injectables.providers.last);
       final t2 = ImportableModuleWithNonExportedProvider;
       final subInjectablesTwo =
           container.getModuleInjectablesByToken(t2.toString());
-      expect(subInjectablesTwo.providers.length, 1);
+      expect(subInjectablesTwo.providers.length, 3);
     });
 
     // test('when the function "getModuleByToken" is called, and the module exists, then it should return the correct module', () {

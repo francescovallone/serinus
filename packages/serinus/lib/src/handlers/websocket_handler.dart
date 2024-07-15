@@ -3,6 +3,11 @@ import '../extensions/iterable_extansions.dart';
 import '../http/internal_request.dart';
 import 'handler.dart';
 
+typedef DisconnectHandler = ({
+  void Function(String)? onDone, 
+  String clientId
+});
+
 /// The [WebSocketHandler] class is used to handle the WebSocket requests.
 class WebSocketHandler extends Handler {
   /// The [WebSocketHandler] constructor is used to create a new instance of the [WebSocketHandler] class.
@@ -24,10 +29,10 @@ class WebSocketHandler extends Handler {
   Future<
       ({
         List<WsRequestHandler> handlers,
-        List<void Function()> onDoneHandlers,
+        List<DisconnectHandler> onDoneHandlers,
       })> upgradeRequest(InternalRequest request) async {
     final providers = modulesContainer.getAll<WebSocketGateway>();
-    final onDoneHandlers = <void Function()>[];
+    final onDoneHandlers = <DisconnectHandler>[];
     final onMessageHandlers = <WsRequestHandler>[];
     for (final provider in providers) {
       if (provider.path != null && !request.uri.path.endsWith(provider.path!)) {
@@ -36,9 +41,7 @@ class WebSocketHandler extends Handler {
       final providerModule =
           modulesContainer.getModuleByProvider(provider.runtimeType);
       final injectables = modulesContainer.getModuleInjectablesByToken(
-          providerModule.token.isEmpty
-              ? providerModule.runtimeType.toString()
-              : providerModule.token);
+        modulesContainer.moduleToken(providerModule));
       final scopedProviders = List<Provider>.from(injectables.providers
           .addAllIfAbsent(modulesContainer.globalProviders));
       scopedProviders.remove(provider);
@@ -53,12 +56,13 @@ class WebSocketHandler extends Handler {
           provider.serializer);
       config.wsAdapter?.addContext(request.webSocketKey, context);
       if (provider is OnClientConnect) {
-        provider.onClientConnect();
+        provider.onClientConnect(request.webSocketKey);
       }
+      provider.server = config.wsAdapter;
       var onDone =
           provider is OnClientDisconnect ? provider.onClientDisconnect : null;
       if (onDone != null) {
-        onDoneHandlers.add(onDone);
+        onDoneHandlers.add((onDone: onDone, clientId: request.webSocketKey));
       }
       onMessageHandlers.add((dynamic message, WebSocketContext context) {
         if (provider.deserializer != null) {
