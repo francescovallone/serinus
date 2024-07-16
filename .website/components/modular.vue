@@ -44,7 +44,7 @@ const plugins = [
 			</section>
 		</div>
 		<div class="flex justify-center" style="flex-shrink: 0; padding: 6px">
-			<a href="/plugins/" class="vp-btn-custom">
+			<a href="/plugins/" class="bg-orange-400 px-8 py-4 rounded-full">
 				View all plugins
 			</a>
 		</div>
@@ -63,6 +63,9 @@ ol {
 }
 .vp-doc a{
 	text-decoration: none;
+}
+.vp-doc a.bg-orange-400 {
+	color: white;
 }
 .plugin {
 	border: 1px solid transparent;
