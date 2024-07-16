@@ -4,15 +4,11 @@ Serinus is a minimalistic framework for building efficient and scalable server-s
 
 ## Why Serinus?
 
-Serinus aims to be a simple framework for building server-side applications. It is inspired by [NestJS](https://nestjs.com/) and it is designed to be easy to use and to integrate with your existing projects.
+Serinus is simple to use and easy to understand. It is also designed to be flexible and extensible, allowing you to build applications the way you want. In short - Serinus is a framework that gets out of your way and lets you focus on building your application.
 
 ## Installation
 
-### Using the CLI
-  
-::: tip
-The CLI is still under development and more features will be added in the future.
-:::
+### Serinus CLI <Badge type="tip">Recommended ✨</Badge>
 
 ```console
 dart pub global activate serinus_cli
@@ -36,8 +32,14 @@ my_project
 ├── pubspec.yaml
 ```
 
-### From pub.dev
+This is the recommended way to start a new Serinus project.
+
+### Pub
+
+You can also add Serinus to your existing Dart project using `pub`:
 
 ```console
 dart pub add serinus
 ```
+
+This approach is not recommended for new projects as it requires manual setup.

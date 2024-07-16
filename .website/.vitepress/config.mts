@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Serinus",
-  titleTemplate: 'Serinus - Dart Backend Framework',
+  titleTemplate: ':title - Serinus | Dart Backend Framework',
   description: "Serinus is a framework written in Dart for building efficient and scalable server-side applications.",
   head: [
     ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/serinus-icon-32x32.png"}],
