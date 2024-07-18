@@ -6,6 +6,7 @@ import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../contexts/contexts.dart';
+import '../handlers/websocket_handler.dart';
 import '../http/internal_request.dart';
 import '../services/logger_service.dart';
 import 'server_adapter.dart';
@@ -34,7 +35,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   @override
   Future<void> listen(List<WsRequestHandler> requestCallback,
       {InternalRequest? request,
-      List<void Function()>? onDone,
+      List<DisconnectHandler>? onDone,
       ErrorHandler? errorHandler}) async {
     final wsClient = server?[request?.webSocketKey];
     wsClient?.listen((data) {
@@ -44,7 +45,10 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     }, onDone: () {
       if (onDone != null) {
         for (var done in onDone) {
-          done();
+          if (done.onDone == null) {
+            return;
+          }
+          done.onDone?.call(done.clientId);
         }
       }
     }, onError: errorHandler);

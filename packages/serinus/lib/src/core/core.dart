@@ -5,6 +5,7 @@ export 'application_config.dart';
 export 'controller.dart';
 export 'factory.dart' hide SerinusFactory;
 export 'hook.dart';
+export 'metadata.dart';
 export 'middleware.dart';
 export 'module.dart';
 export 'parse_schema.dart';

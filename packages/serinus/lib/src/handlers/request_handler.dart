@@ -73,6 +73,26 @@ class RequestHandler extends Handler {
         .addAllIfAbsent(modulesContainer.globalProviders));
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest);
+    Map<String, Metadata> metadata = {};
+    if (controller.metadata.isNotEmpty) {
+      for (final meta in controller.metadata) {
+        if (meta is ContextualizedMetadata) {
+          metadata[meta.name] = await meta.resolve(context);
+        } else {
+          metadata[meta.name] = meta;
+        }
+      }
+    }
+    if (route.metadata.isNotEmpty) {
+      for (final meta in route.metadata) {
+        if (meta is ContextualizedMetadata) {
+          metadata[meta.name] = await meta.resolve(context);
+        } else {
+          metadata[meta.name] = meta;
+        }
+      }
+    }
+    context.metadata = metadata;
     await route.transform(context);
     if (schema != null) {
       final result = schema.tryParse(value: {
