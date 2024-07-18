@@ -34,13 +34,19 @@ export default defineConfig({
     sidebar: [
       {
         items: [
-          { text: 'Introduction', link: '/introduction' },
           {
-            text: 'Overview',
-            base: '/overview/',
-            collapsed: false,
+            text: 'Getting Started',
             items: [
-              { text: 'Getting Started', link: 'getting_started' },
+              { text: 'In a nutshell', link: '/in_a_nutshell' },
+              { text: 'Quick Start', link: '/quick_start' },
+              { text: 'What\'s next?', link: '/whats_next' }
+            ]
+          },
+          {
+            text: 'Core Concepts',
+            base: '/core/',
+            collapsed: true,
+            items: [
               { text: 'Modules', link: 'modules' },
               { text: 'Controllers', link: 'controllers' },
               { text: 'Routes', link: 'routes' },
@@ -48,7 +54,7 @@ export default defineConfig({
               { text: 'Middlewares', link: 'middlewares' },
               { text: 'WebSockets', link: 'websockets' },
               { text: 'Hooks', link: 'hooks' },
-              { text: 'Shelf Interoperability', link: 'shelf_interop' }
+              { text: 'Request Lifecycle', link: 'request_lifecycle' },
             ]
           },
           {
@@ -60,11 +66,8 @@ export default defineConfig({
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
               { text: 'Body Size Limit', link: 'body_size_limit' },
+              { text: 'Shelf Interoperability', link: 'shelf_interop' }
             ]
-          },
-          {
-            text: 'Request Lifecycle',
-            link: '/request_lifecycle'
           },
           {
             text: 'Plugins',
@@ -100,7 +103,7 @@ export default defineConfig({
               { text: 'Globe', link: 'globe' },
               { text: 'VPS', link: 'vps' },
             ],
-          }
+          }, 
         ]
       },
     ],
