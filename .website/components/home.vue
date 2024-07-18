@@ -6,7 +6,7 @@ import Hero from './hero.vue'
 
 <template>
 	<div>
-		<Hero />
+		<Hero class="h-screen" />
 		<Fast />
 		<Modular />
 	</div>

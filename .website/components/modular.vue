@@ -1,11 +1,11 @@
 <script setup>
 const plugins = [
 	{
-		title: 'Serve Static',
-		pub: 'https://pub.dev/packages/serinus_serve_static',
-		desc: 'Serve static files from your Serinus server.',
-		gh: 'https://github.com/serinus-nest/serve_static',
-		link: '/plugins/serve_static',
+		title: 'Swagger',
+		pub: 'https://pub.dev/packages/serinus_swagger',
+		desc: 'Automatically generate OpenAPI documentation for your API.',
+		gh: 'https://github.com/serinus-nest/serinus_swagger',
+		link: '/plugins/swagger/',
 	},
 	{
 		title: 'Config',
@@ -44,7 +44,7 @@ const plugins = [
 			</section>
 		</div>
 		<div class="flex justify-center" style="flex-shrink: 0; padding: 6px">
-			<a href="/plugins/" class="bg-orange-400 px-8 py-4 rounded-full">
+			<a href="/plugins/" class="border-orange-400 border-2 rounded-full px-8 py-4">
 				View all plugins
 			</a>
 		</div>
