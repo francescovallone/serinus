@@ -5,6 +5,7 @@ import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
 import '../http/internal_request.dart';
+import '../http/streamable_response.dart';
 
 /// The base class for all handlers in the application
 abstract class Handler {
@@ -40,13 +41,14 @@ abstract class Handler {
 
   /// Build the request context from the request and body
   RequestContext buildRequestContext(
-      Iterable<Provider> providers, Request request) {
+      Iterable<Provider> providers, Request request, InternalResponse response) {
     return RequestContext(
       providers.fold<Map<Type, Provider>>({}, (acc, provider) {
         acc[provider.runtimeType] = provider;
         return acc;
       }),
       request,
+      StreamableResponse(response),
     );
   }
 }

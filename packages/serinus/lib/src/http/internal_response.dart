@@ -9,6 +9,7 @@ import '../core/hook.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import 'http.dart';
+import 'streamable_response.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
@@ -51,6 +52,10 @@ class InternalResponse {
       _isClosed = true;
       _events.add(ResponseEvent.close);
     });
+  }
+
+  void write(String data) {
+    _original.write(data);
   }
 
   /// This method is used to send a stream of data to the response.
@@ -111,15 +116,21 @@ class InternalResponse {
       Map<String, String> configHeaders = const {},
       Set<Hook> hooks = const {}}) async {
     _events.add(ResponseEvent.beforeSend);
-    if ((result.data is View || result.data is ViewString) &&
-        viewEngine == null) {
-      _events.add(ResponseEvent.error);
-      throw StateError('ViewEngine is required to render views');
+    if(result.data is StreamedResponse) {
+      _events.add(ResponseEvent.close);
+      await _original.flush();
+      _original.close();
+      return;
     }
     if (result.shouldRedirect) {
       _events.add(ResponseEvent.redirect);
       _events.add(ResponseEvent.close);
       return redirect(result);
+    }
+    if ((result.data is View || result.data is ViewString) &&
+        viewEngine == null) {
+      _events.add(ResponseEvent.error);
+      throw StateError('ViewEngine is required to render views');
     }
     status(result.statusCode);
     headers({

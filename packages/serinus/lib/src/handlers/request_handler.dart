@@ -72,7 +72,7 @@ class RequestHandler extends Handler {
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
     RequestContext context =
-        buildRequestContext(scopedProviders, wrappedRequest);
+        buildRequestContext(scopedProviders, wrappedRequest, response);
     Map<String, Metadata> metadata = {};
     if (controller.metadata.isNotEmpty) {
       for (final meta in controller.metadata) {

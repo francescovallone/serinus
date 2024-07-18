@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import '../engines/view_engine.dart';
 import '../extensions/content_type_extensions.dart';
 import '../mixins/mixins.dart';
+import 'streamable_response.dart';
 
 /// The class [Response] is used to create a response for the request.
 ///
@@ -13,7 +14,7 @@ import '../mixins/mixins.dart';
 class Response {
   /// The value to be sent as a response.
   ///
-  /// It can be a [String], [List], [Map], [Uint8List], [File], [View], [ViewString], [JsonObject]
+  /// It can be a [String], [List], [Map], [Uint8List], [File], [View], [ViewString], [JsonObject], 
   final dynamic _value;
 
   /// The status code of the response.
@@ -74,8 +75,8 @@ class Response {
   /// This method is used to parse a JSON response.
   static dynamic _parseJsonableResponse(dynamic data) {
     Object responseData;
-    if (data is Map<String, dynamic>) {
-      responseData = data.map((key, value) {
+    if (data is Map) {
+      responseData = Map<String, dynamic>.from(data).map((key, value) {
         if (value is JsonObject) {
           return MapEntry(key, _parseJsonableResponse(value.toJson()));
         } else if (value is List<JsonObject>) {
@@ -164,7 +165,9 @@ class Response {
   /// If the [contentType] is not provided, it defaults to [ContentType.binary].
   factory Response.file(File file,
       {int statusCode = 200, ContentType? contentType}) {
-    return Response._(file, statusCode, contentType ?? ContentType.binary);
+    return Response._(file, statusCode, contentType ?? ContentType.binary)..addHeaders({
+      'Content-disposition': 'attachment; filename=${file.path.split('/').last}',
+    });
   }
 
   /// Factory constructor to create a response with a redirect status code.
@@ -172,6 +175,13 @@ class Response {
   /// It accepts a [String] value. The value is the path to redirect to.
   factory Response.redirect(String path) {
     return Response._(path, 302, ContentType.text, shouldRedirect: true);
+  }
+
+  /// Factory constructor to create a response when a stream is needed.
+  /// 
+  /// It returns a [StreamedResponse] object.
+  factory Response.closeStream() {
+    return Response._(StreamedResponse(), 200, ContentType.text);
   }
 
   /// Methods to add headers to the response.

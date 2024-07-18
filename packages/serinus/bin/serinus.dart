@@ -1,5 +1,7 @@
 // coverage:ignore-file
 // ignore_for_file: avoid_print
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
@@ -157,6 +159,8 @@ class HomeAController extends Controller {
       return Response.redirect('/');
     });
     on(PostRoute(path: '/<id>'), _handlePostRequest);
+    on(Route.get('/stream'), _handleStreamResponse);
+    on(Route.get('/file'), _handleFileResponse);
   }
 
   Future<Response> _handlePostRequest(RequestContext context) async {
@@ -166,6 +170,20 @@ class HomeAController extends Controller {
     context.use<TestWsProvider>().send('Hello from controller');
     return Response.text('Hello world from a ${context.params}');
   }
+
+  Future<Response> _handleStreamResponse(RequestContext context) async {
+    final streamable = context.stream();
+    final streamedFile = File('file.txt').openRead().transform(utf8.decoder).transform(LineSplitter());
+    await for(final line in streamedFile) {
+      streamable.send(line);
+    }
+    return streamable.end();
+  }
+
+  Future<Response> _handleFileResponse(RequestContext context) async {
+    return Response.file(File('file.txt'));
+  }
+
 }
 
 class TestWsProvider extends WebSocketGateway
@@ -220,7 +238,7 @@ class TestWs2Provider extends WebSocketGateway
 class AppModule extends Module {
   AppModule()
       : super(imports: [
-          // ReAppModule(),
+          ReAppModule(),
           WsModule()
         ], controllers: [
           HomeController()

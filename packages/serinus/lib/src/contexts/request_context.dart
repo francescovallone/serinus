@@ -1,5 +1,6 @@
 import '../core/core.dart';
 import '../http/http.dart';
+import '../http/streamable_response.dart';
 import 'base_context.dart';
 
 /// The [RequestContext] class is used to create the request context.
@@ -34,7 +35,11 @@ final class RequestContext extends BaseContext {
   RequestContext(
     super.providers,
     this.request,
+    this._streamable
   );
+
+  /// The [streamable] property contains the streamable response of the request.
+  final StreamableResponse _streamable;
 
   /// The [metadata] property contains the metadata of the request context.
   ///
@@ -53,4 +58,10 @@ final class RequestContext extends BaseContext {
   bool canStat(String name) {
     return metadata.containsKey(name);
   }
+
+  /// The [stream] method is used to stream data to the response.
+  StreamableResponse stream() {
+    return _streamable..init();
+  }
+
 }
