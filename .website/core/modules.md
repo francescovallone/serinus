@@ -30,10 +30,13 @@ class AppModule extends Module {
 
 ## Creating a DeferredModule
 
-Modules are loaded instantly when the application starts, but if you need to load a module asynchronously, you can wrap a `Module` with the `DeferredModule` class.
-This class has an `inject` property that exposes the providers on which the module depends.
-A `DeferredModule` has access to all the properties of the `Module` class, so you can pass the same parameters to the `super` constructor.
-Also, it has a `init` property that is a function that will be executed when the module is loaded and that returns a `Module` object.
+Modules are loaded instantly when the application starts, but if you need to create a module dependent on providers within the application, you can wrap a `Module` with the `DeferredModule` class.
+
+The `DeferredModule` class takes two parameters:
+- `inject`: A list of providers that the module needs to load.
+- `init`: A function that returns a `Module` object.
+
+It also has access to all the properties of the `Module` class, so you can pass the same parameters to the `super` constructor.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -70,23 +73,22 @@ class AppModule extends Module {
 The entry point of the application must be a module that extends `Module` and cannot be wrapped by the `DeferredModule` class.
 :::
 
-## Registering a module
+## Register components asynchronously
 
 Modules can also use the `registerAsync` method to register controllers, providers, and other modules asynchronously. This is useful when you need to perform asynchronous operations to register the components of the module.
+
+For example if you need to initialize the `database` connection before registering the providers.
 
 Also if you use this method, you need to override the fields `import`, `controllers`, `providers`, and `middlewares` with an empty list.
 
 ```dart
-
 import 'package:serinus/serinus.dart';
 
 class AppModule extends Module {
-  AppModule() : super(
-    imports: [], // Add the modules that you want to import
-    controllers: [],
-    providers: [],
-    middlewares: []
-  );
+  AppModule();
+
+  @override
+  List<Provider> providers = [];
 
   @override
   Future<void> registerAsync() async {

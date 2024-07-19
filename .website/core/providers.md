@@ -1,8 +1,6 @@
 # Providers
 
-Providers are fundamental in Serinus. A lot of functionalities are treated as providers - services, repositories, factories, etc.
-
-Providers in Serinus are treated as
+Providers, as the name suggests, provide services to the application. They are used to encapsulate the logic of a service, such as a database connection, a cache, or a third-party API.
 
 ## Creating a Provider
 
@@ -16,9 +14,11 @@ class MyProvider extends Provider {
 }
 ```
 
-## Using a Provider
+That's it! You have created a provider.
 
-To use a provider, you need to add it to the `providers` list in your module.
+## Injecting a Provider
+
+To inject a provider in the application, you need to add it to the `providers` list in your module.
 
 ::: code-group
 
@@ -57,7 +57,7 @@ import 'package:serinus/serinus.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}){
-    on(GetRoute(path: '/'), (context) {
+    on(GetRoute(path: '/'), (context) async {
       return Response.text(
         data: context.use<MyProvider>().myMethod(),
       );
@@ -84,6 +84,7 @@ class MyModule extends Module {
     providers: [],
   )
 }
+```
 :::
 
 ## Global Providers

@@ -1,6 +1,6 @@
 # Controllers
 
-Controllers in Serinus are groups of routes that shares the same base base path and guards.
+Controllers in Serinus are groups of routes that shares the same base base path and metadata.
 
 ## Creating a Controller
 
@@ -16,17 +16,14 @@ class MyController extends Controller {
 
 ## Adding Routes
 
-To add routes you first need to create a Route object and then add it to the controller using the `on` method.
-
-::: code-group
+To add routes to a controller, you must use the `on` method.
 
 ```dart [my_controller.dart]
 import 'package:serinus/serinus.dart';
-import 'my_routes.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context) {
+    on(Route.get(path: '/'), (context) async {
       return Response.text(
         data: 'Hello World!',
       );
@@ -35,71 +32,26 @@ class MyController extends Controller {
 }
 ```
 
-```dart [my_routes.dart]
-class GetRoute extends Route {
+You have two ways to define routes:
 
-  const GetRoute({
-    required super.path, 
-    super.method = HttpMethod.get,
-  });
+- `Route.{{method}}`: Defines a route using the factory constructors from the `Route` class.
+- Extends the `Route` class.
 
-}
-```
+## Metadata
 
-:::
+You can add metadata to a controller by overriding the `metadata` getter.
 
-## Adding Guards
-
-To add guards to a controller, you can override the `guards` getter and add to the list the guards that you need.
-
-::: info
-Guards defined in a controller will be executed before the guards defined in the routes.
-:::
-
-::: code-group
-
-```dart [my_controller.dart]
-
+```dart
 import 'package:serinus/serinus.dart';
 
 class MyController extends Controller {
-  
+
+  MyController({super.path = '/'});
+
   @override
-  List<Guard> get guards => [MyGuard()];
-
-  MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context) {
-      return Response.text(
-        data: 'Hello World!',
-      );
-    });
-  }
-}
-```
-
-```dart [my_routes.dart]
-import 'package:serinus/serinus.dart';
-
-class GetRoute extends Route {
-
-  const GetRoute({
-    required super.path, 
-    super.method = HttpMethod.get,
-  });
+  List<Metadata> get metadata => [];
 
 }
 ```
 
-```dart [my_guards.dart]
-import 'package:serinus/serinus.dart';
-
-class MyGuard extends Guard {
-  @override
-  bool canActivate(ExecutionContext context) {
-    print('Guard executed');
-    return true;
-  }
-}
-```
-
-:::
+You can find more information about metadata in the [Metadata](/core/metadata.html) section.

@@ -24,7 +24,7 @@ export default defineConfig({
     nav: [
       {
         text: 'Guide',
-        link: '/introduction'
+        link: '/in_a_nutshell'
       },
       {
         text: 'Pub.dev',
@@ -51,10 +51,19 @@ export default defineConfig({
               { text: 'Controllers', link: 'controllers' },
               { text: 'Routes', link: 'routes' },
               { text: 'Providers', link: 'providers' },
+              { text: 'Metadata', link: 'metadata' },
               { text: 'Middlewares', link: 'middlewares' },
               { text: 'WebSockets', link: 'websockets' },
               { text: 'Hooks', link: 'hooks' },
               { text: 'Request Lifecycle', link: 'request_lifecycle' },
+            ]
+          },
+          {
+            base: '/validation/',
+            text: 'Validation',
+            collapsed: true,
+            items: [
+              { text: 'Schema', link: 'schema' },
             ]
           },
           {

@@ -1,11 +1,12 @@
 # Routes
 
-Routes in Serinus are the endpoints of your application. They are grouped in controllers and can have guards.
-They only exposes the endpoint and the method that the route will respond to so you can create reusable routes that can be added to multiple controllers.
+Web servers are all about routing requests to the right handler. They use the path and method of the request to determine which handler should be executed. 
 
-## Create a route
+Serinus uses the `Route` class to define routes and the `Controller` class to group routes that share the same base path.
 
-To add routes you can either create a class that extends the `Route` class or use the following methods to create one.
+## Define a route
+
+To define a route you can either create a class that extends the `Route` class or use the following factory constructor to create one.
 
 - `Route.get`
 - `Route.post`
@@ -14,8 +15,6 @@ To add routes you can either create a class that extends the `Route` class or us
 - `Route.patch`
 
 All this methods has a required parameter `path` that is the path of the route and the method signature corresponds to the method that the route will respond to.
-
-This change was made to reduce the boilerplate code needed to create a route and to make the code more readable.
 
 Then you can add it to the controller using the `on` method.
 
@@ -27,12 +26,12 @@ import 'my_routes.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context) {
+    on(GetRoute(path: '/'), (context) async {
       return Response.text(
         data: 'Hello World!',
       );
     });
-    on(Route.get(path: '/'), (context) { // This is the same as the previous route
+    on(Route.get(path: '/'), (context) async { // This is the same as the previous route
       return Response.text(
         data: 'Hello World!',
       );
@@ -56,7 +55,14 @@ class GetRoute extends Route {
 
 :::
 
+::: tip
+
+You should use a class when you need to define a route that has some specific behavior that you want to reuse across your application. If you just need to define a route that will be used only once, you can use the factory constructor.
+
+:::
+
 ## Query Parameters
+
 
 Routes have a `queryParameters` property that is a map of the query parameters that were sent in the request.
 The property is a map where the key is the name of the parameter and the value is the type of the parameter.
@@ -89,7 +95,7 @@ import 'my_routes.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(GetRoute(path: '/<id>'), (context) {
+    on(GetRoute(path: '/<id>'), (context) async {
       return Response.text(
         data: 'Hello World!',
       );
