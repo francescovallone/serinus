@@ -5,11 +5,11 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
-import '../../serinus.dart';
-import '../core/hook.dart';
+import '../contexts/contexts.dart';
+import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
-import 'http.dart';
+import '../extensions/dynamic_extensions.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
@@ -102,53 +102,72 @@ class InternalResponse {
         status: statusCode);
   }
 
-  Future<void> end(dynamic data, RequestContext context, ApplicationConfig config) async {
+  Future<void> end(Object data, ResponseProperties properties, ApplicationConfig config) async {
     _events.add(ResponseEvent.beforeSend);
     final isView = data is View || data is ViewString;
     if (isView && config.viewEngine == null) {
       _events.add(ResponseEvent.error);
       throw StateError('ViewEngine is required to render views');
     }
-    if (data is Redirect) {
+    if (properties.redirect != null) {
       _events.add(ResponseEvent.redirect);
       _events.add(ResponseEvent.close);
       headers({
-        HttpHeaders.locationHeader: data.location,
-        ...context.res.headers
+        HttpHeaders.locationHeader: properties.redirect!.location,
+        ...properties.headers
       });
-      return redirect(data.location, data.statusCode);
+      return redirect(properties.redirect!.location, properties.redirect!.statusCode);
     }
-    status(context.res.statusCode);
+    status(properties.statusCode);
     headers({
-      ...context.res.headers,
+      ...properties.headers,
       HttpHeaders.transferEncodingHeader: 'chunked'
     });
-    contentType(context.res.contentType);
-    Uint8List responseBody;
+    Uint8List responseBody = Uint8List(0);
     if (isView) {
       final rendered = await (data is View
         ? config.viewEngine!.render(data)
-        : config.viewEngine!.renderString(data));
+        : config.viewEngine!.renderString(data as ViewString));
       responseBody = utf8.encode(rendered);
+      contentType(properties.contentType ?? ContentType.html);
       headers({
-        HttpHeaders.contentLengthHeader: responseBody.length.toString()
+        HttpHeaders.contentLengthHeader: responseBody.length.toString(),
       });
     }
+    contentType(properties.contentType ?? ContentType.text);
     final coding = _original.headers['transfer-encoding']?.join(';');
     if (data is File) {
       for (final hook in config.hooks) {
-        await hook.onResponse(data, context.res);
+        await hook.onResponse(data, properties);
       }
+      contentType(properties.contentType ?? ContentType.parse('application/octet-stream'));
+      final readPipe = data.openRead();
+      return sendStream(readPipe);
     }
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-    } else if (context.res.statusCode >= 200 &&
-        context.res.statusCode != 204 &&
-        context.res.statusCode != 304 &&
-        context.res.contentLength == null &&
-        context.res.contentType.mimeType != 'multipart/byteranges') {
+    } else if (properties.statusCode >= 200 &&
+        properties.statusCode != 204 &&
+        properties.statusCode != 304 &&
+        properties.contentLength == null &&
+        properties.contentType?.mimeType != 'multipart/byteranges') {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
     }
+    for (final hook in config.hooks) {
+      await hook.onResponse(data, properties);
+    }
+    if(data.isPrimitive()){
+      responseBody = utf8.encode(data.toString());
+    } else if(data is Uint8List) {
+      responseBody = data;
+    } else {
+      responseBody = utf8.encode(jsonEncode(data));
+    }
+    headers({
+      ...properties.headers,
+      HttpHeaders.contentLengthHeader: responseBody.length.toString()
+    });
+    return send(responseBody);
   }
 
   /// This method is used to finalize the response.

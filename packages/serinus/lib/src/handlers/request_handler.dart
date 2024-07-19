@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
@@ -6,9 +8,11 @@ import '../contexts/request_context.dart';
 import '../core/core.dart';
 import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/dynamic_extensions.dart';
 import '../extensions/iterable_extansions.dart';
 import '../http/http.dart';
 import '../http/internal_request.dart';
+import '../services/json_utils.dart';
 import 'handler.dart';
 
 /// The [RequestHandler] class is used to handle the HTTP requests.
@@ -124,12 +128,19 @@ class RequestHandler extends Handler {
       await hook.beforeHandle(context);
     }
     await route.beforeHandle(context);
-    dynamic result = await handler.call(context);
+    Object? result = await handler.call(context);
     await route.afterHandle(context, result);
     for (final hook in config.hooks) {
       await hook.afterHandle(context, result);
     }
-    
+    if(result?.canBeJson() ?? false){
+      result = parseJsonToResponse(result);
+      context.res.contentType = ContentType.json;
+    }
+    if(result is Uint8List) {
+      context.res.contentType = ContentType.binary;
+    }
+    await response.end(result ?? 'null', context.res, config);
   }
 
   /// Handles the middlewares

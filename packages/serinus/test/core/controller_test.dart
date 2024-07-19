@@ -24,7 +24,7 @@ void main() async {
         () {
       final controller = TestController();
       final route = GetRoute(path: '/test');
-      controller.on(route, (context) async => Response.text('ok!'));
+      controller.on(route, (context) async => 'ok!');
       expect(controller.routes.values.map((e) => e.route), contains(route));
     });
     test(
@@ -32,9 +32,9 @@ void main() async {
         () {
       final controller = TestController();
       final route = GetRoute(path: '/test');
-      controller.on(route, (context) async => Response.text('ok!'));
+      controller.on(route, (context) async => 'ok!');
       expect(
-          () => controller.on(route, (context) async => Response.text('ok!')),
+          () => controller.on(route, (context) async => 'ok!'),
           throwsStateError);
     });
 
@@ -44,8 +44,8 @@ void main() async {
       final controller = LeadingSlashController();
       final route = GetRoute(path: '/test');
       final route2 = GetRoute(path: '/');
-      controller.on(route, (context) async => Response.text('ok!'));
-      controller.on(route2, (context) async => Response.text('ok!'));
+      controller.on(route, (context) async => 'ok!');
+      controller.on(route2, (context) async => 'ok!');
       expect(
           controller.get(RouteData(
               id: controller.routes.keys.elementAt(0),

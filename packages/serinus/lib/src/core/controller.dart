@@ -6,7 +6,6 @@ import 'package:uuid/v4.dart';
 
 import '../containers/router.dart';
 import '../contexts/contexts.dart';
-import '../http/http.dart';
 import 'metadata.dart';
 import 'parse_schema.dart';
 import 'route.dart';

@@ -84,7 +84,7 @@ final class ResponseProperties {
   int statusCode = HttpStatus.ok;
 
   /// The [contentType] property contains the content type of the response.
-  ContentType contentType = ContentType.text;
+  ContentType? contentType;
 
   /// The [contentLength] property contains the content length of the response.
   int? contentLength;

@@ -27,9 +27,9 @@ class TestController extends Controller {
       } else {
         context.request.session.put('sessionNew', false);
       }
-      return Response.json({
+      return {
         'isSessionNew': context.request.session.get('sessionNew'),
-      }, contentType: ContentType.json);
+      };
     });
   }
 }

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../contexts/request_context.dart';
@@ -27,8 +30,11 @@ abstract class Handler {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
-      return response.finalize(Response.json(e, statusCode: e.statusCode),
-          hooks: config.hooks);
+      final error = utf8.encode(jsonEncode(e.toJson()));
+      final properties = ResponseProperties()
+        ..statusCode = e.statusCode
+        ..contentType = ContentType.json;
+      return response.end(error, properties, config);
     }
   }
 

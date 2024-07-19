@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/router.dart';
+import 'package:serinus/src/services/json_utils.dart';
 import 'package:test/test.dart';
 
 import '../../bin/serinus.dart';
@@ -23,24 +24,28 @@ class TestJsonObject with JsonObject {
 
 class TestController extends Controller {
   TestController({super.path = '/'}) {
-    on(TestRoute(path: '/text'), (context) async => Response.text('ok!'));
+    on(TestRoute(path: '/text'), (context) async => 'ok!');
     on(TestRoute(path: '/json'),
-        (context) async => Response.json({'message': 'ok!'}));
+        (context) async => {'message': 'ok!'});
     on(TestRoute(path: '/json-obj'),
-        (context) async => Response.json(TestJsonObject()));
+        (context) async => TestJsonObject());
     on(TestRoute(path: '/html'),
-        (context) async => Response.html('<h1>ok!</h1>'));
+        (context) async {
+          context.res.contentType = ContentType.html;
+          return '<h1>ok!</h1>';
+        });
     on(TestRoute(path: '/bytes'),
-        (context) async => Response.bytes(Utf8Encoder().convert('ok!')));
+        (context) async => Utf8Encoder().convert('ok!'));
     on(TestRoute(path: '/file'), (context) async {
       final file =
           File('${Directory.current.absolute.path}/test/http/test.txt');
-      return Response.file(file);
+      return file;
     });
     on(TestRoute(path: '/redirect'),
-        (context) async => Response.redirect('/text'));
+        (context) async => context.res.redirect = Redirect('/text'));
     on(TestRoute(path: '/status'), (context) async {
-      return Response.text('test')..statusCode = 201;
+      context.res.statusCode = 201;
+      return 'test';
     });
   }
 }
@@ -69,7 +74,7 @@ class TestModule extends Module {
 }
 
 void main() async {
-  group('$Response', () {
+  group('Responses Test', () {
     SerinusApplication? app;
     final controller = TestController();
     final middleware = TestMiddleware();
@@ -206,12 +211,12 @@ void main() async {
     test(
       '''when a mixed json response is passed, then the data should be parsed correctly''',
       () async {
-        final res = Response.json([
+        final res = parseJsonToResponse([
           {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestJsonObject()},
           TestObj('Jane Doe')
         ]);
         expect(
-            res.data,
+            jsonEncode(res),
             jsonEncode([
               {
                 'id': 1,

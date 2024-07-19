@@ -13,18 +13,17 @@ class TestController extends Controller {
   TestController({super.path = '/'}) {
     on(
         Route.get('/meta', metadata: [Metadata(name: 'meta', value: true)]),
-        (context) async => Response.text(
-            '${context.stat('meta')} - ${context.stat('controller')}'));
+        (context) async => '${context.stat('meta')} - ${context.stat('controller')}');
     on(
         Route.get('/meta-context', metadata: [
           ContextualizedMetadata(
               value: (context) async => context.use<TestProvider>().testList,
               name: 'contextualized')
         ]),
-        (context) async => Response.json({
+        (context) async => {
               'message': context.stat('contextualized'),
               'controller': context.stat('controller')
-            }));
+            });
   }
 }
 
