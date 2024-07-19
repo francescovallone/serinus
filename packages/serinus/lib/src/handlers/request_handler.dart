@@ -44,7 +44,6 @@ class RequestHandler extends Handler {
       return;
     }
     await wrappedRequest.parseBody();
-    Response result;
     final routeLookup = router.getRouteByPathAndMethod(
         request.path.endsWith('/')
             ? request.path.substring(0, request.path.length - 1)
@@ -125,19 +124,12 @@ class RequestHandler extends Handler {
       await hook.beforeHandle(context);
     }
     await route.beforeHandle(context);
-    result = await handler.call(context);
+    dynamic result = await handler.call(context);
     await route.afterHandle(context, result);
     for (final hook in config.hooks) {
       await hook.afterHandle(context, result);
     }
-    return response.finalize(result,
-        viewEngine: config.viewEngine,
-        hooks: config.hooks,
-        configHeaders: {
-          if (config.versioningOptions != null)
-            '${config.versioningOptions?.header}':
-                '${config.versioningOptions?.version}'
-        });
+    
   }
 
   /// Handles the middlewares
