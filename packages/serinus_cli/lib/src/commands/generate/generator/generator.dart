@@ -91,16 +91,16 @@ class Generator {
               );
               co.body = Block.of([
                 const Code(
-                  "on(Route.get('/'), (RequestContext context) async => Response.text('Hello, World!'));",
+                  "on(Route.get('/'), (RequestContext context) async => 'Hello, World!');",
                 ),
                 const Code(
-                  "on(Route.post('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",
+                  "on(Route.post('/'), (RequestContext context) async => {'hello': 'world'});",
                 ),
                 const Code(
-                  "on(Route.put('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",
+                  "on(Route.put('/'), (RequestContext context) async => {'hello': 'world'});",
                 ),
                 const Code(
-                  "on(Route.delete('/'), (RequestContext context) async => Response.json({'hello': 'world'}));",
+                  "on(Route.delete('/'), (RequestContext context) async => {'hello': 'world'});",
                 ),
               ]);
             }),
