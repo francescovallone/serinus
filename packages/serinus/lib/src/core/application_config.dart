@@ -6,6 +6,7 @@ import '../adapters/server_adapter.dart';
 import '../adapters/ws_adapter.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
+import '../services/tracers_service.dart';
 import '../versioning.dart';
 import 'hook.dart';
 import 'tracer.dart';
@@ -104,19 +105,16 @@ final class ApplicationConfig {
   final Set<Hook> hooks = {};
 
   /// The tracer for the application
-  Tracer? _tracer;
-
-  /// The tracer for the application
-  Tracer? get tracer => _tracer;
+  final TracersService tracerService = TracersService();
 
   /// Add a hook to the application
   void addHook(Hook hook) {
     hooks.add(hook);
   }
 
-  /// Add a tracer to the application
-  void addTracer(Tracer tracer) {
-    _tracer = tracer;
+  /// Register a tracer to the application
+  void registerTracer(Tracer tracer) {
+    tracerService.registerTracer(tracer);
   }
 
   /// The application config constructor

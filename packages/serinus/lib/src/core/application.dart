@@ -192,7 +192,7 @@ class SerinusApplication extends Application {
 
   /// The [trace] method is used to add a tracer to the application.
   void trace(Tracer tracer) {
-    config.addTracer(tracer);
+    config.registerTracer(tracer);
     _logger.info('Tracer ${tracer.name}(${tracer.runtimeType}) added to application');
   }
 }

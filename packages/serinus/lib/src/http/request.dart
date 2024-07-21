@@ -46,6 +46,9 @@ class Request {
 
   final Map<String, dynamic> _queryParamters = {};
 
+  /// The id of the request.
+  String get id => _original.id;
+
   /// The path of the request.
   String get path => _original.path;
 

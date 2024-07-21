@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:uuid/v4.dart';
 
 import '../exceptions/exceptions.dart';
 import 'internal_response.dart';
@@ -11,6 +12,9 @@ import 'internal_response.dart';
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
 
 class InternalRequest {
+  /// The id of the request.
+  final String id = UuidV4().generate();
+
   /// The [path] property contains the path of the request
   String get path => uri.path;
 
