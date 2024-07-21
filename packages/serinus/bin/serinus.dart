@@ -166,7 +166,7 @@ class HomeAController extends Controller {
     on(Route.get('/file'), _handleFileResponse);
   }
 
-  Future<dynamic> _handlePostRequest(RequestContext context) async {
+  Future<String> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
     print(context.canUse<TestProviderThree>());
     print(context.canUse<TestWsProvider>());
