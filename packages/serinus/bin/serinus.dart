@@ -116,19 +116,17 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
-      return Response.json([
-        TestObj('Hello'),
-        TestObj('World'),
-        {'test': context.query['test']}
-      ]);
+      return [
+        {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestObj('hello')},
+        TestObj('Jane Doe')
+      ];
     },
         schema: ParseSchema(
             query: object({
           'test': string().encode(),
         }).optionals(['test'])));
     on(PostRoute(path: '/*'), (context) async {
-      return Response.text(
-          '${context.request.getData('test')} ${context.params}');
+      return '${context.request.getData('test')} ${context.params}';
     },
         schema: ParseSchema(
             body: string(),
@@ -145,8 +143,12 @@ class HomeController extends Controller {
             },
           )
         ]), (context) async {
-      return Response.text(
-          'Hello world from ${context.stat<bool>('public') ? 'public' : 'private'} ${context.stat<List<String>>('test_context')}');
+      return 'Hello world from ${context.stat<bool>('public') ? 'public' : 'private'} ${context.stat<List<String>>('test_context')}';
+    });
+
+    on(Route.get('/html'), (context) async {
+      context.res.contentType = ContentType.html;
+      return '<html><body><h1>Hello world</h1></body></html>';
     });
   }
 }
@@ -154,17 +156,18 @@ class HomeController extends Controller {
 class HomeAController extends Controller {
   HomeAController() : super(path: '/a') {
     on(GetRoute(path: '/'), (context) async {
-      return Response.redirect('/');
+      context.res.redirect = Redirect('/');
+      return;
     });
     on(PostRoute(path: '/<id>'), _handlePostRequest);
   }
 
-  Future<Response> _handlePostRequest(RequestContext context) async {
+  Future<dynamic> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
     print(context.canUse<TestProviderThree>());
     print(context.canUse<TestWsProvider>());
     context.use<TestWsProvider>().send('Hello from controller');
-    return Response.text('Hello world from a ${context.params}');
+    return 'Hello world from a ${context.params}';
   }
 }
 
@@ -220,7 +223,7 @@ class TestWs2Provider extends WebSocketGateway
 class AppModule extends Module {
   AppModule()
       : super(imports: [
-          // ReAppModule(),
+          ReAppModule(),
           WsModule()
         ], controllers: [
           HomeController()

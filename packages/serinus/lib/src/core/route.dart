@@ -1,6 +1,5 @@
 import '../contexts/request_context.dart';
 import '../enums/http_method.dart';
-import '../http/http.dart';
 import 'metadata.dart';
 
 /// The [Route] class is used to define the routes of the application.
@@ -41,7 +40,7 @@ class Route {
   /// The [afterHandle] method is used to execute code after the route is handled.
   ///
   /// It can be overridden if needed.
-  Future<void> afterHandle(RequestContext context, Response response) async {}
+  Future<void> afterHandle(RequestContext context, dynamic response) async {}
 
   /// The [Route.get] factory constructor is used to create a new instance of the [Route] class with the GET method.
   factory Route.get(String path, {List<Metadata> metadata = const []}) {

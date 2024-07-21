@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../core/core.dart';
 import '../http/http.dart';
 import 'base_context.dart';
@@ -53,4 +55,53 @@ final class RequestContext extends BaseContext {
   bool canStat(String name) {
     return metadata.containsKey(name);
   }
+
+  /// The [res] property contains the response properties of the request context.
+  ///
+  /// The response properties are used to set some properties of the response.
+  /// Currently the available properties are:
+  /// - [statusCode]
+  /// - [contentType]
+  /// - [contentLength]
+  /// - [headers]
+  /// - [redirect]
+  ///
+  /// The [redirect] property uses a [Redirect] class to create the redirect response.
+  final ResponseProperties res = ResponseProperties();
+}
+
+/// The [Redirect] class is used to create the redirect response.
+final class Redirect {
+  /// The [location] property contains the location of the redirect.
+  final String location;
+
+  /// The [statusCode] property contains the status code of the redirect.
+  final int statusCode;
+
+  /// The [Redirect] constructor.
+  const Redirect(this.location,
+      {this.statusCode = HttpStatus.movedTemporarily});
+}
+
+/// The [ResponseProperties] class is used to create the response properties.
+///
+/// It contains the status code, headers, and redirect properties.
+final class ResponseProperties {
+  /// The [statusCode] property contains the status code of the response.
+  int statusCode = HttpStatus.ok;
+
+  /// The [contentType] property contains the content type of the response.
+  ContentType? contentType;
+
+  /// The [contentLength] property contains the content length of the response.
+  int? contentLength;
+
+  /// The [headers] property contains the headers of the response.
+  final Map<String, String> headers = {};
+
+  /// The [redirect] property contains the redirect of the response.
+  Redirect? redirect;
+
+  /// The [ResponseProperties] constructor.
+  ResponseProperties();
 }

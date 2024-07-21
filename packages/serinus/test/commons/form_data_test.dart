@@ -14,7 +14,7 @@ class TestRoute extends Route {
 class TestController extends Controller {
   TestController({super.path = '/'}) {
     on(TestRoute(path: '/form', method: HttpMethod.post), (context) async {
-      return Response.json(context.request.body?.formData?.values ?? {});
+      return context.request.body?.formData?.values ?? {};
     });
   }
 }
