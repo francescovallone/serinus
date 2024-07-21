@@ -133,11 +133,11 @@ class RequestHandler extends Handler {
     for (final hook in config.hooks) {
       await hook.afterHandle(context, result);
     }
-    if(result?.canBeJson() ?? false){
+    if (result?.canBeJson() ?? false) {
       result = parseJsonToResponse(result);
       context.res.contentType = ContentType.json;
     }
-    if(result is Uint8List) {
+    if (result is Uint8List) {
       context.res.contentType = ContentType.binary;
     }
     await response.end(result ?? 'null', context.res, config);

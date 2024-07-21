@@ -98,11 +98,14 @@ class InternalResponse {
 
   /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
   Future<void> redirect(String location, int statusCode) async {
-    await _original.redirect(Uri.parse(location),
-        status: statusCode);
+    await _original.redirect(Uri.parse(location), status: statusCode);
   }
 
-  Future<void> end(Object data, ResponseProperties properties, ApplicationConfig config) async {
+  /// This method is used to end the response.
+  ///
+  /// It substitutes the old [finalize] method.
+  Future<void> end(Object data, ResponseProperties properties,
+      ApplicationConfig config) async {
     _events.add(ResponseEvent.beforeSend);
     final isView = data is View || data is ViewString;
     if (isView && config.viewEngine == null) {
@@ -116,31 +119,34 @@ class InternalResponse {
         HttpHeaders.locationHeader: properties.redirect!.location,
         ...properties.headers
       });
-      return redirect(properties.redirect!.location, properties.redirect!.statusCode);
+      return redirect(
+          properties.redirect!.location, properties.redirect!.statusCode);
     }
     status(properties.statusCode);
-    headers({
-      ...properties.headers,
-      HttpHeaders.transferEncodingHeader: 'chunked'
-    });
+    if (properties.statusCode >= 400) {
+      _events.add(ResponseEvent.error);
+    }
+    headers(
+        {...properties.headers, HttpHeaders.transferEncodingHeader: 'chunked'});
     Uint8List responseBody = Uint8List(0);
+    contentType(properties.contentType ?? ContentType.text);
     if (isView) {
       final rendered = await (data is View
-        ? config.viewEngine!.render(data)
-        : config.viewEngine!.renderString(data as ViewString));
+          ? config.viewEngine!.render(data)
+          : config.viewEngine!.renderString(data as ViewString));
       responseBody = utf8.encode(rendered);
       contentType(properties.contentType ?? ContentType.html);
       headers({
         HttpHeaders.contentLengthHeader: responseBody.length.toString(),
       });
     }
-    contentType(properties.contentType ?? ContentType.text);
     final coding = _original.headers['transfer-encoding']?.join(';');
     if (data is File) {
       for (final hook in config.hooks) {
         await hook.onResponse(data, properties);
       }
-      contentType(properties.contentType ?? ContentType.parse('application/octet-stream'));
+      contentType(properties.contentType ??
+          ContentType.parse('application/octet-stream'));
       final readPipe = data.openRead();
       return sendStream(readPipe);
     }
@@ -156,11 +162,11 @@ class InternalResponse {
     for (final hook in config.hooks) {
       await hook.onResponse(data, properties);
     }
-    if(data.isPrimitive()){
+    if (data.isPrimitive()) {
       responseBody = utf8.encode(data.toString());
-    } else if(data is Uint8List) {
+    } else if (data is Uint8List) {
       responseBody = data;
-    } else {
+    } else if (!isView) {
       responseBody = utf8.encode(jsonEncode(data));
     }
     headers({
@@ -169,81 +175,4 @@ class InternalResponse {
     });
     return send(responseBody);
   }
-
-  /// This method is used to finalize the response.
-  ///
-  /// It will set the status code, headers, content type, and send the data.
-  ///
-  /// If the response is a view, it will render the view using the view engine.
-  // Future<void> finalize(Response result,
-  //     {ViewEngine? viewEngine,
-  //     Map<String, String> configHeaders = const {},
-  //     Set<Hook> hooks = const {}}) async {
-  //   _events.add(ResponseEvent.beforeSend);
-  //   if ((result.data is View || result.data is ViewString) &&
-  //       viewEngine == null) {
-  //     _events.add(ResponseEvent.error);
-  //     throw StateError('ViewEngine is required to render views');
-  //   }
-  //   if (result.shouldRedirect) {
-  //     _events.add(ResponseEvent.redirect);
-  //     _events.add(ResponseEvent.close);
-  //     return redirect(result);
-  //   }
-  //   status(result.statusCode);
-  //   headers({
-  //     ...result.headers,
-  //     ...configHeaders,
-  //   });
-  //   contentType(result.contentType);
-  //   _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-  //   Uint8List responseBody;
-  //   final data = result.data;
-  //   if (data is View || data is ViewString) {
-  //     final rendered = await (result.data is View
-  //         ? viewEngine!.render(result.data)
-  //         : viewEngine!.renderString(result.data));
-  //     responseBody = utf8.encode(rendered);
-  //     headers(
-  //         {HttpHeaders.contentLengthHeader: responseBody.length.toString()});
-  //   }
-  //   final coding = _original.headers['transfer-encoding']?.join(';');
-  //   if (data is File) {
-  //     for (final hook in hooks) {
-  //       await hook.onResponse(result);
-  //     }
-  //     final readPipe = data.openRead();
-  //     return sendStream(readPipe);
-  //   }
-  //   if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
-  //     // If the response is already in a chunked encoding, de-chunk it because
-  //     // otherwise `dart:io` will try to add another layer of chunking.
-  //     //
-  //     _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-  //   } else if (result.statusCode >= 200 &&
-  //       result.statusCode != 204 &&
-  //       result.statusCode != 304 &&
-  //       result.contentLength == null &&
-  //       result.contentType.mimeType != 'multipart/byteranges') {
-  //     // If the response isn't chunked yet and there's no other way to tell its
-  //     // length, enable `dart:io`'s chunked encoding.
-  //     _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-  //   }
-  //   if (!result.headers.containsKey(HttpHeaders.dateHeader)) {
-  //     _original.headers.set(HttpHeaders.dateHeader, DateTime.now().toUtc());
-  //   }
-  //   for (final hook in hooks) {
-  //     await hook.onResponse(result);
-  //   }
-  //   if (data is! Uint8List) {
-  //     responseBody = utf8.encode(data);
-  //   } else {
-  //     responseBody = data;
-  //   }
-  //   headers({
-  //     ...result.headers,
-  //     HttpHeaders.contentLengthHeader: responseBody.length.toString()
-  //   });
-  //   return send(responseBody);
-  // }
 }

@@ -6,14 +6,22 @@ import '../mixins/object_mixins.dart';
 extension JsonParsing on Object {
   /// This method is used to check if the object is a primitive type.
   bool isPrimitive() {
-    return this is String || this is int || this is double || this is bool || this is num;
+    return this is String ||
+        this is int ||
+        this is double ||
+        this is bool ||
+        this is num;
   }
 
+  /// This method is used to check if the object can be converted to a json.
   bool canBeJson() {
-    if(this is Uint8List) {
+    if (this is Uint8List) {
       return false;
     }
-    return this is Map || this is List<Map> || this is JsonObject || this is List<JsonObject> || this is List;
+    return this is Map ||
+        this is List<Map> ||
+        this is JsonObject ||
+        this is List<JsonObject> ||
+        this is List;
   }
-
 }

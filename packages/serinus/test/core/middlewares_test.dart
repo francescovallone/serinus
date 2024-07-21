@@ -22,9 +22,10 @@ class TestController extends Controller {
     on(
         TestRoute(path: '/middleware'),
         (context) async => {
-          context.res.headers['x-middleware'] = context.request.headers['x-middleware'],
-          'ok!'
-        });
+              context.res.headers['x-middleware'] =
+                  context.request.headers['x-middleware'],
+              'ok!'
+            });
   }
 }
 

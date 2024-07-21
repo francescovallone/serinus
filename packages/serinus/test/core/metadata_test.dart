@@ -13,7 +13,8 @@ class TestController extends Controller {
   TestController({super.path = '/'}) {
     on(
         Route.get('/meta', metadata: [Metadata(name: 'meta', value: true)]),
-        (context) async => '${context.stat('meta')} - ${context.stat('controller')}');
+        (context) async =>
+            '${context.stat('meta')} - ${context.stat('controller')}');
     on(
         Route.get('/meta-context', metadata: [
           ContextualizedMetadata(

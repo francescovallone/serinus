@@ -8,8 +8,8 @@ dynamic parseJsonToResponse(dynamic data) {
       if (value is JsonObject) {
         return MapEntry(key, parseJsonToResponse(value.toJson()));
       } else if (value is List<JsonObject>) {
-        return MapEntry(key,
-            value.map((e) => parseJsonToResponse(e.toJson())).toList());
+        return MapEntry(
+            key, value.map((e) => parseJsonToResponse(e.toJson())).toList());
       }
       return MapEntry(key, value);
     });

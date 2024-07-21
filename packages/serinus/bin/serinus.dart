@@ -117,9 +117,9 @@ class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
       return [
-          {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestObj('hello')},
-          TestObj('Jane Doe')
-        ];
+        {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestObj('hello')},
+        TestObj('Jane Doe')
+      ];
     },
         schema: ParseSchema(
             query: object({

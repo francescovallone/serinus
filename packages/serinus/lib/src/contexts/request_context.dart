@@ -56,13 +56,22 @@ final class RequestContext extends BaseContext {
     return metadata.containsKey(name);
   }
 
+  /// The [res] property contains the response properties of the request context.
+  ///
+  /// The response properties are used to set some properties of the response.
+  /// Currently the available properties are:
+  /// - [statusCode]
+  /// - [contentType]
+  /// - [contentLength]
+  /// - [headers]
+  /// - [redirect]
+  ///
+  /// The [redirect] property uses a [Redirect] class to create the redirect response.
   final ResponseProperties res = ResponseProperties();
-
 }
 
 /// The [Redirect] class is used to create the redirect response.
 final class Redirect {
-
   /// The [location] property contains the location of the redirect.
   final String location;
 
@@ -70,16 +79,14 @@ final class Redirect {
   final int statusCode;
 
   /// The [Redirect] constructor.
-  const Redirect(this.location, {this.statusCode = HttpStatus.movedTemporarily});
-
+  const Redirect(this.location,
+      {this.statusCode = HttpStatus.movedTemporarily});
 }
 
-
 /// The [ResponseProperties] class is used to create the response properties.
-/// 
+///
 /// It contains the status code, headers, and redirect properties.
 final class ResponseProperties {
-
   /// The [statusCode] property contains the status code of the response.
   int statusCode = HttpStatus.ok;
 
@@ -97,5 +104,4 @@ final class ResponseProperties {
 
   /// The [ResponseProperties] constructor.
   ResponseProperties();
-
 }

@@ -33,8 +33,7 @@ void main() async {
       final controller = TestController();
       final route = GetRoute(path: '/test');
       controller.on(route, (context) async => 'ok!');
-      expect(
-          () => controller.on(route, (context) async => 'ok!'),
+      expect(() => controller.on(route, (context) async => 'ok!'),
           throwsStateError);
     });
 
