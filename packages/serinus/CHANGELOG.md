@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.6.0-dev.4
+
+- refactor(#39): add parent providers in child providers to allow for a better specialization of the behavior of the providers.
+- refactor(#39): refactor contexts to unify common interfaces and methods.
+
+## 0.6.0-dev.3
+
+- fix(#39): fix canUse to use the correct type instead of dynamic.
+
+## 0.6.0-dev.2
+
+- feat(#39): add canUse and canStat methods to the request context to check if a provider or a metadata is present in the context.
+
+## 0.6.0-dev.1
+
+- feat(#39): add metadata system to Serinus to specialize the behavior of routes and controllers.
+
+## 0.5.2
+
+- fix: accept List of JsonObject as possible data in Response.json. [#42](https://github.com/francescovallone/serinus/issues/42)
+- fix: Response.render & Response.renderString should close the request correctly. [#41](https://github.com/francescovallone/serinus/issues/41)
+- fix: ParseSchema should insert back the parsed values in the request. [#45](https://github.com/francescovallone/serinus/issues/45)
+- fix: The headers passed to the Response object are now set correctly.
+
+## 0.5.1
+
+- Add exports for Logger and ViewEngine
+
+## 0.5.0
+
+- feat(#36): add ParseSchema and remove parse hook to simplify validation in Serinus
+- feat(#33): add interoperability with Shelf
+- Add documentation for the Serinus CLI deploy command
+
 ## 0.4.1
 
 - Fix another bug in the normalization route of the Controllers (#22)

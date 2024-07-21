@@ -1,5 +1,5 @@
 <script setup>
-const max = 6738;
+const max = 6831;
 const scale = (value) => (value / max) * 100
 const scaleStyle = (value) =>
     `width: ${((value / max) * 100).toFixed(2)}%`
@@ -8,9 +8,9 @@ const scalePadding = (value) =>
 const format = new Intl.NumberFormat().format
 const graphs = [
     {
-		title: 'Vania',
-		lang: 'Dart',
-		value: 6685
+		title: 'Express',
+		lang: 'Node',
+		value: 6799
 	},
 	{
 		title: 'Nest',
@@ -37,7 +37,7 @@ const graphs = [
 </script>
 
 <template>
-	<div class="container flex w-full gap-8 flex-row my-8">
+	<div class="container flex w-full gap-8 lg:flex-row flex-col my-8">
 		<section class="flex flex-col gap-6 flex-1">
 			<h1 class="text-2xl font-bold">Fast 🚀</h1>
 			<p class="text-xl text-gray-400">
@@ -108,7 +108,7 @@ const graphs = [
 
 <style scoped>
 p {
-	margin: 0;
+	margin: 0 !important;
 }
 .results{
 	line-height: 1rem;

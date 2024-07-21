@@ -12,8 +12,8 @@ abstract class Hook {
   Future<void> beforeHandle(RequestContext context) async {}
 
   /// The [afterHandle] method is used to execute code after the request is handled
-  Future<void> afterHandle(RequestContext context, Response response) async {}
+  Future<void> afterHandle(RequestContext context, dynamic response) async {}
 
   /// The [onResponse] method is used to execute code after the response is sent
-  Future<void> onResponse(Response response) async {}
+  Future<void> onResponse(dynamic data, ResponseProperties properties) async {}
 }

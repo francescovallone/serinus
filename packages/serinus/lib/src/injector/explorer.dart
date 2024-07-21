@@ -50,10 +50,11 @@ final class Explorer {
     for (var entry in routes.entries) {
       final spec = entry.value;
       String routePath = '$controllerPath${spec.route.path}';
-      if(maybeUriVers){
-        routePath = 'v${spec.route.version ?? config.versioningOptions?.version}/$routePath';
+      if (maybeUriVers) {
+        routePath =
+            'v${spec.route.version ?? config.versioningOptions?.version}/$routePath';
       }
-      if(config.globalPrefix != null) {
+      if (config.globalPrefix != null) {
         routePath = '${config.globalPrefix?.prefix}/$routePath';
       }
       routePath = normalizePath(routePath);

@@ -1,3 +1,6 @@
+import 'package:meta/meta.dart';
+
+import '../../adapters/ws_adapter.dart';
 import '../../contexts/contexts.dart';
 import '../core.dart';
 
@@ -30,8 +33,11 @@ abstract class WebSocketGateway extends Provider {
   /// It is used to deserialize the data received from the client.
   final MessageDeserializer? deserializer;
 
+  /// The [server] property contains the server of the WebSocketGateway.
+  WsAdapter? server;
+
   /// The [WebSocketGateway] constructor is used to create a new instance of the [WebSocketGateway] class.
-  const WebSocketGateway({this.path, this.serializer, this.deserializer});
+  WebSocketGateway({this.path, this.serializer, this.deserializer});
 
   /// The [onMessage] method will be called when a message from the client is received.
   ///
@@ -39,4 +45,17 @@ abstract class WebSocketGateway extends Provider {
   ///
   /// The [WebSocketContext] contains the context of the WebSocket and the methods to send messages to the client.
   Future<void> onMessage(dynamic data, WebSocketContext context);
+
+  /// This method is used to send data to the client.
+  ///
+  /// The [data] parameter is the data to be sent.
+  ///
+  /// The [broadcast] parameter is used to broadcast the data to all clients.
+  @nonVirtual
+  void send(dynamic data, [String? clientId]) {
+    if (serializer != null) {
+      data = serializer!.serialize(data);
+    }
+    server?.send(data, broadcast: clientId == null, key: clientId);
+  }
 }

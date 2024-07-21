@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import '../containers/module_container.dart';
 import '../containers/router.dart';
@@ -26,12 +27,15 @@ abstract class Handler {
   /// This method is responsible for handling the request.
   Future<void> handle(
       InternalRequest request, InternalResponse response) async {
-    handleRequest(request, response).catchError((error) {
-      final e = error as SerinusException;
-      return response.finalize(
-          Response.json(jsonDecode(e.toString()), statusCode: e.statusCode),
-          hooks: config.hooks);
-    }, test: (error) => error is SerinusException);
+    try {
+      await handleRequest(request, response);
+    } on SerinusException catch (e) {
+      final error = utf8.encode(jsonEncode(e.toJson()));
+      final properties = ResponseProperties()
+        ..statusCode = e.statusCode
+        ..contentType = ContentType.json;
+      return response.end(error, properties, config);
+    }
   }
 
   /// Handles the request and sends the response
@@ -42,13 +46,14 @@ abstract class Handler {
 
   /// Build the request context from the request and body
   RequestContext buildRequestContext(
-      Iterable<Provider> providers, Request request) {
+      Iterable<Provider> providers, Request request, InternalResponse response) {
     return RequestContext(
       providers.fold<Map<Type, Provider>>({}, (acc, provider) {
         acc[provider.runtimeType] = provider;
         return acc;
       }),
       request,
+      StreamableResponse(response),
     );
   }
 }

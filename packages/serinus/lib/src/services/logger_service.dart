@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:io' as io;
 
 import 'package:intl/intl.dart';

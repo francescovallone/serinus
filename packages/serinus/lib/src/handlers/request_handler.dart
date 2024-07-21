@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:typed_data';
 
 import '../../serinus.dart';
 import '../containers/module_container.dart';
@@ -8,9 +10,11 @@ import '../core/controller.dart';
 import '../core/core.dart';
 import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/dynamic_extensions.dart';
 import '../extensions/iterable_extansions.dart';
 import '../http/http.dart';
 import '../http/internal_request.dart';
+import '../services/json_utils.dart';
 import 'handler.dart';
 
 /// The [RequestHandler] class is used to handle the HTTP requests.
@@ -36,25 +40,109 @@ class RequestHandler extends Handler {
       InternalRequest request, InternalResponse response) async {
     config.tracer?.startTracing();
     final Request wrappedRequest = Request(request);
-    await onRequest(wrappedRequest, response);
+    for (final hook in config.hooks) {
+      if (response.isClosed) {
+        return;
+      }
+      await hook.onRequest(wrappedRequest, response);
+    }
+    if (response.isClosed) {
+      return;
+    }
     await wrappedRequest.parseBody();
-    final specifications = getRoute(wrappedRequest);
-    final context = specifications.context;
-    final route = specifications.route;
-    final handler = specifications.handler;
-    final middlewares = specifications.middlewares;
-    await onTransformAndParse(context, route);
+    final routeLookup = router.getRouteByPathAndMethod(
+        request.path.endsWith('/')
+            ? request.path.substring(0, request.path.length - 1)
+            : request.path,
+        request.method.toHttpMethod());
+    final routeData = routeLookup.route;
+    wrappedRequest.params = routeLookup.params;
+    if (routeData == null) {
+      throw NotFoundException(
+          message:
+              'No route found for path ${request.path} and method ${request.method}');
+    }
+    final injectables =
+        modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
+    final controller = routeData.controller;
+    final routeSpec =
+        controller.get(routeData, config.versioningOptions?.version);
+    if (routeSpec == null) {
+      throw InternalServerErrorException(
+          message: 'Route spec not found for route ${routeData.path}');
+    }
+    final route = routeSpec.route;
+    final handler = routeSpec.handler;
+    final schema = routeSpec.schema;
+    final scopedProviders = (injectables.providers
+        .addAllIfAbsent(modulesContainer.globalProviders));
+    RequestContext context =
+        buildRequestContext(scopedProviders, wrappedRequest, response);
+    Map<String, Metadata> metadata = {};
+    if (controller.metadata.isNotEmpty) {
+      for (final meta in controller.metadata) {
+        if (meta is ContextualizedMetadata) {
+          metadata[meta.name] = await meta.resolve(context);
+        } else {
+          metadata[meta.name] = meta;
+        }
+      }
+    }
+    if (route.metadata.isNotEmpty) {
+      for (final meta in route.metadata) {
+        if (meta is ContextualizedMetadata) {
+          metadata[meta.name] = await meta.resolve(context);
+        } else {
+          metadata[meta.name] = meta;
+        }
+      }
+    }
+    context.metadata = metadata;
+    await route.transform(context);
+    if (schema != null) {
+      final result = schema.tryParse(value: {
+        'body': wrappedRequest.body?.value,
+        'query': wrappedRequest.query,
+        'params': wrappedRequest.params,
+        'headers': wrappedRequest.headers,
+        'session': wrappedRequest.session.all,
+      });
+      wrappedRequest.headers.addAll(result['headers']);
+      wrappedRequest.params.addAll(result['params']);
+      wrappedRequest.query.addAll(result['query']);
+      for (final key in result['session'].keys) {
+        wrappedRequest.session.put(key, result['session'][key]);
+      }
+    }
+    final middlewares = injectables.filterMiddlewaresByRoute(
+        routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
-      await onMiddlewares(context, response, middlewares);
+      await handleMiddlewares(
+        context,
+        response,
+        middlewares,
+      );
       if (response.isClosed) {
         return;
       }
     }
-    await onBeforeHandle(context, route);
-    final Response result = await onHandle(context, route, handler);
-    await onAfterHandle(context, route, result);
-    await response.finalize(result,
-        viewEngine: config.viewEngine, hooks: config.hooks, tracer: config.tracer);
+    for (final hook in config.hooks) {
+      await hook.beforeHandle(context);
+    }
+    await route.beforeHandle(context);
+    Object? result = await handler.call(context);
+    await route.afterHandle(context, result);
+    for (final hook in config.hooks) {
+      await hook.afterHandle(context, result);
+    }
+    if (result?.canBeJson() ?? false) {
+      result = parseJsonToResponse(result);
+      context.res.contentType = ContentType.json;
+    }
+    if (result is Uint8List) {
+      context.res.contentType = ContentType.binary;
+    }
+    await response.end(result ?? 'null', context.res, config);
   }
 
   /// Handles the middlewares
@@ -62,10 +150,10 @@ class RequestHandler extends Handler {
   /// If the completer is not completed, the request will be blocked until the completer is completed.
   Future<void> handleMiddlewares(RequestContext context,
       InternalResponse response, Iterable<Middleware> middlewares) async {
+    final completer = Completer<void>();
     if (middlewares.isEmpty) {
       return;
     }
-    final completer = Completer<void>();
     for (int i = 0; i < middlewares.length; i++) {
       final middleware = middlewares.elementAt(i);
       await middleware.use(context, response, () async {
@@ -73,6 +161,10 @@ class RequestHandler extends Handler {
           completer.complete();
         }
       });
+      if (response.isClosed && !completer.isCompleted) {
+        completer.complete();
+        break;
+      }
     }
     return completer.future;
   }
@@ -87,40 +179,6 @@ class RequestHandler extends Handler {
     await config.tracer?.onRequest(request);
   }
 
-  /// Transforms and parses the request
-  Future<void> onTransformAndParse(RequestContext context, Route route) async {
-    await route.transform(context);
-    await config.tracer?.onTranform(context);
-    await route.parse(context);
-    await config.tracer?.onParse(context);
-  }
-
-  Future<void> onMiddlewares(RequestContext context, InternalResponse response, Iterable<Middleware> middlewares) async {
-    await handleMiddlewares(context, response, middlewares);
-    await config.tracer?.onMiddlewares(context);
-  }
-
-  Future<void> onBeforeHandle(RequestContext context, Route route) async {
-    for (final hook in config.hooks) {
-      await hook.beforeHandle(context);
-    }
-    await route.beforeHandle(context);
-    await config.tracer?.onBeforeHandle(context);
-  }
-
-  Future<Response> onHandle(RequestContext context, Route route, ReqResHandler handler) async {
-    final result = await handler.call(context);
-    await config.tracer?.onHandle(context);
-    return result;
-  }
-
-  Future<void> onAfterHandle(RequestContext context, Route route, Response response) async {
-    await route.afterHandle(context, response);
-    for (final hook in config.hooks) {
-      await hook.afterHandle(context, response);
-    }
-    await config.tracer?.onAfterHandle(context);
-  }
 
   /// Gets the route data from the [Router] and the controller from the [ModulesContainer]
   ({
@@ -128,7 +186,7 @@ class RequestHandler extends Handler {
     Route route,
     ReqResHandler handler,
     Iterable<Middleware> middlewares,
-  }) getRoute(Request request) {
+  }) getRoute(Request request, InternalResponse response) {
     final routeLookup = router.getRouteByPathAndMethod(
         request.path.endsWith('/')
             ? request.path.substring(0, request.path.length - 1)
@@ -155,7 +213,7 @@ class RequestHandler extends Handler {
     final scopedProviders = (injectables.providers
         .addAllIfAbsent(modulesContainer.globalProviders));
     RequestContext context =
-        buildRequestContext(scopedProviders, request);
+        buildRequestContext(scopedProviders, request, response);
 
     return (
       context: context,

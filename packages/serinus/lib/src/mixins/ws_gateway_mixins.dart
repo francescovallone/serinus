@@ -3,13 +3,13 @@ import '../core/websockets/ws_gateway.dart';
 /// The [OnClientConnect] mixin is used to handle the client connections.
 mixin OnClientConnect on WebSocketGateway {
   /// The [onClientConnect] method is called when a client connects.
-  Future<void> onClientConnect();
+  Future<void> onClientConnect(String clientId);
 }
 
 /// The [OnClientDisconnect] mixin is used to handle the client disconnections.
 mixin OnClientDisconnect on WebSocketGateway {
   /// The [onClientDisconnect] method is called when a client disconnects.
-  Future<void> onClientDisconnect();
+  Future<void> onClientDisconnect(String clientId);
 }
 
 /// The [OnClientError] mixin is used to handle the client errors.

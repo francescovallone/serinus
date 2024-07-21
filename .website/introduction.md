@@ -8,10 +8,6 @@ Serinus aims to be a simple and easy-to-use framework for building server-side a
 
 ## Installation
 
-::: warning
-Serinus is still being developed and many things can change. Use it at your own risk.
-:::
-
 ### Using the CLI
   
 ::: tip

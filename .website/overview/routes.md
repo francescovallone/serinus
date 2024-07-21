@@ -5,7 +5,7 @@ They only exposes the endpoint and the method that the route will respond to so 
 
 ## Create a route
 
-To add routes you can either create a class that extends the `Route` class or use the following methods to create one. 
+To add routes you can either create a class that extends the `Route` class or use the following methods to create one.
 
 - `Route.get`
 - `Route.post`
@@ -127,36 +127,51 @@ class GetRoute extends Route {
     });
 
     @override
-    Future<RequestContext> transform(RequestContext context) async {
-      return context;
+    Future<void> transform(RequestContext context) async {
+      return;
     }
 }
 ```
 
-## Parsing (and validate) the RequestContext
+## Parsing (and validate) the request
 
-You can parse the `RequestContext` before it reaches the route handler by overriding the `parse` method.
+You can parse some of the `Request` properties before they reach the route handler by creating a ParseSchema.
 Serinus follows the [Parse, don't validate](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) principle, so if the parsing fails, the request is not valid and should be rejected.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class GetRoute extends Route {
-    const GetRoute({
-        required super.path, 
-        super.method = HttpMethod.get,
-    });
-
-    @override
-    Future<RequestContext> parse(RequestContext context) async {
-      return context;
-    }
+class AppController extends Controller {
+  AppController({super.path = '/'}) {
+    on(
+      Route.get('/'), 
+      (context) {
+        return Response.text('Hello World!');
+      },
+      ParseSchema(
+        query: object({
+          'name': string().minLength(3),
+        })
+      ),
+    );
+  }
 }
 ```
 
 ::: info
-If you need an amazing validation library you can try [Acanthis](https://pub.dev/packages/acanthis). 🐤
+Serinus uses [Acanthis](https://pub.dev/packages/acanthis) under the hood to take care of the parse and validate process. 🐤
 :::
+
+The `ParseSchema` class has the following properties:
+
+- `query`: A schema that will be used to parse the query parameters.
+- `body`: A schema that will be used to parse the body of the request.
+- `headers`: A schema that will be used to parse the headers of the request.
+- `session`: A schema that will be used to parse the cookies of the request.
+- `params`: A schema that will be used to parse the path parameters of the request.
+- `error`: Custom exception that will be returned if the parsing fails.
+
+All the schemas are optional and you can use them in any combination and the `body` schema is not an object schema, so you can use any schema that you want.
 
 ## Manage what happens before and after the route
 

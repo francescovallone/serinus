@@ -58,6 +58,7 @@ final class Router {
 class RouteData {
   /// The [id] property contains the id of the route.
   final String id;
+
   /// The [path] property contains the path of the route.
   final String path;
 

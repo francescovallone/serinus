@@ -35,6 +35,7 @@ class Request {
           _queryParamters[entry.key] = entry.value;
       }
     }
+    session = Session(_original.original.session);
     this.params = params;
   }
 
@@ -48,6 +49,9 @@ class Request {
   /// The path of the request.
   String get path => _original.path;
 
+  /// The uri of the request.
+  Uri get uri => _original.uri;
+
   /// The method of the request.
   String get method => _original.method;
 
@@ -58,7 +62,7 @@ class Request {
   Map<String, dynamic> get query => _queryParamters;
 
   /// The session of the request.
-  Session get session => Session(_original.original.session);
+  late final Session session;
 
   /// The client of the request.
   HttpConnectionInfo? get clientInfo => _original.clientInfo;
@@ -83,7 +87,9 @@ class Request {
   Body? body;
 
   /// The content type of the request.
-  int get contentLength => _original.contentLength > -1 ? _original.contentLength : body?.length ?? 0;
+  int get contentLength => _original.contentLength > -1
+      ? _original.contentLength
+      : body?.length ?? 0;
 
   /// This method is used to parse the body of the request.
   ///
@@ -119,7 +125,8 @@ class Request {
 
     /// If the content type is json, it will parse the body as a json object.
     final parsedJson = parsedBody.tryParse();
-    if (parsedJson != null && contentType == ContentType.json) {
+    if ((parsedJson != null && contentType == ContentType.json) ||
+        parsedJson != null) {
       final json = parsedJson;
       body = Body(contentType, json: json);
       return;

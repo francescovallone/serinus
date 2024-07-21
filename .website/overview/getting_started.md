@@ -84,3 +84,11 @@ serinus run
 ```
 
 Your applications is now running and listening for requests on port 3000.
+
+### Using the CLI tool
+
+If you are using the CLI tool, then there are some interesting options to run the application:
+
+- `--port`: The port to expose the application on. Default is `3000`.
+- `--host`: The host to expose the application on. Default is `localhost`.
+- `--dev`: Flag to run the application in development mode. If this flag is set, the application will be reloaded every time a file is changed.

@@ -79,16 +79,15 @@ final class ModulesContainer {
           moduleInjectables?.concatTo(newInjectables) ?? newInjectables;
     }
     _providers[token] = [];
-    for (final provider in initializedModule.providers
-        .where((element) => element is! DeferredProvider)) {
+    final split = initializedModule.providers.splitBy<DeferredProvider>();
+    for (final provider in split.notOfType) {
       await initIfUnregistered(provider);
       _moduleInjectables[token] = _moduleInjectables[token]!.copyWith(
         providers: {..._moduleInjectables[token]!.providers, provider},
       );
       _providers[token]?.add(provider);
     }
-    _deferredProviders[token] =
-        initializedModule.providers.whereType<DeferredProvider>();
+    _deferredProviders[token] = split.ofType;
     logger.info(
         '${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies initialized');
   }
@@ -132,15 +131,13 @@ final class ModulesContainer {
   Future<void> registerModules(Module module, Type entrypoint,
       [ModuleInjectables? moduleInjectables]) async {
     _isInitialized = true;
-    final eagerSubModules =
-        module.imports.where((element) => element is! DeferredModule);
-    final deferredSubModules = module.imports.whereType<DeferredModule>();
+    final splittedModules = module.imports.splitBy<DeferredModule>();
     final token = moduleToken(module);
     final currentModuleInjectables =
         _moduleInjectables[token] ??= ModuleInjectables(
       middlewares: {...module.middlewares},
     );
-    for (var subModule in eagerSubModules) {
+    for (var subModule in splittedModules.notOfType) {
       await _callForRecursiveRegistration(
           subModule, module, entrypoint, currentModuleInjectables);
       final subModuleToken = moduleToken(subModule);
@@ -149,7 +146,7 @@ final class ModulesContainer {
             .concatTo(_moduleInjectables[subModuleToken]);
       }
     }
-    for (var deferredModule in deferredSubModules) {
+    for (var deferredModule in splittedModules.ofType) {
       final subModule = await deferredModule
           .init(_getApplicationContext(deferredModule.inject));
       await _callForRecursiveRegistration(
@@ -197,6 +194,12 @@ final class ModulesContainer {
         parentModule.providers.remove(provider);
         parentModule.providers.add(initializedProvider);
       }
+      final parentModuleInjectables = getModuleInjectablesByToken(token);
+      _moduleInjectables[token] = parentModuleInjectables.copyWith(
+        providers: parentModuleInjectables.providers
+            .whereNot((e) => e is! DeferredProvider)
+            .toSet(),
+      );
       if (!parentModule.exports.every((element) =>
           _providers[token]?.map((e) => e.runtimeType).contains(element) ??
           false)) {
@@ -215,6 +218,24 @@ final class ModulesContainer {
         ...entrypointInjectables.providers,
       },
     );
+    injectProvidersInSubModule(entrypoint);
+  }
+
+  /// Injects the providers in the submodules
+  void injectProvidersInSubModule(Module module) {
+    final token = moduleToken(module);
+    final moduleInjectables = _moduleInjectables[token]!;
+    for (final subModule in module.imports) {
+      final subModuleToken = moduleToken(subModule);
+      final subModuleInjectables = _moduleInjectables[subModuleToken]!;
+      _moduleInjectables[subModuleToken] = subModuleInjectables.copyWith(
+        providers: {
+          ...moduleInjectables.providers,
+          ...subModuleInjectables.providers,
+        },
+      );
+      injectProvidersInSubModule(subModule);
+    }
   }
 
   /// Gets the module scoped providers

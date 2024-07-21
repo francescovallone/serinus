@@ -48,11 +48,11 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
   Future<void> listen(RequestCallback requestCallback,
       {InternalRequest? request, ErrorHandler? errorHandler}) async {
     try {
-      server?.listen((req) {
+      await for (final req in server!) {
         final request = InternalRequest.from(req);
         final response = request.response;
         requestCallback.call(request, response);
-      }, onError: errorHandler);
+      }
     } catch (e) {
       if (errorHandler == null) {
         rethrow;
