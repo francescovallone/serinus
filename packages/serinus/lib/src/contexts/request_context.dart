@@ -36,7 +36,11 @@ final class RequestContext extends BaseContext {
   RequestContext(
     super.providers,
     this.request,
+    this._streamable
   );
+
+  /// The [streamable] property contains the streamable response of the request.
+  final StreamableResponse _streamable;
 
   /// The [metadata] property contains the metadata of the request context.
   ///
@@ -68,6 +72,11 @@ final class RequestContext extends BaseContext {
   ///
   /// The [redirect] property uses a [Redirect] class to create the redirect response.
   final ResponseProperties res = ResponseProperties();
+
+    /// The [stream] method is used to stream data to the response.
+  StreamableResponse stream() {
+    return _streamable..init();
+  }
 }
 
 /// The [Redirect] class is used to create the redirect response.

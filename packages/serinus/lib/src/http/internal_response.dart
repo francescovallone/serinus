@@ -10,6 +10,7 @@ import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../extensions/dynamic_extensions.dart';
+import 'streamable_response.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
@@ -52,6 +53,11 @@ class InternalResponse {
       _isClosed = true;
       _events.add(ResponseEvent.close);
     });
+  }
+
+  /// A simple wrapper for [HttpResponse.write].
+  void write(String data) {
+    _original.write(data);
   }
 
   /// This method is used to send a stream of data to the response.
@@ -107,6 +113,12 @@ class InternalResponse {
   Future<void> end(Object data, ResponseProperties properties,
       ApplicationConfig config) async {
     _events.add(ResponseEvent.beforeSend);
+    if(data is StreamedResponse) {
+      _events.add(ResponseEvent.close);
+      await _original.flush();
+      _original.close();
+      return;
+    }
     final isView = data is View || data is ViewString;
     if (isView && config.viewEngine == null) {
       _events.add(ResponseEvent.error);
