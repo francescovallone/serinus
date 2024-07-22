@@ -54,8 +54,8 @@ class TraceEvent {
   /// The timestamp of the event.
   final DateTime timestamp;
 
-  /// The duration of the request-response cycle at the time of the event.
-  final Duration duration;
+  /// Whether the event is the beginning of a cycle.
+  final bool begin;
 
   /// The traced event.
   /// This property follows a naming convention of:
@@ -64,11 +64,14 @@ class TraceEvent {
   /// - 'h-*' for hooks-related events (e.g. global hooks)
   final String traced;
 
+  /// The duration of the lifecycle of the request.
+  late final Duration requestDuration;
+
   /// Creates a new [TraceEvent] with the given [name], [context] and [traced].
   TraceEvent({
     required this.name,
     required this.traced,
-    required this.duration,
+    this.begin = false,
     this.context,
     this.request,
   }) : timestamp = DateTime.now();
@@ -78,75 +81,38 @@ class TraceEvent {
 /// Represents a trace event.
 enum TraceEvents {
 
-  /// The onBeginRequest event.
-  /// This event is triggered when a request is received.
-  onBeginRequest,
-
   /// The onRequest event.
   /// This event is triggered when a onRequest hook has been executed.
   /// Each onRequest hook has its own event.
   onRequest,
 
-  /// The onBeginTransform event.
-  /// This event is triggered when is going to be executed.
-  onBeginTransform,
-
   /// The onTransform event.
   /// This event is triggered when a transform has been executed.
   onTransform,
 
-  /// The onBeginParse event.
-  /// This event is triggered when a parse is going to be executed.
-  onBeginParse,
-
   /// The onParse event.
   /// This event is triggered when a parse has been executed.
   onParse,
-
-  /// The onBeginMiddleware event.
-  /// This event is triggered when a middleware is going to be executed.
-  /// Each middleware has its own event.
-  onBeginMiddleware,
 
   /// The onMiddleware event.
   /// This event is triggered when a middleware has been executed.
   /// Each middleware has its own event.
   onMiddleware,
 
-  /// The onBeginBeforeHandle event.
-  /// This event is triggered when a before handle is going to be executed.
-  /// Each before handle has its own event.
-  onBeginBeforeHandle,
-
   /// The onBeforeHandle event.
   /// This event is triggered when a before handle has been executed.
   /// Each before handle has its own event.
   onBeforeHandle,
-
-  /// The onBeginHandle event.
-  /// This event is triggered when a handle is going to be executed.
-  /// Each handle has its own event.
-  onBeginHandle,
 
   /// The onHandle event.
   /// This event is triggered when a handle has been executed.
   /// Each handle has its own event.
   onHandle,
 
-  /// The onBeginAfterHandle event.
-  /// This event is triggered when an after handle is going to be executed.
-  /// Each after handle has its own event.
-  onBeginAfterHandle,
-
   /// The onAfterHandle event.
   /// This event is triggered when an after handle has been executed.
   /// Each after handle has its own event.
   onAfterHandle,
-
-  /// The onBeginResponse event.
-  /// This event is triggered when a response is going to be sent.
-  /// Each response has its own event.
-  onBeginResponse,
 
   /// The onResponse event.
   /// This event is triggered when a response has been sent.

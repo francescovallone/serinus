@@ -30,23 +30,15 @@ abstract class Handler {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
-      config.tracerService.addEvent(TraceEvent(
-        name: TraceEvents.onBeginResponse,
-        request: Request(request),
-        traced: '${e.runtimeType}',
-        duration: Duration.zero,
-      ));
       final error = utf8.encode(jsonEncode(e.toJson()));
       final properties = ResponseProperties()
         ..statusCode = e.statusCode
         ..contentType = ContentType.json;
-      response.end(error, properties, config);
-      config.tracerService.addEvent(TraceEvent(
-        name: TraceEvents.onResponse,
-        request: Request(request),
-        traced: '${e.runtimeType}',
-        duration: Duration.zero,
-      ));
+      response.end(
+        data: error,
+        config: config,
+        properties: properties,
+      );
       return;
     }
   }

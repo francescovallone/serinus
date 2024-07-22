@@ -40,14 +40,13 @@ class RequestHandler extends Handler {
     config.tracerService.addEvent(TraceEvent(
       name: TraceEvents.onRequestReceived, 
       request: wrappedRequest, 
-      duration: stopwatch.elapsed,
       traced: 'RequestHandler'
     ));
     for (final hook in config.hooks) {
       config.tracerService.addEvent(TraceEvent(
-        name: TraceEvents.onBeginRequest, 
+        name: TraceEvents.onRequest,
+        begin: true, 
         request: wrappedRequest, 
-        duration: stopwatch.elapsed,
         traced: 'h-${hook.runtimeType}'
       ));
       if (response.isClosed) {
@@ -57,7 +56,6 @@ class RequestHandler extends Handler {
       config.tracerService.addEvent(TraceEvent(
         name: TraceEvents.onRequest, 
         request: wrappedRequest, 
-        duration: stopwatch.elapsed,
         traced: 'h-${hook.runtimeType}'
       ));
     }
@@ -114,26 +112,23 @@ class RequestHandler extends Handler {
     }
     context.metadata = metadata;
     config.tracerService.addEvent(TraceEvent(
-      name: TraceEvents.onBeginTransform, 
+      name: TraceEvents.onTransform, 
       request: wrappedRequest, 
+      begin: true,
       context: context,
-      duration: stopwatch.elapsed,
       traced: 'r-${route.runtimeType}'
     ));
     await route.transform(context);
     config.tracerService.addEvent(TraceEvent(
       name: TraceEvents.onTransform, 
       request: wrappedRequest, 
-      context: context,
-      duration: stopwatch.elapsed,
       traced: 'r-${route.runtimeType}'
     ));
     if (schema != null) {
       config.tracerService.addEvent(TraceEvent(
-        name: TraceEvents.onBeginParse, 
+        name: TraceEvents.onParse,
+        begin: true, 
         request: wrappedRequest, 
-        context: context,
-        duration: stopwatch.elapsed,
         traced: 'r-${route.runtimeType}'
       ));
       final result = schema.tryParse(value: {
@@ -152,8 +147,6 @@ class RequestHandler extends Handler {
       config.tracerService.addEvent(TraceEvent(
         name: TraceEvents.onParse, 
         request: wrappedRequest, 
-        context: context,
-        duration: stopwatch.elapsed,
         traced: 'r-${route.runtimeType}'
       ));
     }
@@ -173,80 +166,65 @@ class RequestHandler extends Handler {
     }
     for (final hook in config.hooks) {
       config.tracerService.addEvent(TraceEvent(
-        name: TraceEvents.onBeginBeforeHandle, 
+        name: TraceEvents.onBeforeHandle, 
+        begin: true,
         request: wrappedRequest,
-        context: context, 
-        duration: stopwatch.elapsed,
         traced: 'h-${hook.runtimeType}'
       ));
       await hook.beforeHandle(context);
       config.tracerService.addEvent(TraceEvent(
         name: TraceEvents.onBeforeHandle, 
         request: wrappedRequest,
-        context: context, 
-        duration: stopwatch.elapsed,
         traced: 'h-${hook.runtimeType}'
       ));
     }
     config.tracerService.addEvent(TraceEvent(
-      name: TraceEvents.onBeginBeforeHandle, 
+      name: TraceEvents.onBeforeHandle, 
+      begin: true,
       request: wrappedRequest,
-      context: context, 
-      duration: stopwatch.elapsed,
       traced: 'r-${route.runtimeType}'
     ));
     await route.beforeHandle(context);
     config.tracerService.addEvent(TraceEvent(
       name: TraceEvents.onBeforeHandle, 
       request: wrappedRequest,
-      context: context, 
-      duration: stopwatch.elapsed,
       traced: 'r-${route.runtimeType}'
     ));
     config.tracerService.addEvent(TraceEvent(
-      name: TraceEvents.onBeginHandle, 
+      name: TraceEvents.onHandle,
+      begin: true, 
       request: wrappedRequest,
-      context: context, 
-      duration: stopwatch.elapsed,
       traced: 'r-${route.runtimeType}'
     ));
     Object? result = await handler.call(context);
     config.tracerService.addEvent(TraceEvent(
       name: TraceEvents.onHandle, 
       request: wrappedRequest,
-      context: context, 
-      duration: stopwatch.elapsed,
       traced: 'r-${route.runtimeType}'
     ));
     config.tracerService.addEvent(TraceEvent(
-      name: TraceEvents.onBeginAfterHandle, 
+      name: TraceEvents.onAfterHandle,
+      begin: true, 
       request: wrappedRequest,
-      context: context, 
-      duration: stopwatch.elapsed,
       traced: 'r-${route.runtimeType}'
     ));
     await route.afterHandle(context, result);
     config.tracerService.addEvent(TraceEvent(
       name: TraceEvents.onAfterHandle, 
       request: wrappedRequest,
-      context: context, 
-      duration: stopwatch.elapsed,
       traced: 'r-${route.runtimeType}'
     ));
     for (final hook in config.hooks) {
       config.tracerService.addEvent(TraceEvent(
-        name: TraceEvents.onBeginAfterHandle, 
+        name: TraceEvents.onAfterHandle,
+        begin: true, 
         request: wrappedRequest,
-        context: context, 
-        duration: stopwatch.elapsed,
         traced: 'h-${hook.runtimeType}'
       ));
       await hook.afterHandle(context, result);
       config.tracerService.addEvent(TraceEvent(
         name: TraceEvents.onAfterHandle, 
         request: wrappedRequest,
-        context: context, 
-        duration: stopwatch.elapsed,
         traced: 'h-${hook.runtimeType}'
       ));
     }
@@ -257,21 +235,13 @@ class RequestHandler extends Handler {
     if (result is Uint8List) {
       context.res.contentType = ContentType.binary;
     }
-    config.tracerService.addEvent(TraceEvent(
-      name: TraceEvents.onBeginResponse, 
+    await response.end(
+      data: result ?? 'null',
+      config: config,
+      context: context,
       request: wrappedRequest,
-      context: context, 
-      duration: stopwatch.elapsed,
-      traced: 'r-${route.runtimeType}'
-    ));
-    await response.end(result ?? 'null', context.res, config);
-    config.tracerService.addEvent(TraceEvent(
-      name: TraceEvents.onResponse, 
-      request: wrappedRequest,
-      context: context, 
-      duration: stopwatch.elapsed,
-      traced: 'r-${route.runtimeType}'
-    ));
+      traced: 'r-${route.runtimeType}',
+    );
   }
 
   /// Handles the middlewares
@@ -285,10 +255,9 @@ class RequestHandler extends Handler {
     }
     for (int i = 0; i < middlewares.length; i++) {
       config.tracerService.addEvent(TraceEvent(
-        name: TraceEvents.onBeginMiddleware, 
+        name: TraceEvents.onMiddleware,
+        begin: true, 
         request: context.request,
-        context: context, 
-        duration: stopwatch.elapsed,
         traced: 'm-${middlewares.elementAt(i).runtimeType}'
       ));
       final middleware = middlewares.elementAt(i);
@@ -299,8 +268,6 @@ class RequestHandler extends Handler {
         config.tracerService.addEvent(TraceEvent(
           name: TraceEvents.onMiddleware, 
           request: context.request,
-          context: context, 
-          duration: stopwatch.elapsed,
           traced: 'm-${middlewares.elementAt(i).runtimeType}'
         ));
       });

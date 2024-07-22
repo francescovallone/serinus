@@ -34,7 +34,8 @@ class ServerTimingTracer extends Tracer {
       label += '$event;dur=${(_timings[event]?.isNegative ?? false) ? 0 : _timings[event]},';
     }
 
-    event.context!.res.headers['Server-Timing'] = label;
+    event.context?.res.headers['Server-Timing'] = label;
+    print(event.context?.res.headers);
   }
 
 }

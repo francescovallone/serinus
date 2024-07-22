@@ -1,13 +1,15 @@
 import 'dart:async';
 
+import '../contexts/contexts.dart';
 import '../core/tracer.dart';
+import '../http/http.dart';
 
 /// A service to manage tracers.
 class TracersService {
 
   final Map<String, Tracer> _tracers = {};
 
-  final Map<String, Stopwatch> _stopwatches = {};
+  final Map<String, _TracerProperties> _properties = {};
 
   final StreamController<TraceEvent> _events = StreamController<TraceEvent>.broadcast();
 
@@ -15,44 +17,49 @@ class TracersService {
   void registerTracer(Tracer tracer) {
     _tracers[tracer.name] = tracer;
     _events.stream.listen((event) async {
-      switch(event.name) {
-        case TraceEvents.onRequestReceived:
-          tracer.onRequestReceived(event, _stopwatches[event.request!.id]!.elapsed);
+      final elapsed = _properties[event.request!.id]?.stopwatch.elapsed ?? Duration.zero;
+      final requestElapsed = _properties[event.request!.id]?.lifecycleDuration?.elapsed ?? Duration.zero;
+      event.requestDuration = requestElapsed;
+      print((event.name, event.begin));
+      switch((event.name, event.begin)) {
+        case (TraceEvents.onRequestReceived, _):
+          tracer.onRequestReceived(event, elapsed);
           break;
-        case TraceEvents.onRequest:
-          tracer.onRequest(event, _stopwatches[event.request!.id]!.elapsed);
+        case (TraceEvents.onRequest, false):
+          tracer.onRequest(event, elapsed);
           break;
-        case TraceEvents.onTransform:
-          tracer.onTranform(event, _stopwatches[event.context!.request.id]!.elapsed);
+        case (TraceEvents.onTransform, false):
+          tracer.onTranform(event, elapsed);
           break;
-        case TraceEvents.onParse:
-          tracer.onParse(event, _stopwatches[event.context!.request.id]!.elapsed);
+        case (TraceEvents.onParse, false):
+          tracer.onParse(event, elapsed);
           break;
-        case TraceEvents.onMiddleware:
-          tracer.onMiddlewares(event, _stopwatches[event.context!.request.id]!.elapsed);
+        case (TraceEvents.onMiddleware, false):
+          tracer.onMiddlewares(event, elapsed);
           break;
-        case TraceEvents.onBeforeHandle:
-          tracer.onBeforeHandle(event, _stopwatches[event.context!.request.id]!.elapsed);
+        case (TraceEvents.onBeforeHandle, false):
+          tracer.onBeforeHandle(event, elapsed);
           break;
-        case TraceEvents.onHandle:
-          tracer.onHandle(event, _stopwatches[event.context!.request.id]!.elapsed);
+        case (TraceEvents.onHandle, false):
+          tracer.onHandle(event, elapsed);
           break;
-        case TraceEvents.onAfterHandle:
-          tracer.onAfterHandle(event, _stopwatches[event.context!.request.id]!.elapsed);
+        case (TraceEvents.onAfterHandle, false):
+          tracer.onAfterHandle(event, elapsed);
           break;
-        case TraceEvents.onResponse:
-          tracer.onResponse(event, _stopwatches[event.context!.request.id]?.elapsed ?? Duration.zero);
-          _stopwatches.remove(event.context!.request.id);
+        case (TraceEvents.onResponse, false):
+          await tracer.onResponse(event, _properties[event.request!.id]?.stopwatch.elapsed ?? Duration.zero);
+          _properties[event.request!.id]?.completer.complete(true);
+          _properties.remove(event.request!.id);
           break;
-        case TraceEvents.onBeginRequest:
-        case TraceEvents.onBeginParse:
-        case TraceEvents.onBeginMiddleware:
-        case TraceEvents.onBeginBeforeHandle:
-        case TraceEvents.onBeginHandle:
-        case TraceEvents.onBeginAfterHandle:
-        case TraceEvents.onBeginResponse:
-        case TraceEvents.onBeginTransform:
-          _stopwatches[event.context?.request.id ?? event.request!.id]?.reset();
+        case (TraceEvents.onRequest, true):
+        case (TraceEvents.onParse, true):
+        case (TraceEvents.onMiddleware, true):
+        case (TraceEvents.onBeforeHandle, true):
+        case (TraceEvents.onHandle, true):
+        case (TraceEvents.onAfterHandle, true):
+        case (TraceEvents.onResponse, true):
+        case (TraceEvents.onTransform, true):
+          _properties[event.request!.id]?.stopwatch.reset();
           break;
         default:
           break;
@@ -62,12 +69,38 @@ class TracersService {
 
   /// Adds a new event to be traced.
   void addEvent(TraceEvent event) {
+    if(event.context != null) {
+      _properties[event.context!.request.id]?.context = event.context;
+    }
     if(event.name == TraceEvents.onRequestReceived) {
-      _stopwatches.putIfAbsent(event.request!.id, () => Stopwatch()..start());
-    } else if(event.name == TraceEvents.onBeginResponse) {
-      _stopwatches[event.context?.request.id ?? event.request?.id]?.stop();
+      _properties[event.request!.id] = _TracerProperties(event.request!, Stopwatch(), Completer());
+    } else if(event.name == TraceEvents.onResponse && event.begin) {
+      _properties[event.request!.id]?.stopwatch.stop();
     }
     _events.add(event);
   }
+
+  /// Adds a new event to be traced synchronously.
+  Future<void> addSyncEvent(TraceEvent event) {
+    _events.add(event);
+    return _properties[event.request!.id]?.completer.future ?? Future.value();
+  }
+
+}
+
+class _TracerProperties {
+
+  final Request request;
+
+  final Stopwatch stopwatch;
+
+  final Completer completer;
+
+  final Stopwatch? lifecycleDuration = Stopwatch()..start();
+
+  RequestContext? context;
+
+  _TracerProperties(this.request, this.stopwatch, this.completer);
+
 
 }
