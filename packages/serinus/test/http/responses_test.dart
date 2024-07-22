@@ -46,10 +46,11 @@ class TestController extends Controller {
     });
     on(TestRoute(path: '/stream'), (context) async {
       final streamable = context.stream();
-      final streamedFile = File('${Directory.current.absolute.path}/test/http/test.txt')
-          .openRead()
-          .transform(utf8.decoder)
-          .transform(LineSplitter());
+      final streamedFile =
+          File('${Directory.current.absolute.path}/test/http/test.txt')
+              .openRead()
+              .transform(utf8.decoder)
+              .transform(LineSplitter());
       await for (final line in streamedFile) {
         streamable.send(line);
       }

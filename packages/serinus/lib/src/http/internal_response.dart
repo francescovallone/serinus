@@ -9,7 +9,7 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
-import '../extensions/dynamic_extensions.dart';
+import '../extensions/object_extensions.dart';
 import 'streamable_response.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
@@ -113,7 +113,7 @@ class InternalResponse {
   Future<void> end(Object data, ResponseProperties properties,
       ApplicationConfig config) async {
     _events.add(ResponseEvent.beforeSend);
-    if(data is StreamedResponse) {
+    if (data is StreamedResponse) {
       _events.add(ResponseEvent.close);
       await _original.flush();
       _original.close();

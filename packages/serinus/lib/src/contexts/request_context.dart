@@ -33,11 +33,7 @@ final class RequestContext extends BaseContext {
   Map<String, dynamic> get query => request.query;
 
   /// The constructor of the [RequestContext] class.
-  RequestContext(
-    super.providers,
-    this.request,
-    this._streamable
-  );
+  RequestContext(super.providers, this.request, this._streamable);
 
   /// The [streamable] property contains the streamable response of the request.
   final StreamableResponse _streamable;
@@ -73,7 +69,7 @@ final class RequestContext extends BaseContext {
   /// The [redirect] property uses a [Redirect] class to create the redirect response.
   final ResponseProperties res = ResponseProperties();
 
-    /// The [stream] method is used to stream data to the response.
+  /// The [stream] method is used to stream data to the response.
   StreamableResponse stream() {
     return _streamable..init();
   }
