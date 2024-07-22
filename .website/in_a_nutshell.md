@@ -15,7 +15,7 @@ import 'package:serinus/serinus.dart';
 
 Future<void> main() async {
   final app = await serinus.createApplication(
-      entrypoint: AppModule(), host: '0.0.0.0', port: 3000);
+      entrypoint: AppModule());
   await app.serve();
 }
 ```
@@ -35,7 +35,7 @@ import 'package:serinus/serinus.dart';
 
 class AppController extends Controller {
   AppController(): super(path: '/') {
-	on(Route.get('/'), (RequestContext context) async => Response.text('Hello, World!'));
+	on(Route.get('/'), (RequestContext context) async => 'Hello, World!');
   }
 }
 ```
@@ -51,7 +51,7 @@ Serinus is a community-driven project so, if you have any questions, need help, 
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-	<BtnLink link="https://discord.gg" title="Discord" description="Official Serinus discord server" />
-	<BtnLink link="https://discord.gg" title="Twitter/X" description="Keep in touch with the latest updates" />
-	<BtnLink link="https://discord.gg" title="GitHub" description="Source code and contributions" />
+	<BtnLink link="https://discord.gg/zydgnJ3ksJ" title="Discord" description="Official Serinus discord server" />
+	<BtnLink link="https://x.com/serinus_nest" title="Twitter/X" description="Keep in touch with the latest updates" />
+	<BtnLink link="https://github.com/serinus-nest" title="GitHub" description="Source code and contributions" />
 </div>

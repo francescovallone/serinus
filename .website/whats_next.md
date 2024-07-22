@@ -7,7 +7,8 @@ You can now start building your Serinus project. Here are a few things you might
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-	<BtnLink link="/core/modules.html" title="Core concepts" description="Foundamental concepts of Serinus" />
+	<BtnLink link="/foundations/paths.html" title="Foundations" description="Important foundations of Serinus" />
+	<BtnLink link="/core/modules.html" title="Core concepts" description="Core concepts of Serinus" />
 	<BtnLink link="/validation/schema.html" title="Validation" description="Validate your requests" />
 	<BtnLink link="/techniques/mvc.html" title="Techniques" description="Advanced usages of Serinus" />
 	<BtnLink link="/plugins/" title="Plugins" description="Official and community plugins for Serinus" />

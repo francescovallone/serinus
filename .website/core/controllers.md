@@ -24,9 +24,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
   MyController({super.path = '/'}) {
     on(Route.get(path: '/'), (context) async {
-      return Response.text(
-        data: 'Hello World!',
-      );
+      return 'Hello World!';
     });
   }
 }

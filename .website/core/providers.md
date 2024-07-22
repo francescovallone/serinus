@@ -50,6 +50,10 @@ To access the provider, you can use the `context` object when handling the reque
 
 If you want to use a provider from a submodule, you must add the `Type` of the provider in the `exports` list of the submodule.
 
+::: tip
+You can read more about how Serinus handles the dependency injection in the [Dependency Injection](/foundations/dependency-injection.html) section.
+:::
+
 ::: code-group
 
 ```dart [Simple Usage]
@@ -58,9 +62,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
   MyController({super.path = '/'}){
     on(GetRoute(path: '/'), (context) async {
-      return Response.text(
-        data: context.use<MyProvider>().myMethod(),
-      );
+      return context.use<MyProvider>().myMethod();
     });
   }
 

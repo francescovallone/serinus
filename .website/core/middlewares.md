@@ -1,6 +1,6 @@
 # Middlewares
 
-Middlewares are a way to add functionality to the request-response cycle. They are functions that have access to the request object (req), the response object (res), and the next middleware function in the application’s request-response cycle. The next middleware function is commonly denoted by a variable named next.
+Middlewares are a way to add functionality to the request-response cycle. They are functions that have access to the `RequestContext`, the `InternalResponse`, and the next middleware function in the application’s request-response cycle. The next middleware function is commonly denoted by a variable named next.
 
 ## Creating a Middleware
 
@@ -19,7 +19,7 @@ class MyMiddleware extends Middleware {
 ```
 
 ::: warning
-The `use` method must return the next function, otherwise the request will not be handled correctly.
+The `use` method must return the next function, otherwise the request will be stuck indefinitely.
 :::
 
 ## Using a Middleware

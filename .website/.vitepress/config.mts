@@ -9,6 +9,11 @@ export default defineConfig({
     ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/serinus-icon-32x32.png"}],
     ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png"}],
   ],
+  markdown: {
+    image: {
+      lazyLoading: true
+    }
+  },
   lastUpdated: true,
   appearance: 'force-dark',
   themeConfig: {
@@ -43,6 +48,18 @@ export default defineConfig({
             ]
           },
           {
+            text: 'Foundations',
+            base: '/foundations/',
+            collapsed: true,
+            items: [
+              { text: 'Paths', link: 'paths' },
+              { text: 'Handler', link: 'handler' },
+              { text: 'RequestContext', link: 'request_context' },
+              { text: 'Dependency Inejction', link: 'dependency_injection' },
+              { text: 'Request Lifecycle', link: 'request_lifecycle' },
+            ]
+          },
+          {
             text: 'Core Concepts',
             base: '/core/',
             collapsed: true,
@@ -55,7 +72,8 @@ export default defineConfig({
               { text: 'Middlewares', link: 'middlewares' },
               { text: 'WebSockets', link: 'websockets' },
               { text: 'Hooks', link: 'hooks' },
-              { text: 'Request Lifecycle', link: 'request_lifecycle' },
+              { text: 'Exceptions', link: 'exceptions' },
+              { text: 'Trace', link: 'trace' },
             ]
           },
           {

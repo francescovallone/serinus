@@ -78,7 +78,7 @@ class MyController extends Controller {
 
     MyController({super.path = '/'}) {
         on(GetRoute(path: '/'), (context) {
-            return Response.text('Hello, World!');
+            return 'Hello, World!';
         });
     }
     

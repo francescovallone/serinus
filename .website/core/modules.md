@@ -22,11 +22,11 @@ class AppModule extends Module {
 
 `Modules` have the following properties::
 
-- `imports`: A list of modules you want to import in the current module.
-- `controllers`: A list of controllers you want to include in the module.
-- `providers`: A list of providers you want to include in the module.
-- `middlewares`: A list of middlewares you want to include in the module.
-- `exports`: A list of providers you want to export to other modules.
+- `imports`: A list of `Module`s you want to import in the current module.
+- `controllers`: A list of `Controller`s you want to include in the module.
+- `providers`: A list of `Provider`s you want to include in the module.
+- `middlewares`: A list of `Middleware`s you want to include in the module.
+- `exports`: A list of `Provider`s you want to export to other modules.
 
 ## Creating a DeferredModule
 
