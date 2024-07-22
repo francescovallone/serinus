@@ -10,7 +10,7 @@
         <div class="flex flex-col items-center">
             <div class="text-6xl lg:text-8xl font-bold">Serinus</div>
             <div class="my-4 lg:my-8 text-xl lg:text-2xl text-gray-300 text-center">
-                A backend framework for building efficient and scalable server-side applications <br /><span class="font-semibold">Powered by Dart 🎯</span>
+                A backend framework for building efficient and scalable server-side applications <br /><span class="font-bold">Powered by <span class="text-cyan-500">Dart</span> 🎯</span>
             </div>
             <div class="flex flex-col lg:flex-row justify-center items-center gap-4">
                 <a href="/in_a_nutshell.html" class="bg-orange-400 px-8 py-4 rounded-full">Get Started</a>

@@ -8,7 +8,7 @@ import Hero from './hero.vue'
 	<div class="flex flex-col gap-16">
 		<Hero class="h-screen" />
 		<Fast />
-		<div class="flex md:flex-row w-full gap-8">
+		<div class="flex flex-col md:flex-row w-full gap-8">
 			<div class="flex flex-col w-full">
 				<section class="flex flex-col gap-6 flex-1">
 					<h1 class="text-2xl font-bold">Join the community! ✨</h1>
