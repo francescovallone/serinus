@@ -17,7 +17,7 @@
                 <a href="https://discord.gg/zydgnJ3ksJ" class="px-8 py-4">Join the community</a>
             </div>
         </div>
-        <a href="#fast" id="learn-more" class="text-sm">Learn more</a>
+        <a href="#performant" id="learn-more" class="text-sm">Learn more</a>
   	</div>
 </template>
 
