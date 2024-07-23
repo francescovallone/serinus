@@ -10,7 +10,7 @@ import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../extensions/object_extensions.dart';
-import 'streamable_response.dart';
+import 'http.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
@@ -110,8 +110,20 @@ class InternalResponse {
   /// This method is used to end the response.
   ///
   /// It substitutes the old [finalize] method.
-  Future<void> end(Object data, ResponseProperties properties,
-      ApplicationConfig config) async {
+  Future<void> end({
+    required Object data,
+    required ApplicationConfig config,
+    RequestContext? context,
+    Request? request,
+    String? traced,
+    ResponseProperties? properties,
+  }) async {
+    config.tracerService.addEvent(TraceEvent(
+      name: TraceEvents.onResponse,
+      begin: true,
+      request: context?.request ?? request,
+      traced: traced ?? context?.request.id ?? request?.id ?? '',
+    ));
     _events.add(ResponseEvent.beforeSend);
     if (data is StreamedResponse) {
       _events.add(ResponseEvent.close);
@@ -124,30 +136,38 @@ class InternalResponse {
       _events.add(ResponseEvent.error);
       throw StateError('ViewEngine is required to render views');
     }
-    if (properties.redirect != null) {
+    final resRedirect = context?.res.redirect ?? properties?.redirect;
+    if (resRedirect != null) {
       _events.add(ResponseEvent.redirect);
       _events.add(ResponseEvent.close);
       headers({
-        HttpHeaders.locationHeader: properties.redirect!.location,
-        ...properties.headers
+        HttpHeaders.locationHeader: resRedirect.location,
+        ...context?.res.headers ?? properties?.headers ?? {}
       });
-      return redirect(
-          properties.redirect!.location, properties.redirect!.statusCode);
+      return redirect(resRedirect.location, resRedirect.statusCode);
     }
-    status(properties.statusCode);
-    if (properties.statusCode >= 400) {
+    final statusCode =
+        (context?.res.statusCode ?? properties?.statusCode ?? 200);
+    status(statusCode);
+    if (statusCode >= 400) {
       _events.add(ResponseEvent.error);
     }
-    headers(
-        {...properties.headers, HttpHeaders.transferEncodingHeader: 'chunked'});
+    headers({
+      ...context?.res.headers ?? properties?.headers ?? {},
+      HttpHeaders.transferEncodingHeader: 'chunked'
+    });
     Uint8List responseBody = Uint8List(0);
-    contentType(properties.contentType ?? ContentType.text);
+    contentType(context?.res.contentType ??
+        properties?.contentType ??
+        ContentType.text);
     if (isView) {
       final rendered = await (data is View
           ? config.viewEngine!.render(data)
           : config.viewEngine!.renderString(data as ViewString));
       responseBody = utf8.encode(rendered);
-      contentType(properties.contentType ?? ContentType.html);
+      contentType(context?.res.contentType ??
+          properties?.contentType ??
+          ContentType.html);
       headers({
         HttpHeaders.contentLengthHeader: responseBody.length.toString(),
       });
@@ -155,24 +175,31 @@ class InternalResponse {
     final coding = _original.headers['transfer-encoding']?.join(';');
     if (data is File) {
       for (final hook in config.hooks) {
-        await hook.onResponse(data, properties);
+        await hook.onResponse(
+            data, context?.res ?? properties ?? ResponseProperties());
       }
-      contentType(properties.contentType ??
+      contentType(context?.res.contentType ??
           ContentType.parse('application/octet-stream'));
       final readPipe = data.openRead();
       return sendStream(readPipe);
     }
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-    } else if (properties.statusCode >= 200 &&
-        properties.statusCode != 204 &&
-        properties.statusCode != 304 &&
-        properties.contentLength == null &&
-        properties.contentType?.mimeType != 'multipart/byteranges') {
+    } else if ((context?.res.statusCode ??
+                properties?.statusCode ??
+                ResponseProperties().statusCode) >=
+            200 &&
+        (context?.res.statusCode ?? properties?.statusCode) != 204 &&
+        (context?.res.statusCode ?? properties?.statusCode) != 304 &&
+        (context?.res.contentLength ?? properties?.contentLength) == null &&
+        (context?.res.contentType?.mimeType ??
+                properties?.contentType?.mimeType) !=
+            'multipart/byteranges') {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
     }
     for (final hook in config.hooks) {
-      await hook.onResponse(data, properties);
+      await hook.onResponse(
+          data, context?.res ?? properties ?? ResponseProperties());
     }
     if (data.isPrimitive()) {
       responseBody = utf8.encode(data.toString());
@@ -181,8 +208,14 @@ class InternalResponse {
     } else if (!isView) {
       responseBody = utf8.encode(jsonEncode(data));
     }
+    await config.tracerService.addSyncEvent(TraceEvent(
+      name: TraceEvents.onResponse,
+      request: context?.request ?? request,
+      context: context,
+      traced: traced ?? context?.request.id ?? request?.id ?? '',
+    ));
     headers({
-      ...properties.headers,
+      ...context?.res.headers ?? properties?.headers ?? {},
       HttpHeaders.contentLengthHeader: responseBody.length.toString()
     });
     return send(responseBody);

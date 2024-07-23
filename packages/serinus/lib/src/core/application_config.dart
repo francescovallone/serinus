@@ -6,8 +6,10 @@ import '../adapters/server_adapter.dart';
 import '../adapters/ws_adapter.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
+import '../services/tracers_service.dart';
 import '../versioning.dart';
 import 'hook.dart';
+import 'tracer.dart';
 
 /// The configuration for the application
 /// This is used to configure the application
@@ -102,9 +104,17 @@ final class ApplicationConfig {
   /// The hooks for the application
   final Set<Hook> hooks = {};
 
+  /// The tracer for the application
+  final TracersService tracerService = TracersService();
+
   /// Add a hook to the application
   void addHook(Hook hook) {
     hooks.add(hook);
+  }
+
+  /// Register a tracer to the application
+  void registerTracer(Tracer tracer) {
+    tracerService.registerTracer(tracer);
   }
 
   /// The application config constructor

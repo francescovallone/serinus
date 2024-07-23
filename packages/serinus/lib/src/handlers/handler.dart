@@ -34,7 +34,12 @@ abstract class Handler {
       final properties = ResponseProperties()
         ..statusCode = e.statusCode
         ..contentType = ContentType.json;
-      return response.end(error, properties, config);
+      response.end(
+        data: error,
+        config: config,
+        properties: properties,
+      );
+      return;
     }
   }
 

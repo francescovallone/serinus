@@ -11,4 +11,5 @@ export 'module.dart';
 export 'parse_schema.dart';
 export 'provider.dart';
 export 'route.dart';
+export 'tracer.dart';
 export 'websockets/websockets.dart';

@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 
+import 'server_timing_tracer.dart';
+
 class TestObj with JsonObject {
   final String name;
 
@@ -303,5 +305,6 @@ void main(List<String> arguments) async {
   SerinusApplication application = await serinus.createApplication(
       entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
+  application.trace(ServerTimingTracer());
   await application.serve();
 }
