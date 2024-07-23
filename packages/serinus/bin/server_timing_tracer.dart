@@ -35,7 +35,6 @@ class ServerTimingTracer extends Tracer {
     }
 
     event.context?.res.headers['Server-Timing'] = label;
-    print(event.context?.res.headers);
   }
 
 }
