@@ -6,7 +6,6 @@ import '../exceptions/exceptions.dart';
 
 /// The [ParseSchema] class is used to define the schema of the parsing process.
 abstract class ParseSchema<MapType, BodyType> {
-
   /// The [body] property contains the schema of the body.
   final BodyType? body;
 
@@ -36,17 +35,18 @@ abstract class ParseSchema<MapType, BodyType> {
   });
 
   /// The [tryParse] method is used to validate the data.
-  /// 
+  ///
   /// The method returns the parsed data if the data is valid.
-  /// 
+  ///
   /// The method throws a [SerinusException] if the data is invalid.
   Map<String, dynamic> tryParse({required Map<String, dynamic> value});
 }
 
+/// The [AcanthisParseSchema] class is used to define the schema of the parsing process using the [Acanthis] library.
 class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
-
   late final AcanthisMap _schema;
-  
+
+  /// The [AcanthisParseSchema] constructor is used to create a new instance of the [AcanthisParseSchema] class.
   AcanthisParseSchema({
     super.body,
     super.query,
@@ -56,7 +56,9 @@ class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
     super.error,
   }) {
     _schema = object({
-      if (body != null) 'body': (body is AcanthisMap) ? (body as AcanthisMap).passthrough() : body!,
+      if (body != null)
+        'body':
+            (body is AcanthisMap) ? (body as AcanthisMap).passthrough() : body!,
       if (query != null) 'query': query!.passthrough(),
       if (params != null) 'params': params!.passthrough(),
       if (headers != null) 'headers': headers!.passthrough(),
@@ -78,39 +80,4 @@ class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
     }
     return result.value;
   }
-
-}
-
-class DemoParseSchema extends ParseSchema<Map<String, dynamic>, dynamic> {
-
-  DemoParseSchema({
-    super.body,
-    super.query,
-    super.params,
-    super.headers,
-    super.session,
-    super.error,
-  });
-
-  @override
-  Map<String, dynamic> tryParse({required Map<String, dynamic> value}) {
-    if(body != null) {
-      final requestBody = value['body'];
-      if(requestBody == null) {
-        throw BadRequestException(message: 'Email is too short');
-      } 
-      if(requestBody is! Map) {
-        throw BadRequestException(message: 'Email is too short');
-      }
-      final email = requestBody['email'];
-      if(email == null) {
-        throw BadRequestException(message: 'Email is too short');
-      }
-      if(email is! String) {
-        throw BadRequestException(message: 'Email is too short');
-      }
-    }
-    return value;
-  }
-
 }
