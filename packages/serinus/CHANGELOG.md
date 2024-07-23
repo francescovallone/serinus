@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0-dev.5
+
+- feat(#57): abstract ParseSchema to allow for more flexibility in the implementation of the schema parsers.
+
 ## 0.6.0-dev.4
 
 - refactor(#39): add parent providers in child providers to allow for a better specialization of the behavior of the providers.

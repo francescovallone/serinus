@@ -124,14 +124,14 @@ class HomeController extends Controller {
         TestObj('Jane Doe')
       ];
     },
-        schema: ParseSchema(
+        schema: AcanthisParseSchema(
             query: object({
           'test': string().encode(),
         }).optionals(['test'])));
     on(PostRoute(path: '/*'), (context) async {
       return '${context.request.getData('test')} ${context.params}';
     },
-        schema: ParseSchema(
+        schema: AcanthisParseSchema(
             body: string(),
             error: (errors) {
               return BadRequestException(message: 'Invalid query parameters');
