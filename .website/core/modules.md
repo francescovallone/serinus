@@ -20,21 +20,26 @@ class AppModule extends Module {
 }
 ```
 
-`Modules` have the following properties::
+`Modules` have the following properties:
 
-- `imports`: A list of `Module`s you want to import in the current module.
-- `controllers`: A list of `Controller`s you want to include in the module.
-- `providers`: A list of `Provider`s you want to include in the module.
-- `middlewares`: A list of `Middleware`s you want to include in the module.
-- `exports`: A list of `Provider`s you want to export to other modules.
+| Property | Description |
+| --- | --- |
+| `imports` | A list of `Module`s you want to import in the current module. |
+| `controllers` | A list of `Controller`s you want to include in the module. |
+| `providers` | A list of `Provider`s you want to include in the module. |
+| `middlewares` | A list of `Middleware`s you want to include in the module. |
+| `exports` | A list of `Provider`s you want to export to other modules. |
 
 ## Creating a DeferredModule
 
 Modules are loaded instantly when the application starts, but if you need to create a module dependent on providers within the application, you can wrap a `Module` with the `DeferredModule` class.
 
 The `DeferredModule` class takes two parameters:
-- `inject`: A list of providers that the module needs to load.
-- `init`: A function that returns a `Module` object.
+
+| Parameter | Description |
+| --- | --- |
+| `inject` | A list of providers that the module needs to load. |
+| `init` | A function that returns a `Module` object. |
 
 It also has access to all the properties of the `Module` class, so you can pass the same parameters to the `super` constructor.
 

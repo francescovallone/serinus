@@ -1,6 +1,6 @@
 # Routes
 
-Web servers are all about routing requests to the right handler. They use the path and method of the request to determine which handler should be executed. 
+Web servers are all about routing requests to the right handler. They use the path and method of the request to determine which handler should be executed.
 
 Serinus uses the `Route` class to define routes and the `Controller` class to group routes that share the same base path.
 
@@ -8,11 +8,15 @@ Serinus uses the `Route` class to define routes and the `Controller` class to gr
 
 To define a route you can either create a class that extends the `Route` class or use the following factory constructor to create one.
 
-- `Route.get`
-- `Route.post`
-- `Route.put`
-- `Route.delete`
-- `Route.patch`
+| Factory Constructor | HTTP Method |
+| --- | --- |
+| `Route.get` | GET |
+| `Route.post` | POST |
+| `Route.put` | PUT |
+| `Route.delete` | DELETE |
+| `Route.patch` | PATCH |
+| `Route.options` | OPTIONS |
+| `Route.head` | HEAD |
 
 All this methods has a required parameter `path` that is the path of the route and the method signature corresponds to the method that the route will respond to.
 

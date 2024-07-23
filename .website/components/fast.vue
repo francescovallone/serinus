@@ -112,6 +112,9 @@ function changeTab(index) {
 			>
 				<GraphLine :lang="graph.lang" :title="graph.title" :value="tab == 0 ? graph.value : tab == 1 ? graph.latency : graph.memory" :label="label" :isFirst="index === 0" :max="max"/>
 			</div>
+			<p class="results text-gray-400 text-xs pb-1">
+				{{ tab === 0 ? 'Higher' : 'Lower' }} is better.
+			</p>
 			<p class="results text-gray-400 text-xs pb-1">Measurement in Request per Second, MB and Milliseconds. Results from <a href="https://sharkbench.dev/web" target="_blank">sharkbench.dev</a>.</p>
 		</section>
 	  </div>

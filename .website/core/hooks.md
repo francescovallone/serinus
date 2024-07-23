@@ -8,10 +8,12 @@ To create a hook, you need to create a class that extends the `Hook` class. Each
 
 These are the methods that you can override:
 
-- `onRequest`: This method is called before the router is called.
-- `beforeHandle`: This method is called before the route handler is called.
-- `afterHandle`: This method is called after the route handler is called.
-- `onResponse`: This method is called after the response is generated.
+| Method | Description |
+| --- | --- |
+| `onRequest` | This method is called before the router is called. |
+| `beforeHandle` | This method is called before the route handler is called. |
+| `afterHandle` | This method is called after the route handler is called. |
+| `onResponse` | This method is called after the response is generated. |
 
 ```dart
 import 'package:serinus/serinus.dart';
