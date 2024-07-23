@@ -21,7 +21,7 @@ class TestJsonObject with JsonObject {
 class TestController extends Controller {
   TestController({super.path = '/'}) {
     on(Route.get('/'), (context) async => 'ok!',
-        schema: ParseSchema(
+        schema: AcanthisParseSchema(
             query: object({
               'test': string().contains('a'),
             }),
@@ -29,7 +29,7 @@ class TestController extends Controller {
               return BadRequestException(message: 'Invalid query parameters');
             }));
     on(Route.get('/<id>'), (context) async => 'ok!',
-        schema: ParseSchema(
+        schema: AcanthisParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,
@@ -41,7 +41,7 @@ class TestController extends Controller {
                   message: 'Invalid query parameters');
             }));
     on(Route.post('/<id>'), (context) async => 'ok!',
-        schema: ParseSchema(
+        schema: AcanthisParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,
@@ -56,7 +56,7 @@ class TestController extends Controller {
                   message: 'Invalid query parameters');
             }));
     on(Route.get('/<id>/sub'), (context) async => 'ok!',
-        schema: ParseSchema(
+        schema: AcanthisParseSchema(
             params: object({
               'id': string().customCheck(
                   onCheck: (value) => int.tryParse(value) != null,
