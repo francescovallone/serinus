@@ -1,3 +1,4 @@
+import 'package:jaspr/server.dart';
 import 'package:serinus/serinus.dart';
 
 import 'app_controller.dart';
@@ -10,4 +11,5 @@ class AppModule extends Module {
           controllers: [AppController()],
           providers: [AppProvider()],
         );
+
 }

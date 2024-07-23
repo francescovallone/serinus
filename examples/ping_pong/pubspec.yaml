@@ -6,5 +6,14 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  serinus: 0.5.2
+  jaspr: ^0.13.3
+  serinus: 
+    path: ../../packages/serinus
+dev_dependencies:
+  build_runner: ^2.4.11
+  jaspr_builder: ^0.13.3
+  jaspr_web_compilers: ^4.0.9
   
+
+jaspr:
+  mode: server
