@@ -5,21 +5,24 @@ import '../http/http.dart';
 
 /// A service to manage tracers.
 class TracersService {
-
   final Map<String, Tracer> _tracers = {};
 
   final Map<String, _TracerProperties> _properties = {};
 
-  final StreamController<TraceEvent> _events = StreamController<TraceEvent>.broadcast();
+  final StreamController<TraceEvent> _events =
+      StreamController<TraceEvent>.broadcast();
 
   /// Method to register a new tracer to be used.
   void registerTracer(Tracer tracer) {
     _tracers[tracer.name] = tracer;
     _events.stream.listen((event) async {
-      final elapsed = _properties[event.request!.id]?.stopwatch.elapsed ?? Duration.zero;
-      final requestElapsed = _properties[event.request!.id]?.lifecycleDuration.elapsed ?? Duration.zero;
+      final elapsed =
+          _properties[event.request!.id]?.stopwatch.elapsed ?? Duration.zero;
+      final requestElapsed =
+          _properties[event.request!.id]?.lifecycleDuration.elapsed ??
+              Duration.zero;
       event.requestDuration = requestElapsed;
-      switch((event.name, event.begin)) {
+      switch ((event.name, event.begin)) {
         case (TraceEvents.onRequestReceived, _):
           await tracer.onRequestReceived(event, elapsed);
           _properties[event.request!.id]?.completers[event.name]?.complete();
@@ -53,7 +56,10 @@ class TracersService {
           _properties[event.request!.id]?.completers[event.name]?.complete();
           break;
         case (TraceEvents.onResponse, false):
-          await tracer.onResponse(event, _properties[event.request!.id]?.stopwatch.elapsed ?? Duration.zero);
+          await tracer.onResponse(
+              event,
+              _properties[event.request!.id]?.stopwatch.elapsed ??
+                  Duration.zero);
           _properties[event.request!.id]?.completers[event.name]?.complete();
           _properties[event.request!.id]?.lifecycleDuration.stop();
           break;
@@ -81,27 +87,24 @@ class TracersService {
 
   /// Adds a new event to be traced synchronously.
   Future<void> addSyncEvent(TraceEvent event) async {
-    if(_tracers.isEmpty) {
+    if (_tracers.isEmpty) {
       return;
     }
-    if(event.name == TraceEvents.onRequestReceived) {
-      _properties[event.request!.id] = _TracerProperties(event.request!, Stopwatch()..start(), {
-        event.name: Completer()
-      });
-    } else if(event.name == TraceEvents.onResponse && event.begin) {
+    if (event.name == TraceEvents.onRequestReceived) {
+      _properties[event.request!.id] = _TracerProperties(
+          event.request!, Stopwatch()..start(), {event.name: Completer()});
+    } else if (event.name == TraceEvents.onResponse && event.begin) {
       _properties[event.request!.id]?.stopwatch.stop();
     }
     _events.add(event);
     await _properties[event.request!.id]?.completers[event.name]?.future;
-    if(event.name == TraceEvents.onResponse && !event.begin) {
+    if (event.name == TraceEvents.onResponse && !event.begin) {
       _properties.remove(event.request!.id);
     }
   }
-
 }
 
 class _TracerProperties {
-
   final Request request;
 
   final Stopwatch stopwatch;
@@ -111,6 +114,4 @@ class _TracerProperties {
   final Stopwatch lifecycleDuration = Stopwatch()..start();
 
   _TracerProperties(this.request, this.stopwatch, this.completers);
-
-
 }

@@ -3,10 +3,9 @@ import 'dart:io';
 import 'http.dart';
 
 /// The [StreamableResponse] class is used to create a streamable response.
-/// 
+///
 /// It is used to send data to the client in a streamable way.
 class StreamableResponse {
-
   final InternalResponse _response;
 
   bool _initialized = false;
@@ -15,11 +14,11 @@ class StreamableResponse {
   StreamableResponse(this._response);
 
   /// This method is used to initialize the response.
-  /// 
+  ///
   /// It is called when the request context is created.
   /// Any further call to this method will be ignored.
   void init() {
-    if(_initialized) {
+    if (_initialized) {
       return;
     }
     _response.currentHeaders.chunkedTransferEncoding = true;
@@ -40,7 +39,6 @@ class StreamableResponse {
   StreamedResponse end() {
     return StreamedResponse();
   }
-
 }
 
 /// The [StreamedResponse] class is used to notify the server that the response is streamed.

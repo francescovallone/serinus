@@ -178,9 +178,12 @@ class HomeAController extends Controller {
 
   Future<StreamedResponse> _handleStreamResponse(RequestContext context) async {
     final streamable = context.stream();
-    final streamedFile = File('file.txt').openRead().transform(utf8.decoder).transform(LineSplitter());
-    await for(final line in streamedFile) {
-      if(line.isNotEmpty) {
+    final streamedFile = File('file.txt')
+        .openRead()
+        .transform(utf8.decoder)
+        .transform(LineSplitter());
+    await for (final line in streamedFile) {
+      if (line.isNotEmpty) {
         streamable.send(line);
       }
     }
@@ -190,7 +193,6 @@ class HomeAController extends Controller {
   Future<File> _handleFileResponse(RequestContext context) async {
     return File('file.txt');
   }
-
 }
 
 class TestWsProvider extends WebSocketGateway

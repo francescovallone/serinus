@@ -4,7 +4,6 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class ServerTimingTracer extends Tracer {
-
   final Map<String, int> _timings = {};
 
   ServerTimingTracer() : super('ServerTimingTracer');
@@ -55,7 +54,6 @@ class ServerTimingTracer extends Tracer {
 
     event.context?.res.headers['duration'] = _timings['duration'].toString();
   }
-
 }
 
 class TestRoute extends Route {
@@ -84,9 +82,9 @@ class TestMiddleware extends Middleware {
   @override
   Future<void> use(RequestContext context, InternalResponse response,
       NextFunction next) async {
-      await Future.delayed(Duration(milliseconds: 100), () {
-        hasBeenCalled = true;
-      });
+    await Future.delayed(Duration(milliseconds: 100), () {
+      hasBeenCalled = true;
+    });
     next();
   }
 }
@@ -102,35 +100,32 @@ class TestModule extends Module {
 }
 
 void main() {
-  group(
-    '$Tracer', 
-    () {
-      SerinusApplication? app;
-      final controller = TestController();
-      final middleware = TestMiddleware();
-      setUpAll(() async {
-        app = await serinus.createApplication(
-            entrypoint:
-                TestModule(controllers: [controller], middlewares: [middleware]),
-            port: 4000,
-            loggingLevel: LogLevel.none);
-        app?.trace(ServerTimingTracer());
-        await app?.serve();
-      });
-      tearDownAll(() async {
-        await app?.close();
-      });
+  group('$Tracer', () {
+    SerinusApplication? app;
+    final controller = TestController();
+    final middleware = TestMiddleware();
+    setUpAll(() async {
+      app = await serinus.createApplication(
+          entrypoint:
+              TestModule(controllers: [controller], middlewares: [middleware]),
+          port: 4000,
+          loggingLevel: LogLevel.none);
+      app?.trace(ServerTimingTracer());
+      await app?.serve();
+    });
+    tearDownAll(() async {
+      await app?.close();
+    });
 
-      test(
+    test(
         'when a request is made, then the tracer should set the duration header',
         () async {
-          final request =
-              await HttpClient().getUrl(Uri.parse('http://localhost:4000/'));
-          final response = await request.close();
-          expect(response.headers.value('duration'), isNotNull);
-          expect(int.tryParse(response.headers.value('duration') ?? ''), greaterThanOrEqualTo(100));
-        }
-      );
-    }
-  );
+      final request =
+          await HttpClient().getUrl(Uri.parse('http://localhost:4000/'));
+      final response = await request.close();
+      expect(response.headers.value('duration'), isNotNull);
+      expect(int.tryParse(response.headers.value('duration') ?? ''),
+          greaterThanOrEqualTo(100));
+    });
+  });
 }

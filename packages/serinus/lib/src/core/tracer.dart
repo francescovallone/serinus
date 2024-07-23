@@ -3,7 +3,6 @@ import '../http/http.dart';
 
 /// Base class for all tracers.
 abstract class Tracer {
-
   /// The [name] of the [Tracer]
   final String name;
 
@@ -36,12 +35,10 @@ abstract class Tracer {
 
   /// Called to trace the onResponse event
   Future<void> onResponse(TraceEvent event, Duration delta) async {}
-
 }
 
 /// Represents a trace event.
 class TraceEvent {
-
   /// The name of the event.
   final TraceEvents name;
 
@@ -75,12 +72,10 @@ class TraceEvent {
     this.context,
     this.request,
   }) : timestamp = DateTime.now();
-
 }
 
 /// Represents a trace event.
 enum TraceEvents {
-
   /// The onRequest event.
   /// This event is triggered when a onRequest hook has been executed.
   /// Each onRequest hook has its own event.
@@ -117,8 +112,8 @@ enum TraceEvents {
   /// The onResponse event.
   /// This event is triggered when a response has been sent.
   /// Each response has its own event.
-  onResponse, 
-  
+  onResponse,
+
   /// The onRequestReceived event.
   /// This event is triggered when a request is received.
   /// �

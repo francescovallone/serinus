@@ -11,7 +11,6 @@ import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../extensions/dynamic_extensions.dart';
 import 'http.dart';
-import 'streamable_response.dart';
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
@@ -126,7 +125,7 @@ class InternalResponse {
       traced: traced ?? context?.request.id ?? request?.id ?? '',
     ));
     _events.add(ResponseEvent.beforeSend);
-    if(data is StreamedResponse) {
+    if (data is StreamedResponse) {
       _events.add(ResponseEvent.close);
       await _original.flush();
       _original.close();
@@ -145,24 +144,30 @@ class InternalResponse {
         HttpHeaders.locationHeader: resRedirect.location,
         ...context?.res.headers ?? properties?.headers ?? {}
       });
-      return redirect(
-          resRedirect.location, resRedirect.statusCode);
+      return redirect(resRedirect.location, resRedirect.statusCode);
     }
-    final statusCode = (context?.res.statusCode ?? properties?.statusCode ?? 200);
+    final statusCode =
+        (context?.res.statusCode ?? properties?.statusCode ?? 200);
     status(statusCode);
     if (statusCode >= 400) {
       _events.add(ResponseEvent.error);
     }
-    headers(
-        {...context?.res.headers ?? properties?.headers ?? {}, HttpHeaders.transferEncodingHeader: 'chunked'});
+    headers({
+      ...context?.res.headers ?? properties?.headers ?? {},
+      HttpHeaders.transferEncodingHeader: 'chunked'
+    });
     Uint8List responseBody = Uint8List(0);
-    contentType(context?.res.contentType ?? properties?.contentType ?? ContentType.text);
+    contentType(context?.res.contentType ??
+        properties?.contentType ??
+        ContentType.text);
     if (isView) {
       final rendered = await (data is View
           ? config.viewEngine!.render(data)
           : config.viewEngine!.renderString(data as ViewString));
       responseBody = utf8.encode(rendered);
-      contentType(context?.res.contentType ?? properties?.contentType ?? ContentType.html);
+      contentType(context?.res.contentType ??
+          properties?.contentType ??
+          ContentType.html);
       headers({
         HttpHeaders.contentLengthHeader: responseBody.length.toString(),
       });
@@ -170,7 +175,8 @@ class InternalResponse {
     final coding = _original.headers['transfer-encoding']?.join(';');
     if (data is File) {
       for (final hook in config.hooks) {
-        await hook.onResponse(data, context?.res ?? properties ?? ResponseProperties());
+        await hook.onResponse(
+            data, context?.res ?? properties ?? ResponseProperties());
       }
       contentType(context?.res.contentType ??
           ContentType.parse('application/octet-stream'));
@@ -179,15 +185,21 @@ class InternalResponse {
     }
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-    } else if ((context?.res.statusCode ?? properties?.statusCode ?? ResponseProperties().statusCode) >= 200 &&
+    } else if ((context?.res.statusCode ??
+                properties?.statusCode ??
+                ResponseProperties().statusCode) >=
+            200 &&
         (context?.res.statusCode ?? properties?.statusCode) != 204 &&
         (context?.res.statusCode ?? properties?.statusCode) != 304 &&
         (context?.res.contentLength ?? properties?.contentLength) == null &&
-        (context?.res.contentType?.mimeType ?? properties?.contentType?.mimeType) != 'multipart/byteranges') {
+        (context?.res.contentType?.mimeType ??
+                properties?.contentType?.mimeType) !=
+            'multipart/byteranges') {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
     }
     for (final hook in config.hooks) {
-      await hook.onResponse(data, context?.res ?? properties ?? ResponseProperties());
+      await hook.onResponse(
+          data, context?.res ?? properties ?? ResponseProperties());
     }
     if (data.isPrimitive()) {
       responseBody = utf8.encode(data.toString());
