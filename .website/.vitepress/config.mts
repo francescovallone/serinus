@@ -3,12 +3,17 @@ import { defineConfig } from 'vitepress'
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
   title: "Serinus",
-  titleTemplate: 'Serinus - Dart Backend Framework',
+  titleTemplate: ':title - Serinus | Dart Backend Framework',
   description: "Serinus is a framework written in Dart for building efficient and scalable server-side applications.",
   head: [
     ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/serinus-icon-32x32.png"}],
     ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png"}],
   ],
+  markdown: {
+    image: {
+      lazyLoading: true
+    }
+  },
   lastUpdated: true,
   appearance: 'force-dark',
   themeConfig: {
@@ -23,28 +28,60 @@ export default defineConfig({
     },
     nav: [
       {
-        text: 'pub.dev',
+        text: 'Guide',
+        link: '/in_a_nutshell'
+      },
+      {
+        text: 'Pub.dev',
         link: 'https://pub.dev/packages/serinus'
       },
     ],
     sidebar: [
       {
         items: [
-          { text: 'Introduction', link: '/introduction' },
           {
-            text: 'Overview',
-            base: '/overview/',
-            collapsed: false,
+            text: 'Getting Started',
             items: [
-              { text: 'Getting Started', link: 'getting_started' },
+              { text: 'In a nutshell', link: '/in_a_nutshell' },
+              { text: 'Quick Start', link: '/quick_start' },
+              { text: 'What\'s next?', link: '/whats_next' }
+            ]
+          },
+          {
+            text: 'Foundations',
+            base: '/foundations/',
+            collapsed: true,
+            items: [
+              { text: 'Paths', link: 'paths' },
+              { text: 'Handler', link: 'handler' },
+              { text: 'RequestContext', link: 'request_context' },
+              { text: 'Dependency Inejction', link: 'dependency_injection' },
+              { text: 'Request Lifecycle', link: 'request_lifecycle' },
+            ]
+          },
+          {
+            text: 'Core Concepts',
+            base: '/core/',
+            collapsed: true,
+            items: [
               { text: 'Modules', link: 'modules' },
               { text: 'Controllers', link: 'controllers' },
               { text: 'Routes', link: 'routes' },
               { text: 'Providers', link: 'providers' },
+              { text: 'Metadata', link: 'metadata' },
               { text: 'Middlewares', link: 'middlewares' },
               { text: 'WebSockets', link: 'websockets' },
               { text: 'Hooks', link: 'hooks' },
-              { text: 'Shelf Interoperability', link: 'shelf_interop' }
+              { text: 'Exceptions', link: 'exceptions' },
+              { text: 'Trace', link: 'trace' },
+            ]
+          },
+          {
+            base: '/validation/',
+            text: 'Validation',
+            collapsed: true,
+            items: [
+              { text: 'Schema', link: 'schema' },
             ]
           },
           {
@@ -56,11 +93,8 @@ export default defineConfig({
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
               { text: 'Body Size Limit', link: 'body_size_limit' },
+              { text: 'Shelf Interoperability', link: 'shelf_interop' }
             ]
-          },
-          {
-            text: 'Request Lifecycle',
-            link: '/request_lifecycle'
           },
           {
             text: 'Plugins',
@@ -96,7 +130,7 @@ export default defineConfig({
               { text: 'Globe', link: 'globe' },
               { text: 'VPS', link: 'vps' },
             ],
-          }
+          }, 
         ]
       },
     ],
