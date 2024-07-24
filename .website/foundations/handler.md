@@ -1,4 +1,4 @@
-# Handlers
+# Handler
 
 The handler is a function that receives a `RequestContext` object and returns an object. The handler is responsible for processing the request and returning a response to the client.
 

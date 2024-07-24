@@ -8,14 +8,16 @@ The following image summarizes the request lifecycle in Serinus:
 
 The request lifecycle consists of the following steps:
 
-- **Request**: The client sends a request to the server.
-- **onRequest**: Serinus receives the request and execute all the onRequest hooks.
-- **Routing**: Serinus determines which route to use based on the request URL.
-- **tranform**: Serinus executes the local transform hook.
-- **parse**: Serinus executes the local parse hook.
-- **Middlewares**: Serinus executes the middlewares for the route.
-- **beforeHandle**: Serinus executes the global beforeHandle hook and then the local one.
-- **Handler**: Serinus executes the handler for the route.
-- **afterHandle**: Serinus executes the local afterHandle hook and then the global one.
-- **onResponse**: Serinus executes the onResponse hooks.
-- **Response**: Serinus sends the response back to the client.
+| Step | Description |
+| ---- | ----------- |
+| **Request** | The client sends a request to the server. |
+| **onRequest** | Serinus receives the request and execute all the onRequest hooks. |
+| **Routing** | Serinus determines which route to use based on the request URL. |
+| **tranform** | Serinus executes the local transform hook. |
+| **parse** | Serinus executes the local parse hook. |
+| **Middlewares** | Serinus executes the middlewares for the route. |
+| **beforeHandle** | Serinus executes the global beforeHandle hook and then the local one. |
+| **Handler** | Serinus executes the handler for the route. |
+| **afterHandle** | Serinus executes the local afterHandle hook and then the global one. |
+| **onResponse** | Serinus executes the onResponse hooks. |
+| **Response** | Serinus sends the response back to the client. |
