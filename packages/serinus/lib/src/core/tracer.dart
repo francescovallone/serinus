@@ -21,8 +21,8 @@ abstract class Tracer {
   /// Called to trace the onParse event
   Future<void> onParse(TraceEvent event, Duration delta) async {}
 
-  /// Called to trace the onMiddlewares event
-  Future<void> onMiddlewares(TraceEvent event, Duration delta) async {}
+  /// Called to trace the onMiddleware event
+  Future<void> onMiddleware(TraceEvent event, Duration delta) async {}
 
   /// Called to trace the onBeforeHandle event
   Future<void> onBeforeHandle(TraceEvent event, Duration delta) async {}

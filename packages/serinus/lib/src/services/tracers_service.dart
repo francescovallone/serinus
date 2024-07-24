@@ -40,7 +40,7 @@ class TracersService {
           _properties[event.request!.id]?.completers[event.name]?.complete();
           break;
         case (TraceEvents.onMiddleware, false):
-          await tracer.onMiddlewares(event, elapsed);
+          await tracer.onMiddleware(event, elapsed);
           _properties[event.request!.id]?.completers[event.name]?.complete();
           break;
         case (TraceEvents.onBeforeHandle, false):

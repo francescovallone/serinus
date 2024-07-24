@@ -34,7 +34,7 @@ class ServerTimingTracer extends Tracer {
   }
 
   @override
-  Future<void> onMiddlewares(TraceEvent event, Duration delta) async {
+  Future<void> onMiddleware(TraceEvent event, Duration delta) async {
     _timings['duration'] = (_timings['duration'] ?? 0) + delta.inMilliseconds;
   }
 
