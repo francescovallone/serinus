@@ -29,6 +29,11 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     _contexts[key] = context;
   }
 
+  @override
+  bool canHandle(InternalRequest request) {
+    return request.isWebSocket;
+  }
+
   /// The [isOpen] property contains the status of the adapter
   bool get isOpen => _isOpen;
 
@@ -107,4 +112,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     }
     server![key]?.add(data);
   }
+  
+  @override
+  bool get shouldBeInitilized => false;
 }

@@ -19,6 +19,9 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
   /// The [isRunning] property returns true if the server is running.
   bool get isRunning => server != null;
 
+  @override
+  bool get isOpen => isRunning;
+
   /// The [SerinusHttpAdapter] constructor is used to create a new instance of the [SerinusHttpAdapter] class.
   SerinusHttpAdapter(
       {required super.host,
@@ -60,4 +63,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       errorHandler.call(e, StackTrace.current);
     }
   }
+  
+  @override
+  bool get shouldBeInitilized => true;
 }

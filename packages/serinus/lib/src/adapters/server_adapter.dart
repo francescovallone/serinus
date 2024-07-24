@@ -18,6 +18,14 @@ abstract class Adapter<TServer> {
   /// The [server] property contains the server.
   TServer? server;
 
+  bool get isOpen;
+
+  /// If true the application will also initialize the adapter.
+  bool get shouldBeInitilized;
+
+  /// The [canHandle] method is used to determine if the adapter can handle the request.
+  bool canHandle(InternalRequest request) => true;
+
   /// The [init] method is used to initialize the server.
   Future<void> init();
 

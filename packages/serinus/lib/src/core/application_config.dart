@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:uuid/v4.dart';
 
 import '../adapters/server_adapter.dart';
-import '../adapters/ws_adapter.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../versioning.dart';
@@ -96,8 +95,11 @@ final class ApplicationConfig {
   /// The server adapter for the application
   final Adapter serverAdapter;
 
-  /// The ws adapter for the application
-  WsAdapter? wsAdapter;
+  /// The adapters used by the application
+  /// 
+  /// This is used to store the adapters used by the application
+  /// E.g. [SseAdapter], [WsAdapter], etc.
+  final Map<Type, Adapter> adapters = {};
 
   /// The hooks for the application
   final Set<Hook> hooks = {};
