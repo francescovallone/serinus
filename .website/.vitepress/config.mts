@@ -73,7 +73,7 @@ export default defineConfig({
               { text: 'WebSockets', link: 'websockets' },
               { text: 'Hooks', link: 'hooks' },
               { text: 'Exceptions', link: 'exceptions' },
-              { text: 'Trace', link: 'trace' },
+              { text: 'Tracer', link: 'tracer' },
             ]
           },
           {

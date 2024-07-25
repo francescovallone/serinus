@@ -49,3 +49,7 @@ If you add the `--dev` flag to the `serinus run` command, the server will automa
 :::
 
 This will start the Serinus server and you can access it by navigating to `http://localhost:3000` in your browser.
+
+## Examples
+
+You can find more examples in the [examples](https://github.com/francescovallone/serinus/tree/main/examples) directory of the Serinus repository.

@@ -83,7 +83,7 @@ class GetRoute extends Route {
 
 ## Validation
 
-You can parse some of the `Request` properties before they reach the route handler by creating a ParseSchema and passing it to the route.
+You can parse some of the `Request` properties before they reach the route handler by creating a `ParseSchema` and passing it to the route.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -95,7 +95,7 @@ class AppController extends Controller {
       (context) {
         return 'Hello World!';
       },
-      ParseSchema(
+      AcanthisParseSchema(
         query: object({
           'name': string().minLength(3),
         })
