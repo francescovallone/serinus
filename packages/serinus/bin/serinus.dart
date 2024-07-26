@@ -6,8 +6,6 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 
-import 'server_timing_tracer.dart';
-
 class TestObj with JsonObject {
   final String name;
 
@@ -120,11 +118,7 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
-      return [
-        'Hello',
-        {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestObj('hello')},
-        TestObj('Jane Doe')
-      ];
+      return 'Hello world';
     },
         schema: AcanthisParseSchema(
             query: object({
@@ -305,6 +299,6 @@ void main(List<String> arguments) async {
   SerinusApplication application = await serinus.createApplication(
       entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
-  application.trace(ServerTimingTracer());
+  // application.trace(ServerTimingTracer());
   await application.serve();
 }

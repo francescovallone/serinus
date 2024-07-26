@@ -17,7 +17,7 @@ class TestRoute extends Route {
 
 class TestController extends Controller {
   TestController() : super(path: '/') {
-    on(TestRoute(), (context) async => Response.text('echo!'));
+    on(TestRoute(), (context) async => 'echo!');
   }
 }
 

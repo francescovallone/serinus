@@ -35,13 +35,12 @@ class RequestHandler extends Handler {
   @override
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
-    final Stopwatch stopwatch = Stopwatch()..start();
     final Request wrappedRequest = Request(request);
-    await config.tracerService.addSyncEvent(TraceEvent(
+    await config.tracerService.addSyncEvent(
         name: TraceEvents.onRequestReceived,
         request: wrappedRequest,
-        traced: 'RequestHandler'));
-    await _handleOnRequest(wrappedRequest, response);
+        traced: 'RequestHandler');
+    await executeOnRequest(wrappedRequest, response);
     if (response.isClosed) {
       return;
     }
@@ -94,22 +93,22 @@ class RequestHandler extends Handler {
       }
     }
     context.metadata = metadata;
-    await _handleOnTransform(context, route);
+    await executeOnTransform(context, route);
     if (schema != null) {
-      await _handleOnParse(context, schema, route);
+      await executeOnParse(context, schema, route);
     }
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
       await handleMiddlewares(
-          context, response, middlewares, config, stopwatch);
+          context, response, middlewares, config);
       if (response.isClosed) {
         return;
       }
     }
-    await _handleBeforeHandle(context, route);
-    Object? result = await _handle(context, route, handler);
-    await _handleAfterHandle(context, route, result);
+    await executeBeforeHandle(context, route);
+    Object? result = await executeHandler(context, route, handler);
+    await executeAfterHandle(context, route, result);
     if (result?.canBeJson() ?? false) {
       result = parseJsonToResponse(result);
       context.res.contentType = ContentType.json;
@@ -133,24 +132,25 @@ class RequestHandler extends Handler {
       RequestContext context,
       InternalResponse response,
       Iterable<Middleware> middlewares,
-      ApplicationConfig config,
-      Stopwatch stopwatch) async {
+      ApplicationConfig config) async {
     final completer = Completer<void>();
     if (middlewares.isEmpty) {
       return;
     }
     for (int i = 0; i < middlewares.length; i++) {
-      config.tracerService.addEvent(TraceEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onMiddleware,
           begin: true,
           request: context.request,
-          traced: 'm-${middlewares.elementAt(i).runtimeType}'));
+          context: context,
+          traced: 'm-${middlewares.elementAt(i).runtimeType}');
       final middleware = middlewares.elementAt(i);
       await middleware.use(context, response, () async {
-        await config.tracerService.addSyncEvent(TraceEvent(
+        await config.tracerService.addSyncEvent(
             name: TraceEvents.onMiddleware,
             request: context.request,
-            traced: 'm-${middlewares.elementAt(i).runtimeType}'));
+            context: context,
+            traced: 'm-${middlewares.elementAt(i).runtimeType}');
         if (i == middlewares.length - 1) {
           completer.complete();
         }
@@ -207,141 +207,156 @@ class RequestHandler extends Handler {
     );
   }
 
-  Future<void> _handleOnRequest(
+  Future<void> executeOnRequest(
       Request wrappedRequest, InternalResponse response) async {
     for (final hook in config.hooks) {
-      config.tracerService.addEvent(TraceEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onRequest,
           begin: true,
           request: wrappedRequest,
-          traced: 'h-${hook.runtimeType}'));
+          traced: 'h-${hook.runtimeType}');
       if (response.isClosed) {
         return;
       }
       await hook.onRequest(wrappedRequest, response);
-      await config.tracerService.addSyncEvent(TraceEvent(
+      await config.tracerService.addSyncEvent(
           name: TraceEvents.onRequest,
           request: wrappedRequest,
-          traced: 'h-${hook.runtimeType}'));
+          traced: 'h-${hook.runtimeType}');
     }
   }
 
-  Future<void> _handleOnTransform(RequestContext context, Route route) async {
-    config.tracerService.addEvent(TraceEvent(
+  /// Executes the [onTransform] hook from the route
+  Future<void> executeOnTransform(RequestContext context, Route route) async {
+    config.tracerService.addEvent(
         name: TraceEvents.onTransform,
         request: context.request,
         begin: true,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}');
     await route.transform(context);
-    await config.tracerService.addSyncEvent(TraceEvent(
+    await config.tracerService.addSyncEvent(
         name: TraceEvents.onTransform,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}');
   }
 
-  Future<void> _handleOnParse(
+  /// Executes the [onParse] hook from the route
+  /// 
+  /// This method will parse the request body, query, params and headers.
+  /// Also it will atomically add the parsed values to the request context.
+  /// It means that if any of the values are not present in the request, they will not be added to the context.
+  Future<void> executeOnParse(
       RequestContext context, ParseSchema schema, Route route) async {
-    config.tracerService.addEvent(TraceEvent(
+    config.tracerService.addEvent(
         name: TraceEvents.onParse,
         begin: true,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
-    final result = schema.tryParse(value: {
-      'body': context.request.body?.value,
-      'query': context.request.query,
-      'params': context.request.params,
-      'headers': context.request.headers,
-      'session': context.request.session.all,
-    });
-    context.request.headers.addAll(result['headers']);
-    context.request.params.addAll(result['params']);
-    context.request.query.addAll(result['query']);
-    for (final key in result['session'].keys) {
-      context.request.session.put(key, result['session'][key]);
+        traced: 'r-${route.runtimeType}');
+    final Map<String, dynamic> toParse = {};
+    if(schema.body != null) {
+      toParse['body'] = context.request.body?.value;
     }
-    await config.tracerService.addSyncEvent(TraceEvent(
+    if(schema.query != null) {
+      toParse['query'] = context.request.query;
+    }
+    if(schema.params != null) {
+      toParse['params'] = context.request.params;
+    }
+    if(schema.headers != null) {
+      toParse['headers'] = context.request.headers;
+    }
+    if(schema.session != null) {
+      toParse['session'] = context.request.session.all;
+    }
+    final result = await schema.tryParse(value: toParse);
+    context.request.headers.addAll(result['headers'] ?? <String, String>{});
+    context.request.params.addAll(result['params'] ?? {});
+    context.request.query.addAll(result['query'] ?? {});
+    await config.tracerService.addSyncEvent(
         name: TraceEvents.onParse,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}'
+    );
   }
 
-  Future<void> _handleBeforeHandle(RequestContext context, Route route) async {
+
+  Future<void> executeBeforeHandle(RequestContext context, Route route) async {
     for (final hook in config.hooks) {
-      config.tracerService.addEvent(TraceEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onBeforeHandle,
           begin: true,
           request: context.request,
           context: context,
-          traced: 'h-${hook.runtimeType}'));
+          traced: 'h-${hook.runtimeType}');
       await hook.beforeHandle(context);
-      await config.tracerService.addSyncEvent(TraceEvent(
+      await config.tracerService.addSyncEvent(
           name: TraceEvents.onBeforeHandle,
           request: context.request,
           context: context,
-          traced: 'h-${hook.runtimeType}'));
+          traced: 'h-${hook.runtimeType}');
     }
-    config.tracerService.addEvent(TraceEvent(
+    config.tracerService.addEvent(
         name: TraceEvents.onBeforeHandle,
         begin: true,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}');
     await route.beforeHandle(context);
-    await config.tracerService.addSyncEvent(TraceEvent(
+    await config.tracerService.addSyncEvent(
         name: TraceEvents.onBeforeHandle,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}');
   }
 
-  Future<Object?> _handle(
+  Future<Object?> executeHandler(
       RequestContext context, Route route, ReqResHandler handler) async {
-    config.tracerService.addEvent(TraceEvent(
+    config.tracerService.addEvent(
         name: TraceEvents.onHandle,
         begin: true,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}');
     Object? result = await handler.call(context);
-    await config.tracerService.addSyncEvent(TraceEvent(
+    await config.tracerService.addSyncEvent(
         name: TraceEvents.onHandle,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}');
     return result;
   }
 
-  Future<void> _handleAfterHandle(
+  Future<void> executeAfterHandle(
       RequestContext context, Route route, Object? result) async {
-    config.tracerService.addEvent(TraceEvent(
+    config.tracerService.addEvent(
         name: TraceEvents.onAfterHandle,
         begin: true,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}');
     await route.afterHandle(context, result);
-    await config.tracerService.addSyncEvent(TraceEvent(
+    await config.tracerService.addSyncEvent(
         name: TraceEvents.onAfterHandle,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'));
+        traced: 'r-${route.runtimeType}');
     for (final hook in config.hooks) {
-      config.tracerService.addEvent(TraceEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onAfterHandle,
           begin: true,
           request: context.request,
           context: context,
-          traced: 'h-${hook.runtimeType}'));
+          traced: 'h-${hook.runtimeType}');
       await hook.afterHandle(context, result);
-      await config.tracerService.addSyncEvent(TraceEvent(
+      await config.tracerService.addSyncEvent(
           name: TraceEvents.onAfterHandle,
           request: context.request,
           context: context,
-          traced: 'h-${hook.runtimeType}'));
+          traced: 'h-${hook.runtimeType}');
     }
   }
 }

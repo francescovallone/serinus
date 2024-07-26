@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:isolate';
 
 import 'package:acanthis/acanthis.dart';
 
@@ -39,7 +40,7 @@ abstract class ParseSchema<MapType, BodyType> {
   /// The method returns the parsed data if the data is valid.
   ///
   /// The method throws a [SerinusException] if the data is invalid.
-  Map<String, dynamic> tryParse({required Map<String, dynamic> value});
+  Future<Map<String, dynamic>> tryParse({required Map<String, dynamic> value});
 }
 
 /// The [AcanthisParseSchema] class is used to define the schema of the parsing process using the [Acanthis] library.
@@ -67,17 +68,20 @@ class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
   }
 
   @override
-  Map<String, dynamic> tryParse({required Map<String, dynamic> value}) {
-    AcanthisParseResult? result;
-    try {
-      result = _schema.tryParse(value);
-    } catch (error) {
-      throw PreconditionFailedException(message: 'Wrong data format');
-    }
-    if (!result.success) {
-      throw error?.call(result.errors) ??
-          BadRequestException(message: jsonEncode(result.errors));
-    }
-    return result.value;
+  Future<Map<String, dynamic>> tryParse({required Map<String, dynamic> value}) async {
+    return Isolate.run<Map<String, dynamic>>(() {
+      try{
+        AcanthisParseResult result = _schema.tryParse(value);
+        if (!result.success) {
+          throw error?.call(result.errors) ??
+              BadRequestException(message: jsonEncode(result.errors));
+        }
+        return result.value;
+      } on SerinusException catch (_) {
+        rethrow;
+      } catch (_) {
+        throw PreconditionFailedException(message: 'Wrong data format');
+      }
+    });
   }
 }

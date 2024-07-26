@@ -27,8 +27,7 @@ final class ModulesContainer {
   final Map<String, Iterable<DeferredProvider>> _deferredProviders = {};
 
   /// The list of all the global providers registered in the application
-  Iterable<Provider> get globalProviders =>
-      _providers.values.flatten().where((provider) => provider.isGlobal);
+  final List<Provider> globalProviders = [];
 
   /// The list of all the modules registered in the application
   List<Module> get modules => _modules.values.toList();
@@ -85,7 +84,11 @@ final class ModulesContainer {
       _moduleInjectables[token] = _moduleInjectables[token]!.copyWith(
         providers: {..._moduleInjectables[token]!.providers, provider},
       );
-      _providers[token]?.add(provider);
+      if(provider.isGlobal) {
+        globalProviders.add(provider);
+      }else{
+        _providers[token]?.add(provider);
+      }
     }
     _deferredProviders[token] = split.ofType;
     logger.info(
@@ -101,7 +104,11 @@ final class ModulesContainer {
   /// Throws a [StateError] if the provider is not found in the application providers
   ApplicationContext _getApplicationContext(List<Type> providersToInject) {
     final usableProviders = <Provider>[];
+    final globalTypes = globalProviders.map((e) => e.runtimeType);
     for (final provider in providersToInject) {
+      if(globalTypes.contains(provider)) {
+        continue;
+      }
       if (!injectableProviders.contains(provider)) {
         throw StateError(
             '$provider not found in the application providers, are you sure it is registered?');
@@ -190,7 +197,11 @@ final class ModulesContainer {
         final context = _getApplicationContext(provider.inject);
         final initializedProvider = await provider.init(context);
         await initIfUnregistered(initializedProvider);
-        _providers[token]?.add(initializedProvider);
+        if(initializedProvider.isGlobal) {
+          globalProviders.add(initializedProvider);
+        }else{
+          _providers[token]?.add(initializedProvider);
+        }
         parentModule.providers.remove(provider);
         parentModule.providers.add(initializedProvider);
       }

@@ -19,7 +19,7 @@ class InternalResponse {
   final HttpResponse _original;
 
   final StreamController<ResponseEvent> _events =
-      StreamController<ResponseEvent>.broadcast();
+      StreamController<ResponseEvent>();
 
   /// The base url of the server
   final String? baseUrl;
@@ -45,14 +45,13 @@ class InternalResponse {
   /// This method is used to send data to the response.
   ///
   /// After sending the data, the response will be closed.
-  Future<void> send([List<int> data = const []]) async {
+  void send([List<int> data = const []]) {
     _events.add(ResponseEvent.data);
-    return _original.addStream(Stream.fromIterable([data])).then((value) {
-      _events.add(ResponseEvent.afterSend);
-      _original.close();
-      _isClosed = true;
-      _events.add(ResponseEvent.close);
-    });
+    _original.add(data);
+    _events.add(ResponseEvent.afterSend);
+    _original.close();
+    _isClosed = true;
+    _events.add(ResponseEvent.close);
   }
 
   /// A simple wrapper for [HttpResponse.write].
@@ -118,12 +117,12 @@ class InternalResponse {
     String? traced,
     ResponseProperties? properties,
   }) async {
-    config.tracerService.addEvent(TraceEvent(
+    config.tracerService.addEvent(
       name: TraceEvents.onResponse,
       begin: true,
       request: context?.request ?? request,
       traced: traced ?? context?.request.id ?? request?.id ?? '',
-    ));
+    );
     _events.add(ResponseEvent.beforeSend);
     if (data is StreamedResponse) {
       _events.add(ResponseEvent.close);
@@ -208,12 +207,12 @@ class InternalResponse {
     } else if (!isView) {
       responseBody = utf8.encode(jsonEncode(data));
     }
-    await config.tracerService.addSyncEvent(TraceEvent(
+    await config.tracerService.addSyncEvent(
       name: TraceEvents.onResponse,
-      request: context?.request ?? request,
+      request: request,
       context: context,
       traced: traced ?? context?.request.id ?? request?.id ?? '',
-    ));
+    );
     headers({
       ...context?.res.headers ?? properties?.headers ?? {},
       HttpHeaders.contentLengthHeader: responseBody.length.toString()

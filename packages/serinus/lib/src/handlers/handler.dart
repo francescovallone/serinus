@@ -38,6 +38,7 @@ abstract class Handler {
         data: error,
         config: config,
         properties: properties,
+        request: Request(request)
       );
       return;
     }

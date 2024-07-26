@@ -4,10 +4,10 @@ import 'dart:typed_data';
 
 import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:uuid/v4.dart';
 
 import '../exceptions/exceptions.dart';
 import 'internal_response.dart';
+import 'session.dart';
 
 final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
@@ -16,7 +16,7 @@ final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
 class InternalRequest {
   /// The id of the request.
-  final String id = UuidV4().generate();
+  final String id;
 
   /// The [path] property contains the path of the request
   String get path => uri.path;
@@ -63,6 +63,9 @@ class InternalRequest {
     return InternalRequest(headers: headers, original: request);
   }
 
+  /// The [session] getter is used to get the session of the request
+  Session get session => Session(original.session);
+
   /// The [ifModifiedSince] getter is used to get the if-modified-since header of the request
   DateTime? get ifModifiedSince {
     if (_ifModifiedSinceCache != null) {
@@ -93,7 +96,7 @@ class InternalRequest {
   InternalRequest({
     required this.headers,
     required this.original,
-  });
+  }) : id = '${original.hashCode}-${DateTime.timestamp().toIso8601String()}';
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {

@@ -35,7 +35,7 @@ class Request {
           _queryParamters[entry.key] = entry.value;
       }
     }
-    session = Session(_original.original.session);
+    // session = Session(_original.original.session);
     this.params = params;
   }
 
@@ -64,8 +64,7 @@ class Request {
   /// The query parameters of the request.
   Map<String, dynamic> get query => _queryParamters;
 
-  /// The session of the request.
-  late final Session session;
+  Session get session => _original.session;
 
   /// The client of the request.
   HttpConnectionInfo? get clientInfo => _original.clientInfo;

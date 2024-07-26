@@ -76,7 +76,7 @@ class _ShelfMiddleware extends Middleware {
     res.headers(headers);
     final responseBody = await response.readAsString();
     if (responseBody.isNotEmpty && !ignoreResponse) {
-      await res.send(utf8.encode(responseBody));
+      res.send(utf8.encode(responseBody));
     }
   }
 

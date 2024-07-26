@@ -6,8 +6,8 @@ class AppController extends Controller {
     on(Route.get('/'), _handleHelloWorld);
   }
 
-  Future<Response> _handleHelloWorld(RequestContext context) async {
-    return Response.render(View('index', {'string': 'Hello world'}));
+  Future<View> _handleHelloWorld(RequestContext context) async {
+    return View('index', {'string': 'Hello world'});
   }
 
 }
