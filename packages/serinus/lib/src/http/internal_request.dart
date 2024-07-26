@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:uuid/v4.dart';
 
 import '../exceptions/exceptions.dart';
 import 'internal_response.dart';
+
+final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
 /// The class Request is used to handle the request
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
@@ -114,6 +117,13 @@ class InternalRequest {
   /// dynamic json = await request.json();
   /// ```
   Future<dynamic> json() async {
+    if(encoding == null || (encoding != null && encoding!.name == 'utf-8')) {
+      try{
+       return (await _utf8JsonDecoder.bind(original).firstOrNull) ?? {};
+      } catch(e) {
+        throw BadRequestException(message: 'The json body is malformed');
+      }
+    }
     final data = await body();
     if (data.isEmpty) {
       return {};
