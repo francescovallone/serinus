@@ -100,8 +100,7 @@ class RequestHandler extends Handler {
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
-      await handleMiddlewares(
-          context, response, middlewares, config);
+      await handleMiddlewares(context, response, middlewares, config);
       if (response.isClosed) {
         return;
       }
@@ -207,6 +206,7 @@ class RequestHandler extends Handler {
     );
   }
 
+  /// Executes the [onRequest] hooks
   Future<void> executeOnRequest(
       Request wrappedRequest, InternalResponse response) async {
     for (final hook in config.hooks) {
@@ -226,7 +226,7 @@ class RequestHandler extends Handler {
     }
   }
 
-  /// Executes the [onTransform] hook from the route
+  /// Executes the [transform] hook from the route
   Future<void> executeOnTransform(RequestContext context, Route route) async {
     config.tracerService.addEvent(
         name: TraceEvents.onTransform,
@@ -242,8 +242,8 @@ class RequestHandler extends Handler {
         traced: 'r-${route.runtimeType}');
   }
 
-  /// Executes the [onParse] hook from the route
-  /// 
+  /// Executes the [ParseSchema] from the route
+  ///
   /// This method will parse the request body, query, params and headers.
   /// Also it will atomically add the parsed values to the request context.
   /// It means that if any of the values are not present in the request, they will not be added to the context.
@@ -256,19 +256,19 @@ class RequestHandler extends Handler {
         context: context,
         traced: 'r-${route.runtimeType}');
     final Map<String, dynamic> toParse = {};
-    if(schema.body != null) {
+    if (schema.body != null) {
       toParse['body'] = context.request.body?.value;
     }
-    if(schema.query != null) {
+    if (schema.query != null) {
       toParse['query'] = context.request.query;
     }
-    if(schema.params != null) {
+    if (schema.params != null) {
       toParse['params'] = context.request.params;
     }
-    if(schema.headers != null) {
+    if (schema.headers != null) {
       toParse['headers'] = context.request.headers;
     }
-    if(schema.session != null) {
+    if (schema.session != null) {
       toParse['session'] = context.request.session.all;
     }
     final result = await schema.tryParse(value: toParse);
@@ -279,11 +279,10 @@ class RequestHandler extends Handler {
         name: TraceEvents.onParse,
         request: context.request,
         context: context,
-        traced: 'r-${route.runtimeType}'
-    );
+        traced: 'r-${route.runtimeType}');
   }
 
-
+  /// Executes the [beforeHandle] hook from the route
   Future<void> executeBeforeHandle(RequestContext context, Route route) async {
     for (final hook in config.hooks) {
       config.tracerService.addEvent(
@@ -313,6 +312,7 @@ class RequestHandler extends Handler {
         traced: 'r-${route.runtimeType}');
   }
 
+  /// Executes the [handler] from the route
   Future<Object?> executeHandler(
       RequestContext context, Route route, ReqResHandler handler) async {
     config.tracerService.addEvent(
@@ -330,6 +330,7 @@ class RequestHandler extends Handler {
     return result;
   }
 
+  /// Executes the [onAfterHandle] hook from the route
   Future<void> executeAfterHandle(
       RequestContext context, Route route, Object? result) async {
     config.tracerService.addEvent(

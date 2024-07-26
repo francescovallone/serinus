@@ -68,9 +68,10 @@ class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
   }
 
   @override
-  Future<Map<String, dynamic>> tryParse({required Map<String, dynamic> value}) async {
+  Future<Map<String, dynamic>> tryParse(
+      {required Map<String, dynamic> value}) async {
     return Isolate.run<Map<String, dynamic>>(() {
-      try{
+      try {
         AcanthisParseResult result = _schema.tryParse(value);
         if (!result.success) {
           throw error?.call(result.errors) ??

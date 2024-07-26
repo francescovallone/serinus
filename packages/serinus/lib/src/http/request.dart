@@ -64,6 +64,7 @@ class Request {
   /// The query parameters of the request.
   Map<String, dynamic> get query => _queryParamters;
 
+  /// The session of the request.
   Session get session => _original.session;
 
   /// The client of the request.

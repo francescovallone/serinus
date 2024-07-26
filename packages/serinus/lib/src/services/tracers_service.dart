@@ -11,8 +11,7 @@ class TracersService {
 
   final Map<String, _TracerProperties> _properties = {};
 
-  final StreamController<TraceEvent> _events =
-      StreamController<TraceEvent>();
+  final StreamController<TraceEvent> _events = StreamController<TraceEvent>();
 
   /// Method to register a new tracer to be used.
   void registerTracer(Tracer tracer) {
@@ -89,7 +88,7 @@ class TracersService {
     RequestContext? context,
     Request? request,
   }) {
-    if(_tracers.isEmpty) {
+    if (_tracers.isEmpty) {
       return;
     }
     final event = TraceEvent(

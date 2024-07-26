@@ -11,6 +11,7 @@ class Session {
   Session(this._original) : _entries = Map<String, dynamic>.from(_original);
 
   final Map<String, dynamic> _entries;
+
   /// This method is used to get a value from the session.
   ///
   /// Returns a value from the session. (dynamic, it can be null)
@@ -18,6 +19,7 @@ class Session {
     return _entries[key];
   }
 
+  /// This method is used to get all the values from the session.
   Map<String, dynamic> get all => _entries;
 
   /// This method is used to put a value in the session.

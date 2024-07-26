@@ -84,9 +84,9 @@ final class ModulesContainer {
       _moduleInjectables[token] = _moduleInjectables[token]!.copyWith(
         providers: {..._moduleInjectables[token]!.providers, provider},
       );
-      if(provider.isGlobal) {
+      if (provider.isGlobal) {
         globalProviders.add(provider);
-      }else{
+      } else {
         _providers[token]?.add(provider);
       }
     }
@@ -106,7 +106,7 @@ final class ModulesContainer {
     final usableProviders = <Provider>[];
     final globalTypes = globalProviders.map((e) => e.runtimeType);
     for (final provider in providersToInject) {
-      if(globalTypes.contains(provider)) {
+      if (globalTypes.contains(provider)) {
         continue;
       }
       if (!injectableProviders.contains(provider)) {
@@ -197,9 +197,9 @@ final class ModulesContainer {
         final context = _getApplicationContext(provider.inject);
         final initializedProvider = await provider.init(context);
         await initIfUnregistered(initializedProvider);
-        if(initializedProvider.isGlobal) {
+        if (initializedProvider.isGlobal) {
           globalProviders.add(initializedProvider);
-        }else{
+        } else {
           _providers[token]?.add(initializedProvider);
         }
         parentModule.providers.remove(provider);

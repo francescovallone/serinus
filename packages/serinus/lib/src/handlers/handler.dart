@@ -35,11 +35,10 @@ abstract class Handler {
         ..statusCode = e.statusCode
         ..contentType = ContentType.json;
       response.end(
-        data: error,
-        config: config,
-        properties: properties,
-        request: Request(request)
-      );
+          data: error,
+          config: config,
+          properties: properties,
+          request: Request(request));
       return;
     }
   }

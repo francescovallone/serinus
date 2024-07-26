@@ -72,7 +72,7 @@ class TraceEvent {
     this.context,
     this.request,
   }) : timestamp = DateTime.now();
-  
+
   @override
   String toString() {
     return 'TraceEvent{name: $name, context: $context, request: $request, timestamp: $timestamp, begin: $begin, traced: $traced}';

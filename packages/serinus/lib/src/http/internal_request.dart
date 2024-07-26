@@ -120,10 +120,10 @@ class InternalRequest {
   /// dynamic json = await request.json();
   /// ```
   Future<dynamic> json() async {
-    if(encoding == null || (encoding != null && encoding!.name == 'utf-8')) {
-      try{
-       return (await _utf8JsonDecoder.bind(original).firstOrNull) ?? {};
-      } catch(e) {
+    if (encoding == null || (encoding != null && encoding!.name == 'utf-8')) {
+      try {
+        return (await _utf8JsonDecoder.bind(original).firstOrNull) ?? {};
+      } catch (e) {
         throw BadRequestException(message: 'The json body is malformed');
       }
     }
