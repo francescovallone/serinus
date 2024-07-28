@@ -52,8 +52,8 @@ const plugins = [
 </template>
 
 <style scoped>
-p {
-	margin: 0;
+.vp-doc p, .vp-doc summary {
+	margin: 0 !important;
 }
 .results{
 	line-height: 1rem;
