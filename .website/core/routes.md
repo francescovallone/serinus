@@ -132,4 +132,4 @@ class GetRoute extends Route {
 }
 ```
 
-These two methods are actually local hooks. You can check when they will be executed in the [Request Lifecycle](../request_lifecycle) section.
+These two methods are actually local hooks. You can check when they will be executed in the [Request Lifecycle](/foundations/request_lifecycle) section.
