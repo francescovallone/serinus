@@ -20,7 +20,7 @@ import Hero from './hero.vue'
 			<div class="flex flex-col w-full">
 				<iframe 
 					src="https://discord.com/widget?id=1099781506978807919&theme=dark" 
-					class="w-full h-64" 
+					class="w-full h-64 rounded-lg" 
 					allowtransparency="true" 
 					frameborder="0" 
 					sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
