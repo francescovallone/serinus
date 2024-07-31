@@ -9,5 +9,5 @@ environment:
 
 dependencies:
   mustachex: ^1.0.0
-  serinus: ^0.5.2
+  serinus: ^0.6.0
   
