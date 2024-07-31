@@ -1,4 +1,6 @@
-import '../../../serinus.dart';
+import '../adapters/adapters.dart';
+import '../core/websockets/websockets.dart';
+import '../http/http.dart';
 import 'base_context.dart';
 
 /// The [WebSocketContext] class is used to create a WebSocket context.

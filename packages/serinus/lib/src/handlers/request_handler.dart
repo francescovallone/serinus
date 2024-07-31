@@ -9,7 +9,6 @@ import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
-import '../http/internal_request.dart';
 import '../services/json_utils.dart';
 import 'handler.dart';
 

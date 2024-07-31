@@ -2,8 +2,7 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 
-import '../../serinus.dart';
-import '../adapters/serinus_http_server.dart';
+import '../adapters/adapters.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -14,7 +13,6 @@ import '../global_prefix.dart';
 import '../handlers/request_handler.dart';
 import '../handlers/websocket_handler.dart';
 import '../http/http.dart';
-import '../http/internal_request.dart';
 import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
@@ -131,15 +129,16 @@ class SerinusApplication extends Application {
     final wsHandler = WebSocketHandler(router, modulesContainer, config);
     Future<void> Function(InternalRequest, InternalResponse) handler;
     try {
-      for(final adapter in config.adapters.values){
-        if(adapter.shouldBeInitilized) {
+      for (final adapter in config.adapters.values) {
+        if (adapter.shouldBeInitilized) {
           await adapter.init(modulesContainer, config);
         }
       }
       adapter.listen(
         (request, response) {
           handler = requestHandler.handle;
-          if (config.adapters[WsAdapter] != null && config.adapters[WsAdapter]?.canHandle(request) == true){
+          if (config.adapters[WsAdapter] != null &&
+              config.adapters[WsAdapter]?.canHandle(request) == true) {
             handler = wsHandler.handle;
           }
           return handler(request, response);
@@ -154,7 +153,7 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> close() async {
-    for(final adapter in config.adapters.values){
+    for (final adapter in config.adapters.values) {
       await adapter.close();
     }
     await config.serverAdapter.close();

@@ -3,7 +3,6 @@ import 'dart:io';
 import '../extensions/content_type_extensions.dart';
 import '../extensions/string_extensions.dart';
 import 'http.dart';
-import 'internal_request.dart';
 
 /// The class [Request] is used to create a request object.
 ///

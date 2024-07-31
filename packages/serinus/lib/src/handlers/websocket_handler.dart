@@ -1,6 +1,10 @@
-import '../../serinus.dart';
+import '../adapters/adapters.dart';
+import '../contexts/contexts.dart';
+import '../core/core.dart';
+import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
-import '../http/internal_request.dart';
+import '../http/http.dart';
+import '../mixins/mixins.dart';
 import 'handler.dart';
 
 /// Type to define the record used to save an handler that will be called when a client disconnects.
@@ -52,7 +56,8 @@ class WebSocketHandler extends Handler {
           },
           Request(request),
           provider.serializer);
-      (config.adapters[WsAdapter] as WsAdapter?)?.addContext(request.webSocketKey, context);
+      (config.adapters[WsAdapter] as WsAdapter?)
+          ?.addContext(request.webSocketKey, context);
       if (provider is OnClientConnect) {
         provider.onClientConnect(request.webSocketKey);
       }

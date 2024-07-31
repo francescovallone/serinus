@@ -98,7 +98,7 @@ final class ApplicationConfig {
   final Adapter serverAdapter;
 
   /// The adapters used by the application
-  /// 
+  ///
   /// This is used to store the adapters used by the application
   /// E.g. [SseAdapter], [WsAdapter], etc.
   final Map<Type, Adapter> adapters = {};

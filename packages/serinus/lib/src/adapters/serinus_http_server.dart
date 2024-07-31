@@ -33,7 +33,8 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       this.enableCompression = true});
 
   @override
-  Future<void> init([ModulesContainer? container, ApplicationConfig? config]) async {
+  Future<void> init(
+      [ModulesContainer? container, ApplicationConfig? config]) async {
     if (securityContext == null) {
       server = await io.HttpServer.bind(host, port, shared: true);
     } else {
@@ -65,7 +66,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       errorHandler.call(e, StackTrace.current);
     }
   }
-  
+
   @override
   bool get shouldBeInitilized => true;
 }

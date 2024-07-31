@@ -73,7 +73,8 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   }
 
   @override
-  Future<void> init(ModulesContainer container, ApplicationConfig config) async {
+  Future<void> init(
+      ModulesContainer container, ApplicationConfig config) async {
     return;
   }
 
@@ -114,7 +115,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     }
     server![key]?.add(data);
   }
-  
+
   @override
   bool get shouldBeInitilized => false;
 }

@@ -7,7 +7,6 @@ import '../contexts/request_context.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
-import '../http/internal_request.dart';
 
 /// The base class for all handlers in the application
 abstract class Handler {
