@@ -36,7 +36,7 @@ abstract class Controller {
   Map<String, RouteHandler> get routes => UnmodifiableMapView(_routes);
 
   /// The [get] method is used to get a route.
-  RouteHandler? get(RouteData routeData, [int? version]) {
+  RouteHandler? get(RouteData routeData) {
     return _routes[routeData.id];
   }
 

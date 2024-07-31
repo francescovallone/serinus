@@ -16,7 +16,7 @@ class Request {
   /// It accepts an [InternalRequest] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
-  Request(this._original, {Map<String, dynamic> params = const {}}) {
+  Request(this._original) {
     /// This loop is used to parse the query parameters of the request.
     /// It will try to parse the query parameters to the correct type.
     for (final entry in _original.queryParameters.entries) {
@@ -34,8 +34,6 @@ class Request {
           _queryParamters[entry.key] = entry.value;
       }
     }
-    // session = Session(_original.original.session);
-    this.params = params;
   }
 
   /// This method is used to set the parameters of the request.
@@ -72,6 +70,9 @@ class Request {
   /// The params of the request.
   Map<String, dynamic> get params => _params;
 
+  /// The content type of the request.
+  ContentType get contentType => _original.contentType;
+
   /// The params of the request.
   final Map<String, dynamic> _params = {};
 
@@ -101,7 +102,6 @@ class Request {
     if (body != null) {
       return;
     }
-    final contentType = _original.contentType;
 
     /// If the content type is multipart, it will parse the body as a multipart form data.
     if (contentType.isMultipart) {

@@ -35,6 +35,7 @@ class RequestHandler extends Handler {
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
     final Request wrappedRequest = Request(request);
+    await wrappedRequest.parseBody();
     await config.tracerService.addSyncEvent(
         name: TraceEvents.onRequestReceived,
         request: wrappedRequest,
@@ -43,7 +44,6 @@ class RequestHandler extends Handler {
     if (response.isClosed) {
       return;
     }
-    await wrappedRequest.parseBody();
     final routeLookup = router.getRouteByPathAndMethod(
         request.path.endsWith('/')
             ? request.path.substring(0, request.path.length - 1)
@@ -60,7 +60,7 @@ class RequestHandler extends Handler {
         modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
     final controller = routeData.controller;
     final routeSpec =
-        controller.get(routeData, config.versioningOptions?.version);
+        controller.get(routeData);
     if (routeSpec == null) {
       throw InternalServerErrorException(
           message: 'Route spec not found for route ${routeData.path}');
@@ -159,50 +159,6 @@ class RequestHandler extends Handler {
       }
     }
     return completer.future;
-  }
-
-  /// Gets the route data from the [Router] and the controller from the [ModulesContainer]
-  ({
-    RequestContext context,
-    Route route,
-    ReqResHandler handler,
-    Iterable<Middleware> middlewares,
-  }) getRoute(Request request, InternalResponse response) {
-    final routeLookup = router.getRouteByPathAndMethod(
-        request.path.endsWith('/')
-            ? request.path.substring(0, request.path.length - 1)
-            : request.path,
-        request.method.toHttpMethod());
-    final routeData = routeLookup.route;
-    request.params = routeLookup.params;
-    if (routeData == null) {
-      throw NotFoundException(
-          message:
-              'No route found for path ${request.path} and method ${request.method}');
-    }
-    final injectables =
-        modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
-    final controller = routeData.controller;
-    final routeSpec =
-        controller.get(routeData, config.versioningOptions?.version);
-    if (routeSpec == null) {
-      throw InternalServerErrorException(
-          message: 'Route spec not found for route ${routeData.path}');
-    }
-    final route = routeSpec.route;
-    final handler = routeSpec.handler;
-    final scopedProviders = (injectables.providers
-        .addAllIfAbsent(modulesContainer.globalProviders));
-    RequestContext context =
-        buildRequestContext(scopedProviders, request, response);
-
-    return (
-      context: context,
-      route: route,
-      handler: handler,
-      middlewares:
-          injectables.filterMiddlewaresByRoute(routeData.path, request.params)
-    );
   }
 
   /// Executes the [onRequest] hooks

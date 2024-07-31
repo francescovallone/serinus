@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:isolate';
 
 import 'package:acanthis/acanthis.dart';
 
@@ -70,19 +69,17 @@ class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
   @override
   Future<Map<String, dynamic>> tryParse(
       {required Map<String, dynamic> value}) async {
-    return Isolate.run<Map<String, dynamic>>(() {
-      try {
-        AcanthisParseResult result = _schema.tryParse(value);
-        if (!result.success) {
-          throw error?.call(result.errors) ??
-              BadRequestException(message: jsonEncode(result.errors));
-        }
-        return result.value;
-      } on SerinusException catch (_) {
-        rethrow;
-      } catch (_) {
-        throw PreconditionFailedException(message: 'Wrong data format');
+    try {
+      AcanthisParseResult result = _schema.tryParse(value);
+      if (!result.success) {
+        throw error?.call(result.errors) ??
+            BadRequestException(message: jsonEncode(result.errors));
       }
-    });
+      return result.value;
+    } on SerinusException catch (_) {
+      rethrow;
+    } catch (_) {
+      throw PreconditionFailedException(message: 'Wrong data format');
+    }
   }
 }

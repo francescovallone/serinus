@@ -84,9 +84,9 @@ class InternalResponse {
 
   /// This method is used to set the headers of the response.
   void headers(Map<String, String> headers) {
-    headers.forEach((key, value) {
-      _original.headers.set(key, value);
-    });
+    for(final key in headers.keys) {
+      _original.headers.set(key, headers[key]!);
+    }
   }
 
   /// This method is used to listen to a response event.

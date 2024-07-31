@@ -57,9 +57,11 @@ class InternalRequest {
   factory InternalRequest.from(HttpRequest request) {
     Map<String, String> headers = {};
     request.headers.forEach((name, values) {
-      headers[name] = values.join(';');
+      if(name == HttpHeaders.transferEncodingHeader) {
+        return;
+      }
+      headers[name] = values.join(',');
     });
-    headers.remove(HttpHeaders.transferEncodingHeader);
     return InternalRequest(headers: headers, original: request);
   }
 
@@ -110,7 +112,11 @@ class InternalRequest {
   /// String body = await request.body();
   /// ```
   Future<String> body() async {
-    return await (encoding ?? utf8).decoder.bind(original).join();
+    List<int> data = [];
+    await for(var part in original) {
+      data += part;
+    }
+    return utf8.decode(data);
   }
 
   /// This method is used to get the body of the request as a [dynamic] json object
