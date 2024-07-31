@@ -10,10 +10,6 @@ class WsModule extends Module {
   @override
   Future<Module> registerAsync(ApplicationConfig config) async {
     config.adapters[WsAdapter] ??= WsAdapter();
-    if (!(config.adapters[WsAdapter]?.isOpen ?? true)) {
-      (config.adapters[WsAdapter] as WsAdapter?)
-          ?.init(Uri.tryParse('ws://${config.host}:${config.port}'));
-    }
     logger.info('WebSocket Module initialized.');
     return super.registerAsync(config);
   }

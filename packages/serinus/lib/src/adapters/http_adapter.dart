@@ -1,3 +1,5 @@
+import '../containers/module_container.dart';
+import '../core/core.dart';
 import '../http/internal_request.dart';
 import 'server_adapter.dart';
 
@@ -17,7 +19,7 @@ abstract class HttpAdapter<TServer> extends Adapter<TServer> {
       {required this.host, required this.port, required this.poweredByHeader});
 
   @override
-  Future<void> init();
+  Future<void> init(ModulesContainer container, ApplicationConfig config);
 
   @override
   Future<void> close();

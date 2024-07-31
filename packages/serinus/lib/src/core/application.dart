@@ -133,7 +133,7 @@ class SerinusApplication extends Application {
     try {
       for(final adapter in config.adapters.values){
         if(adapter.shouldBeInitilized) {
-          await adapter.init();
+          await adapter.init(modulesContainer, config);
         }
       }
       adapter.listen(

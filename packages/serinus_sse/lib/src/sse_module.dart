@@ -1,16 +1,20 @@
+import 'dart:io';
+
 import 'package:serinus/serinus.dart';
 import 'package:serinus_sse/src/sse_adapter.dart';
 
 class SseModule extends Module{
 
+  final int? port;
+
+  final Future<void> Function(HttpRequest)? fallback;
+
+  SseModule({this.port, this.fallback});
+
   @override
   Future<Module> registerAsync(ApplicationConfig config) async {
-
-    final sseAdapter = SseAdapter(port: 8081);
-    await sseAdapter.init();
-
+    config.adapters[SseAdapter] ??= SseAdapter(port: port ?? 8081, fallback: fallback);
     return this;
   }
 
-  
 }
