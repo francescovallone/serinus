@@ -47,15 +47,14 @@ abstract class WebSocketGateway extends Provider {
   Future<void> onMessage(dynamic data, WebSocketContext context);
 
   /// This method is used to send data to the client.
-  ///
   /// The [data] parameter is the data to be sent.
-  ///
-  /// The [broadcast] parameter is used to broadcast the data to all clients.
+  /// A [clientId] can be provided to send the data to a specific client.
+  /// If not provided the data will be broadcasted to all clients.
   @nonVirtual
   void send(dynamic data, [String? clientId]) {
     if (serializer != null) {
       data = serializer!.serialize(data);
     }
-    server?.send(data, broadcast: clientId == null, key: clientId);
+    server?.send(data, key: clientId);
   }
 }

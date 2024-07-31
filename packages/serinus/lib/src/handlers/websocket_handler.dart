@@ -15,7 +15,7 @@ class WebSocketHandler extends Handler {
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
     final (:handlers, :onDoneHandlers) = await upgradeRequest(request);
-    config.wsAdapter
+    (config.adapters[WsAdapter] as WsAdapter?)
         ?.listen(handlers, onDone: onDoneHandlers, request: request);
   }
 
@@ -44,7 +44,7 @@ class WebSocketHandler extends Handler {
           .addAllIfAbsent(modulesContainer.globalProviders));
       scopedProviders.remove(provider);
       final context = WebSocketContext(
-          config.wsAdapter!,
+          (config.adapters[WsAdapter] as WsAdapter?)!,
           request.webSocketKey,
           {
             for (final provider in scopedProviders)
@@ -52,11 +52,11 @@ class WebSocketHandler extends Handler {
           },
           Request(request),
           provider.serializer);
-      config.wsAdapter?.addContext(request.webSocketKey, context);
+      (config.adapters[WsAdapter] as WsAdapter?)?.addContext(request.webSocketKey, context);
       if (provider is OnClientConnect) {
         provider.onClientConnect(request.webSocketKey);
       }
-      provider.server = config.wsAdapter;
+      provider.server = (config.adapters[WsAdapter] as WsAdapter?);
       var onDone =
           provider is OnClientDisconnect ? provider.onClientDisconnect : null;
       if (onDone != null) {
@@ -73,7 +73,7 @@ class WebSocketHandler extends Handler {
       throw NotFoundException(
           message: 'No WebSocketGateway found for this request');
     }
-    await config.wsAdapter?.upgrade(request);
+    await (config.adapters[WsAdapter] as WsAdapter?)?.upgrade(request);
     return (
       handlers: onMessageHandlers,
       onDoneHandlers: onDoneHandlers,

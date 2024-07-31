@@ -44,6 +44,6 @@ final class WebSocketContext extends BaseContext {
     if (_serializer != null) {
       data = _serializer!.serialize(data);
     }
-    _wsAdapter.send(data, broadcast: true);
+    _wsAdapter.send(data);
   }
 }
