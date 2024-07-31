@@ -34,9 +34,14 @@ class AppModule extends Module {
 
 In the example above, we are using a Shelf Handler to return a simple response. We are wrapping the Shelf Handler with the `Middleware.shelf` factory constructor to create a Serinus Middleware that can be used in the application.
 
-::: warning
-If the handler returns a response with a body then Serinus will not execute the next middleware in the chain and the request will be completed.
-:::
+You can pass to `Middleware.shelf` the following parameters:
+
+| Parameter | Description | Default |
+| --- | --- | --- |
+| `handler` | The Shelf Middleware or Handler that will be used in the Serinus Middleware. | REQUIRED |
+| `routes` | The list of routes where the middleware will be applied. | `[*]` |
+| `ignoreResponse` | To ignore the response of the handler or not (If `false` and the handler return a response then the request lifecycle will be interrupted) | `true` |
+
 
 ## Conclusion
 
