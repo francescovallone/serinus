@@ -33,7 +33,7 @@ jobs:
       - name: 📊 Check Code Coverage
         uses: VeryGoodOpenSource/very_good_coverage@v2
         with:
-          path: ./packages/serinus_cli/coverage/lcov.info
+          path: ./packages/rate_limiter/coverage/lcov.info
           min_coverage: 0
       
       # - name: Upload coverage reports to Codecov
