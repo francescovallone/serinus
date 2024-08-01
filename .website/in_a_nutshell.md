@@ -53,5 +53,5 @@ Serinus is a community-driven project so, if you have any questions, need help, 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 	<BtnLink link="https://discord.gg/zydgnJ3ksJ" title="Discord" description="Official Serinus discord server" />
 	<BtnLink link="https://x.com/serinus_nest" title="Twitter/X" description="Keep in touch with the latest updates" />
-	<BtnLink link="https://github.com/serinus-nest" title="GitHub" description="Source code and contributions" />
+	<BtnLink link="https://github.com/francescovallone/serinus" title="GitHub" description="Source code and contributions" />
 </div>

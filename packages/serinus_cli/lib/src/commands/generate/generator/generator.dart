@@ -6,7 +6,6 @@ import 'package:serinus_cli/src/commands/generate/builder.dart';
 import 'package:serinus_cli/src/commands/generate/recase.dart';
 
 class Generator {
-
   final Directory outputDirectory;
   final File? entrypointFile;
   final ReCase itemName;
@@ -25,10 +24,7 @@ class Generator {
   );
 
   Future<void> replaceGetters(
-    String filePath,
-    String fileName,
-    GeneratedElement element
-  ) async {
+      String filePath, String fileName, GeneratedElement element) async {
     if (entrypointFile != null) {
       final updates = await analyzer.analyze(
         outputDirectory.absolute.path,
@@ -75,7 +71,6 @@ class Generator {
     }
   }
 
-  
   Future<String> generateController(GeneratedElement element) async {
     final newController = Library((b) {
       b.directives.add(Directive.import('package:serinus/serinus.dart'));
@@ -125,81 +120,74 @@ class Generator {
     return element.name;
   }
 
-
-Future<void> generateModule(
-  GeneratedElement element
-
-) async {
-  final emitter = DartEmitter(
-    allocator: Allocator(),
-    orderDirectives: true,
-  );
-  final newModule = Library((b) {
-    b.directives.add(Directive.import('package:serinus/serinus.dart'));
-    b.body.add(
-      Class((c) {
-        c.name = '${itemName.getSentenceCase(separator: '')}Module';
-        c.constructors.add(
-          Constructor((co) {
-            co.initializers.add(
-              const Code(
-                'super(imports: [], controllers: [], providers: [])',
-              ),
-            );
-          }),
-        );
-        c.extend = refer('Module');
-      }),
+  Future<void> generateModule(GeneratedElement element) async {
+    final emitter = DartEmitter(
+      allocator: Allocator(),
+      orderDirectives: true,
     );
-  });
-  final fileName = '${itemName.getSnakeCase()}_module.dart';
-  final filePath = '${fileName.split('_').first}/$fileName';
-  if (File(filePath).existsSync()) {
-    return;
+    final newModule = Library((b) {
+      b.directives.add(Directive.import('package:serinus/serinus.dart'));
+      b.body.add(
+        Class((c) {
+          c.name = '${itemName.getSentenceCase(separator: '')}Module';
+          c.constructors.add(
+            Constructor((co) {
+              co.initializers.add(
+                const Code(
+                  'super(imports: [], controllers: [], providers: [])',
+                ),
+              );
+            }),
+          );
+          c.extend = refer('Module');
+        }),
+      );
+    });
+    final fileName = '${itemName.getSnakeCase()}_module.dart';
+    final filePath = '${fileName.split('_').first}/$fileName';
+    if (File(filePath).existsSync()) {
+      return;
+    }
+    await replaceGetters(filePath, fileName, element);
+    File('${outputDirectory.absolute.path}/$filePath')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+        DartFormatter().format(
+          newModule.accept(emitter).toString(),
+        ),
+      );
   }
-  await replaceGetters(filePath, fileName, element);
-  File('${outputDirectory.absolute.path}/$filePath')
-    ..createSync(recursive: true)
-    ..writeAsStringSync(
-      DartFormatter().format(
-        newModule.accept(emitter).toString(),
-      ),
-    );
-}
 
-  Future<String> generateProvider(
-    GeneratedElement element
-) async {
-  final emitter = DartEmitter(
-    allocator: Allocator(),
-    orderDirectives: true,
-  );
-  final newProvider = Library((b) {
-    b.directives.add(Directive.import('package:serinus/serinus.dart'));
-    b.body.add(
-      Class((c) {
-        c.name = '${itemName.getSentenceCase(separator: '')}Provider';
-        c.constructors.add(
-          Constructor((co) {}),
-        );
-        c.extend = refer('Provider');
-      }),
+  Future<String> generateProvider(GeneratedElement element) async {
+    final emitter = DartEmitter(
+      allocator: Allocator(),
+      orderDirectives: true,
     );
-  });
-  final fileName = '${itemName.getSnakeCase()}_provider.dart';
-  final filePath = '${fileName.split('_').first}/$fileName';
-  if (File(filePath).existsSync()) {
+    final newProvider = Library((b) {
+      b.directives.add(Directive.import('package:serinus/serinus.dart'));
+      b.body.add(
+        Class((c) {
+          c.name = '${itemName.getSentenceCase(separator: '')}Provider';
+          c.constructors.add(
+            Constructor((co) {}),
+          );
+          c.extend = refer('Provider');
+        }),
+      );
+    });
+    final fileName = '${itemName.getSnakeCase()}_provider.dart';
+    final filePath = '${fileName.split('_').first}/$fileName';
+    if (File(filePath).existsSync()) {
+      return element.name;
+    }
+    await replaceGetters(filePath, fileName, element);
+    File('${outputDirectory.absolute.path}/$filePath')
+      ..createSync(recursive: true)
+      ..writeAsStringSync(
+        DartFormatter().format(
+          newProvider.accept(emitter).toString(),
+        ),
+      );
     return element.name;
   }
-  await replaceGetters(filePath, fileName, element);
-  File('${outputDirectory.absolute.path}/$filePath')
-    ..createSync(recursive: true)
-    ..writeAsStringSync(
-      DartFormatter().format(
-        newProvider.accept(emitter).toString(),
-      ),
-    );
-  return element.name;
-}
-
 }

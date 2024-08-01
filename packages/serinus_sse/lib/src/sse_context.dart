@@ -3,13 +3,9 @@ import 'package:serinus/serinus.dart';
 import 'sse_adapter.dart';
 
 class SseContext extends BaseContext {
-
   final SseAdapter _adapter;
 
-  SseContext(
-    this._adapter,
-    super.providers
-  );
+  SseContext(this._adapter, super.providers);
 
   /// This method is used to send data to the client.
   ///
@@ -26,5 +22,4 @@ class SseContext extends BaseContext {
   void broadcast(String data) {
     _adapter.send(data);
   }
-
 }

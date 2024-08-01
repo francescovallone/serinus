@@ -2,10 +2,14 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/packages/serinus/example/melos_echo.iml" filepath="$PROJECT_DIR$/packages/serinus/example/melos_echo.iml" />
       <module fileurl="file://$PROJECT_DIR$/packages/serinus/melos_serinus.iml" filepath="$PROJECT_DIR$/packages/serinus/melos_serinus.iml" />
       <module fileurl="file://$PROJECT_DIR$/packages/serinus_cli/melos_serinus_cli.iml" filepath="$PROJECT_DIR$/packages/serinus_cli/melos_serinus_cli.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/serinus_config/melos_serinus_config.iml" filepath="$PROJECT_DIR$/packages/serinus_config/melos_serinus_config.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/cors/melos_serinus_cors.iml" filepath="$PROJECT_DIR$/packages/cors/melos_serinus_cors.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/rate_limiter/melos_serinus_rate_limiter.iml" filepath="$PROJECT_DIR$/packages/rate_limiter/melos_serinus_rate_limiter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/serve_static/melos_serinus_serve_static.iml" filepath="$PROJECT_DIR$/packages/serve_static/melos_serinus_serve_static.iml" />
       <module fileurl="file://$PROJECT_DIR$/packages/serinus_sse/melos_serinus_sse.iml" filepath="$PROJECT_DIR$/packages/serinus_sse/melos_serinus_sse.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/serinus_swagger/melos_serinus_swagger.iml" filepath="$PROJECT_DIR$/packages/serinus_swagger/melos_serinus_swagger.iml" />
       <module fileurl="file://$PROJECT_DIR$/melos_my_project.iml" filepath="$PROJECT_DIR$/melos_my_project.iml" />
     </modules>
   </component>

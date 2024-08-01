@@ -5,7 +5,6 @@ import 'sse_adapter.dart';
 import 'sse_context.dart';
 
 abstract class SseProvider extends Provider {
-
   /// The [server] property contains the server of the WebSocketGateway.
   SseAdapter? server;
 
@@ -25,5 +24,4 @@ abstract class SseProvider extends Provider {
   void send(String data, [String? clientId]) {
     server?.send(data, clientId);
   }
-
 }

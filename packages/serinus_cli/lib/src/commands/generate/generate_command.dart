@@ -100,10 +100,12 @@ class GenerateCommand extends Command<int> {
         if (type == 'module') {
           final classIndex = fileContent.indexOf('entrypoint:');
           final classEndIndex = fileContent.indexOf('(', classIndex);
-          entrypointClass = fileContent.substring(
-            classIndex + 11,
-            classEndIndex,
-          ).trim();
+          entrypointClass = fileContent
+              .substring(
+                classIndex + 11,
+                classEndIndex,
+              )
+              .trim();
         }
         break;
       }
@@ -128,9 +130,9 @@ class GenerateCommand extends Command<int> {
       );
     }
     final generator = Generator(
-      outputDirectory: outputDirectory, 
-      entrypointFile: entrypointFile, 
-      itemName: _itemName, 
+      outputDirectory: outputDirectory,
+      entrypointFile: entrypointFile,
+      itemName: _itemName,
       analyzer: _analyzer,
     );
     switch (type) {

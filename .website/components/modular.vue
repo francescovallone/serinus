@@ -4,14 +4,12 @@ const plugins = [
 		title: 'Swagger',
 		pub: 'https://pub.dev/packages/serinus_swagger',
 		desc: 'Automatically generate OpenAPI documentation for your API.',
-		gh: 'https://github.com/serinus-nest/serinus_swagger',
 		link: '/plugins/swagger/',
 	},
 	{
 		title: 'Config',
 		pub: 'https://pub.dev/packages/serinus_config',
 		desc: 'Access .env files and environment variables with ease.',
-		gh: 'https://github.com/serinus-nest/serinus_config',
 		link: '/plugins/configuration',
 	},
 ]
@@ -36,7 +34,6 @@ const plugins = [
 						<p class="text-lg">{{ plugin.title }}</p>
 						<div class="flex gap-2">
 							<a class="text-gray-400 text-sm" :href="plugin.pub">Pub</a>
-							<a class="text-gray-400 text-sm" :href="plugin.gh">GitHub</a>
 						</div>
 					</div>
 					<p class="text-gray-400">{{ plugin.desc }}</p>

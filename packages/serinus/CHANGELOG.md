@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+- feat(#52): add streamable response to handle stream in responses. [#55](https://github.com/francescovallone/serinus/pull/55)
+- feat(lab): change completely how Serinus handle responses. [#54](https://github.com/francescovallone/serinus/pull/54)
+
 ## 0.6.0-dev.5
 
 - feat(#57): abstract ParseSchema to allow for more flexibility in the implementation of the schema parsers.

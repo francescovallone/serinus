@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0
+
+- Add generate command to the CLI.
+
 ## 0.3.0
 
 - Add deploy command to the CLI. (#10)

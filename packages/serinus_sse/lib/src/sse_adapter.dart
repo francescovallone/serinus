@@ -11,12 +11,11 @@ import 'package:serinus_sse/src/sse_provider.dart';
 import 'package:stream_channel/stream_channel.dart';
 
 typedef InitializedChannel = ({
-  StreamChannel<List<int>> channel, 
+  StreamChannel<List<int>> channel,
   StringConversionSink sink
 });
 
 class SseAdapter extends HttpAdapter<StreamQueue<SseConnection>> {
-
   Logger logger = Logger('SseAdapter');
 
   final _connections = <String?, SseConnection>{};
@@ -26,7 +25,8 @@ class SseAdapter extends HttpAdapter<StreamQueue<SseConnection>> {
 
   StreamQueue<SseConnection>? _connectionsStream;
 
-  StreamQueue<SseConnection> get connections => _connectionsStream ?? StreamQueue(_connectionController.stream);
+  StreamQueue<SseConnection> get connections =>
+      _connectionsStream ?? StreamQueue(_connectionController.stream);
 
   HttpServer? connection;
 
@@ -35,47 +35,50 @@ class SseAdapter extends HttpAdapter<StreamQueue<SseConnection>> {
   final Duration? keepAlive;
 
   final Future<void> Function(HttpRequest request)? fallback;
-  
+
   @override
   bool get isOpen => _isOpen;
 
-  SseAdapter({required super.port, this.keepAlive, this.fallback}) : super(host: 'localhost', poweredByHeader: 'Powerd by Serinus');
+  SseAdapter({required super.port, this.keepAlive, this.fallback})
+      : super(host: 'localhost', poweredByHeader: 'Powerd by Serinus');
 
   @override
-  Future<void> init(ModulesContainer container, ApplicationConfig config) async {
+  Future<void> init(
+      ModulesContainer container, ApplicationConfig config) async {
     server = StreamQueue<SseConnection>(_connectionController.stream);
     _prepareContexts(container, config);
-    connection = await HttpServer.bind(InternetAddress.loopbackIPv4, port, shared: true);
+    connection =
+        await HttpServer.bind(InternetAddress.loopbackIPv4, port, shared: true);
     logger.info('SSE server is running on port $port');
     connection?.listen((req) => _handleConnection(req, container, config));
     _isOpen = true;
   }
 
-  Future<void> _handleConnection(HttpRequest request, ModulesContainer container, ApplicationConfig config) async {
+  Future<void> _handleConnection(HttpRequest request,
+      ModulesContainer container, ApplicationConfig config) async {
     final req = InternalRequest.from(request);
     final providers = container.getAll<SseProvider>();
     final clientId = req.queryParameters['sseClientId'];
-    if(req.method == 'GET' && req.headers['accept'] == 'text/event-stream') {
+    if (req.method == 'GET' && req.headers['accept'] == 'text/event-stream') {
       if (clientId == null) {
         request.response.statusCode = 400;
         request.response.close();
         return;
       }
-      _initializeChannel(
-        request,
-        (channel, sink) {
-          if(_connections.containsKey(clientId)) {
-            _connections[clientId]?._acceptReconnection(sink);
-          } else {
-            final connection = SseConnection(sink, keepAlive: keepAlive);
-            _connections[clientId] = connection;
-            _connectionController.add(connection);
-          }
-          providers.whereType<OnSseConnect>().forEach((e) => e.onConnect(clientId));
+      _initializeChannel(request, (channel, sink) {
+        if (_connections.containsKey(clientId)) {
+          _connections[clientId]?._acceptReconnection(sink);
+        } else {
+          final connection = SseConnection(sink, keepAlive: keepAlive);
+          _connections[clientId] = connection;
+          _connectionController.add(connection);
         }
-      );
+        providers
+            .whereType<OnSseConnect>()
+            .forEach((e) => e.onConnect(clientId));
+      });
     }
-    if(req.method == 'POST' && req.headers['accept'] == 'text/event-stream') {
+    if (req.method == 'POST' && req.headers['accept'] == 'text/event-stream') {
       if (clientId == null) {
         request.response.statusCode = 400;
         request.response.close();
@@ -83,15 +86,15 @@ class SseAdapter extends HttpAdapter<StreamQueue<SseConnection>> {
       }
       _addIncomingMessage(request, req, clientId, providers);
     }
-    if(fallback != null) {
+    if (fallback != null) {
       await fallback!(request);
     }
   }
 
   Future<void> _initializeChannel(
-    HttpRequest req,
-    void Function(StreamChannel<List<int>> channel, StringConversionSink sink) onChannel
-  ) async {
+      HttpRequest req,
+      void Function(StreamChannel<List<int>> channel, StringConversionSink sink)
+          onChannel) async {
     final socket = await req.response.detachSocket(writeHeaders: false);
     final channel = StreamChannel<List<int>>(socket, socket);
     final origin = (req.headers['origin'] ?? req.headers['host'])?.join(', ');
@@ -118,23 +121,20 @@ class SseAdapter extends HttpAdapter<StreamQueue<SseConnection>> {
   @override
   Future<void> listen(RequestCallback requestCallback,
       {dynamic request, ErrorHandler? errorHandler}) async {
-      return;
+    return;
   }
-  
+
   @override
   bool get shouldBeInitilized => true;
 
   @override
   bool canHandle(InternalRequest request) {
-    return request.headers['accept'] == 'text/event-stream' && (request.method == 'GET' || request.method == 'POST');
+    return request.headers['accept'] == 'text/event-stream' &&
+        (request.method == 'GET' || request.method == 'POST');
   }
-  
-  Future<void> _addIncomingMessage(
-    HttpRequest httpReq, 
-    InternalRequest req, 
-    String clientId,
-    List<SseProvider> providers
-  ) async {
+
+  Future<void> _addIncomingMessage(HttpRequest httpReq, InternalRequest req,
+      String clientId, List<SseProvider> providers) async {
     final connection = _connections[clientId];
     if (connection == null) {
       httpReq.response.statusCode = 404;
@@ -143,26 +143,24 @@ class SseAdapter extends HttpAdapter<StreamQueue<SseConnection>> {
     }
     final id = int.parse(req.queryParameters['messageId'] ?? '-1');
     final message = await req.body();
-    try{
+    try {
       connection._addIncomingMessage(id, message);
-      for(final provider in providers) {
+      for (final provider in providers) {
         provider.onResponse(
-          clientId, 
-          message, 
-          _contexts[provider.runtimeType]!
-        );
+            clientId, message, _contexts[provider.runtimeType]!);
       }
-    }catch(_) {
+    } catch (_) {
       logger.error('{$clientId} Cannot handle incoming message: $id');
     }
     httpReq.response.headers.add('access-control-allow-credentials', true);
-    httpReq.response.headers.add('access-control-allow-origin', (req.headers['origin'] ?? req.headers['host']));
+    httpReq.response.headers.add('access-control-allow-origin',
+        (req.headers['origin'] ?? req.headers['host']));
     httpReq.response.statusCode = 200;
     httpReq.response.close();
   }
 
   void send(String data, [String? clientId]) {
-    if(clientId != null) {
+    if (clientId != null) {
       final connection = _connections[clientId];
       if (connection == null) {
         logger.error('Cannot send message to $clientId. Connection not found.');
@@ -175,28 +173,24 @@ class SseAdapter extends HttpAdapter<StreamQueue<SseConnection>> {
       connection.sink.add(data);
     }
   }
-  
+
   void _prepareContexts(ModulesContainer container, ApplicationConfig config) {
     final providers = container.getAll<SseProvider>();
     for (final provider in providers) {
       final providerModule =
           container.getModuleByProvider(provider.runtimeType);
-      final injectables = container.getModuleInjectablesByToken(
-          container.moduleToken(providerModule));
-      final scopedProviders = List<Provider>.from(injectables.providers
-          .addAllIfAbsent(container.globalProviders));
+      final injectables = container
+          .getModuleInjectablesByToken(container.moduleToken(providerModule));
+      final scopedProviders = List<Provider>.from(
+          injectables.providers.addAllIfAbsent(container.globalProviders));
       scopedProviders.remove(provider);
       final context = SseContext(
-        (config.adapters[SseAdapter] as SseAdapter?)!,
-        {
-          for (final provider in scopedProviders)
-            provider.runtimeType: provider
-        }
-      );
+          (config.adapters[SseAdapter] as SseAdapter?)!, {
+        for (final provider in scopedProviders) provider.runtimeType: provider
+      });
       _contexts[provider.runtimeType] = context;
     }
   }
-
 }
 
 /// Code entirely copied from https://raw.githubusercontent.com/dart-lang/sse/master/lib/src/server/sse_handler.dart
