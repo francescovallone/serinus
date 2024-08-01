@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1
+
+- fix: fix exported providers
+
 ## 0.6.0
 
 - feat(#52): add streamable response to handle stream in responses. [#55](https://github.com/francescovallone/serinus/pull/55)

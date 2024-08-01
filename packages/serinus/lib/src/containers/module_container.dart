@@ -214,16 +214,19 @@ final class ModulesContainer {
             .toSet(),
       );
       final exportedProviders = [...parentModule.exports];
-      final parentProviders = (_providers[token] ?? []).map((e) => e.runtimeType);
+      final parentProviders =
+          (_providers[token] ?? []).map((e) => e.runtimeType);
       final typesGlobalProvider = globalProviders.map((e) => e.runtimeType);
-      for(final exportedProvider in exportedProviders){
-        if(!parentProviders.contains(exportedProvider)){
-          if(typesGlobalProvider.contains(exportedProvider)){
-            logger.warning('The exported provider $exportedProvider is global and should not be exported');
+      for (final exportedProvider in exportedProviders) {
+        if (!parentProviders.contains(exportedProvider)) {
+          if (typesGlobalProvider.contains(exportedProvider)) {
+            logger.warning(
+                'The exported provider $exportedProvider is global and should not be exported');
             parentModule.exports.remove(exportedProvider);
             continue;
           }
-          throw InitializationError('All the exported providers must be registered in the module');
+          throw InitializationError(
+              'All the exported providers must be registered in the module');
         }
       }
       // if (!parentModule.exports.every((element) =>

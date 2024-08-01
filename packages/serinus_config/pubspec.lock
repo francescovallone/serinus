@@ -271,7 +271,7 @@ packages:
       path: "../serinus"
       relative: true
     source: path
-    version: "0.6.0"
+    version: "0.6.1"
   shelf:
     dependency: transitive
     description:
