@@ -36,6 +36,8 @@ final class ModulesContainer {
 
   bool _isInitialized = false;
 
+  final logger = Logger('InstanceLoader');
+
   /// The [isInitialized] property contains the initialization status of the application
   bool get isInitialized => _isInitialized;
 
@@ -59,7 +61,6 @@ final class ModulesContainer {
   /// map. It also saves the deferred providers in the [_deferredProviders] map.
   Future<void> registerModule(Module module, Type entrypoint,
       [ModuleInjectables? moduleInjectables]) async {
-    final logger = Logger('InstanceLoader');
     final token = moduleToken(module);
     final initializedModule = await module.registerAsync(config);
     if (initializedModule.runtimeType == entrypoint &&
@@ -211,12 +212,25 @@ final class ModulesContainer {
             .whereNot((e) => e is! DeferredProvider)
             .toSet(),
       );
-      if (!parentModule.exports.every((element) =>
-          _providers[token]?.map((e) => e.runtimeType).contains(element) ??
-          false)) {
-        throw InitializationError(
-            'All the exported providers must be registered in the module');
+      final exportedProviders = [...parentModule.exports];
+      final parentProviders = (_providers[token] ?? []).map((e) => e.runtimeType);
+      final typesGlobalProvider = globalProviders.map((e) => e.runtimeType);
+      for(final exportedProvider in exportedProviders){
+        if(!parentProviders.contains(exportedProvider)){
+          if(typesGlobalProvider.contains(exportedProvider)){
+            logger.warning('The exported provider $exportedProvider is global and should not be exported');
+            parentModule.exports.remove(exportedProvider);
+            continue;
+          }
+          throw InitializationError('All the exported providers must be registered in the module');
+        }
       }
+      // if (!parentModule.exports.every((element) =>
+      //     _providers[token]?.map((e) => e.runtimeType).contains(element) ??
+      //     true)) {
+      //   throw InitializationError(
+      //       'All the exported providers must be registered in the module');
+      // }
     }
     final entrypointToken = moduleToken(entrypoint);
     ModuleInjectables entrypointInjectables =

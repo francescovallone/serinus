@@ -26,7 +26,8 @@ void main() {
   setUpAll(() async {
     app = await serinus.createApplication(
         entrypoint: TestModule(controllers: [controller]),
-        loggingLevel: LogLevel.none);
+        loggingLevel: LogLevel.none,
+        port: 7500);
     app?.use(RateLimiterHook(maxRequests: 5, duration: Duration(seconds: 10)));
     await app?.serve();
   });
@@ -39,14 +40,14 @@ void main() {
       () {
     for (int i = 0; i < 5; i++) {
       HttpClient()
-          .getUrl(Uri.parse('http://localhost:3000/'))
+          .getUrl(Uri.parse('http://localhost:7500/'))
           .then((request) async {
         final response = await request.close();
         expect(response.statusCode, 200);
       });
     }
     HttpClient()
-        .getUrl(Uri.parse('http://localhost:3000/'))
+        .getUrl(Uri.parse('http://localhost:7500/'))
         .then((request) async {
       final response = await request.close();
       expect(response.statusCode, 429);

@@ -33,7 +33,7 @@ void main() {
   SerinusApplication? app;
 
   setUpAll(() async {
-    app = await serinus.createApplication(entrypoint: MainModule());
+    app = await serinus.createApplication(entrypoint: MainModule(), loggingLevel: LogLevel.none);
     await app?.serve();
   });
 
