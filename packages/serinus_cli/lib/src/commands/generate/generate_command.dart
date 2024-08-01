@@ -127,11 +127,11 @@ class GenerateCommand extends Command<int> {
         'Entrypoint found: ${entrypointFile.uri.pathSegments.last}',
       );
     }
-    final Generator generator = Generator(
+    final generator = Generator(
       outputDirectory: outputDirectory, 
       entrypointFile: entrypointFile, 
       itemName: _itemName, 
-      analyzer: _analyzer
+      analyzer: _analyzer,
     );
     switch (type) {
       case 'module':

@@ -57,7 +57,7 @@ class InternalRequest {
   factory InternalRequest.from(HttpRequest request) {
     Map<String, String> headers = {};
     request.headers.forEach((name, values) {
-      if(name == HttpHeaders.transferEncodingHeader) {
+      if (name == HttpHeaders.transferEncodingHeader) {
         return;
       }
       headers[name] = values.join(',');
@@ -113,7 +113,7 @@ class InternalRequest {
   /// ```
   Future<String> body() async {
     List<int> data = [];
-    await for(var part in original) {
+    await for (var part in original) {
       data += part;
     }
     return utf8.decode(data);
