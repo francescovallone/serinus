@@ -36,6 +36,7 @@ final class ModulesContainer {
 
   bool _isInitialized = false;
 
+  /// The [logger] for the module_container
   final logger = Logger('InstanceLoader');
 
   /// The [isInitialized] property contains the initialization status of the application
