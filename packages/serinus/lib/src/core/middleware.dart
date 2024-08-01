@@ -54,8 +54,8 @@ class _ShelfMiddleware extends Middleware {
     final shelf.Request request = _createShelfRequest(context);
     late shelf.Response shelfResponse;
     if (_handler is shelf.Middleware) {
-      shelfResponse =
-          await _handler((req) => shelf.Response.ok(req.read()))(request);
+      shelfResponse = await _handler(
+          (req) => shelf.Response.ok(context.body.toString()))(request);
     } else if (_handler is shelf.Handler) {
       shelfResponse = await _handler.call(request);
     } else {
@@ -76,7 +76,7 @@ class _ShelfMiddleware extends Middleware {
     res.headers(headers);
     final responseBody = await response.readAsString();
     if (responseBody.isNotEmpty && !ignoreResponse) {
-      await res.send(utf8.encode(responseBody));
+      res.send(utf8.encode(responseBody));
     }
   }
 

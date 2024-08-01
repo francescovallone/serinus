@@ -1,5 +1,7 @@
 import 'dart:io' as io;
 
+import '../containers/module_container.dart';
+import '../core/core.dart';
 import '../http/internal_request.dart';
 import 'http_adapter.dart';
 import 'server_adapter.dart';
@@ -19,6 +21,9 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
   /// The [isRunning] property returns true if the server is running.
   bool get isRunning => server != null;
 
+  @override
+  bool get isOpen => isRunning;
+
   /// The [SerinusHttpAdapter] constructor is used to create a new instance of the [SerinusHttpAdapter] class.
   SerinusHttpAdapter(
       {required super.host,
@@ -28,7 +33,8 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       this.enableCompression = true});
 
   @override
-  Future<void> init() async {
+  Future<void> init(
+      [ModulesContainer? container, ApplicationConfig? config]) async {
     if (securityContext == null) {
       server = await io.HttpServer.bind(host, port, shared: true);
     } else {
@@ -60,4 +66,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       errorHandler.call(e, StackTrace.current);
     }
   }
+
+  @override
+  bool get shouldBeInitilized => true;
 }

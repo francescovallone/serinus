@@ -78,7 +78,7 @@ class MyController extends Controller {
   MyController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) {
       // This refers to the view file `views/index.mustache`
-      return Response.render(View(view: 'index', variables: {'name': 'Serinus'}));
+      return View(view: 'index', variables: {'name': 'Serinus'});
     });
   }
 }
@@ -90,7 +90,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
   MyController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) {
-      return Response.renderString(ViewString(viewData: 'Hello {{name}}', variables: {'name': 'Serinus'}));
+      return ViewString(viewData: 'Hello {{name}}', variables: {'name': 'Serinus'});
     });
   }
 }

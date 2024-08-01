@@ -2,15 +2,22 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../exceptions/exceptions.dart';
 import 'internal_response.dart';
+import 'session.dart';
+
+final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
 /// The class Request is used to handle the request
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
 
 class InternalRequest {
+  /// The id of the request.
+  final String id;
+
   /// The [path] property contains the path of the request
   String get path => uri.path;
 
@@ -50,11 +57,16 @@ class InternalRequest {
   factory InternalRequest.from(HttpRequest request) {
     Map<String, String> headers = {};
     request.headers.forEach((name, values) {
-      headers[name] = values.join(';');
+      if (name == HttpHeaders.transferEncodingHeader) {
+        return;
+      }
+      headers[name] = values.join(',');
     });
-    headers.remove(HttpHeaders.transferEncodingHeader);
     return InternalRequest(headers: headers, original: request);
   }
+
+  /// The [session] getter is used to get the session of the request
+  Session get session => Session(original.session);
 
   /// The [ifModifiedSince] getter is used to get the if-modified-since header of the request
   DateTime? get ifModifiedSince {
@@ -86,7 +98,7 @@ class InternalRequest {
   InternalRequest({
     required this.headers,
     required this.original,
-  });
+  }) : id = '${original.hashCode}-${DateTime.timestamp().toIso8601String()}';
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {
@@ -100,7 +112,11 @@ class InternalRequest {
   /// String body = await request.body();
   /// ```
   Future<String> body() async {
-    return await (encoding ?? utf8).decoder.bind(original).join();
+    List<int> data = [];
+    await for (var part in original) {
+      data += part;
+    }
+    return utf8.decode(data);
   }
 
   /// This method is used to get the body of the request as a [dynamic] json object
@@ -110,6 +126,13 @@ class InternalRequest {
   /// dynamic json = await request.json();
   /// ```
   Future<dynamic> json() async {
+    if (encoding == null || (encoding != null && encoding!.name == 'utf-8')) {
+      try {
+        return (await _utf8JsonDecoder.bind(original).firstOrNull) ?? {};
+      } catch (e) {
+        throw BadRequestException(message: 'The json body is malformed');
+      }
+    }
     final data = await body();
     if (data.isEmpty) {
       return {};

@@ -7,4 +7,10 @@ extension ContentTypeExtensions on ContentType {
 
   /// This method checks if the it is a MultiPart request.
   bool get isMultipart => mimeType == 'multipart/form-data';
+
+  /// This method checks if the subtype is json.
+  bool get isJson =>
+      mimeType == 'application/json' ||
+      mimeType == 'text/json' ||
+      subType.endsWith('+json');
 }

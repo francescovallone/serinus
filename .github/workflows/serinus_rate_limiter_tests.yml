@@ -1,0 +1,42 @@
+name: Serinus Rate Limiter Tests
+
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:    
+    defaults:
+      run:
+        working-directory: ./packages/rate_limiter
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+
+      - name: 🎯 Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: 📦 Install Dependencies
+        run: dart pub get
+
+      # - name: 🕵️ Analyze
+      #   run: dart analyze --fatal-infos --fatal-warnings .
+
+      - name: 🧪 Run Tests
+        run: |
+          dart pub global activate coverage
+          dart test --coverage=coverage && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=${{inputs.report_on}}
+      
+      - name: 📊 Check Code Coverage
+        uses: VeryGoodOpenSource/very_good_coverage@v2
+        with:
+          path: ./packages/rate_limiter/coverage/lcov.info
+          min_coverage: 0
+      
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   env:
+      #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

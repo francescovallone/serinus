@@ -27,8 +27,7 @@ abstract class Module {
       return [];
     }
     return [
-      for (final export in exports)
-        providers.firstWhere((element) => element.runtimeType == export)
+      ...providers.where((element) => exports.contains(element.runtimeType))
     ];
   }
 

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/router.dart';
+import 'package:serinus/src/services/json_utils.dart';
 import 'package:test/test.dart';
 
 import '../../bin/serinus.dart';
@@ -23,24 +24,37 @@ class TestJsonObject with JsonObject {
 
 class TestController extends Controller {
   TestController({super.path = '/'}) {
-    on(TestRoute(path: '/text'), (context) async => Response.text('ok!'));
-    on(TestRoute(path: '/json'),
-        (context) async => Response.json({'message': 'ok!'}));
-    on(TestRoute(path: '/json-obj'),
-        (context) async => Response.json(TestJsonObject()));
-    on(TestRoute(path: '/html'),
-        (context) async => Response.html('<h1>ok!</h1>'));
+    on(TestRoute(path: '/text'), (context) async => 'ok!');
+    on(TestRoute(path: '/json'), (context) async => {'message': 'ok!'});
+    on(TestRoute(path: '/json-obj'), (context) async => TestJsonObject());
+    on(TestRoute(path: '/html'), (context) async {
+      context.res.contentType = ContentType.html;
+      return '<h1>ok!</h1>';
+    });
     on(TestRoute(path: '/bytes'),
-        (context) async => Response.bytes(Utf8Encoder().convert('ok!')));
+        (context) async => Utf8Encoder().convert('ok!'));
     on(TestRoute(path: '/file'), (context) async {
       final file =
           File('${Directory.current.absolute.path}/test/http/test.txt');
-      return Response.file(file);
+      return file;
     });
     on(TestRoute(path: '/redirect'),
-        (context) async => Response.redirect('/text'));
+        (context) async => context.res.redirect = Redirect('/text'));
     on(TestRoute(path: '/status'), (context) async {
-      return Response.text('test')..statusCode = 201;
+      context.res.statusCode = 201;
+      return 'test';
+    });
+    on(TestRoute(path: '/stream'), (context) async {
+      final streamable = context.stream();
+      final streamedFile =
+          File('${Directory.current.absolute.path}/test/http/test.txt')
+              .openRead()
+              .transform(utf8.decoder)
+              .transform(LineSplitter());
+      await for (final line in streamedFile) {
+        streamable.send(line);
+      }
+      return streamable.end();
     });
   }
 }
@@ -69,7 +83,7 @@ class TestModule extends Module {
 }
 
 void main() async {
-  group('$Response', () {
+  group('Responses Test', () {
     SerinusApplication? app;
     final controller = TestController();
     final middleware = TestMiddleware();
@@ -84,7 +98,7 @@ void main() async {
       await app?.close();
     });
     test(
-        '''when a 'Response.text' is called, then it should return a text/plain response''',
+        '''when a primitive type object is returned by the handler, then it should return a text/plain response''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/text'));
@@ -95,7 +109,7 @@ void main() async {
       expect(body, 'ok!');
     });
     test(
-        '''when a 'Response.json' is called, then it should return a application/json response''',
+        '''when a json response is returned by the handler, then it should return a application/json response''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/json'));
@@ -106,7 +120,7 @@ void main() async {
       expect(jsonDecode(body), {'message': 'ok!'});
     });
     test(
-        '''when a 'Response.html' is called, then it should return a text/html response''',
+        '''when a html string is returned and the content type is changed to text/html, then it should return a text/html response''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/html'));
@@ -117,7 +131,7 @@ void main() async {
       expect(body, '<h1>ok!</h1>');
     });
     test(
-        '''when a 'Response.bytes' is called, then it should return a application/octet-stream response''',
+        '''when a List<int> is returned by the handler, then it should return a application/octet-stream response''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/bytes'));
@@ -126,10 +140,10 @@ void main() async {
 
       expect(
           response.headers.contentType?.mimeType, 'application/octet-stream');
-      expect(body, '[111, 107, 33]');
+      expect(body, 'ok!');
     });
     test(
-        '''when a 'Response.file' is called, then it should return a application/octet-stream response''',
+        '''when a File object is returned by the handler, then it should return a application/octet-stream response''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/file'));
@@ -141,7 +155,7 @@ void main() async {
       expect(body, 'ok!');
     });
     test(
-        '''when a 'Response.redirect' is called, then the request should be redirected to the corresponding route''',
+        '''when a Redirect object is returned by the handler, then the request should be redirected to the corresponding route''',
         () async {
       final request = await HttpClient()
           .getUrl(Uri.parse('http://localhost:3000/redirect'));
@@ -151,7 +165,7 @@ void main() async {
       expect(body, 'ok!');
     });
     test(
-        '''when a 'Response.json' is called, and a JsonObject is provided, then the request should return a json object''',
+        '''when a Jsonable Element is returned by the handler, and a JsonObject is provided, then the request should return a json object''',
         () async {
       final request = await HttpClient()
           .getUrl(Uri.parse('http://localhost:3000/json-obj'));
@@ -161,14 +175,13 @@ void main() async {
       expect(body, '{"id":"json-obj"}');
     });
     test(
-        '''when a 'Response.json' is called, and a JsonObject is provided, then the request should return a json object''',
+        '''when a Stream response is created and streamed, then the response should be streamed''',
         () async {
       final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:3000/status'));
+          await HttpClient().getUrl(Uri.parse('http://localhost:3000/stream'));
       final response = await request.close();
-      expect(response.statusCode, 201);
       final body = await response.transform(Utf8Decoder()).join();
-      expect(body, 'test');
+      expect(body, 'ok!');
     });
     test(
         '''when a middleware is listening on response events, then it should be called when the response is closed''',
@@ -206,12 +219,12 @@ void main() async {
     test(
       '''when a mixed json response is passed, then the data should be parsed correctly''',
       () async {
-        final res = Response.json([
+        final res = parseJsonToResponse([
           {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestJsonObject()},
           TestObj('Jane Doe')
         ]);
         expect(
-            res.data,
+            jsonEncode(res),
             jsonEncode([
               {
                 'id': 1,

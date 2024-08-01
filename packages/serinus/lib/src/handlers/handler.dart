@@ -1,10 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../contexts/request_context.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
-import '../http/internal_request.dart';
 
 /// The base class for all handlers in the application
 abstract class Handler {
@@ -27,8 +29,16 @@ abstract class Handler {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
-      return response.finalize(Response.json(e, statusCode: e.statusCode),
-          hooks: config.hooks);
+      final error = utf8.encode(jsonEncode(e.toJson()));
+      final properties = ResponseProperties()
+        ..statusCode = e.statusCode
+        ..contentType = ContentType.json;
+      response.end(
+          data: error,
+          config: config,
+          properties: properties,
+          request: Request(request));
+      return;
     }
   }
 
@@ -39,14 +49,15 @@ abstract class Handler {
       InternalRequest request, InternalResponse response);
 
   /// Build the request context from the request and body
-  RequestContext buildRequestContext(
-      Iterable<Provider> providers, Request request) {
+  RequestContext buildRequestContext(Iterable<Provider> providers,
+      Request request, InternalResponse response) {
     return RequestContext(
       providers.fold<Map<Type, Provider>>({}, (acc, provider) {
         acc[provider.runtimeType] = provider;
         return acc;
       }),
       request,
+      StreamableResponse(response),
     );
   }
 }

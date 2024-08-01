@@ -5,7 +5,10 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
+import '../core/core.dart';
+import '../handlers/websocket_handler.dart';
 import '../http/internal_request.dart';
 import '../services/logger_service.dart';
 import 'server_adapter.dart';
@@ -28,13 +31,18 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     _contexts[key] = context;
   }
 
-  /// The [isOpen] property contains the status of the adapter
+  @override
+  bool canHandle(InternalRequest request) {
+    return request.isWebSocket;
+  }
+
+  @override
   bool get isOpen => _isOpen;
 
   @override
   Future<void> listen(List<WsRequestHandler> requestCallback,
       {InternalRequest? request,
-      List<void Function()>? onDone,
+      List<DisconnectHandler>? onDone,
       ErrorHandler? errorHandler}) async {
     final wsClient = server?[request?.webSocketKey];
     wsClient?.listen((data) {
@@ -44,7 +52,10 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     }, onDone: () {
       if (onDone != null) {
         for (var done in onDone) {
-          done();
+          if (done.onDone == null) {
+            return;
+          }
+          done.onDone?.call(done.clientId);
         }
       }
     }, onError: errorHandler);
@@ -62,7 +73,8 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   }
 
   @override
-  Future<void> init([Uri? url]) async {
+  Future<void> init(
+      ModulesContainer container, ApplicationConfig config) async {
     return;
   }
 
@@ -91,11 +103,11 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   }
 
   /// The [send] method is used to send data to the client
-  /// It takes [data], [broadcast] and [key] and returns [void]
+  /// It takes [data] and [key] and returns [void]
   ///
-  /// If [broadcast] is true, it sends the data to all clients
-  void send(dynamic data, {bool broadcast = false, String? key}) {
-    if (broadcast) {
+  /// If [key] is null, it sends the data to all clients
+  void send(dynamic data, {String? key}) {
+    if (key == null) {
       for (var key in server!.keys) {
         server![key]?.add(data);
       }
@@ -103,4 +115,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     }
     server![key]?.add(data);
   }
+
+  @override
+  bool get shouldBeInitilized => false;
 }

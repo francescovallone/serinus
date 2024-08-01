@@ -1,8 +1,10 @@
+// coverage:ignore-file
 // ignore_for_file: avoid_print
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:shelf/shelf.dart' as shelf;
 
 class TestObj with JsonObject {
   final String name;
@@ -58,7 +60,10 @@ class Test2Middleware extends Middleware {
 }
 
 class TestProvider extends Provider {
-  final List<String> testList = [];
+  final List<String> testList = [
+    'Hello',
+    'World',
+  ];
 
   TestProvider({super.isGlobal});
 
@@ -113,27 +118,36 @@ class PostRoute extends Route {
 class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
-      return Response.json([
-        TestObj('Hello'),
-        TestObj('World'),
-        {'test': context.query['test']}
-      ]);
+      return 'Hello world';
     },
-        schema: ParseSchema(
+        schema: AcanthisParseSchema(
             query: object({
           'test': string().encode(),
         }).optionals(['test'])));
     on(PostRoute(path: '/*'), (context) async {
-      return Response.text(
-          '${context.request.getData('test')} ${context.params}');
+      return '${context.request.getData('test')} ${context.params}';
     },
-        schema: ParseSchema(
+        schema: AcanthisParseSchema(
             body: string(),
             error: (errors) {
               return BadRequestException(message: 'Invalid query parameters');
             }));
-    on(Route.get('/test'), (context) async {
-      return Response.text('Hello world from test');
+    on(
+        Route.get('/test', metadata: [
+          Metadata<bool>(name: 'public', value: true),
+          ContextualizedMetadata<List<String>>(
+            name: 'test_context',
+            value: (context) async {
+              return context.use<TestProvider>().testList;
+            },
+          )
+        ]), (context) async {
+      return 'Hello world from ${context.stat<bool>('public') ? 'public' : 'private'} ${context.stat<List<String>>('test_context')}';
+    });
+
+    on(Route.get('/html'), (context) async {
+      context.res.contentType = ContentType.html;
+      return '<html><body><h1>Hello world</h1></body></html>';
     });
   }
 }
@@ -141,14 +155,38 @@ class HomeController extends Controller {
 class HomeAController extends Controller {
   HomeAController() : super(path: '/a') {
     on(GetRoute(path: '/'), (context) async {
-      return Response.redirect('/');
+      context.res.redirect = Redirect('/');
+      return;
     });
     on(PostRoute(path: '/<id>'), _handlePostRequest);
+    on(Route.get('/stream'), _handleStreamResponse);
+    on(Route.get('/file'), _handleFileResponse);
   }
 
-  Future<Response> _handlePostRequest(RequestContext context) async {
+  Future<String> _handlePostRequest(RequestContext context) async {
     print(context.body.formData?.fields);
-    return Response.text('Hello world from a ${context.params}');
+    print(context.canUse<TestProviderThree>());
+    print(context.canUse<TestWsProvider>());
+    context.use<TestWsProvider>().send('Hello from controller');
+    return 'Hello world from a ${context.params}';
+  }
+
+  Future<StreamedResponse> _handleStreamResponse(RequestContext context) async {
+    final streamable = context.stream();
+    final streamedFile = File('file.txt')
+        .openRead()
+        .transform(utf8.decoder)
+        .transform(LineSplitter());
+    await for (final line in streamedFile) {
+      if (line.isNotEmpty) {
+        streamable.send(line);
+      }
+    }
+    return streamable.end();
+  }
+
+  Future<File> _handleFileResponse(RequestContext context) async {
+    return File('file.txt');
   }
 }
 
@@ -159,7 +197,7 @@ class TestWsProvider extends WebSocketGateway
   @override
   Future<void> onMessage(dynamic message, WebSocketContext context) async {
     if (message == 'broadcast') {
-      context.send('Hello from server', broadcast: true);
+      context.send('Hello from server');
     }
     print(context.query);
     context.send('Message received: $message');
@@ -167,13 +205,13 @@ class TestWsProvider extends WebSocketGateway
   }
 
   @override
-  Future<void> onClientConnect() async {
-    print('Client connected');
+  Future<void> onClientConnect(String clientId) async {
+    print('Client $clientId connected');
   }
 
   @override
-  Future<void> onClientDisconnect() async {
-    print('Client disconnected');
+  Future<void> onClientDisconnect(String clientId) async {
+    print('Client $clientId disconnected');
   }
 }
 
@@ -184,19 +222,19 @@ class TestWs2Provider extends WebSocketGateway
   @override
   Future<void> onMessage(dynamic message, WebSocketContext context) async {
     if (message == 'broadcast') {
-      context.send('Hello from server', broadcast: true);
+      context.send('Hello from server');
     }
     context.send('Message received: $message');
     print('Message received: $message');
   }
 
   @override
-  Future<void> onClientConnect() async {
+  Future<void> onClientConnect(String clientId) async {
     print('Client connected');
   }
 
   @override
-  Future<void> onClientDisconnect() async {
+  Future<void> onClientDisconnect(String clientId) async {
     print('Client disconnected');
   }
 }
@@ -215,16 +253,18 @@ class AppModule extends Module {
         ], middlewares: [
           // TestMiddleware(),
           // Test2Middleware(),
-          Middleware.shelf(shelf.logRequests()),
+          // Middleware.shelf(shelf.logRequests()),
           // Middleware.shelf(
           //     (req) => shelf.Response.ok('Hello world from shelf')),
-          Middleware.shelf(shelf.logRequests()),
+          // Middleware.shelf(shelf.logRequests()),
         ]);
 }
 
 class ReAppModule extends Module {
   ReAppModule()
-      : super(imports: [], controllers: [
+      : super(imports: [
+          TestInject()
+        ], controllers: [
           HomeAController()
         ], providers: [
           DeferredProvider(inject: [TestProvider, TestProvider],
@@ -237,9 +277,28 @@ class ReAppModule extends Module {
         ]);
 }
 
+class TestInject extends Module {
+  TestInject()
+      : super(
+            imports: [],
+            controllers: [],
+            providers: [TestProviderThree()],
+            middlewares: [],
+            exports: [TestProviderThree]);
+}
+
+class TestProviderThree extends Provider {
+  TestProviderThree();
+
+  String testMethod() {
+    return 'Hello world from provider three';
+  }
+}
+
 void main(List<String> arguments) async {
   SerinusApplication application = await serinus.createApplication(
       entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
+  // application.trace(ServerTimingTracer());
   await application.serve();
 }

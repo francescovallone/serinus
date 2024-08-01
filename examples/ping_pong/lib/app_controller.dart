@@ -1,13 +1,15 @@
+import 'package:jaspr/server.dart';
 import 'package:serinus/serinus.dart';
 
-import 'app_routes.dart';
-
 class AppController extends Controller {
+
+  late Handler handler;
+
   AppController({super.path = '/'}) {
-    on(HelloWorldRoute(), _handleHelloWorld);
+    on(Route.get('/'), _handleHelloWorld);
   }
 
-  Future<Response> _handleHelloWorld(RequestContext context) async {
-    return Response.text('Hello world');
+  Future<String> _handleHelloWorld(RequestContext context) async {
+    return 'Hello, World!';
   }
 }

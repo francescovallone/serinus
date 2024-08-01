@@ -1,17 +1,15 @@
 <script setup>
 const plugins = [
 	{
-		title: 'Serve Static',
-		pub: 'https://pub.dev/packages/serinus_serve_static',
-		desc: 'Serve static files from your Serinus server.',
-		gh: 'https://github.com/serinus-nest/serve_static',
-		link: '/plugins/serve_static',
+		title: 'Swagger',
+		pub: 'https://pub.dev/packages/serinus_swagger',
+		desc: 'Automatically generate OpenAPI documentation for your API.',
+		link: '/plugins/swagger/',
 	},
 	{
 		title: 'Config',
 		pub: 'https://pub.dev/packages/serinus_config',
 		desc: 'Access .env files and environment variables with ease.',
-		gh: 'https://github.com/serinus-nest/serinus_config',
 		link: '/plugins/configuration',
 	},
 ]
@@ -36,7 +34,6 @@ const plugins = [
 						<p class="text-lg">{{ plugin.title }}</p>
 						<div class="flex gap-2">
 							<a class="text-gray-400 text-sm" :href="plugin.pub">Pub</a>
-							<a class="text-gray-400 text-sm" :href="plugin.gh">GitHub</a>
 						</div>
 					</div>
 					<p class="text-gray-400">{{ plugin.desc }}</p>
@@ -44,7 +41,7 @@ const plugins = [
 			</section>
 		</div>
 		<div class="flex justify-center" style="flex-shrink: 0; padding: 6px">
-			<a href="/plugins/" class="vp-btn-custom">
+			<a href="/plugins/" class="border-orange-400 border-2 rounded-full px-8 py-4">
 				View all plugins
 			</a>
 		</div>
@@ -52,8 +49,8 @@ const plugins = [
 </template>
 
 <style scoped>
-p {
-	margin: 0;
+.vp-doc p, .vp-doc summary {
+	margin: 0 !important;
 }
 .results{
 	line-height: 1rem;
@@ -63,6 +60,9 @@ ol {
 }
 .vp-doc a{
 	text-decoration: none;
+}
+.vp-doc a.bg-orange-400 {
+	color: white;
 }
 .plugin {
 	border: 1px solid transparent;

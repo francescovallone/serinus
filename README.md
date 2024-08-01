@@ -5,12 +5,25 @@
 [![Pub Points](https://img.shields.io/pub/points/serinus?label=Package%20points&logo=dart)](https://pub.dev/packages/serinus/score)
 [![Pub Version](https://img.shields.io/pub/v/serinus?color=green&label=Latest%20Version&logo=dart)](https://pub.dev/packages/serinus)
 [![popularity](https://img.shields.io/pub/popularity/serinus?logo=dart&label=Package%20Popularity)](https://pub.dev/packages/serinus/score)
+[![melos](https://img.shields.io/badge/maintained%20with-melos-f700ff.svg?style=flat-square)](https://github.com/invertase/melos)
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/francescovallone/serinus/serinus_tests.yml?logo=dart&label=Tests)
 [![Discord](https://img.shields.io/discord/1099781506978807919?logo=discord&logoColor=white)](https://discord.gg/FPwH2fEUVF)
 
 Serinus is a framework written in Dart for building efficient and scalable server-side applications.
 
 # Getting Started
+
+## Packages
+
+| Package | Version |
+| ------- | ------- |
+| [serinus](https://pub.dev/packages/serinus) | [![Pub Version](https://img.shields.io/pub/v/serinus?color=green&logo=dart)](https://pub.dev/packages/serinus) |
+| [serinus_cli](https://pub.dev/packages/serinus_cli) | [![Pub Version](https://img.shields.io/pub/v/serinus_cli?color=green&logo=dart)](https://pub.dev/packages/serinus_cli) |
+| [serinus_config](https://pub.dev/packages/serinus_config) | [![Pub Version](https://img.shields.io/pub/v/serinus_config?color=green&logo=dart)](https://pub.dev/packages/serinus_config) |
+| [serinus_swagger](https://pub.dev/packages/serinus_swagger) | [![Pub Version](https://img.shields.io/pub/v/serinus_swagger?color=green&logo=dart)](https://pub.dev/packages/serinus_swagger) |
+| [serinus_cors](https://pub.dev/packages/serinus_cors) | [![Pub Version](https://img.shields.io/pub/v/serinus_cors?color=green&logo=dart)](https://pub.dev/packages/serinus_cors) |
+| [serinus_rate_limiter](https://pub.dev/packages/serinus_rate_limiter) | [![Pub Version](https://img.shields.io/pub/v/serinus_rate_limiter?color=green&logo=dart)](https://pub.dev/packages/serinus_rate_limiter) |
+| [serinus_serve_static](https://pub.dev/packages/serinus_serve_static) | [![Pub Version](https://img.shields.io/pub/v/serinus_serve_static?color=green&logo=dart)](https://pub.dev/packages/serinus_serve_static) |
 
 ## Installation
 

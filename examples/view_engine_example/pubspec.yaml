@@ -1,0 +1,13 @@
+name: view_engine_example
+description: "A new Serinus application"
+version: 1.0.0
+publish_to: 'none'
+
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  mustachex: ^1.0.0
+  serinus: ^0.6.0
+  

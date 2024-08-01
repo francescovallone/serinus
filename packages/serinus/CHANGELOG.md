@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.6.1
+
+- fix: fix exported providers
+
+## 0.6.0
+
+- feat(#52): add streamable response to handle stream in responses. [#55](https://github.com/francescovallone/serinus/pull/55)
+- feat(lab): change completely how Serinus handle responses. [#54](https://github.com/francescovallone/serinus/pull/54)
+
+## 0.6.0-dev.5
+
+- feat(#57): abstract ParseSchema to allow for more flexibility in the implementation of the schema parsers.
+
+## 0.6.0-dev.4
+
+- refactor(#39): add parent providers in child providers to allow for a better specialization of the behavior of the providers.
+- refactor(#39): refactor contexts to unify common interfaces and methods.
+
+## 0.6.0-dev.3
+
+- fix(#39): fix canUse to use the correct type instead of dynamic.
+
+## 0.6.0-dev.2
+
+- feat(#39): add canUse and canStat methods to the request context to check if a provider or a metadata is present in the context.
+
+## 0.6.0-dev.1
+
+- feat(#39): add metadata system to Serinus to specialize the behavior of routes and controllers.
+
 ## 0.5.2
 
 - fix: accept List of JsonObject as possible data in Response.json. [#42](https://github.com/francescovallone/serinus/issues/42)

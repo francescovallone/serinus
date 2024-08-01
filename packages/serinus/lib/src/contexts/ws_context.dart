@@ -1,9 +1,12 @@
-import '../../../serinus.dart';
+import '../adapters/adapters.dart';
+import '../core/websockets/websockets.dart';
+import '../http/http.dart';
+import 'base_context.dart';
 
 /// The [WebSocketContext] class is used to create a WebSocket context.
 ///
 /// It contains the request, the WebSocket adapter, the ID of the context, the providers, and the serializer.
-final class WebSocketContext {
+final class WebSocketContext extends BaseContext {
   /// The [request] property contains the request of the context.
   final Request request;
 
@@ -11,8 +14,6 @@ final class WebSocketContext {
 
   /// The [id] property contains the id of the client.
   final String id;
-
-  final Map<Type, Provider> _providers;
 
   final MessageSerializer? _serializer;
 
@@ -23,7 +24,7 @@ final class WebSocketContext {
   Map<String, dynamic> get headers => request.headers;
 
   /// The constructor of the [WebSocketContext] class.
-  const WebSocketContext(this._wsAdapter, this.id, this._providers,
+  const WebSocketContext(this._wsAdapter, this.id, super.providers,
       this.request, this._serializer);
 
   /// This method is used to send data to the client.
@@ -31,18 +32,20 @@ final class WebSocketContext {
   /// The [data] parameter is the data to be sent.
   ///
   /// The [broadcast] parameter is used to broadcast the data to all clients.
-  void send(dynamic data, {bool broadcast = false}) {
+  void send(dynamic data) {
     if (_serializer != null) {
       data = _serializer!.serialize(data);
     }
-    _wsAdapter.send(data, broadcast: broadcast, key: id);
+    _wsAdapter.send(data, key: id);
   }
 
-  /// This method is used to retrieve a provider from the context.
-  T use<T>() {
-    if (!_providers.containsKey(T)) {
-      throw StateError('Provider not found in request context');
+  /// This method is used to broadcast data to all clients.
+  ///
+  /// The [data] parameter is the data to be sent.
+  void broadcast(dynamic data) {
+    if (_serializer != null) {
+      data = _serializer!.serialize(data);
     }
-    return _providers[T] as T;
+    _wsAdapter.send(data);
   }
 }

@@ -18,6 +18,8 @@ void main() async {
       expect(router.getHttpMethod(HttpMethod.put), HTTPMethod.PUT);
       expect(router.getHttpMethod(HttpMethod.delete), HTTPMethod.DELETE);
       expect(router.getHttpMethod(HttpMethod.patch), HTTPMethod.PATCH);
+      expect(router.getHttpMethod(HttpMethod.head), HTTPMethod.HEAD);
+      expect(router.getHttpMethod(HttpMethod.options), HTTPMethod.OPTIONS);
     });
 
     test('''when the function 'registerRoute' is called,

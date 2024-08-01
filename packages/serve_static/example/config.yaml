@@ -1,0 +1,3 @@
+# This file is used to configure the cli.
+# Do not modify the contents of this file.
+entrypoint: bin/example.dart

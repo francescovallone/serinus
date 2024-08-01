@@ -28,7 +28,6 @@ Future<void> bootstrap() async {
       entrypoint: AppModule(), 
       host: '0.0.0.0', 
       port: 3000 // [!code --]
-      port: 8080 // [!code ++]
     ); 
       
   await app.serve();

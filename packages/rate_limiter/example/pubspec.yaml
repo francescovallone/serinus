@@ -1,0 +1,12 @@
+name: serinus_rate_limiter_example
+description: ''
+
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  serinus: ^0.6.0
+  serinus_rate_limiter:
+    path: ../
+  

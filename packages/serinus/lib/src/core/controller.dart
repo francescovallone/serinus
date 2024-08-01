@@ -6,12 +6,12 @@ import 'package:uuid/v4.dart';
 
 import '../containers/router.dart';
 import '../contexts/contexts.dart';
-import '../http/http.dart';
+import 'metadata.dart';
 import 'parse_schema.dart';
 import 'route.dart';
 
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
-typedef ReqResHandler = Future<Response> Function(RequestContext context);
+typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
 typedef RouteHandler = ({
@@ -36,9 +36,12 @@ abstract class Controller {
   Map<String, RouteHandler> get routes => UnmodifiableMapView(_routes);
 
   /// The [get] method is used to get a route.
-  RouteHandler? get(RouteData routeData, [int? version]) {
+  RouteHandler? get(RouteData routeData) {
     return _routes[routeData.id];
   }
+
+  /// The [metadata] property contains the metadata of the controller.
+  List<Metadata> get metadata => [];
 
   /// The [on] method is used to register a route.
   ///
@@ -46,7 +49,7 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route>(R route, ReqResHandler handler,
+  void on<R extends Route, O>(R route, ReqResHandler<O> handler,
       {ParseSchema? schema}) {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);

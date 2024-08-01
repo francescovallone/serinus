@@ -1,6 +1,6 @@
 import '../contexts/request_context.dart';
 import '../enums/http_method.dart';
-import '../http/http.dart';
+import 'metadata.dart';
 
 /// The [Route] class is used to define the routes of the application.
 class Route {
@@ -21,7 +21,11 @@ class Route {
     required this.path,
     required this.method,
     this.queryParameters = const {},
+    this.metadata = const [],
   });
+
+  /// The [metadata] getter is used to get the List of [Metadata] of the route.
+  final List<Metadata> metadata;
 
   /// The [transform] method is used to transform the request context.
   ///
@@ -36,30 +40,30 @@ class Route {
   /// The [afterHandle] method is used to execute code after the route is handled.
   ///
   /// It can be overridden if needed.
-  Future<void> afterHandle(RequestContext context, Response response) async {}
+  Future<void> afterHandle(RequestContext context, dynamic response) async {}
 
   /// The [Route.get] factory constructor is used to create a new instance of the [Route] class with the GET method.
-  factory Route.get(String path) {
-    return Route(path: path, method: HttpMethod.get);
+  factory Route.get(String path, {List<Metadata> metadata = const []}) {
+    return Route(path: path, method: HttpMethod.get, metadata: metadata);
   }
 
   /// The [Route.post] factory constructor is used to create a new instance of the [Route] class with the POST method.
-  factory Route.post(String path) {
-    return Route(path: path, method: HttpMethod.post);
+  factory Route.post(String path, {List<Metadata> metadata = const []}) {
+    return Route(path: path, method: HttpMethod.post, metadata: metadata);
   }
 
   /// The [Route.put] factory constructor is used to create a new instance of the [Route] class with the PUT method.
-  factory Route.put(String path) {
-    return Route(path: path, method: HttpMethod.put);
+  factory Route.put(String path, {List<Metadata> metadata = const []}) {
+    return Route(path: path, method: HttpMethod.put, metadata: metadata);
   }
 
   /// The [Route.delete] factory constructor is used to create a new instance of the [Route] class with the DELETE method.
-  factory Route.delete(String path) {
-    return Route(path: path, method: HttpMethod.delete);
+  factory Route.delete(String path, {List<Metadata> metadata = const []}) {
+    return Route(path: path, method: HttpMethod.delete, metadata: metadata);
   }
 
   /// The [Route.patch] factory constructor is used to create a new instance of the [Route] class with the PATCH method.
-  factory Route.patch(String path) {
-    return Route(path: path, method: HttpMethod.patch);
+  factory Route.patch(String path, {List<Metadata> metadata = const []}) {
+    return Route(path: path, method: HttpMethod.patch, metadata: metadata);
   }
 }

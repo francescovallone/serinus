@@ -44,12 +44,12 @@ class WsGatewayMixins extends WebSocketGateway
   }
 
   @override
-  Future<void> onClientConnect() async {
+  Future<void> onClientConnect(String clientId) async {
     onClientConnectCalled = true;
   }
 
   @override
-  Future<void> onClientDisconnect() async {
+  Future<void> onClientDisconnect(String clientId) async {
     onClientDisconnectCalled = true;
   }
 }

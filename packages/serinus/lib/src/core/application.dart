@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 
-import '../adapters/serinus_http_server.dart';
+import '../adapters/adapters.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -13,7 +13,6 @@ import '../global_prefix.dart';
 import '../handlers/request_handler.dart';
 import '../handlers/websocket_handler.dart';
 import '../http/http.dart';
-import '../http/internal_request.dart';
 import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
@@ -130,24 +129,33 @@ class SerinusApplication extends Application {
     final wsHandler = WebSocketHandler(router, modulesContainer, config);
     Future<void> Function(InternalRequest, InternalResponse) handler;
     try {
+      for (final adapter in config.adapters.values) {
+        if (adapter.shouldBeInitilized) {
+          await adapter.init(modulesContainer, config);
+        }
+      }
       adapter.listen(
         (request, response) {
           handler = requestHandler.handle;
-          if (request.isWebSocket && config.wsAdapter != null) {
+          if (config.adapters[WsAdapter] != null &&
+              config.adapters[WsAdapter]?.canHandle(request) == true) {
             handler = wsHandler.handle;
           }
           return handler(request, response);
         },
         errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );
-    } on SocketException catch (_) {
-      _logger.severe('Failed to start server on $url');
+    } on SocketException catch (e) {
+      _logger.severe('Failed to start server on ${e.address}:${e.port}');
       await close();
     }
   }
 
   @override
   Future<void> close() async {
+    for (final adapter in config.adapters.values) {
+      await adapter.close();
+    }
     await config.serverAdapter.close();
     await shutdown();
   }
@@ -188,5 +196,12 @@ class SerinusApplication extends Application {
   void use(Hook hook) {
     config.addHook(hook);
     _logger.info('Hook ${hook.runtimeType} added to application');
+  }
+
+  /// The [trace] method is used to add a tracer to the application.
+  void trace(Tracer tracer) {
+    config.registerTracer(tracer);
+    _logger.info(
+        'Tracer ${tracer.name}(${tracer.runtimeType}) added to application');
   }
 }

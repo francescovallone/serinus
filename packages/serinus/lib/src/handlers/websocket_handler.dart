@@ -1,7 +1,14 @@
-import '../../serinus.dart';
+import '../adapters/adapters.dart';
+import '../contexts/contexts.dart';
+import '../core/core.dart';
+import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
-import '../http/internal_request.dart';
+import '../http/http.dart';
+import '../mixins/mixins.dart';
 import 'handler.dart';
+
+/// Type to define the record used to save an handler that will be called when a client disconnects.
+typedef DisconnectHandler = ({void Function(String)? onDone, String clientId});
 
 /// The [WebSocketHandler] class is used to handle the WebSocket requests.
 class WebSocketHandler extends Handler {
@@ -12,7 +19,7 @@ class WebSocketHandler extends Handler {
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
     final (:handlers, :onDoneHandlers) = await upgradeRequest(request);
-    config.wsAdapter
+    (config.adapters[WsAdapter] as WsAdapter?)
         ?.listen(handlers, onDone: onDoneHandlers, request: request);
   }
 
@@ -24,10 +31,10 @@ class WebSocketHandler extends Handler {
   Future<
       ({
         List<WsRequestHandler> handlers,
-        List<void Function()> onDoneHandlers,
+        List<DisconnectHandler> onDoneHandlers,
       })> upgradeRequest(InternalRequest request) async {
     final providers = modulesContainer.getAll<WebSocketGateway>();
-    final onDoneHandlers = <void Function()>[];
+    final onDoneHandlers = <DisconnectHandler>[];
     final onMessageHandlers = <WsRequestHandler>[];
     for (final provider in providers) {
       if (provider.path != null && !request.uri.path.endsWith(provider.path!)) {
@@ -36,14 +43,12 @@ class WebSocketHandler extends Handler {
       final providerModule =
           modulesContainer.getModuleByProvider(provider.runtimeType);
       final injectables = modulesContainer.getModuleInjectablesByToken(
-          providerModule.token.isEmpty
-              ? providerModule.runtimeType.toString()
-              : providerModule.token);
+          modulesContainer.moduleToken(providerModule));
       final scopedProviders = List<Provider>.from(injectables.providers
           .addAllIfAbsent(modulesContainer.globalProviders));
       scopedProviders.remove(provider);
       final context = WebSocketContext(
-          config.wsAdapter!,
+          (config.adapters[WsAdapter] as WsAdapter?)!,
           request.webSocketKey,
           {
             for (final provider in scopedProviders)
@@ -51,14 +56,16 @@ class WebSocketHandler extends Handler {
           },
           Request(request),
           provider.serializer);
-      config.wsAdapter?.addContext(request.webSocketKey, context);
+      (config.adapters[WsAdapter] as WsAdapter?)
+          ?.addContext(request.webSocketKey, context);
       if (provider is OnClientConnect) {
-        provider.onClientConnect();
+        provider.onClientConnect(request.webSocketKey);
       }
+      provider.server = (config.adapters[WsAdapter] as WsAdapter?);
       var onDone =
           provider is OnClientDisconnect ? provider.onClientDisconnect : null;
       if (onDone != null) {
-        onDoneHandlers.add(onDone);
+        onDoneHandlers.add((onDone: onDone, clientId: request.webSocketKey));
       }
       onMessageHandlers.add((dynamic message, WebSocketContext context) {
         if (provider.deserializer != null) {
@@ -71,7 +78,7 @@ class WebSocketHandler extends Handler {
       throw NotFoundException(
           message: 'No WebSocketGateway found for this request');
     }
-    await config.wsAdapter?.upgrade(request);
+    await (config.adapters[WsAdapter] as WsAdapter?)?.upgrade(request);
     return (
       handlers: onMessageHandlers,
       onDoneHandlers: onDoneHandlers,
