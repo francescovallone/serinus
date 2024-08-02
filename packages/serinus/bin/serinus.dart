@@ -119,11 +119,7 @@ class HomeController extends Controller {
   HomeController({super.path = '/'}) {
     on(GetRoute(path: '/'), (context) async {
       return 'Hello world';
-    },
-        schema: AcanthisParseSchema(
-            query: object({
-          'test': string().encode(),
-        }).optionals(['test'])));
+    },);
     on(PostRoute(path: '/*'), (context) async {
       return '${context.request.getData('test')} ${context.params}';
     },
