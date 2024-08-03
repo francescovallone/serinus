@@ -3,7 +3,16 @@ import '../core/core.dart';
 import '../http/internal_request.dart';
 import 'server_adapter.dart';
 
-/// The [RequestCallback] type is used to define the request callback.
+/// The [HttpAdapter] class is used to create an HTTP server adapter.
+/// 
+/// It extends the [Adapter] class and allows the developer to define the host, port, and powered by header.
+/// 
+/// The class must be extended and the [init], [close], and [listen] methods must be implemented.
+/// 
+/// Properties:
+/// - [host]: The host of the server.
+/// - [port]: The port of the server.
+/// - [poweredByHeader]: The powered by header.
 abstract class HttpAdapter<TServer> extends Adapter<TServer> {
   /// The [host] property contains the host of the server.
   final String host;

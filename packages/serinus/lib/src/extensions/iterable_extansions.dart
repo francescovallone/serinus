@@ -20,7 +20,7 @@ extension AddIfAbsent<T> on Iterable<T> {
     final elementsType = map((e) => e.runtimeType);
     final currentElements = [...this];
     for(final element in elements) {
-      if (elementsType.contains(element.runtimeType)) {
+      if (!elementsType.contains(element.runtimeType)) {
         currentElements.add(element);
       }
     }
