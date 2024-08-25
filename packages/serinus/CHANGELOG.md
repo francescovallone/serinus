@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2
+
+- chore: update spanner to 1.0.3 
+
 ## 0.6.1
 
 - fix: fix exported providers
