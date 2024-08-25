@@ -63,15 +63,14 @@ final class ModulesContainer {
   Future<void> registerModule(Module module, Type entrypoint,
       [ModuleInjectables? moduleInjectables]) async {
     final token = moduleToken(module);
-    final initializedModule = await module.registerAsync(config);
+    final initializedModule = _modules[token] = await module.registerAsync(config);
     if (initializedModule.runtimeType == entrypoint &&
         initializedModule.exports.isNotEmpty) {
       throw InitializationError('The entrypoint module cannot have exports');
     }
-    _modules[token] = initializedModule;
-    if (_moduleInjectables[token] != null) {
-      _moduleInjectables[token] =
-          moduleInjectables!.concatTo(_moduleInjectables[token]);
+    _providers[token] = [];
+    if (_moduleInjectables.containsKey(token)) {
+      _moduleInjectables[token] = moduleInjectables!.concatTo(_moduleInjectables[token]);
     } else {
       final newInjectables = ModuleInjectables(
         middlewares: {...module.middlewares},
@@ -79,19 +78,18 @@ final class ModulesContainer {
       _moduleInjectables[token] =
           moduleInjectables?.concatTo(newInjectables) ?? newInjectables;
     }
-    _providers[token] = [];
     final split = initializedModule.providers.splitBy<DeferredProvider>();
     for (final provider in split.notOfType) {
       await initIfUnregistered(provider);
-      _moduleInjectables[token] = _moduleInjectables[token]!.copyWith(
-        providers: {..._moduleInjectables[token]!.providers, provider},
-      );
       if (provider.isGlobal) {
         globalProviders.add(provider);
       } else {
         _providers[token]?.add(provider);
       }
     }
+    _moduleInjectables[token] = _moduleInjectables[token]!.copyWith(
+      providers: {..._moduleInjectables[token]!.providers, ...split.notOfType},
+    );
     _deferredProviders[token] = split.ofType;
     logger.info(
         '${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies initialized');

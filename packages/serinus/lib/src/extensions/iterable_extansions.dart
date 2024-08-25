@@ -17,7 +17,14 @@ extension AddIfAbsent<T> on Iterable<T> {
 
   /// This method is used to add a list of elements to the list if they are not already present
   Iterable<T> addAllIfAbsent(Iterable<T> elements) {
-    return elements.fold(this, (acc, element) => acc.addIfAbsent(element));
+    final elementsType = map((e) => e.runtimeType);
+    final currentElements = [...this];
+    for(final element in elements) {
+      if (!elementsType.contains(element.runtimeType)) {
+        currentElements.add(element);
+      }
+    }
+    return currentElements;
   }
 }
 

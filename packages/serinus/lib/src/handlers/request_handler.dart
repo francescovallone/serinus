@@ -50,7 +50,9 @@ class RequestHandler extends Handler {
             : request.path,
         request.method.toHttpMethod());
     final routeData = routeLookup.route;
-    wrappedRequest.params = routeLookup.params;
+    if(routeLookup.params.isNotEmpty) {
+      wrappedRequest.params = routeLookup.params;
+    }
     if (routeData == null) {
       throw NotFoundException(
           message:

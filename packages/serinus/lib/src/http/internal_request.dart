@@ -98,7 +98,7 @@ class InternalRequest {
   InternalRequest({
     required this.headers,
     required this.original,
-  }) : id = '${original.hashCode}-${DateTime.timestamp().toIso8601String()}';
+  }) : id = '${original.hashCode}-${DateTime.timestamp()}';
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {
