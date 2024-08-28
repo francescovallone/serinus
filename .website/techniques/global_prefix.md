@@ -14,7 +14,7 @@ import 'package:serinus/serinus.dart';
 void main() async {
   final app = await serinus.createApplication(
       entrypoint: AppModule());
-  app.setGlobalPrefix(GlobalPrefix(prefix: '/api'));
+  app.setGlobalPrefix('/api');
   await app.serve();
 }
 ```
