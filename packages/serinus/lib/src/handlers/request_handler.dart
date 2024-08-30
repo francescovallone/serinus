@@ -277,7 +277,12 @@ class RequestHandler extends Handler {
         request: context.request,
         context: context,
         traced: 'r-${route.runtimeType}');
-    Object? result = await Function.apply(handler, [context, ...context.params.values]);
+    Object? result;
+    if(handler is ReqResHandler) {
+      result = await handler.call(context);
+    } else {
+      result = await Function.apply(handler, [context, ...context.params.values]);
+    }
     await config.tracerService.addSyncEvent(
         name: TraceEvents.onHandle,
         request: context.request,
