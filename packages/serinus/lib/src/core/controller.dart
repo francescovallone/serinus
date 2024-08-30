@@ -1,22 +1,17 @@
-import 'dart:async';
 
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/v4.dart';
 
 import '../containers/router.dart';
-import '../contexts/contexts.dart';
 import 'metadata.dart';
 import 'parse_schema.dart';
 import 'route.dart';
 
-/// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
-typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
-
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
 typedef RouteHandler = ({
   Route route,
-  ReqResHandler handler,
+  Function handler,
   ParseSchema? schema
 });
 
@@ -49,7 +44,7 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route, O>(R route, ReqResHandler<O> handler,
+  void on<R extends Route>(R route, Function handler,
       {ParseSchema? schema}) {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);

@@ -270,14 +270,14 @@ class RequestHandler extends Handler {
 
   /// Executes the [handler] from the route
   Future<Object?> executeHandler(
-      RequestContext context, Route route, ReqResHandler handler) async {
+      RequestContext context, Route route, Function handler) async {
     config.tracerService.addEvent(
         name: TraceEvents.onHandle,
         begin: true,
         request: context.request,
         context: context,
         traced: 'r-${route.runtimeType}');
-    Object? result = await handler.call(context);
+    Object? result = await Function.apply(handler, [context, ...context.params.values]);
     await config.tracerService.addSyncEvent(
         name: TraceEvents.onHandle,
         request: context.request,
