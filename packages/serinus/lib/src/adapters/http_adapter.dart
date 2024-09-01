@@ -4,11 +4,11 @@ import '../http/internal_request.dart';
 import 'server_adapter.dart';
 
 /// The [HttpAdapter] class is used to create an HTTP server adapter.
-/// 
+///
 /// It extends the [Adapter] class and allows the developer to define the host, port, and powered by header.
-/// 
+///
 /// The class must be extended and the [init], [close], and [listen] methods must be implemented.
-/// 
+///
 /// Properties:
 /// - [host]: The host of the server.
 /// - [port]: The port of the server.

@@ -50,7 +50,7 @@ class RequestHandler extends Handler {
             : request.path,
         request.method.toHttpMethod());
     final routeData = routeLookup.route;
-    if(routeLookup.params.isNotEmpty) {
+    if (routeLookup.params.isNotEmpty) {
       wrappedRequest.params = routeLookup.params;
     }
     if (routeData == null) {
@@ -278,10 +278,11 @@ class RequestHandler extends Handler {
         context: context,
         traced: 'r-${route.runtimeType}');
     Object? result;
-    if(handler is ReqResHandler) {
+    if (handler is ReqResHandler) {
       result = await handler.call(context);
     } else {
-      result = await Function.apply(handler, [context, ...context.params.values]);
+      result =
+          await Function.apply(handler, [context, ...context.params.values]);
     }
     await config.tracerService.addSyncEvent(
         name: TraceEvents.onHandle,

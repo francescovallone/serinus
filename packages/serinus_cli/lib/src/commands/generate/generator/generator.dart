@@ -6,10 +6,6 @@ import 'package:serinus_cli/src/commands/generate/builder.dart';
 import 'package:serinus_cli/src/commands/generate/recase.dart';
 
 class Generator {
-  final Directory outputDirectory;
-  final File? entrypointFile;
-  final ReCase itemName;
-  final SerinusAnalyzer analyzer;
 
   Generator({
     required this.outputDirectory,
@@ -17,6 +13,11 @@ class Generator {
     required this.itemName,
     required this.analyzer,
   });
+  
+  final Directory outputDirectory;
+  final File? entrypointFile;
+  final ReCase itemName;
+  final SerinusAnalyzer analyzer;
 
   final DartEmitter emitter = DartEmitter(
     allocator: Allocator(),
@@ -24,7 +25,7 @@ class Generator {
   );
 
   Future<void> replaceGetters(
-      String filePath, String fileName, GeneratedElement element) async {
+      String filePath, String fileName, GeneratedElement element,) async {
     if (entrypointFile != null) {
       final updates = await analyzer.analyze(
         outputDirectory.absolute.path,

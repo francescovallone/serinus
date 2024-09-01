@@ -14,11 +14,7 @@ import 'route.dart';
 typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
-typedef RouteHandler = ({
-  Route route,
-  Function handler,
-  ParseSchema? schema
-});
+typedef RouteHandler = ({Route route, Function handler, ParseSchema? schema});
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
