@@ -99,6 +99,8 @@ class SerinusApplication extends Application {
     required super.config,
     super.level,
     super.loggerService,
+    super.router,
+    super.modulesContainer,
   });
 
   @override
@@ -117,8 +119,17 @@ class SerinusApplication extends Application {
   }
 
   /// The [setGlobalPrefix] method is used to set the global prefix of the application.
-  void setGlobalPrefix(GlobalPrefix prefix) {
-    config.globalPrefix = prefix;
+  set globalPrefix(String prefix) {
+    if (prefix == '/') {
+      return;
+    }
+    if (!prefix.startsWith('/')) {
+      prefix = '/$prefix';
+    }
+    if (prefix.endsWith('/')) {
+      prefix = prefix.substring(0, prefix.length - 1);
+    }
+    config.globalPrefix = GlobalPrefix(prefix: prefix);
   }
 
   @override
