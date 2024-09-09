@@ -1,6 +1,6 @@
 # Controllers
 
-Controllers in Serinus are groups of routes that shares the same base base path and metadata.
+Controllers in Serinus are groups of routes that shares the same base path and metadata.
 
 ## Creating a Controller
 

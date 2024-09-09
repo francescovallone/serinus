@@ -55,7 +55,7 @@ export default defineConfig({
               { text: 'Paths', link: 'paths' },
               { text: 'Handler', link: 'handler' },
               { text: 'RequestContext', link: 'request_context' },
-              { text: 'Dependency Inejction', link: 'dependency_injection' },
+              { text: 'Dependency Injection', link: 'dependency_injection' },
               { text: 'Request Lifecycle', link: 'request_lifecycle' },
             ]
           },
