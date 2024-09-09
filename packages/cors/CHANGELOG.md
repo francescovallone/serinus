@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Fix the documentation link in pubspeck.yaml. #76 by mjablecnik.
+
 ## 1.0.0
 
 - Updated `serinus_cors` to be compatible with `serinus` version `0.6`.
