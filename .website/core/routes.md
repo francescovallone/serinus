@@ -33,7 +33,7 @@ class MyController extends Controller {
     on(GetRoute(path: '/'), (context) async {
       return 'Hello World';
     });
-    on(Route.get(path: '/'), (context) async { // This is the same as the previous route
+    on(Route.get('/'), (context) async { // This is the same as the previous route
       return 'Hello World!';
     });
   }

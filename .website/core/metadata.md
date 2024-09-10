@@ -46,7 +46,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
 
   MyController({super.path = '/'}) {
-    on(Route.get(path: '/', metadata: [IsPublic()]), (context) async {
+    on(Route.get('/', metadata: [IsPublic()]), (context) async {
       return 'Hello World!';
     });
   }
@@ -82,7 +82,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
 
   MyController({super.path = '/'}) {
-    on(Route.get(path: '/', metadata: [IsPublic()]), (context) async {
+    on(Route.get('/', metadata: [IsPublic()]), (context) async {
       if (context.stat('IsPublic')) {
         return 'Hello World!';
       } else {
@@ -104,7 +104,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
 
   MyController({super.path = '/'}) {
-    on(Route.get(path: '/', metadata: [IsPublic()]), (context) async {
+    on(Route.get('/', metadata: [IsPublic()]), (context) async {
       if (context.canStat('IsPublic') && context.stat('IsPublic')) {
         return 'Hello World!';
       } else {
