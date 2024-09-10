@@ -117,9 +117,12 @@ class PostRoute extends Route {
 
 class HomeController extends Controller {
   HomeController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context) async {
-      return 'Hello world';
-    },);
+    on(
+      GetRoute(path: '/'),
+      (context) async {
+        return 'Hello world';
+      },
+    );
     on(PostRoute(path: '/*'), (context) async {
       return '${context.request.getData('test')} ${context.params}';
     },

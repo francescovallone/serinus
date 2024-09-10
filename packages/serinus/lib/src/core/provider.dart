@@ -10,14 +10,14 @@ abstract class Provider {
 
   /// The factory constructor [Provider.deferred] is used to create a new instance of the [Provider] class with dependencies.
   /// It uses the [DeferredProvider] class to define a provider that is initialized asynchronously.
-  /// 
+  ///
   /// The [init] function is called when the provider is initialized.
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
   factory Provider.deferred(
     Future<Provider> Function(ApplicationContext context) init, {
     required List<Type> inject,
-  }) => DeferredProvider(init, inject: inject);
-
+  }) =>
+      DeferredProvider(init, inject: inject);
 }
 
 /// The [DeferredProvider] class is used to define a provider that is initialized asynchronously.
