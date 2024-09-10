@@ -13,6 +13,10 @@ class TestProviderDependent extends Provider {
   TestProviderDependent(TestProvider provider);
 }
 
+class TestProviderDependent2 extends Provider {
+  TestProviderDependent2(TestProvider provider);
+}
+
 class TestProviderOnInit extends Provider with OnApplicationInit {
   bool isInitialized = false;
 
@@ -100,6 +104,10 @@ void main() async {
         DeferredProvider((context) async {
           final dep = context.use<TestProvider>();
           return TestProviderDependent(dep);
+        }, inject: [TestProvider]),
+        Provider.deferred((context) async {
+          final dep = context.use<TestProvider>();
+          return TestProviderDependent2(dep);
         }, inject: [TestProvider])
       ]);
       await container.registerModules(module, Type);
@@ -107,6 +115,7 @@ void main() async {
       await container.finalize(module);
 
       expect(container.get<TestProviderDependent>(), isNotNull);
+      expect(container.get<TestProviderDependent2>(), isNotNull);
     });
 
     test(

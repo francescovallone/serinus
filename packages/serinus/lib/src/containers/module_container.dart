@@ -63,14 +63,16 @@ final class ModulesContainer {
   Future<void> registerModule(Module module, Type entrypoint,
       [ModuleInjectables? moduleInjectables]) async {
     final token = moduleToken(module);
-    final initializedModule = _modules[token] = await module.registerAsync(config);
+    final initializedModule =
+        _modules[token] = await module.registerAsync(config);
     if (initializedModule.runtimeType == entrypoint &&
         initializedModule.exports.isNotEmpty) {
       throw InitializationError('The entrypoint module cannot have exports');
     }
     _providers[token] = [];
     if (_moduleInjectables.containsKey(token)) {
-      _moduleInjectables[token] = moduleInjectables!.concatTo(_moduleInjectables[token]);
+      _moduleInjectables[token] =
+          moduleInjectables!.concatTo(_moduleInjectables[token]);
     } else {
       final newInjectables = ModuleInjectables(
         middlewares: {...module.middlewares},

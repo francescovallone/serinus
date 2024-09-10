@@ -50,7 +50,7 @@ class RequestHandler extends Handler {
             : request.path,
         request.method.toHttpMethod());
     final routeData = routeLookup.route;
-    if(routeLookup.params.isNotEmpty) {
+    if (routeLookup.params.isNotEmpty) {
       wrappedRequest.params = routeLookup.params;
     }
     if (routeData == null) {
