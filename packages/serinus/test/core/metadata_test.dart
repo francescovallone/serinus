@@ -4,7 +4,15 @@ import 'dart:io';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
-import '../../bin/serinus.dart';
+class TestProvider extends Provider {
+
+  final List<String> testList = [
+    'Hello',
+    'World',
+  ];
+
+  TestProvider();
+}
 
 class TestController extends Controller {
   @override
@@ -42,13 +50,12 @@ void main() async {
   group('$Metadata - $ContextualizedMetadata', () {
     SerinusApplication? app;
     final controller = TestController();
-    final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
           port: 3030,
           entrypoint: TestModule(
               controllers: [controller],
-              middlewares: [middleware],
+              middlewares: [],
               providers: [TestProvider()]),
           loggingLevel: LogLevel.none);
       await app?.serve();
@@ -57,7 +64,8 @@ void main() async {
       await app?.close();
     });
     test(
-        '''when a 'Metadata' is added to the route and the controller, then the 'RequestContext' should exposes them on the 'stat' method''',
+        '''metadata should be accessible from the route and the controller, 
+           and exposed on the 'stat' method''',
         () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3030/meta'));
@@ -68,7 +76,8 @@ void main() async {
       expect(body, 'true - test');
     });
     test(
-        '''when a 'ContextualizedMetadata' is added to the route and the controller, then the 'RequestContext' should solve the values and expose them on the 'stat' method''',
+        '''contextualized metadata should be accessible from the route and the controller, 
+           and the values should be solved and exposed on the 'stat' method''',
         () async {
       final request = await HttpClient()
           .getUrl(Uri.parse('http://localhost:3030/meta-context'));

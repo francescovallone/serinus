@@ -1,6 +1,5 @@
 import 'package:collection/collection.dart';
 
-import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
@@ -23,8 +22,9 @@ final class ModulesContainer {
   Iterable<Type> get injectableProviders =>
       _providers.values.flatten().map((e) => e.runtimeType);
 
-  /// The Map of all the deferred providers registered in the application
   final Map<String, Iterable<DeferredProvider>> _deferredProviders = {};
+
+  final List<_ProviderDependencies> _providerDependencies = [];
 
   /// The list of all the global providers registered in the application
   final List<Provider> globalProviders = [];
@@ -63,6 +63,10 @@ final class ModulesContainer {
   Future<void> registerModule(Module module, Type entrypoint,
       [ModuleInjectables? moduleInjectables]) async {
     final token = moduleToken(module);
+    if (_modules.containsKey(token)) {
+      throw InitializationError(
+          'The module ${module.runtimeType} is already registered in the application');
+    }
     final initializedModule =
         _modules[token] = await module.registerAsync(config);
     if (initializedModule.runtimeType == entrypoint &&
@@ -77,8 +81,7 @@ final class ModulesContainer {
       final newInjectables = ModuleInjectables(
         middlewares: {...module.middlewares},
       );
-      _moduleInjectables[token] =
-          moduleInjectables?.concatTo(newInjectables) ?? newInjectables;
+      _moduleInjectables[token] = moduleInjectables?.concatTo(newInjectables) ?? newInjectables;
     }
     final split = initializedModule.providers.splitBy<DeferredProvider>();
     for (final provider in split.notOfType) {
@@ -94,38 +97,7 @@ final class ModulesContainer {
     );
     _deferredProviders[token] = split.ofType;
     logger.info(
-        '${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies initialized');
-  }
-
-  /// Gets the application context
-  ///
-  /// The [providersToInject] is the list of providers to inject in the application context
-  ///
-  /// The method returns the application context with the providers to inject
-  ///
-  /// Throws a [StateError] if the provider is not found in the application providers
-  ApplicationContext _getApplicationContext(List<Type> providersToInject) {
-    final usableProviders = <Provider>[];
-    final globalTypes = globalProviders.map((e) => e.runtimeType);
-    for (final provider in providersToInject) {
-      if (globalTypes.contains(provider)) {
-        continue;
-      }
-      if (!injectableProviders.contains(provider)) {
-        throw StateError(
-            '$provider not found in the application providers, are you sure it is registered?');
-      }
-      usableProviders.add(_providers.values
-          .flatten()
-          .firstWhere((element) => element.runtimeType == provider));
-    }
-    usableProviders.addAll(globalProviders);
-    return ApplicationContext(
-        Map<Type, Provider>.fromEntries([
-          for (final provider in usableProviders)
-            MapEntry(provider.runtimeType, provider)
-        ]),
-        config.applicationId);
+        'Initializing ${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies.');
   }
 
   /// Registers all the modules in the application
@@ -140,13 +112,12 @@ final class ModulesContainer {
   Future<void> registerModules(Module module, Type entrypoint,
       [ModuleInjectables? moduleInjectables]) async {
     _isInitialized = true;
-    final splittedModules = module.imports.splitBy<DeferredModule>();
     final token = moduleToken(module);
     final currentModuleInjectables =
         _moduleInjectables[token] ??= ModuleInjectables(
       middlewares: {...module.middlewares},
     );
-    for (var subModule in splittedModules.notOfType) {
+    for (var subModule in module.imports) {
       await _callForRecursiveRegistration(
           subModule, module, entrypoint, currentModuleInjectables);
       final subModuleToken = moduleToken(subModule);
@@ -154,19 +125,6 @@ final class ModulesContainer {
         _moduleInjectables[subModuleToken] = currentModuleInjectables
             .concatTo(_moduleInjectables[subModuleToken]);
       }
-    }
-    for (var deferredModule in splittedModules.ofType) {
-      final subModule = await deferredModule
-          .init(_getApplicationContext(deferredModule.inject));
-      await _callForRecursiveRegistration(
-          subModule, module, entrypoint, currentModuleInjectables);
-      final subModuleToken = moduleToken(subModule);
-      if (_moduleInjectables.containsKey(subModuleToken)) {
-        _moduleInjectables[subModuleToken] = currentModuleInjectables
-            .concatTo(_moduleInjectables[subModuleToken]);
-      }
-      module.imports.remove(deferredModule);
-      module.imports.add(subModule);
     }
     await registerModule(module, entrypoint, _moduleInjectables[token]);
   }
@@ -191,63 +149,124 @@ final class ModulesContainer {
 
   /// Finalizes the registration of the deferred providers
   Future<void> finalize(Module entrypoint) async {
+    injectProvidersInSubModule(entrypoint);
+    await initializeDeferredProviders(entrypoint);
+    await resolveProvidersDependencies();
+    _deferredProviders.clear();
+    _providerDependencies.clear();
+    injectProvidersInSubModule(entrypoint);
+  }
+
+  /// Initializes the deferred providers
+  Future<void> initializeDeferredProviders(Module module) async {
     for (final entry in _deferredProviders.entries) {
       final token = entry.key;
       final providers = entry.value;
       final parentModule = getModuleByToken(token);
       for (final provider in [...providers]) {
-        final context = _getApplicationContext(provider.inject);
-        final initializedProvider = await provider.init(context);
-        await initIfUnregistered(initializedProvider);
-        if (initializedProvider.isGlobal) {
-          globalProviders.add(initializedProvider);
-        } else {
-          _providers[token]?.add(initializedProvider);
+        final dependencies = canInit(provider.inject);
+        if (dependencies.isNotEmpty) {
+          checkForCircularDependencies(provider, parentModule, dependencies);
+          _providerDependencies.add(_ProviderDependencies(
+            provider: provider,
+            module: parentModule,
+            dependencies: dependencies.toSet(),
+          ));
+          continue;
         }
-        parentModule.providers.remove(provider);
-        parentModule.providers.add(initializedProvider);
-      }
-      final parentModuleInjectables = getModuleInjectablesByToken(token);
-      _moduleInjectables[token] = parentModuleInjectables.copyWith(
-        providers: parentModuleInjectables.providers
-            .whereNot((e) => e is! DeferredProvider)
-            .toSet(),
-      );
-      final exportedProviders = [...parentModule.exports];
-      final parentProviders =
-          (_providers[token] ?? []).map((e) => e.runtimeType);
-      final typesGlobalProvider = globalProviders.map((e) => e.runtimeType);
-      for (final exportedProvider in exportedProviders) {
-        if (!parentProviders.contains(exportedProvider)) {
-          if (typesGlobalProvider.contains(exportedProvider)) {
-            logger.warning(
-                'The exported provider $exportedProvider is global and should not be exported');
-            parentModule.exports.remove(exportedProvider);
-            continue;
-          }
+        final initializedProviders = (_moduleInjectables[token]?.providers.where(
+          (e) => provider.inject.contains(e.runtimeType)) ?? []
+        ).toList();
+        if(initializedProviders.isEmpty && provider.inject.isNotEmpty) {
           throw InitializationError(
-              'All the exported providers must be registered in the module');
+            '[${module.runtimeType}] Cannot resolve dependencies for a DeferredProvider! Do the following to fix this error: \n'
+            '1. Make sure all the dependencies are correctly imported in the module. \n'
+            '2. Make sure the dependencies are correctly exported by their module. \n'
+            'If the error persists, please check the logs for more information and open an issue on the repository.',
+          );
         }
+        Map<Type, Provider> dependenciesMap = generateDependenciesMap(initializedProviders);
+        final result = await Function.apply(provider.init, provider.inject.map((e) => dependenciesMap[e]).toList());
+        checkResultType(provider, result, module);
+        await initIfUnregistered(result);
+        parentModule.providers.add(result);
+        if (result.isGlobal) {
+          globalProviders.add(result);
+        } else {
+          _providers[token]?.add(result);
+        }
+        _moduleInjectables[token]?.replaceDeferredProvider(provider.hashCode, result);
+        _deferredProviders[token] = _deferredProviders[token]?.where((e) => e.hashCode != provider.hashCode) ?? [];
+        injectProvidersInSubModule(module);
       }
-      // if (!parentModule.exports.every((element) =>
-      //     _providers[token]?.map((e) => e.runtimeType).contains(element) ??
-      //     true)) {
-      //   throw InitializationError(
-      //       'All the exported providers must be registered in the module');
-      // }
     }
-    final entrypointToken = moduleToken(entrypoint);
-    ModuleInjectables entrypointInjectables =
-        _moduleInjectables[entrypointToken]!;
-    final providers = getModuleScopedProviders(entrypoint, true);
-    _moduleInjectables[entrypointToken] = entrypointInjectables.copyWith(
-      providers: {
-        ...providers.providers,
-        ...providers.exportedProviders,
-        ...entrypointInjectables.providers,
-      },
-    );
-    injectProvidersInSubModule(entrypoint);
+  }
+
+  /// Checks the result type of the deferred provider
+  void checkResultType(DeferredProvider provider, dynamic result, Module module) {
+    if(result is DeferredProvider) {
+      throw InitializationError('[${module.runtimeType}] A DeferredProvider cannot return another DeferredProvider');
+    }
+    if(result is! Provider) {
+      throw InitializationError('[${module.runtimeType}] ${result.runtimeType} is not a Provider');
+    }
+    if(result.runtimeType != provider.type) {
+      throw InitializationError('[${module.runtimeType}] ${result.runtimeType} has a different type than the expected type ${provider.type}');
+    }
+  }
+
+  /// Recursively resolves the dependencies of the deferred providers
+  Future<void> resolveProvidersDependencies() async {
+    if(_providerDependencies.every((e) => e.isInitialized)) {
+      return;
+    }
+    for (final entry in _providerDependencies) {
+      if (entry.isInitialized) {
+        continue;
+      }
+      final _ProviderDependencies(: provider, : module, : dependencies) = entry;
+      final token = moduleToken(module);
+      final initializedProviders = _moduleInjectables[token]?.providers.where(
+        (e) => dependencies.contains(e.runtimeType),
+      ).toList();
+      checkForCircularDependencies(provider, module, dependencies.toList());
+      if(initializedProviders?.isEmpty ?? true && dependencies.isNotEmpty) {
+        throw InitializationError(
+          '[${module.runtimeType}] Cannot resolve dependencies for a DeferredProvider! Do the following to fix this error: \n'
+          '1. Make sure all the dependencies are correctly imported in the module. \n'
+          '2. Make sure the dependencies are correctly exported by their module. \n'
+          'If the error persists, please check the logs for more information and open an issue on the repository.',
+        );
+      }
+      Map<Type, Provider> dependenciesMap = generateDependenciesMap(initializedProviders);
+      final result = await Function.apply(provider.init, provider.inject.map((e) => dependenciesMap[e]).toList());
+      checkResultType(provider, result, module);
+      module.providers.add(result);
+      await initIfUnregistered(result);
+      if (result.isGlobal) {
+        globalProviders.add(result);
+      } else {
+        _providers[token]?.add(result);
+      }
+      _moduleInjectables[token]?.replaceDeferredProvider(provider.hashCode, result);
+      entry.isInitialized = true;
+      await resolveProvidersDependencies();
+    }
+  }
+
+  /// Checks if a DeferredProvider can be initialized instantly
+  List<Type> canInit(List<Type> providersToInject) {
+    final dependenciesToInit = <Type>[];
+    final globalTypes = globalProviders.map((e) => e.runtimeType);
+    for (final provider in providersToInject) {
+      if (globalTypes.contains(provider)) {
+        continue;
+      }
+      if (!injectableProviders.contains(provider)) {
+        dependenciesToInit.add(provider);
+      }
+    }
+    return dependenciesToInit;
   }
 
   /// Injects the providers in the submodules
@@ -265,6 +284,15 @@ final class ModulesContainer {
       );
       injectProvidersInSubModule(subModule);
     }
+    ModuleInjectables injectables = _moduleInjectables[token]!;
+    final providers = getModuleScopedProviders(module, true);
+    _moduleInjectables[token] = injectables.copyWith(
+      providers: {
+        ...providers.providers,
+        ...providers.exportedProviders,
+        ...injectables.providers,
+      },
+    );
   }
 
   /// Gets the module scoped providers
@@ -373,6 +401,28 @@ final class ModulesContainer {
         _modules.values.expand((element) => element.providers).toList();
     return providers.whereType<T>().toList();
   }
+  
+  /// Checks for circular dependencies
+  void checkForCircularDependencies(DeferredProvider provider, Module parentModule, List<Type> dependencies) {
+    final branchProviders = [
+      ...parentModule.imports.map((e) => e.providers).flatten(),
+      ...parentModule.providers,
+    ];
+    for (final p in branchProviders) {
+      if (p is DeferredProvider && dependencies.contains(p.type) && p.inject.contains(provider.type)) {
+        throw InitializationError('[${parentModule.runtimeType}] Circular dependency found in ${provider.type}');
+      }
+    }
+  }
+  
+  /// Generates the dependencies map
+  Map<Type, Provider> generateDependenciesMap(List<Provider>? initializedProviders) {
+    Map<Type, Provider> dependenciesMap = {};
+    for (final provider in initializedProviders!) {
+      dependenciesMap[provider.runtimeType] = provider;
+    }
+    return dependenciesMap;
+  }
 }
 
 /// The [ModuleInjectables] class is used to create the module injectables.
@@ -437,4 +487,27 @@ class ModuleInjectables {
     }
     return executedMiddlewares;
   }
+
+  /// Remove a DeferredProvider from the providers based on its hashcode and replace it with a Provider
+  void replaceDeferredProvider(int hashcode, Provider provider) {
+    providers
+        ..removeWhere((element) => element.hashCode == hashcode)
+        ..add(provider);
+  }
+  
+}
+
+class _ProviderDependencies {
+
+  final DeferredProvider provider;
+  final Module module;
+  final Iterable<Type> dependencies;
+  bool isInitialized = false;
+
+  _ProviderDependencies({
+    required this.provider,
+    required this.module,
+    required this.dependencies,
+  });
+
 }

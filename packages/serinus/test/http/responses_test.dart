@@ -6,7 +6,16 @@ import 'package:serinus/src/containers/router.dart';
 import 'package:serinus/src/services/json_utils.dart';
 import 'package:test/test.dart';
 
-import '../../bin/serinus.dart';
+class TestObj with JsonObject {
+  final String name;
+
+  TestObj(this.name);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {'name': name};
+  }
+}
 
 class TestRoute extends Route {
   const TestRoute({

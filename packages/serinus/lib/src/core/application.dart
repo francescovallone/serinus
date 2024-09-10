@@ -7,7 +7,6 @@ import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
-import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
 import '../handlers/request_handler.dart';
@@ -173,10 +172,6 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> initialize() async {
-    if (entrypoint is DeferredModule) {
-      throw InitializationError(
-          'The entry point of the application cannot be a DeferredModule');
-    }
     if (!modulesContainer.isInitialized) {
       await modulesContainer.registerModules(
           entrypoint, entrypoint.runtimeType);

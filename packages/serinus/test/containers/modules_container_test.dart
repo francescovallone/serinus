@@ -1,29 +1,50 @@
+import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
+import '../mocks/injectables_mock.dart';
 import '../mocks/module_mock.dart';
+
+
+class _MockAdapter extends Mock implements Adapter {}
 
 void main() {
   group('$ModulesContainer', () {
     test(
-        'when the function "registerModules" is called, then it should add a module to the container',
+        'registerModules should register a module in the container and store it in the modules list',
         () async {
-      final container = ModulesContainer(ApplicationConfig(
+      final container = ModulesContainer(
+        ApplicationConfig(
           host: 'localhost',
           port: 3000,
-          serverAdapter: SerinusHttpAdapter(
-            host: 'localhost',
-            port: 3000,
-            poweredByHeader: 'Serinus',
-          ),
-          poweredByHeader: 'Serinus'));
+          serverAdapter: _MockAdapter(),
+          poweredByHeader: 'Serinus'
+        )
+      );
       final module = SimpleModule();
       await container.registerModules(module, module.runtimeType);
       expect(container.modules.length, 1);
     });
 
     test(
-        'when the function "registerModule" is called with a module with a provider, then the $ModulesContainer should create a ModuleInjectables with the provider',
+        'registerModules should throw an $InitializationError when a module is registered multiple times',
+        () async {
+      final container = ModulesContainer(
+        ApplicationConfig(
+          host: 'localhost',
+          port: 3000,
+          serverAdapter: _MockAdapter(),
+          poweredByHeader: 'Serinus'
+        )
+      );
+      final module = SimpleModule();
+      await container.registerModules(module, module.runtimeType);
+      expect(() => container.registerModules(module, module.runtimeType),
+          throwsA(isA<InitializationError>()));
+    });
+
+    test(
+        'registerModules should register a module and create a ModuleInjectables with the providers',
         () async {
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
@@ -46,7 +67,7 @@ void main() {
     });
 
     test(
-        'when the function "registerModule" is called with a module with injectables, then the $ModulesContainer should create a ModuleInjectables with all the injectables',
+        'registerModule should register a module with injectables and create a ModuleInjectables with all the injectables',
         () async {
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
@@ -67,9 +88,41 @@ void main() {
     });
 
     test(
-        '''when the function "registerModule" is called with a module with imports and injectables,\n
-      then the $ModulesContainer should create two $ModuleInjectables which for the main module contains all its own injectables and the providers from the imported module,\n
-      and for the imported module contains only its own provider and an intersection from its own injectables and the injectables from the main module
+        'if getModuleInjectablesByToken is called with a module that is not registered, it should throw an $ArgumentError',
+        () async {
+      final container = ModulesContainer(ApplicationConfig(
+          host: 'localhost',
+          port: 3000,
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Serinus',
+          ),
+          poweredByHeader: 'Serinus'));
+      expect(() => container.getModuleInjectablesByToken('NotRegisteredModule'),
+          throwsA(isA<ArgumentError>()));
+    });
+
+    test(
+        'if getModuleByProvider is called with a provider with an unregistered Module, it should throw an $ArgumentError',
+        () async {
+      final container = ModulesContainer(ApplicationConfig(
+          host: 'localhost',
+          port: 3000,
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Serinus',
+          ),
+          poweredByHeader: 'Serinus'));
+      expect(() => container.getModuleByProvider(TestProvider),
+          throwsA(isA<ArgumentError>()));
+    });
+
+    test(
+        '''
+        registerModule should register a module with imports and injectables,
+        then the ModulesContainer should create two ModuleInjectables which for the main module contains all its own injectables and the providers from the imported module,
       ''', () async {
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
@@ -93,57 +146,12 @@ void main() {
           container.getModuleInjectablesByToken(t.toString());
       expect(injectables.middlewares.length, 1);
       expect(subInjectables.providers.length, 2);
-      expect(subInjectables.providers.last, injectables.providers.last);
+      expect(injectables.providers.where((e) => e.runtimeType == subInjectables.providers.last.runtimeType), isNotEmpty);
       final t2 = ImportableModuleWithNonExportedProvider;
       final subInjectablesTwo =
           container.getModuleInjectablesByToken(t2.toString());
       expect(subInjectablesTwo.providers.length, 3);
     });
 
-    // test('when the function "getModuleByToken" is called, and the module exists, then it should return the correct module', () {
-    //   final container = ModulesContainer();
-    //   final module = AppModule();
-    //   container.registerModule(module);
-    //   final result = container.getModuleByToken('AppModule');
-    //   expect(result, module);
-    // });
-
-    // test('when the function "getModuleByToken" is called, and the module does not exists, then it should return null', () {
-    //   final container = ModulesContainer();
-    //   final module = AppModule();
-    //   container.registerModule(module);
-    //   final result = container.getModuleByToken('NonExistentModule');
-    //   expect(result, isNull);
-    // });
-
-    // test('when the function "getModuleByToken" is called, and the module is imported, then it should return the correct module', () {
-    //   final container = ModulesContainer();
-    //   final module = AppModule();
-    //   final reModule = ReAppModule();
-    //   container.registerModule(module);
-    //   container.registerModule(reModule);
-    //   final result = container.getModuleByToken('ReAppModule');
-    //   expect(result, reModule);
-    // });
-
-    // test('when the function "getModuleByToken" is called, and the module is exported, then it should return the correct module', () {
-    //   final container = ModulesContainer();
-    //   final module = AppModule();
-    //   final reModule = ReAppModule();
-    //   container.registerModule(module);
-    //   container.registerModule(reModule);
-    //   final result = container.getModuleByToken('TestProviderTwo');
-    //   expect(result, reModule);
-    // });
-
-    // test('when the function "getModuleByToken" is called, and the module is exported, then it should return the correct module', () {
-    //   final container = ModulesContainer();
-    //   final module = AppModule();
-    //   final reModule = ReAppModule();
-    //   container.registerModule(module);
-    //   container.registerModule(reModule);
-    //   final result = container.getModuleByToken('TestProviderTwo');
-    //   expect(result, reModule);
-    // });
   });
 }
