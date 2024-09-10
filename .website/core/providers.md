@@ -87,6 +87,7 @@ class MyModule extends Module {
   )
 }
 ```
+
 :::
 
 ## Global Providers
@@ -103,12 +104,17 @@ class MyProvider extends Provider {
 
 ## Deferred Providers
 
-By default, all providers are created when the module is created. If you want to create the provider after all the modules are created, you can extend the `DeferredProvider` class.
+By default, all providers are created when the module is created. If you want to create the provider after all the modules are registered, you can extend the `DeferredProvider` class.
 
 This class has a `init` property that accepts a function that returns the provider.
 
 Also the `init` function has access to the application context and contains all the providers initialized.
 When a DeferredProvider is initialized, its provider is added to the application context so that it can be used as dependency by other providers. This grant a incremental initialization of the providers.
+
+::: tip
+You can also use a shorthand to create a DeferredProvider by using the `Provider.deferred` factory constructor.
+This constructor uses the same parameters as the `DeferredProvider` class.
+:::
 
 ::: code-group
 
