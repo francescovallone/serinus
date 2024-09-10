@@ -44,5 +44,4 @@ abstract class Module {
   Future<Module> registerAsync(ApplicationConfig config) async {
     return this;
   }
-
 }

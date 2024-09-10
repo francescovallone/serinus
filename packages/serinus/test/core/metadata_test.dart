@@ -5,7 +5,6 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestProvider extends Provider {
-
   final List<String> testList = [
     'Hello',
     'World',
@@ -63,10 +62,8 @@ void main() async {
     tearDownAll(() async {
       await app?.close();
     });
-    test(
-        '''metadata should be accessible from the route and the controller, 
-           and exposed on the 'stat' method''',
-        () async {
+    test('''metadata should be accessible from the route and the controller, 
+           and exposed on the 'stat' method''', () async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3030/meta'));
       final response = await request.close();

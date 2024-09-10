@@ -40,8 +40,7 @@ class TestProviderTwo extends Provider
   }
 }
 
-class TestProviderThree extends Provider with OnApplicationInit{
-
+class TestProviderThree extends Provider with OnApplicationInit {
   final TestProvider testProvider;
 
   TestProviderThree(this.testProvider);
@@ -50,7 +49,6 @@ class TestProviderThree extends Provider with OnApplicationInit{
   Future<void> onApplicationInit() async {
     print('Provider three initialized');
   }
-
 }
 
 class TestProviderFour extends Provider with OnApplicationInit {
@@ -69,44 +67,36 @@ class TestProviderFour extends Provider with OnApplicationInit {
 class CircularDependencyModule extends Module {
   CircularDependencyModule()
       : super(imports: [
-        AnotherModule()
-      ], controllers: [], providers: [
-          Provider.deferred(
-            (TestProvider tp) => TestProviderThree(tp),
-            inject: [TestProvider],
-            type: TestProviderThree
-          ),
-        ], exports: [TestProviderThree], middlewares: []);
+          AnotherModule()
+        ], controllers: [], providers: [
+          Provider.deferred((TestProvider tp) => TestProviderThree(tp),
+              inject: [TestProvider], type: TestProviderThree),
+        ], exports: [
+          TestProviderThree
+        ], middlewares: []);
 }
 
 class AnotherModule extends Module {
   AnotherModule()
       : super(imports: [], controllers: [], providers: [
-                    Provider.deferred(
-            (TestProviderTwo tp, TestProviderThree t) => TestProviderFour(t, tp),
-            inject: [TestProviderTwo, TestProviderThree],
-            type: TestProviderFour
-          ),
+          Provider.deferred(
+              (TestProviderTwo tp, TestProviderThree t) =>
+                  TestProviderFour(t, tp),
+              inject: [TestProviderTwo, TestProviderThree],
+              type: TestProviderFour),
         ], middlewares: []);
 }
-
 
 class AppModule extends Module {
   AppModule()
       : super(imports: [
-                AnotherModule(),
-
+          AnotherModule(),
           CircularDependencyModule()
-        ], controllers: [
-        ], providers: [
+        ], controllers: [], providers: [
           TestProvider(isGlobal: true),
-          Provider.deferred(
-            (TestProviderThree tp) => TestProviderTwo(tp),
-            inject: [TestProviderThree],
-            type: TestProviderTwo
-          ),
-        ], middlewares: [
-        ]);
+          Provider.deferred((TestProviderThree tp) => TestProviderTwo(tp),
+              inject: [TestProviderThree], type: TestProviderTwo),
+        ], middlewares: []);
 }
 
 void main(List<String> arguments) async {

@@ -86,197 +86,177 @@ void main() async {
     });
   });
 
-  group(
-    '$DeferredProvider',
-    () {
-      test(
-        'all the $DeferredProvider should be accessible after the finalize method is called',
-        () async {
-          final container = ModulesContainer(config);
-          final module = TestModule(providers: [
-            DeferredProvider(() async => TestProvider(), inject: [], type: TestProvider)
-          ]);
-          await container.registerModules(module, Type);
-
-          await container.finalize(module);
-
-          expect(container.get<TestProvider>(), isNotNull);
-        },
-      );
-
-      test(
-        'No $DeferredProvider should be accessible before the finalize method is called',
-        () async {
-          final container = ModulesContainer(config);
-          final module = TestModule(providers: [
-            DeferredProvider(() async => TestProvider(), inject: [], type: TestProvider)
-          ]);
-          await container.registerModules(module, Type);
-
-          expect(container.get<TestProvider>(), isNull);
-        },
-      );
-
-      test(
-          'A $DeferredProvider with the dependencies satisifed can be initialized', () async {
+  group('$DeferredProvider', () {
+    test(
+      'all the $DeferredProvider should be accessible after the finalize method is called',
+      () async {
         final container = ModulesContainer(config);
         final module = TestModule(providers: [
-          TestProvider(),
-          DeferredProvider((TestProvider provider) async {
-            return TestProviderDependent(provider);
-          }, inject: [TestProvider],
-          type: TestProviderDependent),
-          Provider.deferred((TestProvider provider) async {
-            return TestProviderDependent2(provider);
-          }, inject: [TestProvider],
-          type: TestProviderDependent2)
+          DeferredProvider(() async => TestProvider(),
+              inject: [], type: TestProvider)
         ]);
         await container.registerModules(module, Type);
 
         await container.finalize(module);
 
-        expect(container.get<TestProviderDependent>(), isNotNull);
-        expect(container.get<TestProviderDependent2>(), isNotNull);
-      });
+        expect(container.get<TestProvider>(), isNotNull);
+      },
+    );
 
-      test(
-          '''A $DeferredProvider with the dependencies not satisfied cannot be initialized and a $InitializationError should be thrown''', () async {
+    test(
+      'No $DeferredProvider should be accessible before the finalize method is called',
+      () async {
         final container = ModulesContainer(config);
         final module = TestModule(providers: [
-          DeferredProvider((TestProvider provider) async {
-            return TestProviderDependent(provider);
-          }, inject: [TestProvider],
-          type: TestProviderDependent)
+          DeferredProvider(() async => TestProvider(),
+              inject: [], type: TestProvider)
         ]);
         await container.registerModules(module, Type);
 
-        container
-            .finalize(module)
-            .catchError((value) => expect(value.runtimeType, InitializationError));
-      });
+        expect(container.get<TestProvider>(), isNull);
+      },
+    );
 
-      test(
-          '''A $DeferredProvider cannot return another $DeferredProvider''', () async {
-        final container = ModulesContainer(config);
-        final module = TestModule(providers: [
-          TestProvider(),
-          DeferredProvider((TestProvider provider) async {
-            return DeferredProvider(() => TestProviderDependent(provider), inject: [], type: TestProviderDependent);
-          }, inject: [TestProvider],
-          type: TestProviderDependent)
-        ]);
-        await container.registerModules(module, Type);
-
-        container
-            .finalize(module)
-            .catchError((value) => expect(value.runtimeType, InitializationError));
-      });
-
-      test(
-          '''The type param must be the same as the $Provider returned by the init function''', () async {
-        final container = ModulesContainer(config);
-        final module = TestModule(providers: [
-          TestProvider(),
-          DeferredProvider((TestProvider provider) async {
-            return TestProviderDependent(provider);
-          }, inject: [TestProvider],
-          type: int)
-        ]);
-        await container.registerModules(module, Type);
-
-        container
-            .finalize(module)
-            .catchError((value) {
-              expect(value.runtimeType, InitializationError);
-              expect((value as InitializationError).message, '[TestModule] TestProviderDependent has a different type than the expected type int');
-            });
-      });
-
-      test(
-          '''If a the dependency of a $DeferredProvider is a $DeferredProvider that will be initialized after it then they should be resolved''', () async {
-        final container = ModulesContainer(config);
-        final module = TestModule(providers: [
-          DeferredProvider((TestProvider provider) async {
-            return TestProviderDependent(provider);
-          }, inject: [TestProvider],
-          type: TestProviderDependent),
-                    DeferredProvider(
-            () async {
-              return TestProvider();
-            },
-            inject: [],
-            type: TestProvider
-          ),
-        ]);
-        await container.registerModules(module, Type);
-
-        container
-            .finalize(module).then((_) => expect(container.get<TestProviderDependent>(), isNotNull));
-      });
-
-      test(
-          '''when two DeferredProviders have a circular dependency a $InitializationError must be thrown''', () async {
-        final container = ModulesContainer(config);
-        final module = TestModule(providers: [
-          DeferredProvider((CircularProvider2 provider) async {
-            return CircularProvider(provider);
-          }, inject: [CircularProvider2],
-          type: CircularProvider),
-          DeferredProvider((CircularProvider provider) async {
-            return CircularProvider2(provider);
-          }, inject: [CircularProvider],
-          type: CircularProvider2)
-        ]);
-        await container.registerModules(module, Type);
-
-        container
-            .finalize(module)
-            .catchError((value) {
-              expect(value.runtimeType, InitializationError);
-              expect((value as InitializationError).message, contains('[TestModule] Circular dependency found in'));
-            });
-      });
-
-      test(
-        '''when a $DeferredProvider uses a dependency that is not available in the module scope an $InitializationError should be thrown''', 
+    test(
+        'A $DeferredProvider with the dependencies satisifed can be initialized',
         () async {
-        final container = ModulesContainer(config);
-        final module = TestModule(
-          imports: [NoExportModule(
-            providers: [TestProvider()]
-          )],
-          providers: [
-          DeferredProvider((TestProvider provider) async {
-            return TestProviderDependent(provider);
-          }, inject: [TestProvider],
-          type: TestProviderDependent)
-        ]);
-        await container.registerModules(module, Type);
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [
+        TestProvider(),
+        DeferredProvider((TestProvider provider) async {
+          return TestProviderDependent(provider);
+        }, inject: [TestProvider], type: TestProviderDependent),
+        Provider.deferred((TestProvider provider) async {
+          return TestProviderDependent2(provider);
+        }, inject: [TestProvider], type: TestProviderDependent2)
+      ]);
+      await container.registerModules(module, Type);
 
-        container
-            .finalize(module)
-            .catchError((value) => expect(value.runtimeType, InitializationError));
-        }
-      );
+      await container.finalize(module);
 
-      test(
-        '''when a $DeferredProvider does not return a $Provider an $InitializationError should be thrown''', 
+      expect(container.get<TestProviderDependent>(), isNotNull);
+      expect(container.get<TestProviderDependent2>(), isNotNull);
+    });
+
+    test(
+        '''A $DeferredProvider with the dependencies not satisfied cannot be initialized and a $InitializationError should be thrown''',
         () async {
-        final container = ModulesContainer(config);
-        final module = TestModule(
-          providers: [
-          DeferredProvider(() async {
-            return 'not a provider';
-          }, inject: [],
-          type: TestProviderDependent)
-        ]);
-        await container.registerModules(module, Type);
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [
+        DeferredProvider((TestProvider provider) async {
+          return TestProviderDependent(provider);
+        }, inject: [TestProvider], type: TestProviderDependent)
+      ]);
+      await container.registerModules(module, Type);
 
-        container
-            .finalize(module)
-            .catchError((value) => expect(value.runtimeType, InitializationError));
-        }
-      );
-    }
-  );
+      container.finalize(module).catchError(
+          (value) => expect(value.runtimeType, InitializationError));
+    });
+
+    test('''A $DeferredProvider cannot return another $DeferredProvider''',
+        () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [
+        TestProvider(),
+        DeferredProvider((TestProvider provider) async {
+          return DeferredProvider(() => TestProviderDependent(provider),
+              inject: [], type: TestProviderDependent);
+        }, inject: [TestProvider], type: TestProviderDependent)
+      ]);
+      await container.registerModules(module, Type);
+
+      container.finalize(module).catchError(
+          (value) => expect(value.runtimeType, InitializationError));
+    });
+
+    test(
+        '''The type param must be the same as the $Provider returned by the init function''',
+        () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [
+        TestProvider(),
+        DeferredProvider((TestProvider provider) async {
+          return TestProviderDependent(provider);
+        }, inject: [TestProvider], type: int)
+      ]);
+      await container.registerModules(module, Type);
+
+      container.finalize(module).catchError((value) {
+        expect(value.runtimeType, InitializationError);
+        expect((value as InitializationError).message,
+            '[TestModule] TestProviderDependent has a different type than the expected type int');
+      });
+    });
+
+    test(
+        '''If a the dependency of a $DeferredProvider is a $DeferredProvider that will be initialized after it then they should be resolved''',
+        () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [
+        DeferredProvider((TestProvider provider) async {
+          return TestProviderDependent(provider);
+        }, inject: [TestProvider], type: TestProviderDependent),
+        DeferredProvider(() async {
+          return TestProvider();
+        }, inject: [], type: TestProvider),
+      ]);
+      await container.registerModules(module, Type);
+
+      container.finalize(module).then(
+          (_) => expect(container.get<TestProviderDependent>(), isNotNull));
+    });
+
+    test(
+        '''when two DeferredProviders have a circular dependency a $InitializationError must be thrown''',
+        () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [
+        DeferredProvider((CircularProvider2 provider) async {
+          return CircularProvider(provider);
+        }, inject: [CircularProvider2], type: CircularProvider),
+        DeferredProvider((CircularProvider provider) async {
+          return CircularProvider2(provider);
+        }, inject: [CircularProvider], type: CircularProvider2)
+      ]);
+      await container.registerModules(module, Type);
+
+      container.finalize(module).catchError((value) {
+        expect(value.runtimeType, InitializationError);
+        expect((value as InitializationError).message,
+            contains('[TestModule] Circular dependency found in'));
+      });
+    });
+
+    test(
+        '''when a $DeferredProvider uses a dependency that is not available in the module scope an $InitializationError should be thrown''',
+        () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(imports: [
+        NoExportModule(providers: [TestProvider()])
+      ], providers: [
+        DeferredProvider((TestProvider provider) async {
+          return TestProviderDependent(provider);
+        }, inject: [TestProvider], type: TestProviderDependent)
+      ]);
+      await container.registerModules(module, Type);
+
+      container.finalize(module).catchError(
+          (value) => expect(value.runtimeType, InitializationError));
+    });
+
+    test(
+        '''when a $DeferredProvider does not return a $Provider an $InitializationError should be thrown''',
+        () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [
+        DeferredProvider(() async {
+          return 'not a provider';
+        }, inject: [], type: TestProviderDependent)
+      ]);
+      await container.registerModules(module, Type);
+
+      container.finalize(module).catchError(
+          (value) => expect(value.runtimeType, InitializationError));
+    });
+  });
 }

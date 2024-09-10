@@ -30,7 +30,8 @@ final config = ApplicationConfig(
 
 void main() async {
   group('$Module', () {
-    test('''registerModules should register all the submodules as well''', () async {
+    test('''registerModules should register all the submodules as well''',
+        () async {
       final container = ModulesContainer(config);
       final module = TestModule(imports: [TestSubModule()]);
       await container.registerModules(module, Type);
@@ -40,7 +41,8 @@ void main() async {
       expect(container.modules.length, 2);
     });
 
-    test('''registerModules should throw a $InitializationError when the entrypoint has exports
+    test(
+        '''registerModules should throw a $InitializationError when the entrypoint has exports
         ''', () async {
       final container = ModulesContainer(config);
 
@@ -55,7 +57,8 @@ void main() async {
               (value) => expect(value.runtimeType, InitializationError));
     });
 
-    test('''registerModules should throw a $InitializationError when the module imports itself
+    test(
+        '''registerModules should throw a $InitializationError when the module imports itself
         ''', () async {
       final container = ModulesContainer(config);
 
@@ -69,8 +72,9 @@ void main() async {
               (value) => expect(value.runtimeType, InitializationError));
     });
 
-    test('''registerModules should throw a $InitializationError when the module exports a provider that is not registered''', 
-      () async {
+    test(
+        '''registerModules should throw a $InitializationError when the module exports a provider that is not registered''',
+        () async {
       final container = ModulesContainer(config);
       final entrypoint = TestModule(
         imports: [
@@ -118,6 +122,5 @@ void main() async {
 
       expect(parents, [module]);
     });
-
   });
 }

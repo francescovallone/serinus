@@ -11,11 +11,8 @@ abstract class Provider {
   ///
   /// The [init] function is called when the provider is initialized.
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
-  factory Provider.deferred(
-    Function init, {
-    required List<Type> inject,
-    required Type type
-  }) =>
+  factory Provider.deferred(Function init,
+          {required List<Type> inject, required Type type}) =>
       DeferredProvider(init, inject: inject, type: type);
 }
 
@@ -26,17 +23,12 @@ class DeferredProvider extends Provider {
   /// The [init] function is called when the provider is initialized.
   final Function init;
 
-  /// The [type] property contains the type of the provider that will be initialized. 
+  /// The [type] property contains the type of the provider that will be initialized.
   final Type type;
 
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
   final List<Type> inject;
 
   /// The [DeferredProvider] constructor is used to create a new instance of the [DeferredProvider] class.
-  DeferredProvider(
-    this.init, {
-      required this.inject,
-      required this.type
-    }
-  );
+  DeferredProvider(this.init, {required this.inject, required this.type});
 }

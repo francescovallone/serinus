@@ -4,5 +4,4 @@ class TestProvider extends Provider {
   TestProvider();
 }
 
-void main() async {
-}
+void main() async {}
