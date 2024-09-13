@@ -59,8 +59,7 @@ class TestModule extends Module {
 
 class TestModuleMiddleware extends Middleware {
   @override
-  Future<void> use(RequestContext context, InternalResponse response,
-      NextFunction next) async {
+  Future<void> use(RequestContext context, NextFunction next) async {
     context.request.headers['x-middleware'] = 'ok!';
     return next();
   }

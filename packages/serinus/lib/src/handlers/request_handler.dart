@@ -144,12 +144,29 @@ class RequestHandler extends Handler {
           context: context,
           traced: 'm-${middlewares.elementAt(i).runtimeType}');
       final middleware = middlewares.elementAt(i);
-      await middleware.use(context, response, () async {
+      await middleware.use(context, ([data]) async {
         await config.tracerService.addSyncEvent(
             name: TraceEvents.onMiddleware,
             request: context.request,
             context: context,
             traced: 'm-${middlewares.elementAt(i).runtimeType}');
+        if(data != null) {
+          if (data.canBeJson()) {
+            data = parseJsonToResponse(data);
+            context.res.contentType = ContentType.json;
+          }
+          if (data is Uint8List) {
+            context.res.contentType = ContentType.binary;
+          }
+          await response.end(
+            data: data!, 
+            config: config, 
+            context: context, 
+            request: context.request, 
+            traced: 'm-${middlewares.elementAt(i).runtimeType}'
+          );
+          return;
+        }
         if (i == middlewares.length - 1) {
           completer.complete();
         }
