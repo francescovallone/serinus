@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:http/http.dart' as http;
 import 'package:serinus/serinus.dart';
 import 'package:shelf/shelf.dart' as shelf;
@@ -8,6 +10,23 @@ class TestRoute extends Route {
     required super.path,
     super.method = HttpMethod.get,
   });
+}
+
+class TestValueMiddleware extends Middleware {
+  TestValueMiddleware({super.routes = const ['/value/:v']});
+
+  @override
+  Future<void> use(RequestContext context, NextFunction next) async {
+    switch (context.params['v']) {
+      case '1':
+        return next({'id': 'json-obj'});
+      case '2':
+        return next(Uint8List.fromList('Hello, World!'.codeUnits));
+      default:
+        context.res.headers['x-middleware'] = 'ok!';
+    }
+    return next();
+  }
 }
 
 class TestJsonObject with JsonObject {
@@ -26,6 +45,7 @@ class TestController extends Controller {
                   context.request.headers['x-middleware'],
               'ok!'
             });
+    on(Route.get('/value/<v>'), (context) async => 'Hello, World!');
   }
 }
 
@@ -51,9 +71,9 @@ class TestModule extends Module {
   @override
   List<Middleware> get middlewares => [
         TestModuleMiddleware(),
+        TestValueMiddleware(),
         shelfMiddleware,
         shelfAltMiddleware,
-        TestModuleMiddleware()
       ];
 }
 
@@ -96,6 +116,22 @@ void main() {
       );
       expect(response.statusCode, 200);
       expect(response.headers.containsKey('x-shelf-middleware'), true);
+    });
+
+    test(
+        '''when a request is made to a route with a shelf handler as a Middleware in the module, then the shelf middleware should be executed''',
+        () async {
+      final response = await http.get(
+        Uri.parse('http://localhost:3003/value/1'),
+      );
+      expect(response.statusCode, 200);
+      expect(response.body.contains('{"id":"json-obj"}'), true);
+
+      final response2 = await http.get(
+        Uri.parse('http://localhost:3003/value/2'),
+      );
+      expect(response2.statusCode, 200);
+      expect(response2.body.contains('Hello, World!'), true);
     });
 
     test(

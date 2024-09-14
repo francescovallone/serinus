@@ -150,7 +150,7 @@ class RequestHandler extends Handler {
             request: context.request,
             context: context,
             traced: 'm-${middlewares.elementAt(i).runtimeType}');
-        if(data != null) {
+        if (data != null) {
           if (data.canBeJson()) {
             data = parseJsonToResponse(data);
             context.res.contentType = ContentType.json;
@@ -159,12 +159,11 @@ class RequestHandler extends Handler {
             context.res.contentType = ContentType.binary;
           }
           await response.end(
-            data: data!, 
-            config: config, 
-            context: context, 
-            request: context.request, 
-            traced: 'm-${middlewares.elementAt(i).runtimeType}'
-          );
+              data: data!,
+              config: config,
+              context: context,
+              request: context.request,
+              traced: 'm-${middlewares.elementAt(i).runtimeType}');
           return;
         }
         if (i == middlewares.length - 1) {

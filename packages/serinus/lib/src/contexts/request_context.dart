@@ -5,7 +5,7 @@ import '../http/http.dart';
 import 'base_context.dart';
 
 /// The [RequestContext] class is used to create the request context.
-final class RequestContext extends BaseContext {
+class RequestContext extends BaseContext {
   /// The [request] property contains the request of the context.
   final Request request;
 
