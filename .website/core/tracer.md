@@ -45,6 +45,7 @@ The `TraceEvent` class has the following properties:
 | `traced` | The traced event. |
 
 The `traced` property follows a naming convention of:
+
 - `r-*` for route-related events (e.g. route handler, route hooks)
 - `m-*` for middleware-related events
 - `h-*` for hooks-related events (e.g. global hooks)

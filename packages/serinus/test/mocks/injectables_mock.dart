@@ -28,8 +28,7 @@ class TestMiddleware extends Middleware {
   TestMiddleware() : super(routes: ['*']);
 
   @override
-  Future<void> use(RequestContext context, InternalResponse response,
-      NextFunction next) async {
+  Future<void> use(RequestContext context, NextFunction next) async {
     return next();
   }
 }

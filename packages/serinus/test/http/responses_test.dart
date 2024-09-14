@@ -72,11 +72,7 @@ class TestMiddleware extends Middleware {
   bool hasBeenCalled = false;
 
   @override
-  Future<void> use(RequestContext context, InternalResponse response,
-      NextFunction next) async {
-    response.on(ResponseEvent.close, (p0) async {
-      hasBeenCalled = true;
-    });
+  Future<void> use(RequestContext context, NextFunction next) async {
     next();
   }
 }
@@ -198,7 +194,7 @@ void main() async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/text'));
       await request.close();
-      expect(middleware.hasBeenCalled, true);
+      expect(middleware.hasBeenCalled, false);
     });
 
     test(

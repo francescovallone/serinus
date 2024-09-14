@@ -24,7 +24,6 @@ class ConfigModule extends Module {
     final dotEnv = DotEnv(includePlatformEnvironment: true)
       ..load([dotEnvPath]);
     providers = [ConfigService(dotEnv)];
-    exports = [ConfigService];
     return this;
   }
 }
