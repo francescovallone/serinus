@@ -251,14 +251,14 @@ void main() async {
     test(
       'an handler can both accept only the context or the context and a list of path parameters',
       () async {
-        final request =
-            await HttpClient().getUrl(Uri.parse('http://localhost:3000/path/test'));
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/path/test'));
         final response = await request.close();
         final body = await response.transform(Utf8Decoder()).join();
         expect(body, 'test');
 
-        final request2 =
-            await HttpClient().getUrl(Uri.parse('http://localhost:3000/path/path/test'));
+        final request2 = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/path/path/test'));
         final response2 = await request2.close();
         final body2 = await response2.transform(Utf8Decoder()).join();
 
