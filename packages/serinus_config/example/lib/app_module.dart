@@ -10,9 +10,11 @@ class AppModule extends Module {
           imports: [ConfigModule()],
           controllers: [AppController()],
           providers: [
-            DeferredProvider(
-                (context) async => AppProvider(context.use<ConfigService>()),
-                inject: [ConfigService])
+            Provider.deferred(
+              (ConfigService configService) async => AppProvider(configService),
+              inject: [ConfigService],
+              type: AppProvider
+            )
           ],
         );
 }

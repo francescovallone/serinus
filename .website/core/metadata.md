@@ -19,6 +19,28 @@ class IsPublic extends Metadata {
 }
 ```
 
+If the metadata value will be set when a request is received then you can create a ContextualizedMetadata.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyController extends Controller {
+
+  MyController({super.path = '/'});
+
+  @override
+  List<Metadata> get metadata => [
+    ContextualizedMetadata(
+      name: 'IsPublic',
+      value: (context) async => context.request.headers['authorization'] == null,
+    )
+  ];
+
+}
+```
+
+In the example above, the `IsPublic` metadata will be set to `true` if the `authorization` header is not present in the request.
+
 ## Add Metadata to a Controller
 
 To add metadata to a controller, you must override the `metadata` getter.
@@ -46,7 +68,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
 
   MyController({super.path = '/'}) {
-    on(Route.get(path: '/', metadata: [IsPublic()]), (context) async {
+    on(Route.get('/', metadata: [IsPublic()]), (context) async {
       return 'Hello World!';
     });
   }
@@ -82,7 +104,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
 
   MyController({super.path = '/'}) {
-    on(Route.get(path: '/', metadata: [IsPublic()]), (context) async {
+    on(Route.get('/', metadata: [IsPublic()]), (context) async {
       if (context.stat('IsPublic')) {
         return 'Hello World!';
       } else {
@@ -104,7 +126,7 @@ import 'package:serinus/serinus.dart';
 class MyController extends Controller {
 
   MyController({super.path = '/'}) {
-    on(Route.get(path: '/', metadata: [IsPublic()]), (context) async {
+    on(Route.get('/', metadata: [IsPublic()]), (context) async {
       if (context.canStat('IsPublic') && context.stat('IsPublic')) {
         return 'Hello World!';
       } else {

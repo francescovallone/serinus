@@ -49,14 +49,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.17"
-  equatable:
-    dependency: transitive
-    description:
-      name: equatable
-      sha256: c2b87cb7756efdf69892005af546c56c0b5037f54d2a88269b4f347a505e3ca2
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.5"
   fixnum:
     dependency: transitive
     description:
@@ -119,7 +111,7 @@ packages:
       path: "../serinus"
       relative: true
     source: path
-    version: "0.6.0"
+    version: "0.6.2"
   shelf:
     dependency: transitive
     description:
@@ -140,10 +132,10 @@ packages:
     dependency: transitive
     description:
       name: spanner
-      sha256: "4fe6fb2b9db54b43fc8f9c599a0e9b58e546212a3e5407829214ddec8698b826"
+      sha256: "1eee0f4fcb606f09db52b8f5ecd1036f8b6270363c052f98605bc5d964b13ee0"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   sprintf:
     dependency: transitive
     description:

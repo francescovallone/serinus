@@ -1,6 +1,6 @@
 # Controllers
 
-Controllers in Serinus are groups of routes that shares the same base base path and metadata.
+Controllers in Serinus are groups of routes that shares the same base path and metadata.
 
 ## Creating a Controller
 
@@ -23,7 +23,7 @@ import 'package:serinus/serinus.dart';
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(Route.get(path: '/'), (context) async {
+    on(Route.get('/'), (context) async {
       return 'Hello World!';
     });
   }

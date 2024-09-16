@@ -7,7 +7,6 @@ import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
-import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
 import '../handlers/request_handler.dart';
@@ -99,6 +98,8 @@ class SerinusApplication extends Application {
     required super.config,
     super.level,
     super.loggerService,
+    super.router,
+    super.modulesContainer,
   });
 
   @override
@@ -117,8 +118,17 @@ class SerinusApplication extends Application {
   }
 
   /// The [setGlobalPrefix] method is used to set the global prefix of the application.
-  void setGlobalPrefix(GlobalPrefix prefix) {
-    config.globalPrefix = prefix;
+  set globalPrefix(String prefix) {
+    if (prefix == '/') {
+      return;
+    }
+    if (!prefix.startsWith('/')) {
+      prefix = '/$prefix';
+    }
+    if (prefix.endsWith('/')) {
+      prefix = prefix.substring(0, prefix.length - 1);
+    }
+    config.globalPrefix = GlobalPrefix(prefix: prefix);
   }
 
   @override
@@ -162,10 +172,6 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> initialize() async {
-    if (entrypoint is DeferredModule) {
-      throw InitializationError(
-          'The entry point of the application cannot be a DeferredModule');
-    }
     if (!modulesContainer.isInitialized) {
       await modulesContainer.registerModules(
           entrypoint, entrypoint.runtimeType);

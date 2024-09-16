@@ -30,9 +30,8 @@ final config = ApplicationConfig(
 
 void main() async {
   group('$Module', () {
-    test('''when a $Module is registered in the application, 
-          then all the submodules should be registered as well
-        ''', () async {
+    test('''registerModules should register all the submodules as well''',
+        () async {
       final container = ModulesContainer(config);
       final module = TestModule(imports: [TestSubModule()]);
       await container.registerModules(module, Type);
@@ -42,10 +41,8 @@ void main() async {
       expect(container.modules.length, 2);
     });
 
-    test('''when a $Module is registered in the application, 
-          and is the entrypoint, 
-          and has exports, 
-          then it should throw a $InitializationError
+    test(
+        '''registerModules should throw a $InitializationError when the entrypoint has exports
         ''', () async {
       final container = ModulesContainer(config);
 
@@ -60,9 +57,8 @@ void main() async {
               (value) => expect(value.runtimeType, InitializationError));
     });
 
-    test('''when a $Module is registered in the application, 
-          and it imports itself,
-          then it should throw a $InitializationError
+    test(
+        '''registerModules should throw a $InitializationError when the module imports itself
         ''', () async {
       final container = ModulesContainer(config);
 
@@ -76,10 +72,9 @@ void main() async {
               (value) => expect(value.runtimeType, InitializationError));
     });
 
-    test('''when a $Module is registered in the application, 
-          and it exports a provider that is not registered in the module,
-          then it should throw a $InitializationError
-        ''', () async {
+    test(
+        '''registerModules should throw a $InitializationError when the module exports a provider that is not registered''',
+        () async {
       final container = ModulesContainer(config);
       final entrypoint = TestModule(
         imports: [
@@ -93,8 +88,7 @@ void main() async {
     });
 
     test(
-        '''when the function 'getModuleByToken' is called with a token that does not exist,
-          then it should throw an $ArgumentError
+        '''getModuleByToken should throw an ArgumentError when the token is not found
         ''', () async {
       final container = ModulesContainer(config);
 
@@ -103,8 +97,7 @@ void main() async {
     });
 
     test(
-        '''when the function 'getParents' is called with a module that has no parents,
-          then it should return an empty list
+        '''getParents should return an empty list when the module does not have parents
         ''', () async {
       final container = ModulesContainer(config);
 
@@ -115,30 +108,11 @@ void main() async {
     });
 
     test(
-        '''when the function 'getParents' is called with a module that has parents,
-          then it should return a list with the parents
+        '''getParents should return the parent module when the module has a parent
         ''', () async {
       final container = ModulesContainer(config);
       final subModule = TestSubModule();
       final module = TestModule(imports: [subModule]);
-
-      await container.registerModules(module, TestModule);
-
-      await container.finalize(module);
-
-      final parents = container.getParents(subModule);
-
-      expect(parents, [module]);
-    });
-
-    test(
-        '''when a $DeferredModule is registered in the application through a $Module,
-          then it should be initialized after the 'eager' modules
-        ''', () async {
-      final container = ModulesContainer(config);
-      final subModule = TestSubModule();
-      final module = TestModule(
-          imports: [DeferredModule((context) async => subModule, inject: [])]);
 
       await container.registerModules(module, TestModule);
 

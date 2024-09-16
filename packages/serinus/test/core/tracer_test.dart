@@ -80,8 +80,7 @@ class TestMiddleware extends Middleware {
   bool hasBeenCalled = false;
 
   @override
-  Future<void> use(RequestContext context, InternalResponse response,
-      NextFunction next) async {
+  Future<void> use(RequestContext context, NextFunction next) async {
     await Future.delayed(Duration(milliseconds: 100), () {
       hasBeenCalled = true;
     });
