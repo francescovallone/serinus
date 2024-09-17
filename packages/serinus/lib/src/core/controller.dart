@@ -14,11 +14,7 @@ import 'route.dart';
 typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
-typedef RouteHandler = ({
-  Route route,
-  ReqResHandler handler,
-  ParseSchema? schema
-});
+typedef RouteHandler = ({Route route, Function handler, ParseSchema? schema});
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
@@ -49,7 +45,7 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route, O>(R route, ReqResHandler<O> handler,
+  void on<R extends Route, O>(R route, Function handler,
       {ParseSchema? schema}) {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);

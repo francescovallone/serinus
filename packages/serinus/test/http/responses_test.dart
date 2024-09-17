@@ -65,6 +65,18 @@ class TestController extends Controller {
       }
       return streamable.end();
     });
+    on(
+      TestRoute(path: '/path/<value>'),
+      (context) async {
+        return context.params['value'];
+      },
+    );
+    on(
+      TestRoute(path: '/path/path/<value>'),
+      (RequestContext context, String v) async {
+        return v;
+      },
+    );
   }
 }
 
@@ -239,6 +251,23 @@ void main() async {
               },
               {'name': 'Jane Doe'}
             ]));
+      },
+    );
+    test(
+      'an handler can both accept only the context or the context and a list of path parameters',
+      () async {
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/path/test'));
+        final response = await request.close();
+        final body = await response.transform(Utf8Decoder()).join();
+        expect(body, 'test');
+
+        final request2 = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/path/path/test'));
+        final response2 = await request2.close();
+        final body2 = await response2.transform(Utf8Decoder()).join();
+
+        expect(body2, 'test');
       },
     );
   });
