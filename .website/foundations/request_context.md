@@ -19,6 +19,10 @@ The `RequestContext` class has the following properties:
 | **path** | The path of the request that triggered the handler |
 | **res** | Utility class to interact with the response headers and statusCode. |
 
+::: warning
+The statusCode value must be between 100 and 999.
+:::
+
 ## Methods
 
 The `RequestContext` class has the following methods:
