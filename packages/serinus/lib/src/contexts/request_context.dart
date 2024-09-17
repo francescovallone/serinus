@@ -93,7 +93,18 @@ final class Redirect {
 /// It contains the status code, headers, and redirect properties.
 final class ResponseProperties {
   /// The [statusCode] property contains the status code of the response.
-  int statusCode = HttpStatus.ok;
+  int _statusCode = HttpStatus.ok;
+
+  /// The [statusCode] getter is used to get the status code of the response.
+  int get statusCode => _statusCode;
+
+  /// The [statusCode] setter is used to set the status code of the response.
+  set statusCode(int value) {
+    if (value < 100 || value > 999) {
+      throw ArgumentError('The status code must be between 100 and 999. $value is not a valid status code.');
+    }
+    _statusCode = value;
+  }
 
   /// The [contentType] property contains the content type of the response.
   ContentType? contentType;
