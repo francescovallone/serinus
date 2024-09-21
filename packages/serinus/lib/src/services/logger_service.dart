@@ -8,7 +8,8 @@ import 'package:logging/logging.dart' as logging;
 import '../enums/log_level.dart';
 
 /// The [LogCallback] is used to style the logs.
-typedef LogCallback = void Function(String prefix, logging.LogRecord record, int deltaTime);
+typedef LogCallback = void Function(
+    String prefix, logging.LogRecord record, int deltaTime);
 
 /// The [LoggerService] is used to bootstrap the logging in the application.
 class LoggerService {

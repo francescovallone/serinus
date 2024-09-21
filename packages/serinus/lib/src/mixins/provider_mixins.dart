@@ -17,7 +17,7 @@ mixin OnApplicationShutdown on Provider {
 }
 
 /// The mixin [OnApplicationReady] is used to define the method [onApplicationReady].
-/// 
+///
 /// The method [onApplicationReady] is called in the providers after the [Application.serve] method has been executed.
 mixin OnApplicationReady on Provider {
   /// The [onApplicationReady] method is called in the providers after the [Application.serve] method has been executed.
@@ -25,7 +25,7 @@ mixin OnApplicationReady on Provider {
 }
 
 /// The mixin [OnApplicationBootstrap] is used to define the method [onApplicationBootstrap].
-/// 
+///
 /// The method [onApplicationBootstrap] is called in the providers after the [finalize] method of the ModulesContainer has been executed.
 mixin OnApplicationBootstrap on Provider {
   /// The [onApplicationBootstrap] method is called in the providers after the [finalize] method of the ModulesContainer has been executed.

@@ -7,7 +7,8 @@ import 'package:test/test.dart';
 
 class _MockAdapter extends Mock implements SerinusHttpAdapter {
   @override
-  Future<void> listen(covariant RequestCallback requestCallback, {InternalRequest? request, ErrorHandler? errorHandler}) {
+  Future<void> listen(covariant RequestCallback requestCallback,
+      {InternalRequest? request, ErrorHandler? errorHandler}) {
     return Future.value();
   }
 
@@ -45,7 +46,12 @@ class TestProviderDependent2 extends Provider {
   TestProviderDependent2(TestProvider provider);
 }
 
-class TestProviderHooks extends Provider with OnApplicationInit, OnApplicationBootstrap, OnApplicationShutdown, OnApplicationReady {
+class TestProviderHooks extends Provider
+    with
+        OnApplicationInit,
+        OnApplicationBootstrap,
+        OnApplicationShutdown,
+        OnApplicationReady {
   bool isInitialized = false;
   bool isBootstraped = false;
   bool isReady = false;
@@ -57,17 +63,17 @@ class TestProviderHooks extends Provider with OnApplicationInit, OnApplicationBo
   }
 
   TestProviderHooks();
-  
+
   @override
   Future<void> onApplicationBootstrap() async {
-    isBootstraped = true; 
+    isBootstraped = true;
   }
-  
+
   @override
   Future<void> onApplicationReady() async {
     isReady = true;
   }
-  
+
   @override
   Future<void> onApplicationShutdown() async {
     isShutdown = true;
@@ -316,7 +322,11 @@ void main() async {
         level: LogLevel.none,
         entrypoint: module,
         modulesContainer: container,
-        config: ApplicationConfig(host: InternetAddress.anyIPv4.address, port: 3000, poweredByHeader: '', serverAdapter: _MockAdapter()),
+        config: ApplicationConfig(
+            host: InternetAddress.anyIPv4.address,
+            port: 3000,
+            poweredByHeader: '',
+            serverAdapter: _MockAdapter()),
       );
 
       await app.serve();
@@ -334,7 +344,11 @@ void main() async {
         level: LogLevel.none,
         entrypoint: module,
         modulesContainer: container,
-        config: ApplicationConfig(host: InternetAddress.anyIPv4.address, port: Random().nextInt(9999), poweredByHeader: '', serverAdapter: _MockAdapter()),
+        config: ApplicationConfig(
+            host: InternetAddress.anyIPv4.address,
+            port: Random().nextInt(9999),
+            poweredByHeader: '',
+            serverAdapter: _MockAdapter()),
       );
 
       await app.serve();
@@ -342,5 +356,4 @@ void main() async {
       expect(container.get<TestProviderHooks>()!.isShutdown, true);
     },
   );
-
 }

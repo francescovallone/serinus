@@ -3,12 +3,11 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class AppModule extends Mock implements Module {}
+
 class _AdapterMock extends Mock implements Adapter {}
 
 void main() {
-
   group('$LoggerService', () {
-
     test(
       'should create a new instance of the LoggerService class',
       () {
@@ -40,7 +39,7 @@ void main() {
         expect(loggerService.onLog, isNotNull);
       },
     );
-    
+
     test(
       'should allow to change the prefix of the logger',
       () {
@@ -70,7 +69,5 @@ void main() {
         expect(app.loggerService!.prefix, 'Custom App');
       },
     );
-
   });
-
 }

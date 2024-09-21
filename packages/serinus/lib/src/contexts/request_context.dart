@@ -101,7 +101,8 @@ final class ResponseProperties {
   /// The [statusCode] setter is used to set the status code of the response.
   set statusCode(int value) {
     if (value < 100 || value > 999) {
-      throw ArgumentError('The status code must be between 100 and 999. $value is not a valid status code.');
+      throw ArgumentError(
+          'The status code must be between 100 and 999. $value is not a valid status code.');
     }
     _statusCode = value;
   }
