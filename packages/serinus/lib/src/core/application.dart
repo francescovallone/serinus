@@ -19,7 +19,7 @@ import '../versioning.dart';
 import 'core.dart';
 
 /// The [Application] class is used to create an application.
-sealed class Application {
+abstract class Application {
   /// The [level] property contains the log level of the application.
   final LogLevel level;
 
@@ -39,6 +39,7 @@ sealed class Application {
   /// The [config] property contains the application configuration.
   final ApplicationConfig config;
 
+  /// The [Application] constructor is used to create a new instance of the [Application] class.
   Application({
     required this.entrypoint,
     required this.config,
@@ -49,6 +50,11 @@ sealed class Application {
   })  : router = router ?? Router(),
         loggerService = loggerService ?? LoggerService(level: level),
         modulesContainer = modulesContainer ?? ModulesContainer(config);
+
+  /// The [setLoggerPrefix] method is used to set the logger prefix of the application.
+  void setLoggerPrefix(String prefix) {
+    loggerService?.prefix = prefix;
+  }
 
   /// The [url] property contains the URL of the application.
   String get url;

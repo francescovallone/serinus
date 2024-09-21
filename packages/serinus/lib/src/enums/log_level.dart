@@ -7,5 +7,8 @@ enum LogLevel {
   errors,
 
   /// All logs will be shown.
-  debug
+  debug,
+
+  /// All but debug logs will be shown.
+  info,
 }
