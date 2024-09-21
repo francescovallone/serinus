@@ -66,9 +66,7 @@ class TestProviderFour extends Provider with OnApplicationInit {
 
 class CircularDependencyModule extends Module {
   CircularDependencyModule()
-      : super(imports: [
-          AnotherModule()
-        ], controllers: [], providers: [
+      : super(imports: [], controllers: [], providers: [
           Provider.deferred((TestProvider tp) => TestProviderThree(tp),
               inject: [TestProvider], type: TestProviderThree),
         ], exports: [

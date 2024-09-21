@@ -1,5 +1,22 @@
+import 'dart:io';
+import 'dart:math';
+
+import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
+
+class _MockAdapter extends Mock implements SerinusHttpAdapter {
+  @override
+  Future<void> listen(covariant RequestCallback requestCallback,
+      {InternalRequest? request, ErrorHandler? errorHandler}) {
+    return Future.value();
+  }
+
+  @override
+  Future<void> close() {
+    return Future.value();
+  }
+}
 
 class TestProvider extends Provider {
   TestProvider();
@@ -29,15 +46,38 @@ class TestProviderDependent2 extends Provider {
   TestProviderDependent2(TestProvider provider);
 }
 
-class TestProviderOnInit extends Provider with OnApplicationInit {
+class TestProviderHooks extends Provider
+    with
+        OnApplicationInit,
+        OnApplicationBootstrap,
+        OnApplicationShutdown,
+        OnApplicationReady {
   bool isInitialized = false;
+  bool isBootstraped = false;
+  bool isReady = false;
+  bool isShutdown = false;
 
   @override
   Future<void> onApplicationInit() async {
     isInitialized = true;
   }
 
-  TestProviderOnInit();
+  TestProviderHooks();
+
+  @override
+  Future<void> onApplicationBootstrap() async {
+    isBootstraped = true;
+  }
+
+  @override
+  Future<void> onApplicationReady() async {
+    isReady = true;
+  }
+
+  @override
+  Future<void> onApplicationShutdown() async {
+    isShutdown = true;
+  }
 }
 
 final config = ApplicationConfig(
@@ -77,7 +117,7 @@ void main() async {
 
     test('''when a $Provider has $OnApplicationInit mixin,
         then the onApplicationInit method should be called''', () async {
-      final provider = TestProviderOnInit();
+      final provider = TestProviderHooks();
       final container = ModulesContainer(config);
       final module = TestModule(providers: [provider]);
       await container.registerModules(module, Type);
@@ -259,4 +299,61 @@ void main() async {
           (value) => expect(value.runtimeType, InitializationError));
     });
   });
+
+  test(
+    'when a $Provider use the mixin $OnApplicationBootstrap, then the onApplicationBootstrap method should be called',
+    () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [TestProviderHooks()]);
+      await container.registerModules(module, Type);
+
+      await container.finalize(module);
+
+      expect(container.get<TestProviderHooks>()!.isBootstraped, true);
+    },
+  );
+
+  test(
+    'when a $Provider use the mixin $OnApplicationReady, then the onApplicationReady method should be called',
+    () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [TestProviderHooks()]);
+      final SerinusApplication app = SerinusApplication(
+        level: LogLevel.none,
+        entrypoint: module,
+        modulesContainer: container,
+        config: ApplicationConfig(
+            host: InternetAddress.anyIPv4.address,
+            port: 3000,
+            poweredByHeader: '',
+            serverAdapter: _MockAdapter()),
+      );
+
+      await app.serve();
+
+      expect(container.get<TestProviderHooks>()!.isReady, true);
+    },
+  );
+
+  test(
+    'when a $Provider use the mixin $OnApplicationShutdown, then the onApplicationShutdown method should be called',
+    () async {
+      final container = ModulesContainer(config);
+      final module = TestModule(providers: [TestProviderHooks()]);
+      final SerinusApplication app = SerinusApplication(
+        level: LogLevel.none,
+        entrypoint: module,
+        modulesContainer: container,
+        config: ApplicationConfig(
+            host: InternetAddress.anyIPv4.address,
+            port: Random().nextInt(9999),
+            poweredByHeader: '',
+            serverAdapter: _MockAdapter()),
+      );
+
+      await app.serve();
+      await app.close();
+      expect(container.get<TestProviderHooks>()!.isShutdown, true);
+    },
+  );
 }

@@ -151,3 +151,46 @@ class MyModule extends Module {
 ```
 
 :::
+
+## Lifecycle Hooks
+
+Providers can implement 4 lifecycle hooks:
+
+| Hook                | Description                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `onApplicationInit` | Called when the application is initializing itself and the provider is registered   |
+| `onApplicationBootstrap`      | Called when the application is initialized and all the provider (even the deferred) are registered |
+| `onApplicationReady`      | Called when the application is ready to serve requests |
+| `onApplicationShutdown`      | Called when the application is shutting down |
+
+Each hook is a method that returns a `Future<void>`.
+
+To implement a hook, you just need to use the mixin `OnApplicationInit`, `OnApplicationBootstrap`, `OnApplicationReady`, or `OnApplicationShutdown` and override the method.
+
+```dart [Lifecycle Hooks]
+import 'package:serinus/serinus.dart';
+
+class MyProvider extends Provider with OnApplicationInit, OnApplicationBootstrap, OnApplicationReady, OnApplicationShutdown {
+  MyProvider();
+
+  @override
+  Future<void> onApplicationInit() async {
+    // Do something
+  }
+
+  @override
+  Future<void> onApplicationBootstrap() async {
+    // Do something
+  }
+
+  @override
+  Future<void> onApplicationReady() async {
+    // Do something
+  }
+
+  @override
+  Future<void> onApplicationShutdown() async {
+    // Do something
+  }
+}
+```
