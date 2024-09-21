@@ -8,7 +8,7 @@ import 'package:logging/logging.dart' as logging;
 import '../enums/log_level.dart';
 
 /// The [LogCallback] is used to style the logs.
-typedef LogCallback = void Function(logging.LogRecord record, double deltaTime);
+typedef LogCallback = void Function(String prefix, logging.LogRecord record, int deltaTime);
 
 /// The [LoggerService] is used to bootstrap the logging in the application.
 class LoggerService {
@@ -20,23 +20,29 @@ class LoggerService {
   /// The [level] of the logger.
   LogLevel level;
 
+  /// The [prefix] of the logger.
+  String prefix;
+
   /// The [LoggerService] constructor is used to create a new instance of the [LoggerService] class.
   factory LoggerService({
     LogCallback? onLog,
     LogLevel level = LogLevel.debug,
+    String prefix = 'Serinus',
   }) {
-    return LoggerService._(onLog: onLog, level: level);
+    return LoggerService._(onLog: onLog, level: level, prefix: prefix);
   }
 
   LoggerService._({
     this.onLog,
     this.level = LogLevel.debug,
+    this.prefix = 'Serinus',
   }) {
     /// The root level of the logger.
     logging.Logger.root.level = switch (level) {
       LogLevel.debug => logging.Level.ALL,
       LogLevel.errors => logging.Level.SEVERE,
       LogLevel.none => logging.Level.OFF,
+      LogLevel.info => logging.Level('INFO', 101),
     };
 
     /// The listener for the logs.
@@ -45,13 +51,13 @@ class LoggerService {
           DateTime.now().millisecondsSinceEpoch / 1000 - _time.toDouble();
       _time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       if (onLog != null) {
-        onLog?.call(record, delta);
+        onLog?.call(prefix, record, delta.ceil());
         return;
       } else {
-        print('[Serinus] ${io.pid}\t'
+        print('[$prefix] ${io.pid}\t'
             '${DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time)}'
             '\t${record.level.name} [${record.loggerName}] '
-            '${record.message} +${delta.toInt()}ms');
+            '${record.message} +${delta.ceil()}ms');
       }
     });
   }

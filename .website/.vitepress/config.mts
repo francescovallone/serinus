@@ -89,6 +89,7 @@ export default defineConfig({
             base: '/techniques/',
             collapsed: true,
             items: [
+              { text: 'Logging', link: 'logging' },
               { text: 'Model View Controller', link: 'mvc' },
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
