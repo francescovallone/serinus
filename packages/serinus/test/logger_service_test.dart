@@ -2,7 +2,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
-class _MockApplication extends Mock implements Application {}
+class AppModule extends Mock implements Module {}
+class _AdapterMock extends Mock implements Adapter {}
 
 void main() {
 
@@ -56,9 +57,17 @@ void main() {
         loggerService.prefix = 'Custom';
         expect(loggerService.prefix, 'Custom');
 
-        _MockApplication app = _MockApplication();
-        app.setLoggerPrefix('Custom');
-        verify(() => app.setLoggerPrefix('Custom')).called(1);
+        SerinusApplication app = SerinusApplication(
+          entrypoint: AppModule(),
+          config: ApplicationConfig(
+            port: 3000,
+            host: 'localhost',
+            poweredByHeader: 'Serinus',
+            serverAdapter: _AdapterMock(),
+          ),
+        );
+        app.setLoggerPrefix('Custom App');
+        expect(app.loggerService!.prefix, 'Custom App');
       },
     );
 
