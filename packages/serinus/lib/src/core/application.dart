@@ -161,6 +161,10 @@ class SerinusApplication extends Application {
         },
         errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );
+      final providers = modulesContainer.getAll<OnApplicationReady>();
+      for (final provider in providers) {
+        await provider.onApplicationReady();
+      }
     } on SocketException catch (e) {
       _logger.severe('Failed to start server on ${e.address}:${e.port}');
       await close();
@@ -185,6 +189,11 @@ class SerinusApplication extends Application {
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
+    final registeredProviders =
+        modulesContainer.getAll<OnApplicationBootstrap>();
+    for (final provider in registeredProviders) {
+      await provider.onApplicationBootstrap();
+    }
   }
 
   @override
