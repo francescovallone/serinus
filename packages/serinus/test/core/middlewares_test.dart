@@ -33,11 +33,13 @@ class TestRequestEvent extends Middleware {
   TestRequestEvent() : super(routes: const ['/request-event']);
 
   bool hasClosed = false;
+  bool hasException = false;
 
   @override
   Future<void> use(RequestContext context, NextFunction next) async {
     context.request.on(RequestEvent.close, (event, data) async {
       hasClosed = true;
+      hasException = data.hasException;
     });
     return next();
   }
@@ -174,6 +176,7 @@ void main() {
       );
       expect(response.statusCode, 200);
       expect(r.hasClosed, true);
+      expect(r.hasException, false);
     });
   });
 }
