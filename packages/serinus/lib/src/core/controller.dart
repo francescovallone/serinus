@@ -45,8 +45,7 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route>(R route, Function handler,
-      {ParseSchema? schema}) {
+  void on<R extends Route>(R route, Function handler, {ParseSchema? schema}) {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);
     if (routeExists) {
@@ -60,14 +59,14 @@ abstract class Controller {
 
   /// The [onStatic] method is used to register a static route.
   /// It takes a [Route] and a [Object] value.
-  /// 
+  ///
   /// It should not be overridden.
   @mustCallSuper
   void onStatic<R extends Route>(R route, Object handler) {
-    if(handler is Function) {
+    if (handler is Function) {
       throw StateError('The handler must be a static value');
     }
-        final routeExists = _routes.values.any(
+    final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);
     if (routeExists) {
       throw StateError(
@@ -77,5 +76,4 @@ abstract class Controller {
     _routes[UuidV4().generate()] =
         (handler: handler, route: route, schema: null);
   }
-
 }

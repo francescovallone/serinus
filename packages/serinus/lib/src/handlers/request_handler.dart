@@ -106,7 +106,8 @@ class RequestHandler extends Handler {
       }
     }
     await executeBeforeHandle(context, route);
-    Object? result = await executeHandler(context, route, handler, routeData.isStatic);
+    Object? result =
+        await executeHandler(context, route, handler, routeData.isStatic);
     await executeAfterHandle(context, route, result);
     if (result?.canBeJson() ?? false) {
       result = parseJsonToResponse(result);
@@ -315,8 +316,8 @@ class RequestHandler extends Handler {
   }
 
   /// Executes the [handler] from the route
-  Future<Object?> executeHandler(
-      RequestContext context, Route route, Object handler, bool isStatic) async {
+  Future<Object?> executeHandler(RequestContext context, Route route,
+      Object handler, bool isStatic) async {
     config.tracerService.addEvent(
         name: TraceEvents.onHandle,
         begin: true,
@@ -327,7 +328,7 @@ class RequestHandler extends Handler {
     if (isStatic) {
       result = handler;
     }
-    if(handler is Function) {
+    if (handler is Function) {
       if (handler is ReqResHandler) {
         result = await handler.call(context);
       } else {
