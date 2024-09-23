@@ -64,5 +64,31 @@ void main() async {
               routeCls: GetRoute)),
           isA<RouteHandler>());
     });
+
+    test(
+        'when a static route is added to a controller, then it should be saved on the "routes" map',
+        () {
+      final controller = LeadingSlashController();
+      final route = GetRoute(path: '/test');
+      controller.onStatic(route, 'ok!');
+      expect(
+          controller.get(RouteData(
+              id: controller.routes.keys.elementAt(0),
+              path: '/leading/test',
+              controller: controller,
+              method: HttpMethod.get,
+              moduleToken: '',
+              isStatic: true,
+              routeCls: GetRoute)),
+          isA<RouteHandler>());
+    });
+
+    test(
+        'when a static route is added to a controller and provide a function as handler, then it should throw an error',
+        () {
+      final controller = LeadingSlashController();
+      final route = GetRoute(path: '/test');
+      expect(() => controller.onStatic(route, () => 'ok!'), throwsStateError);
+    });
   });
 }
