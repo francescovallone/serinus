@@ -115,12 +115,38 @@ class RequestHandler extends Handler {
     if (result is Uint8List) {
       context.res.contentType = ContentType.binary;
     }
+    if (context.res.redirect != null) {
+      request.emit(
+        RequestEvent.redirect,
+        EventData(
+          data: null,
+          properties: context.res
+        ),
+      );
+    } else {
+      request.emit(
+        RequestEvent.data,
+        EventData(
+          data: result,
+          properties: context.res
+        ),
+      );
+    }
     await response.end(
       data: result ?? 'null',
       config: config,
       context: context,
       request: wrappedRequest,
       traced: 'r-${route.runtimeType}',
+    );
+    request.emit(
+      RequestEvent.close,
+      EventData(
+        data: result,
+        properties: context.res..headers.addAll(
+          response.currentHeaders.toMap()
+        )
+      ),
     );
   }
 

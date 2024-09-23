@@ -1,3 +1,5 @@
+import 'dart:io';
+
 /// This file contains the extensions for the Iterable class
 extension Flatten<T> on Iterable<Iterable<T>> {
   /// This method is used to flatten a list of lists
@@ -53,5 +55,17 @@ extension SplitTypes<T> on Iterable<T> {
       }
     }
     return (notOfType: notOfType, ofType: ofType);
+  }
+}
+
+/// This extension is used to convert a list of headers to a map
+extension HeadersToMap on HttpHeaders {
+  /// This method is used to convert the headers to a map
+  Map<String, String> toMap() {
+    final headers = <String, String>{};
+    forEach((key, values) {
+      headers[key] = values.join(',');
+    });
+    return headers;
   }
 }
