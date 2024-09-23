@@ -1,5 +1,5 @@
-import '../../serinus.dart';
 import '../contexts/request_context.dart';
+import '../exceptions/exceptions.dart';
 
 /// The [ResponseEvent] enum is used to define the different events that can be listened to on a response.
 ///
