@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -8,7 +7,6 @@ import 'package:collection/collection.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
-import '../enums/enums.dart';
 import '../extensions/object_extensions.dart';
 import 'http.dart';
 
@@ -17,9 +15,6 @@ import 'http.dart';
 /// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
 class InternalResponse {
   final HttpResponse _original;
-
-  final StreamController<ResponseEvent> _events =
-      StreamController<ResponseEvent>();
 
   /// The base url of the server
   final String? baseUrl;
@@ -46,12 +41,9 @@ class InternalResponse {
   ///
   /// After sending the data, the response will be closed.
   void send([List<int> data = const []]) {
-    _events.add(ResponseEvent.data);
     _original.add(data);
-    _events.add(ResponseEvent.afterSend);
     _original.close();
     _isClosed = true;
-    _events.add(ResponseEvent.close);
   }
 
   /// A simple wrapper for [HttpResponse.write].
@@ -63,12 +55,9 @@ class InternalResponse {
   ///
   /// After sending the stream, the response will be closed.
   Future<void> sendStream(Stream<List<int>> stream) async {
-    _events.add(ResponseEvent.data);
     return _original.addStream(stream).then((value) {
-      _events.add(ResponseEvent.afterSend);
       _original.close();
       _isClosed = true;
-      _events.add(ResponseEvent.close);
     });
   }
 
@@ -87,15 +76,6 @@ class InternalResponse {
     for (final key in headers.keys) {
       _original.headers.set(key, headers[key]!);
     }
-  }
-
-  /// This method is used to listen to a response event.
-  void on(ResponseEvent event, Future<void> Function(ResponseEvent) listener) {
-    _events.stream.listen((ResponseEvent e) {
-      if (e == event || event == ResponseEvent.all) {
-        listener(e);
-      }
-    });
   }
 
   /// This method is used to get the current headers of the response.
@@ -123,22 +103,17 @@ class InternalResponse {
       request: context?.request ?? request,
       traced: traced ?? context?.request.id ?? request?.id ?? '',
     );
-    _events.add(ResponseEvent.beforeSend);
     if (data is StreamedResponse) {
-      _events.add(ResponseEvent.close);
       await _original.flush();
       _original.close();
       return;
     }
     final isView = data is View || data is ViewString;
     if (isView && config.viewEngine == null) {
-      _events.add(ResponseEvent.error);
       throw StateError('ViewEngine is required to render views');
     }
     final resRedirect = context?.res.redirect ?? properties?.redirect;
     if (resRedirect != null) {
-      _events.add(ResponseEvent.redirect);
-      _events.add(ResponseEvent.close);
       headers({
         HttpHeaders.locationHeader: resRedirect.location,
         ...context?.res.headers ?? properties?.headers ?? {}
@@ -148,9 +123,7 @@ class InternalResponse {
     final statusCode =
         (context?.res.statusCode ?? properties?.statusCode ?? 200);
     status(statusCode);
-    if (statusCode >= 400) {
-      _events.add(ResponseEvent.error);
-    }
+    if (statusCode >= 400) {}
     headers({
       ...context?.res.headers ?? properties?.headers ?? {},
       HttpHeaders.transferEncodingHeader: 'chunked'

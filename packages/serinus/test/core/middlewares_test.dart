@@ -29,6 +29,22 @@ class TestValueMiddleware extends Middleware {
   }
 }
 
+class TestRequestEvent extends Middleware {
+  TestRequestEvent() : super(routes: const ['/request-event']);
+
+  bool hasClosed = false;
+  bool hasException = false;
+
+  @override
+  Future<void> use(RequestContext context, NextFunction next) async {
+    context.request.on(RequestEvent.close, (event, data) async {
+      hasClosed = true;
+      hasException = data.hasException;
+    });
+    return next();
+  }
+}
+
 class TestJsonObject with JsonObject {
   @override
   Map<String, dynamic> toJson() {
@@ -46,6 +62,7 @@ class TestController extends Controller {
               'ok!'
             });
     on(Route.get('/value/<v>'), (context) async => 'Hello, World!');
+    on(Route.get('/request-event'), (context) async => 'Hello, World!');
   }
 }
 
@@ -66,12 +83,17 @@ final shelfMiddleware = Middleware.shelf((shelf.Handler innerHandler) {
 
 class TestModule extends Module {
   TestModule(
-      {super.controllers, super.imports, super.providers, super.exports});
+      {super.controllers,
+      super.imports,
+      super.providers,
+      super.exports,
+      super.middlewares});
 
   @override
   List<Middleware> get middlewares => [
         TestModuleMiddleware(),
         TestValueMiddleware(),
+        ...super.middlewares,
         shelfMiddleware,
         shelfAltMiddleware,
       ];
@@ -88,9 +110,11 @@ class TestModuleMiddleware extends Middleware {
 void main() {
   group('$Middleware', () {
     SerinusApplication? app;
+    TestRequestEvent r = TestRequestEvent();
     setUpAll(() async {
       app = await serinus.createApplication(
-          entrypoint: TestModule(controllers: [TestController()]),
+          entrypoint:
+              TestModule(controllers: [TestController()], middlewares: [r]),
           port: 3003,
           loggingLevel: LogLevel.none);
       await app?.serve();
@@ -142,6 +166,17 @@ void main() {
       );
       expect(response.statusCode, 200);
       expect(response.body.contains('Hello world from shelf'), true);
+    });
+
+    test(
+        '''a middleware subscribing to a request event should be able to listen to the event''',
+        () async {
+      final response = await http.get(
+        Uri.parse('http://localhost:3003/request-event'),
+      );
+      expect(response.statusCode, 200);
+      expect(r.hasClosed, true);
+      expect(r.hasException, false);
     });
   });
 }

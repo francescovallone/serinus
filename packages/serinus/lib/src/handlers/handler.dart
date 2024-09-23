@@ -5,6 +5,7 @@ import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../contexts/request_context.dart';
 import '../core/core.dart';
+import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
 
@@ -33,6 +34,14 @@ abstract class Handler {
       final properties = ResponseProperties()
         ..statusCode = e.statusCode
         ..contentType = ContentType.json;
+      request.emit(
+        RequestEvent.error,
+        EventData(
+          data: error,
+          properties: properties,
+          exception: e,
+        ),
+      );
       response.end(
           data: error,
           config: config,

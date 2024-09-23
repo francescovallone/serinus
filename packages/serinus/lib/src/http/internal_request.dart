@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -5,6 +6,7 @@ import 'dart:typed_data';
 import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 
+import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import 'internal_response.dart';
 import 'session.dart';
@@ -63,6 +65,25 @@ class InternalRequest {
       headers[name] = values.join(',');
     });
     return InternalRequest(headers: headers, original: request);
+  }
+
+  /// The [events] property contains the events of the request
+  final StreamController<(RequestEvent, EventData)> _events =
+      StreamController.broadcast(sync: true);
+
+  /// This method is used to listen to a request event.
+  void on(RequestEvent event,
+      Future<void> Function(RequestEvent, EventData) listener) {
+    _events.stream.listen((e) {
+      if (e.$1 == event || e.$1 == RequestEvent.all) {
+        listener(e.$1, e.$2);
+      }
+    });
+  }
+
+  /// This method is used to emit a request event.
+  void emit(RequestEvent event, EventData data) {
+    _events.sink.add((event, data));
   }
 
   /// The [session] getter is used to get the session of the request
