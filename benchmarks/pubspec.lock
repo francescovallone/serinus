@@ -257,14 +257,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.6.0"
-  equatable:
-    dependency: transitive
-    description:
-      name: equatable
-      sha256: c2b87cb7756efdf69892005af546c56c0b5037f54d2a88269b4f347a505e3ca2
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.5"
   file:
     dependency: transitive
     description:
@@ -417,6 +409,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  mocktail:
+    dependency: transitive
+    description:
+      name: mocktail
+      sha256: "890df3f9688106f25755f26b1c60589a92b3ab91a22b8b224947ad041bf172d8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
   mysql_client:
     dependency: transitive
     description:
@@ -535,7 +535,7 @@ packages:
       path: "../packages/serinus"
       relative: true
     source: path
-    version: "0.5.2"
+    version: "0.6.2"
   shelf:
     dependency: "direct main"
     description:
@@ -612,10 +612,10 @@ packages:
     dependency: transitive
     description:
       name: spanner
-      sha256: "72295ca005a56105fccb59d44303505685eaffecc738b0987b04fdf8e4b2190f"
+      sha256: "1eee0f4fcb606f09db52b8f5ecd1036f8b6270363c052f98605bc5d964b13ee0"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1+5"
+    version: "1.0.3"
   sprintf:
     dependency: transitive
     description:
