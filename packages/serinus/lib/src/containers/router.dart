@@ -77,6 +77,9 @@ class RouteData {
   /// The [queryParameters] property contains the query parameters of the route.
   final Map<String, Type> queryParameters;
 
+  /// The [isStatic] property defines if a route is a static one.
+  final bool isStatic;
+
   /// The [RouteData] constructor is used to create a new instance of the [RouteData] class.
   RouteData({
     required this.id,
@@ -85,6 +88,7 @@ class RouteData {
     required this.controller,
     required this.routeCls,
     required this.moduleToken,
+    this.isStatic = false,
     this.queryParameters = const {},
   });
 }

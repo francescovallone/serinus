@@ -77,6 +77,7 @@ class TestController extends Controller {
         return v;
       },
     );
+    onStatic(Route.get('/static'), 'test');
   }
 }
 
@@ -268,6 +269,16 @@ void main() async {
         final body2 = await response2.transform(Utf8Decoder()).join();
 
         expect(body2, 'test');
+      },
+    );
+    test(
+      'a static route should return the value provided',
+      () async {
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/static'));
+        final response = await request.close();
+        final body = await response.transform(Utf8Decoder()).join();
+        expect(body, 'test');
       },
     );
   });
