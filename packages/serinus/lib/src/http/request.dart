@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../enums/enums.dart';
 import '../extensions/content_type_extensions.dart';
 import '../extensions/string_extensions.dart';
 import 'http.dart';
@@ -84,6 +85,12 @@ class Request {
   /// The operator []= is used to set data to the request.
   void operator []=(String key, dynamic value) {
     _data[key] = value;
+  }
+
+  /// This method is used to listen to a request event.
+  void on(RequestEvent event,
+      Future<void> Function(RequestEvent, EventData) listener) {
+    _original.on(event, listener);
   }
 
   /// The body of the request.

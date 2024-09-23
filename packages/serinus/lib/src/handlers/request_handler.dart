@@ -100,7 +100,7 @@ class RequestHandler extends Handler {
     final middlewares = injectables.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
-      await handleMiddlewares(context, response, middlewares, config);
+      await handleMiddlewares(request, context, response, middlewares, config);
       if (response.isClosed) {
         return;
       }
@@ -118,18 +118,12 @@ class RequestHandler extends Handler {
     if (context.res.redirect != null) {
       request.emit(
         RequestEvent.redirect,
-        EventData(
-          data: null,
-          properties: context.res
-        ),
+        EventData(data: null, properties: context.res),
       );
     } else {
       request.emit(
         RequestEvent.data,
-        EventData(
-          data: result,
-          properties: context.res
-        ),
+        EventData(data: result, properties: context.res),
       );
     }
     await response.end(
@@ -142,11 +136,9 @@ class RequestHandler extends Handler {
     request.emit(
       RequestEvent.close,
       EventData(
-        data: result,
-        properties: context.res..headers.addAll(
-          response.currentHeaders.toMap()
-        )
-      ),
+          data: result,
+          properties: context.res
+            ..headers.addAll(response.currentHeaders.toMap())),
     );
   }
 
@@ -154,6 +146,7 @@ class RequestHandler extends Handler {
   ///
   /// If the completer is not completed, the request will be blocked until the completer is completed.
   Future<void> handleMiddlewares(
+      InternalRequest request,
       RequestContext context,
       InternalResponse response,
       Iterable<Middleware> middlewares,
@@ -184,12 +177,23 @@ class RequestHandler extends Handler {
           if (data is Uint8List) {
             context.res.contentType = ContentType.binary;
           }
+          request.emit(
+            RequestEvent.data,
+            EventData(data: data, properties: context.res),
+          );
           await response.end(
               data: data!,
               config: config,
               context: context,
               request: context.request,
               traced: 'm-${middlewares.elementAt(i).runtimeType}');
+          request.emit(
+            RequestEvent.close,
+            EventData(
+                data: data,
+                properties: context.res
+                  ..headers.addAll(response.currentHeaders.toMap())),
+          );
           return;
         }
         if (i == middlewares.length - 1) {

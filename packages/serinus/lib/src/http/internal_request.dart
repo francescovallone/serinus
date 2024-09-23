@@ -68,10 +68,12 @@ class InternalRequest {
   }
 
   /// The [events] property contains the events of the request
-  final StreamController<(RequestEvent, EventData)> _events = StreamController.broadcast();
+  final StreamController<(RequestEvent, EventData)> _events =
+      StreamController.broadcast(sync: true);
 
   /// This method is used to listen to a request event.
-  void on(RequestEvent event, Future<void> Function(RequestEvent, EventData) listener) {
+  void on(RequestEvent event,
+      Future<void> Function(RequestEvent, EventData) listener) {
     _events.stream.listen((e) {
       if (e.$1 == event || e.$1 == RequestEvent.all) {
         listener(e.$1, e.$2);
@@ -81,7 +83,7 @@ class InternalRequest {
 
   /// This method is used to emit a request event.
   void emit(RequestEvent event, EventData data) {
-    _events.add((event, data));
+    _events.sink.add((event, data));
   }
 
   /// The [session] getter is used to get the session of the request

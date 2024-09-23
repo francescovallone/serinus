@@ -7,7 +7,6 @@ import '../exceptions/exceptions.dart';
 /// - [ResponseEvent.close]: The response has been closed.
 /// - [ResponseEvent.data]: Data has been sent to the response.
 enum RequestEvent {
-  
   /// The request has been closed.
   close,
 
@@ -26,9 +25,8 @@ enum RequestEvent {
 
 /// The [ResponseProperties] class is used to store the properties of a response.
 class EventData {
-
   /// The [hasException] property contains a boolean value that indicates if the event contains an error.
-  /// 
+  ///
   /// - If statusCode >= 400, isError is true.
   /// - If exception is not null, isError is true.
   bool get hasException => exception != null || properties.statusCode >= 400;
@@ -48,5 +46,4 @@ class EventData {
     required this.properties,
     this.exception,
   });
-
 }

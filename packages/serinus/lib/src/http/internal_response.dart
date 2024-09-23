@@ -123,8 +123,7 @@ class InternalResponse {
     final statusCode =
         (context?.res.statusCode ?? properties?.statusCode ?? 200);
     status(statusCode);
-    if (statusCode >= 400) {
-    }
+    if (statusCode >= 400) {}
     headers({
       ...context?.res.headers ?? properties?.headers ?? {},
       HttpHeaders.transferEncodingHeader: 'chunked'
