@@ -71,3 +71,17 @@ class MyController extends Controller {
 :::
 
 In the case of a parametric route, the handler must have the same number of parameters as the number of parameters in the route and they must follow the _**same order**_.
+
+## Static Handler
+
+A static handler is a function that does not require a `RequestContext` object. It is useful when you need to return instant responses. It uses the `onStatic` method of the `Controller` class instead of the `on` method.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyController extends Controller {
+  MyController({super.path = '/'}) {
+    onStatic(Route.get('/'), 'Hello World!');
+  }
+}
+```
