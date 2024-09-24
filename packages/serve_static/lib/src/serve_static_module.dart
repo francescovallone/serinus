@@ -9,7 +9,6 @@ import 'serve_static_controller.dart';
 ///
 /// You can also use the constructor to initialize any dependencies that your plugin may have.
 class ServeStaticModule extends Module {
-
   final String path;
 
   final List<String> allowedExtensions;
@@ -19,10 +18,9 @@ class ServeStaticModule extends Module {
 
   @override
   Future<Module> registerAsync(ApplicationConfig config) async {
-    final serveStaticController = ServeStaticController(
-        path: path, extensions: allowedExtensions);
+    final serveStaticController =
+        ServeStaticController(path: path, extensions: allowedExtensions);
     controllers = [serveStaticController];
     return this;
   }
 }
-

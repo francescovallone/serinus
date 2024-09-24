@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:uuid/v4.dart';
 
 import '../adapters/server_adapter.dart';
+import '../containers/model_provider.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../services/tracers_service.dart';
@@ -106,6 +107,9 @@ final class ApplicationConfig {
   /// The hooks for the application
   final Set<Hook> hooks = {};
 
+  /// The model provider for the application
+  final ModelProvider? modelProvider;
+
   /// The tracer for the application
   final TracersService tracerService = TracersService();
 
@@ -125,6 +129,7 @@ final class ApplicationConfig {
     required this.port,
     required this.poweredByHeader,
     required this.serverAdapter,
+    this.modelProvider,
     this.securityContext,
   });
 }

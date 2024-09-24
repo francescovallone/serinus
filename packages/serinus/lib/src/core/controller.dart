@@ -14,7 +14,12 @@ import 'route.dart';
 typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
-typedef RouteHandler = ({Route route, dynamic handler, ParseSchema? schema});
+typedef RouteHandler = ({
+  Route route,
+  dynamic handler,
+  ParseSchema? schema,
+  Type? body
+});
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
@@ -45,7 +50,8 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route>(R route, Function handler, {ParseSchema? schema}) {
+  void on<R extends Route>(R route, Function handler,
+      {ParseSchema? schema, Type? body}) {
     final routeExists = _routes.values.any(
         (r) => r.route.path == route.path && r.route.method == route.method);
     if (routeExists) {
@@ -54,7 +60,7 @@ abstract class Controller {
     }
 
     _routes[UuidV4().generate()] =
-        (handler: handler, route: route, schema: schema);
+        (handler: handler, route: route, schema: schema, body: body);
   }
 
   /// The [onStatic] method is used to register a static route.
@@ -74,6 +80,6 @@ abstract class Controller {
     }
 
     _routes[UuidV4().generate()] =
-        (handler: handler, route: route, schema: null);
+        (handler: handler, route: route, schema: null, body: null);
   }
 }
