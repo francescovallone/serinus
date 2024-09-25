@@ -12,6 +12,9 @@ const partners = [
 	<div class="container flex w-full gap-8 flex-col my-8">
 		<div class="container flex w-full gap-8 flex-col">
 			<h1 class="text-xl text-white">Partners</h1>
+            <p class="text-gray-400">
+                We are proud to be partnered with the following companies and organizations that share our vision for Serinus.
+            </p>
 			<section class="flex gap-4 flex-wrap">
 				<a target="_blank" v-for="(partner, index) in partners" :key="partner.name" :class="[
                     'plugin flex items-center transition-all size-32 p-4 rounded-lg grayscale hover:grayscale-0',
