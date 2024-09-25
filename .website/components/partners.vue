@@ -10,7 +10,7 @@ const partners = [
 
 <template>
 	<div class="container flex w-full gap-8 flex-col my-8">
-		<div class="container flex w-full gap-8 flex-col">
+		<div class="container flex w-full gap-4 flex-col">
 			<h1 class="text-xl text-white">Partners</h1>
             <p class="text-gray-400">
                 We are proud to be partnered with the following companies and organizations that share our vision for Serinus.
