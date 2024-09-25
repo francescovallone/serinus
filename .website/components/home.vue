@@ -2,6 +2,7 @@
 import Fast from './fast.vue'
 import Modular from './modular.vue'
 import Hero from './hero.vue'
+import Partners from './partners.vue'
 </script>
 
 <template>
@@ -28,5 +29,6 @@ import Hero from './hero.vue'
 			</div>
 		</div>
 		<Modular />
+		<Partners />
 	</div>
 </template>
