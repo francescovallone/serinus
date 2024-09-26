@@ -156,12 +156,32 @@ class GenerateModelsCommand extends Command<int> {
               );
               m
                 ..name = 'toJsonModels'
-                ..returns = refer('List<Type>')
+                ..returns = refer('Map<Type, Function>')
                 ..type = MethodType.getter
                 ..body = Code('''
-                return [
-                  ${models.map((e) => e.name).join(',\n')}
-                ];
+                return {
+                  ${models.where((e) => e.hasToJson).map((e) {
+                  return '${e.name}: (model) => (model as ${e.name}).${e.toJson}()';
+                }).join(',\n')}
+                };
+              ''');
+            }),
+          );
+          c.methods.add(
+            Method((m) {
+              m.annotations.add(
+                refer('override'),
+              );
+              m
+                ..name = 'fromJsonModels'
+                ..returns = refer('Map<Type, Function>')
+                ..type = MethodType.getter
+                ..body = Code('''
+                return {
+                  ${models.where((e) => e.hasFromJson).map((e) {
+                  return '${e.name}: (json) => ${e.name}.fromJson(json)';
+                }).join(',\n')}
+                };
               ''');
             }),
           );
@@ -186,20 +206,11 @@ class GenerateModelsCommand extends Command<int> {
                   }),
                 ])
                 ..body = Block.of([
-                  const Code('''
-                  switch (model.toString()) {
-                  '''),
-                  for (final model in models.where((e) => e.hasFromJson))
-                    Code.scope((a) {
-                      return '''
-                      case '${model.name}':
-                        return ${model.fromJson}(json);
-                    ''';
-                    }),
                   const Code(r'''
-                  default:
-                    throw Exception('Unknown model type ${model.toString()}! Make sure to run `serinus generate models` to generate the models.');
-                  }
+                    if(fromJsonModels.containsKey(model)) {
+                      return fromJsonModels[model]!(json);
+                    }
+                    throw UnsupportedError('Model ${model} not supported');
                   '''),
                 ]);
             }),
@@ -220,21 +231,12 @@ class GenerateModelsCommand extends Command<int> {
                   }),
                 )
                 ..body = Block.of([
-                  const Code('''
-                switch (model.runtimeType.toString()) {
-                '''),
-                  for (final model in models.where((e) => e.hasToJson))
-                    Code.scope((a) {
-                      return '''
-                    case '${model.name}':
-                      return (model as ${model.name}).${model.toJson}();
-                  ''';
-                    }),
                   const Code(r'''
-                default:
-                  throw Exception('Unknown model type ${model.runtimeType}! Make sure to run `serinus generate models` to generate the models.');
-                }
-                '''),
+                    if(toJsonModels.containsKey(T)) {
+                      return toJsonModels[T]!(model) as Map<String, dynamic>;
+                    }
+                    throw UnsupportedError('Model ${T} not supported');
+                  '''),
                 ]);
             }),
           );

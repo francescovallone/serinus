@@ -26,7 +26,8 @@ Future<Map<String, dynamic>> getProjectConfiguration(Logger logger) async {
     logger
       ..warn('The file config.yaml is deprecated.')
       ..warn(
-          'Go to https://serinus.app/foundations/configuration to learn more about the new configuration approach.');
+        'Go to https://serinus.app/foundations/configuration to learn more about the new configuration approach.',
+      );
     final configContent = await configFile.readAsString();
     final result = {
       ...Map<String, dynamic>.from(loadYaml(configContent) as Map),

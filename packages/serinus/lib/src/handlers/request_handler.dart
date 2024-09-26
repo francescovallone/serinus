@@ -113,7 +113,7 @@ class RequestHandler extends Handler {
       result = parseJsonToResponse(result);
       context.res.contentType = ContentType.json;
     }
-    if (config.modelProvider?.toJsonModels.contains(result.runtimeType) ??
+    if (config.modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
         false) {
       result = config.modelProvider?.toJson(result);
       context.res.contentType = ContentType.json;
@@ -395,13 +395,9 @@ class RequestHandler extends Handler {
       }
       return context.body.text;
     }
-    if (
-      (
-        (
-          '$body'.startsWith('Map') || '$body'.contains('List<Map')
-        ) && '$body'.endsWith('>')
-      ) || '$body' == 'Map'
-    ) {
+    if ((('$body'.startsWith('Map') || '$body'.contains('List<Map')) &&
+            '$body'.endsWith('>')) ||
+        '$body' == 'Map') {
       if (context.body.json == null) {
         throw PreconditionFailedException(message: 'The body is not a json');
       }
