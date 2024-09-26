@@ -395,10 +395,17 @@ class RequestHandler extends Handler {
       }
       return context.body.text;
     }
-    if (body == Map || body == List<Map>) {
+    if (
+      (
+        (
+          '$body'.startsWith('Map') || '$body'.contains('List<Map')
+        ) && '$body'.endsWith('>')
+      ) || '$body' == 'Map'
+    ) {
       if (context.body.json == null) {
         throw PreconditionFailedException(message: 'The body is not a json');
       }
+      return context.body.json;
     }
     if (body == Uint8List) {
       if (context.body.bytes == null) {
