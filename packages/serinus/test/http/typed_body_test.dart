@@ -37,9 +37,6 @@ class TestObject {
     return TestObject(json['name']);
   }
 
-  Map<String, dynamic> toJson() {
-    return {'name': name};
-  }
 }
 
 final config = ApplicationConfig(
