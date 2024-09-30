@@ -115,7 +115,7 @@ class RequestHandler extends Handler {
     }
     if (config.modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
         false) {
-      result = config.modelProvider?.toJson(result);
+      result = config.modelProvider?.to(result);
       context.res.contentType = ContentType.json;
     }
     if (result is Uint8List) {
@@ -418,7 +418,7 @@ class RequestHandler extends Handler {
     }
     if (config.modelProvider != null) {
       try {
-        return config.modelProvider?.fromJson(body, context.body.json ?? {});
+        return config.modelProvider?.from(body, context.body.json ?? {});
       } catch (e) {
         throw PreconditionFailedException(
             message: 'The body cannot be converted to a valid model');

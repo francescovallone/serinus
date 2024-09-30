@@ -3,9 +3,15 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:serinus_cli/src/commands/generate/generate_models/generate_models_command.dart';
 
 class ModelsAnalyzer {
-  Future<List<Model>> analyze(List<File> files) async {
+  Future<List<Model>> analyze(
+    List<File> files, 
+    Map<String, dynamic> config,
+    List<SerializeKeyword> serializeKeywords,
+    List<DeserializeKeyword> deserializeKeywords,
+  ) async {
     final collection = AnalysisContextCollection(
       includedPaths: files.map((file) => file.path).toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -40,15 +46,34 @@ class ModelsAnalyzer {
             toJson = 'toMap';
           }
           for (final c in constructors) {
-            if (c.name.contains('fromJson') && c.isFactory) {
-              hasFromJson = true;
-              fromJson = '$name.fromJson';
+            if (!hasFromJson) {
+              for(final s in deserializeKeywords) {
+                if (c.name.contains(s.name) && s.isStatic && c.isStatic) {
+                  hasFromJson = true;
+                  fromJson = '$name.${c.name}';
+                  break;
+                }
+              }
             }
           }
           for (final m in methods) {
-            if (m.name.contains('toJson')) {
-              hasToJson = true;
-              toJson = m.name;
+            if (!hasFromJson) {
+              for(final s in deserializeKeywords) {
+                if (m.name.contains(s.name) && s.isStatic && m.isStatic) {
+                  hasFromJson = true;
+                  fromJson = '$name.${m.name}';
+                  break;
+                }
+              }
+            }
+            if (!hasToJson) {
+              for(final s in serializeKeywords) {
+                if (m.name.contains(s.name)) {
+                  hasToJson = true;
+                  toJson = m.name;
+                  break;
+                }
+              }
             }
           }
           final path = file.split(Platform.pathSeparator);

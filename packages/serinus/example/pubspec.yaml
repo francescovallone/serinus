@@ -16,3 +16,13 @@ dev_dependencies:
   dart_mappable_builder: ^4.2.3
   json_serializable: ^6.8.0
   
+serinus:
+  models:
+    extensions: 
+      - "t"
+    deserialize_keywords:
+      - keyword: "fromRequest"
+        static_method: true
+    serialize_keywords:
+      - keyword: "toBody"
+        

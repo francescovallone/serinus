@@ -91,6 +91,7 @@ export default defineConfig({
             items: [
               { text: 'Logging', link: 'logging' },
               { text: 'Request Events', link: 'request_events' },
+              { text: 'Model Provider', link: 'model_provider' },
               { text: 'Model View Controller', link: 'mvc' },
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },

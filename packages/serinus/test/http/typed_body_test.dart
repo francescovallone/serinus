@@ -20,7 +20,7 @@ class _MockContext extends Mock implements RequestContext {
 
 class _MockModelProvider extends Mock implements ModelProvider {
   @override
-  Object fromJson(Type model, Map<String, dynamic> json) {
+  Object from(Type model, Map<String, dynamic> json) {
     if (model == TestObject) {
       return TestObject.fromJson(json);
     }

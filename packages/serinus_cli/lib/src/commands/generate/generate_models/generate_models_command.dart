@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:serinus_cli/src/commands/generate/generate_models/models_analyzer.dart';
 import 'package:serinus_cli/src/commands/generate/recase.dart';
 import 'package:serinus_cli/src/utils/config.dart';
+import 'package:yaml/yaml.dart';
 
 /// {@template generate_command}
 ///
@@ -67,31 +68,71 @@ class GenerateModelsCommand extends Command<int> {
     await generateModelProvider(
       Directory.current.path,
       config['name'] as String,
+      config,
     );
     modelProviderProgress?.complete('Model provider generated successfully!');
     return ExitCode.success.code;
   }
-
-  Future<void> generateModelProvider(String path, String name) async {
+ 
+  Future<void> generateModelProvider(String path, String name, Map<String, dynamic> config) async {
     final modelProvider = File('$path/lib/model_provider.dart');
+    final modelsConfig = Map<String, dynamic>.from(
+      config['models'] as Map<dynamic, dynamic>);
     if (!modelProvider.existsSync()) {
       modelProvider.createSync(recursive: true);
     }
+    final fromKeywords = (modelsConfig['deserialize_keywords'] as YamlList).nodes.map(
+      (e) => Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
+    ).toList();
+    final toKeywords = (modelsConfig['serialize_keywords'] as YamlList).nodes.map(
+      (e) => Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
+    ).toList();
+    final deserializeKeywords = List<DeserializeKeyword>.of(
+      fromKeywords.map<DeserializeKeyword>(
+        (Map<dynamic, dynamic> e) => DeserializeKeyword(
+          e['keyword'] as String, isStatic: (e['static_method'] as bool?) ?? false,
+        ),
+      ),
+    )..add(DeserializeKeyword('fromJson'));
+    final serializeKeywords = List<SerializeKeyword>.of(
+      toKeywords.map<SerializeKeyword>(
+        (Map<dynamic, dynamic> e) => SerializeKeyword(
+          e['keyword'] as String,
+        ),
+      ),
+    )..add(SerializeKeyword('toJson'));
     final files = await _recursiveGetFiles(
       Directory('$path${Platform.pathSeparator}lib'),
+      modelsConfig,
+      serializeKeywords,
+      deserializeKeywords,
     );
     final analyzer = ModelsAnalyzer();
-    final models = await analyzer.analyze(files);
+    final models = await analyzer.analyze(
+      files, 
+      modelsConfig,
+      serializeKeywords,
+      deserializeKeywords,
+    );
     final modelProviderContent = await _getContent(models, name);
     modelProvider.writeAsStringSync(modelProviderContent);
+    _logger?.info(
+      '✨Added ${models.map((e) => e.name).join(', ')} to the model provider',);
   }
 
-  Future<List<File>> _recursiveGetFiles(Directory dir) async {
+  Future<List<File>> _recursiveGetFiles(
+    Directory dir, 
+    Map<String, dynamic> config,
+    List<SerializeKeyword> serializeKeywords,
+    List<DeserializeKeyword> deserializeKeywords,
+  ) async {
     final files = <File>[];
-    final pathKeywords = [
+    final extensions = [
       '.mapper',
       '.freezed',
       '.g',
+      ...List<String>.from(
+        config['extensions'] as Iterable<dynamic>).map((e) => '.$e'),
     ];
     final entities = dir.listSync();
     final generatedEntities = <String>[];
@@ -104,9 +145,9 @@ class GenerateModelsCommand extends Command<int> {
           files.add(entity);
           continue;
         }
-        if (pathKeywords.any(path.contains)) {
+        if (extensions.any(path.contains) && path.split('.').length > 2) {
           final generatedPath = path.split('.')
-            ..removeWhere((element) => pathKeywords.contains('.$element'));
+            ..removeWhere((element) => extensions.contains('.$element'));
           if (!generatedEntities.contains(generatedPath.join('.'))) {
             final filePath = entity.path.split(Platform.pathSeparator);
             // ignore: cascade_invocations
@@ -123,12 +164,16 @@ class GenerateModelsCommand extends Command<int> {
         }
         final content = entity.readAsStringSync();
         if (content.contains('class') &&
-            (content.contains('toJson') || content.contains('fromJson')) &&
+            (
+              serializeKeywords.any((e) => content.contains(e.name)) || 
+              deserializeKeywords.any((e) => content.contains(e.name))
+            ) &&
             !entity.path.endsWith('model_provider.dart')) {
           files.add(entity);
         }
       } else if (entity is Directory) {
-        files.addAll(await _recursiveGetFiles(entity));
+        files.addAll(await _recursiveGetFiles(
+          entity, config, serializeKeywords, deserializeKeywords,),);
       }
     }
     return files;
@@ -179,7 +224,7 @@ class GenerateModelsCommand extends Command<int> {
                 ..body = Code('''
                 return {
                   ${models.where((e) => e.hasFromJson).map((e) {
-                  return '${e.name}: (json) => ${e.name}.fromJson(json)';
+                  return '${e.name}: (json) => ${e.fromJson}(json)';
                 }).join(',\n')}
                 };
               ''');
@@ -191,7 +236,7 @@ class GenerateModelsCommand extends Command<int> {
                 refer('override'),
               );
               m
-                ..name = 'fromJson'
+                ..name = 'from'
                 ..returns = refer('Object')
                 ..requiredParameters.addAll([
                   Parameter((p) {
@@ -210,7 +255,7 @@ class GenerateModelsCommand extends Command<int> {
                     if(fromJsonModels.containsKey(model)) {
                       return fromJsonModels[model]!(json);
                     }
-                    throw UnsupportedError('Model ${model} not supported');
+                    throw UnsupportedError('Model $model not supported');
                   '''),
                 ]);
             }),
@@ -221,7 +266,7 @@ class GenerateModelsCommand extends Command<int> {
                 refer('override'),
               );
               m
-                ..name = 'toJson<T>'
+                ..name = 'to<T>'
                 ..returns = refer('Map<String, dynamic>')
                 ..requiredParameters.add(
                   Parameter((p) {
@@ -235,7 +280,7 @@ class GenerateModelsCommand extends Command<int> {
                     if(toJsonModels.containsKey(T)) {
                       return toJsonModels[T]!(model) as Map<String, dynamic>;
                     }
-                    throw UnsupportedError('Model ${T} not supported');
+                    throw UnsupportedError('Model $T not supported');
                   '''),
                 ]);
             }),
@@ -254,4 +299,17 @@ class GenerateModelsCommand extends Command<int> {
           .toString(),
     );
   }
+}
+
+class DeserializeKeyword {
+
+  DeserializeKeyword(this.name, {this.isStatic = false});
+  final String name;
+  final bool isStatic;
+}
+
+class SerializeKeyword {
+
+  SerializeKeyword(this.name);
+  final String name;
 }

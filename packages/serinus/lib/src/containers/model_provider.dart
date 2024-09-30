@@ -7,8 +7,8 @@ abstract class ModelProvider {
   Map<Type, Function> get toJsonModels;
 
   /// Converts a [Map<String, dynamic>] to a model of type [T]
-  Object fromJson(Type model, Map<String, dynamic> json);
+  Object from(Type model, Map<String, dynamic> json);
 
   /// Converts a model of type [T] to a [Map<String, dynamic>]
-  Map<String, dynamic> toJson<T>(T model);
+  Map<String, dynamic> to<T>(T model);
 }
