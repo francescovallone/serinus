@@ -96,7 +96,20 @@ export default defineConfig({
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
               { text: 'Body Size Limit', link: 'body_size_limit' },
-              { text: 'Shelf Interoperability', link: 'shelf_interop' }
+              { text: 'Shelf Interoperability', link: 'shelf_interop' },
+              { text: 'Configuration', link: 'configuration' },
+              { 
+                text: 'CLI', 
+                base: '/techniques/cli/',
+                collapsed: true,
+                items: [
+                  { text: 'Introduction', link: '/' },
+                  { text: 'Create', link: 'create' },
+                  { text: 'Generate', link: 'generate' },
+                  { text: 'Run', link: 'run' },
+                  { text: 'Deploy', link: 'deploy' },
+                ]
+              },
             ]
           },
           {
