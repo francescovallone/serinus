@@ -35,4 +35,4 @@ Future<void> main() async {
 
 ## Options while generating a Model Provider
 
-To read more about the options available while generating the model provider for your project you can go to the [Generate Command](/commands/generate) section.
+To read more about the options available while generating the model provider for your project you can go to the [Configuration](/techniques/configuration) section.
