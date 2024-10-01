@@ -106,11 +106,16 @@ class RequestHandler extends Handler {
       }
     }
     await executeBeforeHandle(context, route);
-    Object? result =
-        await executeHandler(context, route, handler, routeData.isStatic);
+    Object? result = await executeHandler(
+        context, route, handler, routeData.isStatic, routeSpec.body);
     await executeAfterHandle(context, route, result);
     if (result?.canBeJson() ?? false) {
       result = parseJsonToResponse(result);
+      context.res.contentType = ContentType.json;
+    }
+    if (config.modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
+        false) {
+      result = config.modelProvider?.to(result);
       context.res.contentType = ContentType.json;
     }
     if (result is Uint8List) {
@@ -317,7 +322,7 @@ class RequestHandler extends Handler {
 
   /// Executes the [handler] from the route
   Future<Object?> executeHandler(RequestContext context, Route route,
-      Object handler, bool isStatic) async {
+      Object handler, bool isStatic, Type? body) async {
     config.tracerService.addEvent(
         name: TraceEvents.onHandle,
         begin: true,
@@ -332,8 +337,12 @@ class RequestHandler extends Handler {
       if (handler is ReqResHandler) {
         result = await handler.call(context);
       } else {
-        result =
-            await Function.apply(handler, [context, ...context.params.values]);
+        final bodyValue = getBodyValue(context, body);
+        result = await Function.apply(handler, [
+          context,
+          if (bodyValue != null) bodyValue,
+          ...context.params.values
+        ]);
       }
     }
     await config.tracerService.addSyncEvent(
@@ -372,6 +381,48 @@ class RequestHandler extends Handler {
           request: context.request,
           context: context,
           traced: 'h-${hook.runtimeType}');
+    }
+  }
+
+  /// Get the body value from the request context or try to parse it with the model provider
+  dynamic getBodyValue(RequestContext context, Type? body) {
+    if (body == null) {
+      return null;
+    }
+    if (body == String) {
+      if (context.body.text == null) {
+        throw PreconditionFailedException(message: 'The body is not a string');
+      }
+      return context.body.text;
+    }
+    if ((('$body'.startsWith('Map') || '$body'.contains('List<Map')) &&
+            '$body'.endsWith('>')) ||
+        '$body' == 'Map') {
+      if (context.body.json == null) {
+        throw PreconditionFailedException(message: 'The body is not a json');
+      }
+      return context.body.json;
+    }
+    if (body == Uint8List) {
+      if (context.body.bytes == null) {
+        throw PreconditionFailedException(message: 'The body is not a binary');
+      }
+      return context.body.bytes;
+    }
+    if (body == FormData) {
+      if (context.body.formData == null) {
+        throw PreconditionFailedException(
+            message: 'The body is not a form data');
+      }
+      return context.body.formData;
+    }
+    if (config.modelProvider != null) {
+      try {
+        return config.modelProvider?.from(body, context.body.json ?? {});
+      } catch (e) {
+        throw PreconditionFailedException(
+            message: 'The body cannot be converted to a valid model');
+      }
     }
   }
 }

@@ -85,3 +85,59 @@ class MyController extends Controller {
   }
 }
 ```
+
+## Typed body handler
+
+::: tip
+Before using typed body handlers, make sure to read the [Model Provider](/techniques/model_provider) section.
+:::
+
+The handler can also receive a body of a specific type. This is useful when you need to receive a JSON body and convert it to a Dart object.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyObject {
+  String name;
+
+  MyObject({this.name});
+
+  factory MyObject.fromJson(Map<String, dynamic> json) {
+    return MyObject(name: json['name']);
+  }
+}
+
+class MyController extends Controller {
+  MyController({super.path = '/'}) {
+    on(Route.get('/'), body: MyObject, (context, body) async {
+      return 'Hello ${body.name}!';
+    });
+  }
+}
+```
+
+In this case, the handler will receive an instance of `MyObject` as the second parameter.
+
+In the case of a parametric route, the body must be the second parameter after the context.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyObject {
+  String name;
+
+  MyObject({this.name});
+
+  factory MyObject.fromJson(Map<String, dynamic> json) {
+    return MyObject(name: json['name']);
+  }
+}
+
+class MyController extends Controller {
+  MyController({super.path = '/'}) {
+    on(Route.get('/<name>'), body: MyObject, (context, body, String name) async {
+      return 'Hello $name ${body.name}!';
+    });
+  }
+}
+```
