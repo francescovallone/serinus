@@ -90,11 +90,19 @@ class AppModule extends Module {
       : super(imports: [
           AnotherModule(),
           CircularDependencyModule()
-        ], controllers: [], providers: [
+        ], controllers: [
+          AppController()
+        ], providers: [
           TestProvider(isGlobal: true),
           Provider.deferred((TestProviderThree tp) => TestProviderTwo(tp),
               inject: [TestProviderThree], type: TestProviderTwo),
         ], middlewares: []);
+}
+
+class AppController extends Controller {
+  AppController({super.path = '/'}) {
+    onStatic(Route.get('/'), 'ok!');
+  }
 }
 
 void main(List<String> arguments) async {
