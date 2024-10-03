@@ -3,13 +3,20 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:code_builder/code_builder.dart';
 import 'package:mason/mason.dart';
+import 'package:serinus_cli/src/utils/extensions.dart';
 
-const ON_ROUTE_REGEX = r'on\(([^()]*|\([^()]*\))*\)';
-const SUPER_PARAMS_REGEX = r'super\(([^()]*|\([^()]*\))*\)';
+final onRouteRegex = RegExp(r'on\(([^()]*|\([^()]*\))*\)');
+final superParamsRegex = RegExp(r'super\(([^()]*|\([^()]*\))*\)');
+final parametricDefnsRegex = RegExp(r'([^<]*)<(\w+)>([^<]*)');
+final closeDoorParametricRegex = RegExp('><');
+
+typedef ParamRecord = ({
+  String name,
+  String? prefix,
+  String? suffix,
+});
 
 class ControllersAnalyzer {
 
@@ -43,8 +50,8 @@ class ControllersAnalyzer {
             _logger.err('Route $name must have a default constructor');
             continue;
           }
-
-          
+          final userRoute = getRouteInformation(clazz);
+          print('UserRoute: $userRoute');
         }
       }
     }
@@ -88,7 +95,7 @@ class ControllersAnalyzer {
           final basePath = getBasePath(clazz);
           // print(basePath);
           final routes = <Route>[];
-          final matches = RegExp(ON_ROUTE_REGEX).allMatches(clazz.source.contents.data);
+          final matches = onRouteRegex.allMatches(clazz.source.contents.data);
           for(final match in matches) {
             for (var i = 0; i<match.groupCount; i++) {
               var result = match.group(i);
@@ -118,45 +125,44 @@ class ControllersAnalyzer {
     }
   }
 
+  ParamRecord _singleParamDefn(RegExpMatch m) {
+    var suffix = m.group(3)?.nullIfEmpty;
+    if(suffix != null && (suffix.endsWith("'"))) {
+      suffix = suffix.substring(0, suffix.length - 1);
+    }
+    var prefix = m.group(1)?.nullIfEmpty;
+    if(prefix != null && (prefix.startsWith("'"))) {
+      prefix = prefix.substring(1);
+    }
+    return (
+      name: m.group(2)!,
+      prefix: prefix,
+      suffix: suffix,
+    );
+  }
+
+  List<ParamRecord> buildParamDefinition(String part) {
+    if (closeDoorParametricRegex.hasMatch(part)) {
+      throw ArgumentError.value(
+          part, null, 'Parameter definition is invalid. Close door neighbors',);
+    }
+
+    final matches = parametricDefnsRegex.allMatches(part);
+    if (matches.isEmpty) {
+      return [];
+    }
+
+    if (matches.length == 1) {
+      return [_singleParamDefn(matches.first)];
+    }
+
+    return matches.map(_singleParamDefn).toList();
+  }
+
   UserRoute getRouteInformation(ClassElement clazz) {
     final constructor = clazz.unnamedConstructor;
     final content = constructor?.source.contents.data;
     final userRoute = UserRoute();
-    final results = RegExp(SUPER_PARAMS_REGEX).allMatches(content ?? '');
-    for(final result in results) {
-      for (var i = 0; i<result.groupCount; i++) {
-        var superParams = result.group(i);
-        if(superParams != null) {
-          superParams = superParams.substring(6, superParams.length - 1).trim();
-          final params = superParams.split(',');
-          for(final param in params) {
-            final tokens = param.split(':');
-            if(tokens.length == 2) {
-              final key = tokens[0].trim();
-              final value = tokens[1].trim();
-              if(key == 'path') {
-                userRoute.path = value;
-              }
-              if(key == 'method') {
-                userRoute.method = value;
-              }
-              if(key == 'queryParamters') {
-                userRoute.queryParamters = {};
-                final queryParamters = value.substring(1, value.length - 1).split(',');
-                for(final queryParam in queryParamters) {
-                  final queryTokens = queryParam.split(':');
-                  if(queryTokens.length == 2) {
-                    final queryKey = queryTokens[0].trim();
-                    final queryValue = queryTokens[1].trim();
-                    userRoute.queryParamters![queryKey] = queryValue;
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
     final pathGetter = clazz.getField('path');
     var path = pathGetter?.computeConstantValue()?.toStringValue() ?? clazz.getField('path')?.computeConstantValue()?.toStringValue();
     if(path == null && (constructor?.parameters.isNotEmpty ?? false)){
@@ -173,11 +179,69 @@ class ControllersAnalyzer {
       method = methodParameter?.computeConstantValue()?.toStringValue();
     }
     userRoute.method = userRoute.method ?? method;
+    final queryParametersGetter = clazz.getField('queryParameters');
+    var queryParameters = queryParametersGetter?.computeConstantValue()?.toMapValue();
+    if(queryParameters == null && (constructor?.parameters.isNotEmpty ?? false)){
+      final queryParametersParameter = constructor?.parameters.where(
+        (p) => p.name == 'queryParameters' || p.name == 'super.queryParameters',
+      ).firstOrNull;
+      queryParameters = queryParametersParameter?.computeConstantValue()?.toMapValue();
+    }
+    userRoute.queryParameters = userRoute.queryParameters ?? 
+      Map<String, dynamic>.from(queryParameters ?? {});
+    final results = superParamsRegex.allMatches(content ?? '');
+    for(final result in results) {
+      for (var i = 0; i < result.groupCount; i++) {
+        var superParams = result.group(i);
+        if(superParams != null) {
+          superParams = superParams.substring(6, superParams.length - 1).trim();
+          final params = superParams.split(',');
+          for(final param in params) {
+            final tokens = param.split(':');
+            print(tokens);
+            if(tokens.length == 2) {
+              final key = tokens[0].trim();
+              final value = tokens[1].trim();
+              if(key == 'path') {
+                userRoute.path = value;
+              }
+              if(key == 'method') {
+                userRoute.method = value.replaceAll('HttpMethod.', '');
+              }
+              if(key == 'queryParameters') {
+                userRoute.queryParameters = {};
+                print(value);
+                final queryParamters = value
+                  .substring(1, value.length - 1).split(',');
+                for(final queryParam in queryParamters) {
+                  final queryTokens = queryParam.split(':');
+                  if(queryTokens.length == 2) {
+                    final queryKey = queryTokens[0].trim();
+                    final queryValue = queryTokens[1].trim();
+                    userRoute.queryParameters![queryKey] = queryValue;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    final params = buildParamDefinition(userRoute.path ?? '');
+    for(final param in params) {
+      userRoute.path = userRoute.path?.replaceFirst(
+        '<${param.name}>', '\${params["${param.name}"]}',);
+    }
+    userRoute.parameters = Map<String, dynamic>.fromEntries(
+      params.map((p) => MapEntry(p.name, p)),
+    );
+    print(params);
     print(userRoute);
               print(constructor?.parameters);
           print(constructor?.source.contents.data);
           print(constructor?.superConstructor?.parameters.map((p) => p.computeConstantValue()));
           print(clazz.constructors);
+    return userRoute;
   }
 
   String getBasePath(ClassElement clazz) {
@@ -207,19 +271,19 @@ class UserRoute {
 
   String? path;
   String? method;
-  Map<String, dynamic>? queryParamters;
+  Map<String, dynamic>? queryParameters;
   Map<String, dynamic>? parameters;
 
   UserRoute({
     this.path,
     this.method,
-    this.queryParamters,
+    this.queryParameters,
     this.parameters
   });
 
   @override
   String toString() {
-    return 'UserRoute(path: $path, method: $method, queryParamters: $queryParamters, parameters: $parameters)';
+    return 'UserRoute(path: $path, method: $method, queryParameters: $queryParameters, parameters: $parameters)';
   }
 
 }
