@@ -50,20 +50,30 @@ class GenerateClientCommand extends Command<int> {
       Directory.current,
       config,
     );
+    final routeFiles = files.where((file) => file.isRoute) 
+      .map((file) => file.file).toList();
+    final controllerFiles = files.where((file) => !file.isRoute)
+      .map((file) => file.file).toList();
     final analyzer = ControllersAnalyzer();
-    await analyzer.analyze(
-      files,
+    final routes = await analyzer.analyzeRoutes(
+      routeFiles,
+      config,
+      _logger!,
+    );
+    await analyzer.analyzeControllers(
+      controllerFiles,
+      routes,
       config,
       _logger!,
     );
     return ExitCode.success.code;
   }
 
-  Future<List<File>> _recursiveGetFiles(
+  Future<List<({File file, bool isRoute})>> _recursiveGetFiles(
     Directory dir, 
     Map<String, dynamic> config,
   ) async {
-    final files = <File>[];
+    final files = <({File file, bool isRoute})>[];
     final entities = dir.listSync();
     for (final entity in entities) {
       if (entity is File) {
@@ -71,10 +81,15 @@ class GenerateClientCommand extends Command<int> {
           continue;
         }
         final content = entity.readAsStringSync();
+        final controller = containController(content);
+        final route = containRoute(content);
         if (
-          containController(content) || containRoute(content)
+          controller || route
         ) {
-          files.add(entity);
+          files.add((
+            file: entity,
+            isRoute: route,
+          ));
         }
       } else if (entity is Directory) {
         files.addAll(await _recursiveGetFiles(
