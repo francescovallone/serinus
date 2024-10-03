@@ -34,7 +34,7 @@ final class WebSocketContext extends BaseContext {
   /// The [broadcast] parameter is used to broadcast the data to all clients.
   void send(dynamic data) {
     if (_serializer != null) {
-      data = _serializer!.serialize(data);
+      data = _serializer.serialize(data);
     }
     _wsAdapter.send(data, key: id);
   }
@@ -44,7 +44,7 @@ final class WebSocketContext extends BaseContext {
   /// The [data] parameter is the data to be sent.
   void broadcast(dynamic data) {
     if (_serializer != null) {
-      data = _serializer!.serialize(data);
+      data = _serializer.serialize(data);
     }
     _wsAdapter.send(data);
   }
