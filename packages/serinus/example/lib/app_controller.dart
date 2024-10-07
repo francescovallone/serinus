@@ -16,4 +16,3 @@ class AppController extends Controller {
     return 'Echo';
   }
 }
-

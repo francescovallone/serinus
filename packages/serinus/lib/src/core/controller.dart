@@ -9,7 +9,6 @@ import 'metadata.dart';
 import 'parse_schema.dart';
 import 'route.dart';
 
-
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
 typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 

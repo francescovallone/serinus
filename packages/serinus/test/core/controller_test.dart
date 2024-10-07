@@ -44,11 +44,9 @@ void main() async {
       final route2 = GetRoute(path: '/');
       controller.on(route, (context) async => 'ok!');
       controller.on(route2, (context) async => 'ok!');
-      expect(
-          controller.get(controller.routes.keys.elementAt(0)),
+      expect(controller.get(controller.routes.keys.elementAt(0)),
           isA<RouteHandler>());
-      expect(
-          controller.get(controller.routes.keys.elementAt(1)),
+      expect(controller.get(controller.routes.keys.elementAt(1)),
           isA<RouteHandler>());
     });
 
@@ -58,10 +56,7 @@ void main() async {
       final controller = LeadingSlashController();
       final route = GetRoute(path: '/test');
       controller.onStatic(route, 'ok!');
-      expect(
-          controller.get(
-            controller.routes.keys.elementAt(0)
-          ),
+      expect(controller.get(controller.routes.keys.elementAt(0)),
           isA<RouteHandler>());
     });
 

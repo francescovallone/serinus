@@ -80,6 +80,9 @@ class RouteData {
   /// The [isStatic] property defines if a route is a static one.
   final bool isStatic;
 
+  /// The [spec] property contains the specification of the route.
+  final RouteHandler spec;
+
   /// The [RouteData] constructor is used to create a new instance of the [RouteData] class.
   const RouteData({
     required this.id,
@@ -92,6 +95,4 @@ class RouteData {
     this.isStatic = false,
     this.queryParameters = const {},
   });
-
-  final RouteHandler spec;
 }

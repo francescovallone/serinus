@@ -36,7 +36,6 @@ class TestObject {
   factory TestObject.fromJson(Map<String, dynamic> json) {
     return TestObject(json['name']);
   }
-
 }
 
 final config = ApplicationConfig(
