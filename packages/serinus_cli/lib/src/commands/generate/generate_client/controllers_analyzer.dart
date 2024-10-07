@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
@@ -20,11 +21,13 @@ typedef ParamRecord = ({
 
 class ControllersAnalyzer {
 
-  Future<Map<String, dynamic>> analyzeRoutes(
+  Future<Map<String, UserRoute>> analyzeRoutes(
     List<File> files,
     Map<String, dynamic> config,
-    Logger _logger,
+    Logger logger,
   ) async {
+    logger.info('Analyzing user defined routes');
+    final userDefinedRoutes = <String, UserRoute>{};
     final collection = AnalysisContextCollection(
       includedPaths: files.map((file) => file.path).toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -51,19 +54,20 @@ class ControllersAnalyzer {
             continue;
           }
           final userRoute = getRouteInformation(clazz);
-          print('UserRoute: $userRoute');
+          userDefinedRoutes[userRoute.className] = userRoute;
         }
       }
     }
-    return {};
+    return userDefinedRoutes;
   }
 
   Future<dynamic> analyzeControllers(
     List<File> files, 
     Map<String, dynamic> routes,
     Map<String, dynamic> config,
-    Logger _logger,
+    Logger logger,
   ) async {
+    logger.info('Analyzing application controllers');
     final collection = AnalysisContextCollection(
       includedPaths: files.map((file) => file.path).toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -81,7 +85,6 @@ class ControllersAnalyzer {
         final classes = element.classes;
         for (final clazz in classes) {
           final name = clazz.name;
-          print(name);
           final isController = clazz.allSupertypes.where(
             (t) => t.getDisplayString().contains('Controller'),).isNotEmpty;
           if (!isController) {
@@ -113,8 +116,37 @@ class ControllersAnalyzer {
                   final method = routeTokens[1].trim();                  
                   routes.add(Route(name: routeName, method: method));
                 } else {
-                  _logger.err(
-                    'Invalid route definition: $result in controller $name',);
+                  final routeName = route.split('(')[1];
+                  final method = routeTokens[1].trim();
+                  final queryParameters = <String, dynamic>{};
+                  final parameters = <String, dynamic>{};
+                  final queryParametersMatches = superParamsRegex.allMatches(result);
+                  for(final queryParametersMatch in queryParametersMatches) {
+                    for (var i = 0; i < queryParametersMatch.groupCount; i++) {
+                      var superParams = queryParametersMatch.group(i);
+                      if(superParams != null) {
+                        superParams = superParams.substring(6, superParams.length - 1).trim();
+                        final params = superParams.split(',');
+                        for(final param in params) {
+                          final tokens = param.split(':');
+                          if(tokens.length >= 2) {
+                            final key = tokens[0].trim();
+                            final value = tokens[1].trim();
+                            queryParameters[key] = value;
+                          }
+                        }
+                      }
+                    }
+                  }
+                  final params = buildParamDefinition(route);
+                  for(final param in params) {
+                    route = route.replaceFirst(
+                      '<${param.name}>', '\${params["${param.name}"]}',);
+                  }
+                  parameters['path'] = route;
+                  parameters['method'] = method;
+                  parameters['queryParameters'] = queryParameters;
+                  routes.add(Route(name: routeName, method: method, queryParamters: queryParameters, parameters: parameters));
                 }
               }
             }
@@ -162,7 +194,9 @@ class ControllersAnalyzer {
   UserRoute getRouteInformation(ClassElement clazz) {
     final constructor = clazz.unnamedConstructor;
     final content = constructor?.source.contents.data;
-    final userRoute = UserRoute();
+    final userRoute = UserRoute(
+      className: clazz.name,
+    );
     final pathGetter = clazz.getField('path');
     var path = pathGetter?.computeConstantValue()?.toStringValue() ?? clazz.getField('path')?.computeConstantValue()?.toStringValue();
     if(path == null && (constructor?.parameters.isNotEmpty ?? false)){
@@ -188,7 +222,7 @@ class ControllersAnalyzer {
       queryParameters = queryParametersParameter?.computeConstantValue()?.toMapValue();
     }
     userRoute.queryParameters = userRoute.queryParameters ?? 
-      Map<String, dynamic>.from(queryParameters ?? {});
+      queryParameters?.keys.map((k) => k.toString()).toList() ?? [];
     final results = superParamsRegex.allMatches(content ?? '');
     for(final result in results) {
       for (var i = 0; i < result.groupCount; i++) {
@@ -196,10 +230,10 @@ class ControllersAnalyzer {
         if(superParams != null) {
           superParams = superParams.substring(6, superParams.length - 1).trim();
           final params = superParams.split(',');
-          for(final param in params) {
-            final tokens = param.split(':');
-            print(tokens);
-            if(tokens.length == 2) {
+          var index = 0;
+          for(final param in params.indexed) {
+            final tokens = param.$2.split(':');
+            if(tokens.length >= 2) {
               final key = tokens[0].trim();
               final value = tokens[1].trim();
               if(key == 'path') {
@@ -209,19 +243,26 @@ class ControllersAnalyzer {
                 userRoute.method = value.replaceAll('HttpMethod.', '');
               }
               if(key == 'queryParameters') {
-                userRoute.queryParameters = {};
-                print(value);
-                final queryParamters = value
-                  .substring(1, value.length - 1).split(',');
-                for(final queryParam in queryParamters) {
-                  final queryTokens = queryParam.split(':');
-                  if(queryTokens.length == 2) {
-                    final queryKey = queryTokens[0].trim();
-                    final queryValue = queryTokens[1].trim();
-                    userRoute.queryParameters![queryKey] = queryValue;
-                  }
-                }
+                index = param.$1;
               }
+
+            }
+          }
+          var query = params.sublist(index).map((e) => e.trim()).join().trim();
+          final closingParenthesis = query.indexOf('}');
+          query = query.replaceRange(closingParenthesis + 1, query.length, '')
+            .replaceAll('queryParameters:', '')
+            .replaceAll(' ', '').replaceAll('\n', '')
+            .replaceAll("'", '"').trim();
+          if(query.isNotEmpty) {
+            query = query.substring(1, query.length - 1);
+            final tokens = query.split(',');
+            if(tokens.isNotEmpty) {
+              userRoute.queryParameters = [];
+            }
+            for(final token in tokens) {
+              final key = token.split(':')[0].trim();
+              userRoute.queryParameters?.add(key);
             }
           }
         }
@@ -232,15 +273,7 @@ class ControllersAnalyzer {
       userRoute.path = userRoute.path?.replaceFirst(
         '<${param.name}>', '\${params["${param.name}"]}',);
     }
-    userRoute.parameters = Map<String, dynamic>.fromEntries(
-      params.map((p) => MapEntry(p.name, p)),
-    );
-    print(params);
-    print(userRoute);
-              print(constructor?.parameters);
-          print(constructor?.source.contents.data);
-          print(constructor?.superConstructor?.parameters.map((p) => p.computeConstantValue()));
-          print(clazz.constructors);
+    userRoute.parameters = params.map((p) => p.name).toList();
     return userRoute;
   }
 
@@ -257,43 +290,40 @@ class ControllersAnalyzer {
 
 class ControllerEntry {
 
-  final String name;
-  final List<Route> routes;
-
   const ControllerEntry({
     required this.name,
     required this.routes,
   });
 
+  final String name;
+  final List<Route> routes;
+
 }
 
 class UserRoute {
 
-  String? path;
-  String? method;
-  Map<String, dynamic>? queryParameters;
-  Map<String, dynamic>? parameters;
-
   UserRoute({
+    required this.className,
     this.path,
     this.method,
     this.queryParameters,
-    this.parameters
+    this.parameters,
   });
+
+  final String className;
+  String? path;
+  String? method;
+  List<String>? queryParameters;
+  List<String>? parameters;
 
   @override
   String toString() {
-    return 'UserRoute(path: $path, method: $method, queryParameters: $queryParameters, parameters: $parameters)';
+    return 'UserRoute(name: $className, path: $path, method: $method, queryParameters: $queryParameters, parameters: $parameters)';
   }
 
 }
 
 class Route {
-
-  final String name;
-  final String method;
-  final Map<String, dynamic> queryParamters;
-  final Map<String, dynamic> parameters;
 
   const Route({
     required this.name,
@@ -301,5 +331,10 @@ class Route {
     this.queryParamters = const {},
     this.parameters = const {}
   });
+
+  final String name;
+  final String method;
+  final Map<String, dynamic> queryParamters;
+  final Map<String, dynamic> parameters;
 
 }

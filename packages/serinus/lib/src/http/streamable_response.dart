@@ -32,6 +32,9 @@ class StreamableResponse {
 
   /// This method is used to send data to the response.
   void send(Object data) {
+    if(!_initialized) {
+      init();
+    }
     _response.write(data.toString());
   }
 

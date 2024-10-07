@@ -227,7 +227,13 @@ void main() async {
           method: HttpMethod.get,
           controller: controller,
           routeCls: TestRoute,
-          moduleToken: 'TestModule'));
+          moduleToken: 'TestModule',
+          spec: (
+            body: null,
+            schema: null,
+            handler: 'hi',
+            route: TestRoute(path: 'path-error'),
+          )));
       final request = await HttpClient()
           .getUrl(Uri.parse('http://localhost:3000/path-error'));
       final response = await request.close();

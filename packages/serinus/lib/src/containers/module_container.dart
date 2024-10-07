@@ -313,6 +313,7 @@ final class ModulesContainer {
         ...providers.providers,
         ...providers.exportedProviders,
         ...injectables.providers,
+        ...globalProviders
       },
     );
   }
@@ -342,7 +343,8 @@ final class ModulesContainer {
         providers: {
           ...providersInjectable,
           ...subModuleInjectables.providers,
-          ...exportedProvidersInjectables
+          ...exportedProvidersInjectables,
+          ...globalProviders,
         },
       );
     }

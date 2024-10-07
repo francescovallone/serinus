@@ -1,5 +1,4 @@
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/router.dart';
 import 'package:test/test.dart';
 
 class TestController extends Controller {
@@ -38,7 +37,7 @@ void main() async {
     });
 
     test(
-        'when two routes with the same type and path are added to a controller, then it should throw an error',
+        'when two routes with the same type and different path are added to a controller, then it should register both routes',
         () {
       final controller = LeadingSlashController();
       final route = GetRoute(path: '/test');
@@ -46,22 +45,10 @@ void main() async {
       controller.on(route, (context) async => 'ok!');
       controller.on(route2, (context) async => 'ok!');
       expect(
-          controller.get(RouteData(
-              id: controller.routes.keys.elementAt(0),
-              path: '/leading/test',
-              controller: controller,
-              method: HttpMethod.get,
-              moduleToken: '',
-              routeCls: GetRoute)),
+          controller.get(controller.routes.keys.elementAt(0)),
           isA<RouteHandler>());
       expect(
-          controller.get(RouteData(
-              id: controller.routes.keys.elementAt(1),
-              path: '/leading/',
-              controller: controller,
-              method: HttpMethod.get,
-              moduleToken: '',
-              routeCls: GetRoute)),
+          controller.get(controller.routes.keys.elementAt(1)),
           isA<RouteHandler>());
     });
 
@@ -72,14 +59,9 @@ void main() async {
       final route = GetRoute(path: '/test');
       controller.onStatic(route, 'ok!');
       expect(
-          controller.get(RouteData(
-              id: controller.routes.keys.elementAt(0),
-              path: '/leading/test',
-              controller: controller,
-              method: HttpMethod.get,
-              moduleToken: '',
-              isStatic: true,
-              routeCls: GetRoute)),
+          controller.get(
+            controller.routes.keys.elementAt(0)
+          ),
           isA<RouteHandler>());
     });
 
