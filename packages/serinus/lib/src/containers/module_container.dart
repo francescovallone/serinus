@@ -179,7 +179,7 @@ final class ModulesContainer {
           ));
           continue;
         }
-        if(dependencies.isEmpty && provider.inject.isNotEmpty) {
+        if (dependencies.isEmpty && provider.inject.isNotEmpty) {
           injectProvidersInSubModule(module);
           final dependencies = canInit(provider.inject);
           if (dependencies.isNotEmpty) {
@@ -314,7 +314,8 @@ final class ModulesContainer {
       _moduleInjectables[subModuleToken] = subModuleInjectables.copyWith(
         providers: {
           ...moduleInjectables.providers.whereNot((e) => e is DeferredProvider),
-          ...subModuleInjectables.providers.whereNot((e) => e is DeferredProvider),
+          ...subModuleInjectables.providers
+              .whereNot((e) => e is DeferredProvider),
         },
       );
       injectProvidersInSubModule(subModule);
