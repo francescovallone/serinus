@@ -179,6 +179,19 @@ final class ModulesContainer {
           ));
           continue;
         }
+        if(dependencies.isEmpty && provider.inject.isNotEmpty) {
+          injectProvidersInSubModule(module);
+          final dependencies = canInit(provider.inject);
+          if (dependencies.isNotEmpty) {
+            checkForCircularDependencies(provider, parentModule, dependencies);
+            _providerDependencies.add(_ProviderDependencies(
+              provider: provider,
+              module: parentModule,
+              dependencies: dependencies.toSet(),
+            ));
+            continue;
+          }
+        }
         final initializedProviders = (_moduleInjectables[token]
                     ?.providers
                     .where((e) => provider.inject.contains(e.runtimeType)) ??
@@ -198,7 +211,7 @@ final class ModulesContainer {
             provider.inject.map((e) => dependenciesMap[e]).toList());
         checkResultType(provider, result, module);
         await initIfUnregistered(result);
-        parentModule.providers.add(result);
+        module.providers.add(result);
         if (result.isGlobal) {
           globalProviders.add(result);
         } else {
@@ -300,8 +313,8 @@ final class ModulesContainer {
       final subModuleInjectables = _moduleInjectables[subModuleToken]!;
       _moduleInjectables[subModuleToken] = subModuleInjectables.copyWith(
         providers: {
-          ...moduleInjectables.providers,
-          ...subModuleInjectables.providers,
+          ...moduleInjectables.providers.whereNot((e) => e is DeferredProvider),
+          ...subModuleInjectables.providers.whereNot((e) => e is DeferredProvider),
         },
       );
       injectProvidersInSubModule(subModule);
@@ -310,9 +323,9 @@ final class ModulesContainer {
     final providers = getModuleScopedProviders(module, true);
     _moduleInjectables[token] = injectables.copyWith(
       providers: {
-        ...providers.providers,
-        ...providers.exportedProviders,
-        ...injectables.providers,
+        ...providers.providers.whereNot((e) => e is DeferredProvider),
+        ...providers.exportedProviders.whereNot((e) => e is DeferredProvider),
+        ...injectables.providers.whereNot((e) => e is DeferredProvider),
       },
     );
   }
