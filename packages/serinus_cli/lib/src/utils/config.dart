@@ -4,7 +4,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-Future<Map<String, dynamic>> getProjectConfiguration(Logger logger) async {
+Future<Map<String, dynamic>> getProjectConfiguration(Logger logger, {bool deps = false}) async {
   final pubspec = File(path.join(Directory.current.path, 'pubspec.yaml'));
   if (!pubspec.existsSync()) {
     logger.err('No pubspec.yaml file found');
@@ -33,11 +33,13 @@ Future<Map<String, dynamic>> getProjectConfiguration(Logger logger) async {
       ...Map<String, dynamic>.from(loadYaml(configContent) as Map),
       ...pubspecMap,
       'name': pubspecYaml['name'] as String? ?? 'serinus_app',
+      if(deps) 'dependencies': pubspecYaml['dependencies'],
     };
     return result;
   }
   return {
     ...pubspecMap,
     'name': pubspecYaml['name'] as String? ?? 'serinus_app',
+    if(deps) 'dependencies': pubspecYaml['dependencies'],
   };
 }

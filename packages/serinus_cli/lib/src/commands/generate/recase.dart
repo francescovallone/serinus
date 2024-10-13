@@ -45,6 +45,17 @@ class ReCase {
     return words.join(separator);
   }
 
+  String getCapitalizeCase({String separator = ' '}) {
+    return _words.map(capitalize).join(separator);
+  }
+
+  String capitalize(String word) {
+    if(word.isEmpty) {
+      return word;
+    }
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }
+
   String getSnakeCase({String separator = '_'}) {
     final words = _words.map((word) => word.toLowerCase()).toList();
 

@@ -1,16 +1,17 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:mason/mason.dart';
-import 'package:serinus_cli/src/utils/extensions.dart';
 
 final onRouteRegex = RegExp(r'on\(([^()]*|\([^()]*\))*\)');
 final superParamsRegex = RegExp(r'super\(([^()]*|\([^()]*\))*\)');
-final parametricDefnsRegex = RegExp(r'([^<]*)<(\w+)>([^<]*)');
+final parametricDefnsRegex = RegExp(r'<(\w+)>');
 final closeDoorParametricRegex = RegExp('><');
 
 typedef ParamRecord = ({
@@ -18,6 +19,15 @@ typedef ParamRecord = ({
   String? prefix,
   String? suffix,
 });
+
+class ControllerAstVisitor extends GeneralizingAstVisitor<Object> {
+
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    super.visitFunctionDeclarationStatement(node);
+  }
+
+}
 
 class ControllersAnalyzer {
 
@@ -50,7 +60,7 @@ class ControllersAnalyzer {
           }
           final constructor = clazz.unnamedConstructor;
           if(!(constructor?.isDefaultConstructor ?? false)) {
-            _logger.err('Route $name must have a default constructor');
+            logger.err('Route $name must have a default constructor');
             continue;
           }
           final userRoute = getRouteInformation(clazz);
@@ -61,115 +71,128 @@ class ControllersAnalyzer {
     return userDefinedRoutes;
   }
 
-  Future<dynamic> analyzeControllers(
+  Future<Map<String, Controller>> analyzeControllers(
     List<File> files, 
     Map<String, dynamic> routes,
     Map<String, dynamic> config,
     Logger logger,
   ) async {
-    logger.info('Analyzing application controllers');
+    final analysisProgress = logger.progress('Analyzing application controllers');
     final collection = AnalysisContextCollection(
       includedPaths: files.map((file) => file.path).toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,
     );
-    for (final context in collection.contexts) {
-      final superController = await context.currentSession.getLibraryByUri('package:serinus/src/core/controller.dart');
-      final controllerElement = (superController as LibraryElementResult).element;
-      for (final file in context.contextRoot.analyzedFiles()) {
-        if (!file.endsWith('.dart')) {
-          continue;
-        }
-        final unitElement = await context.currentSession.getUnitElement(file);
-        final unit = unitElement as UnitElementResult;
-        final element = unit.element;
-        final classes = element.classes;
-        for (final clazz in classes) {
-          final name = clazz.name;
-          final isController = clazz.allSupertypes.where(
-            (t) => t.getDisplayString().contains('Controller'),).isNotEmpty;
-          if (!isController) {
+    final result = <String, Controller>{};
+    for (final file in files) {
+      if(!file.path.endsWith('.dart')) {
+        continue;
+      }
+      final context = collection.contextFor(file.path);
+      final resolvedUnit = (await context.currentSession.getResolvedUnit(file.path)) as ResolvedUnitResult;
+      for(final declaration in resolvedUnit.unit.declarations) {
+        if(declaration is ClassDeclaration) {
+          if (
+            declaration.extendsClause?.superclass.toString() != 'Controller') {
             continue;
           }
-          final constructor = clazz.unnamedConstructor;
-          if(!(constructor?.isDefaultConstructor ?? false)) {
-            _logger.err('Controller $name must have a default constructor');
-            continue;
-          }
-          final basePath = getBasePath(clazz);
-          // print(basePath);
-          final routes = <Route>[];
-          final matches = onRouteRegex.allMatches(clazz.source.contents.data);
-          for(final match in matches) {
-            for (var i = 0; i<match.groupCount; i++) {
-              var result = match.group(i);
-              if(result != null) {
-                result = result.substring(3, result.length - 1).trim();
-                final routeTokens = result.split(',');
-                if(routeTokens.length != 2) {
-                  _logger.err(
-                    'Invalid route definition: $result in controller $name',);
-                  continue;
-                }
-                final route = routeTokens[0].trim();
-                if(route.contains('Route.')){
-                  final routeName = route.split('.')[1];
-                  final method = routeTokens[1].trim();                  
-                  routes.add(Route(name: routeName, method: method));
-                } else {
-                  final routeName = route.split('(')[1];
-                  final method = routeTokens[1].trim();
-                  final queryParameters = <String, dynamic>{};
-                  final parameters = <String, dynamic>{};
-                  final queryParametersMatches = superParamsRegex.allMatches(result);
-                  for(final queryParametersMatch in queryParametersMatches) {
-                    for (var i = 0; i < queryParametersMatch.groupCount; i++) {
-                      var superParams = queryParametersMatch.group(i);
-                      if(superParams != null) {
-                        superParams = superParams.substring(6, superParams.length - 1).trim();
-                        final params = superParams.split(',');
-                        for(final param in params) {
-                          final tokens = param.split(':');
-                          if(tokens.length >= 2) {
-                            final key = tokens[0].trim();
-                            final value = tokens[1].trim();
-                            queryParameters[key] = value;
-                          }
-                        }
-                      }
-                    }
-                  }
-                  final params = buildParamDefinition(route);
-                  for(final param in params) {
-                    route = route.replaceFirst(
-                      '<${param.name}>', '\${params["${param.name}"]}',);
-                  }
-                  parameters['path'] = route;
-                  parameters['method'] = method;
-                  parameters['queryParameters'] = queryParameters;
-                  routes.add(Route(name: routeName, method: method, queryParamters: queryParameters, parameters: parameters));
-                }
+          String? controllerPath;
+          final controllerRoutes = <Route>[];
+          for(final member in declaration.members) {
+            if (member is ConstructorDeclaration) {
+              if(
+                member.redirectedConstructor != null || 
+                member.factoryKeyword != null
+              ) {
+                logger.warn(
+                  'Skipping constructor ${member.name} for class ${declaration.name}',
+                );
+                continue;
               }
+              member.declaredElement?.parameters.forEach((element) {
+                if(element.name == 'path' && element.isSuperFormal) {
+                  controllerPath = element.computeConstantValue()
+                    ?.toStringValue();
+                }
+              });
+              controllerRoutes.addAll(_getOnMethodsArguments(member));
             }
           }
-          
+          final className = declaration.name.stringValue ?? declaration.name;
+          if(controllerPath == null) {
+            logger.warn('The controller ($className) path is null or cannot be parsed! Skipping.');
+            continue;
+          }
+          result['$className'] = Controller(
+            controllerPath!,
+            controllerRoutes,
+          );
         }
       }
     }
+    analysisProgress.complete('Analysis completed!');
+    return result;
+  }
+
+  List<Route> _getOnMethodsArguments(ConstructorDeclaration constructor) {
+    final routes = <Route>[];
+    for(final child in constructor.childEntities) {
+      if(child is BlockFunctionBody) {
+        for(final entity in child.block.childEntities) {
+          if(entity is ExpressionStatement) {
+            if(entity.expression is MethodInvocation) {      
+              final route = Route();
+              final methodInvocation = entity.expression as MethodInvocation;
+              for (final arg in methodInvocation.argumentList.arguments) {
+                if(
+                  arg is InstanceCreationExpression && 
+                  arg.staticType?.getDisplayString() == 'Route' &&
+                  arg.constructorName.name != null
+                ) {
+                  route.method = arg.constructorName.name.toString()
+                    .toLowerCase();
+                  for(final instanceArg in arg.argumentList.arguments) {
+                    if(instanceArg is SingleStringLiteral) {
+                      var routePath = instanceArg.stringValue;
+                      final parameters = buildParamDefinition(routePath ?? '')
+                        .map((e) => e.name).toList();
+                      print(parameters);
+                      for(final param in parameters) {
+                        routePath = routePath?.replaceFirst(
+                          '<$param>', '\$$param',);
+                      }
+                      route..parameters = parameters
+                        ..path = routePath
+                      ..rawPath = instanceArg.stringValue;
+                    }  
+                  }
+                }
+                if(arg is FunctionExpression) {
+                  route.returnType = arg.declaredElement
+                    ?.returnType.getDisplayString();
+                }
+                if(arg is NamedExpression) {
+                  if(arg.name.label.name == 'body') {
+                    route.bodyType = arg.expression.toString();
+                  }
+                }
+              }
+              if(route.path != null) {
+                routes.add(route);
+              }
+            }
+          }
+        }
+      }
+
+    }
+    return routes;
   }
 
   ParamRecord _singleParamDefn(RegExpMatch m) {
-    var suffix = m.group(3)?.nullIfEmpty;
-    if(suffix != null && (suffix.endsWith("'"))) {
-      suffix = suffix.substring(0, suffix.length - 1);
-    }
-    var prefix = m.group(1)?.nullIfEmpty;
-    if(prefix != null && (prefix.startsWith("'"))) {
-      prefix = prefix.substring(1);
-    }
     return (
-      name: m.group(2)!,
-      prefix: prefix,
-      suffix: suffix,
+      name: m.group(0)!.replaceAll('<', '').replaceAll('>', ''),
+      prefix: null,
+      suffix: null,
     );
   }
 
@@ -178,7 +201,6 @@ class ControllersAnalyzer {
       throw ArgumentError.value(
           part, null, 'Parameter definition is invalid. Close door neighbors',);
     }
-
     final matches = parametricDefnsRegex.allMatches(part);
     if (matches.isEmpty) {
       return [];
@@ -323,18 +345,26 @@ class UserRoute {
 
 }
 
+class Controller {
+
+  final String path;
+
+  final List<Route> routes;
+
+  const Controller(this.path, this.routes);
+
+}
+
 class Route {
 
-  const Route({
-    required this.name,
-    required this.method,
-    this.queryParamters = const {},
-    this.parameters = const {}
-  });
+  Route();
 
-  final String name;
-  final String method;
-  final Map<String, dynamic> queryParamters;
-  final Map<String, dynamic> parameters;
+  String? rawPath;
+  String? path;
+  String? method;
+  String? returnType;
+  String? bodyType;
+  Map<String, dynamic> queryParamters = {};
+  List<String> parameters = [];
 
 }
