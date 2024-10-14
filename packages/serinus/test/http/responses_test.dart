@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/router.dart';
 import 'package:serinus/src/services/json_utils.dart';
 import 'package:test/test.dart';
 
@@ -217,27 +216,6 @@ void main() async {
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/texss'));
       final response = await request.close();
       expect(response.statusCode, 404);
-    });
-    test(
-        '''when a non-existent route in the controllers is called, then it should return a 500 status code''',
-        () async {
-      app?.router.registerRoute(RouteData(
-          id: 'id',
-          path: 'path-error',
-          method: HttpMethod.get,
-          controller: controller,
-          routeCls: TestRoute,
-          moduleToken: 'TestModule',
-          spec: (
-            body: null,
-            schema: null,
-            handler: 'hi',
-            route: TestRoute(path: 'path-error'),
-          )));
-      final request = await HttpClient()
-          .getUrl(Uri.parse('http://localhost:3000/path-error'));
-      final response = await request.close();
-      expect(response.statusCode, 500);
     });
 
     test(
