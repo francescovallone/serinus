@@ -7,7 +7,7 @@ import 'package:serinus_cli/src/commands/generate/generate_models/generate_model
 
 class ModelsAnalyzer {
   Future<List<Model>> analyze(
-    List<File> files, 
+    List<File> files,
     Map<String, dynamic> config,
     List<SerializeKeyword> serializeKeywords,
     List<DeserializeKeyword> deserializeKeywords,
@@ -47,7 +47,7 @@ class ModelsAnalyzer {
           }
           for (final c in constructors) {
             if (!hasFromJson) {
-              for(final s in deserializeKeywords) {
+              for (final s in deserializeKeywords) {
                 if (c.name.contains(s.name) && s.isStatic && c.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${c.name}';
@@ -58,7 +58,7 @@ class ModelsAnalyzer {
           }
           for (final m in methods) {
             if (!hasFromJson) {
-              for(final s in deserializeKeywords) {
+              for (final s in deserializeKeywords) {
                 if (m.name.contains(s.name) && s.isStatic && m.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${m.name}';
@@ -67,7 +67,7 @@ class ModelsAnalyzer {
               }
             }
             if (!hasToJson) {
-              for(final s in serializeKeywords) {
+              for (final s in serializeKeywords) {
                 if (m.name.contains(s.name)) {
                   hasToJson = true;
                   toJson = m.name;

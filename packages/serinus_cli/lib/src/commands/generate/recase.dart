@@ -50,7 +50,7 @@ class ReCase {
   }
 
   String capitalize(String word) {
-    if(word.isEmpty) {
+    if (word.isEmpty) {
       return word;
     }
     return word[0].toUpperCase() + word.substring(1).toLowerCase();

@@ -27,7 +27,7 @@ serinus:
     serialize_keywords:
       - keyword: "toBody"
   client:
-    verbose: true
+    verbose: false
     language: 'Dart'
     httpClient: 'dio'
         

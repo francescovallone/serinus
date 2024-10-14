@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:serinus/serinus.dart';
 
 import 'app_routes.dart';
