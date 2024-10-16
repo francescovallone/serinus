@@ -32,7 +32,13 @@ void main() async {
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken');
+          moduleToken: 'moduleToken',
+          spec: (
+            body: null,
+            schema: null,
+            handler: 'hi',
+            route: Route.get('/test'),
+          ));
       router.registerRoute(routeData);
     });
 
@@ -47,7 +53,13 @@ void main() async {
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken');
+          moduleToken: 'moduleToken',
+          spec: (
+            body: null,
+            schema: null,
+            handler: 'hi',
+            route: Route.get('/test'),
+          ));
       router.registerRoute(routeData);
       final result = router.getRouteByPathAndMethod('/test', HttpMethod.get);
       expect(result.route, routeData);
@@ -64,7 +76,13 @@ void main() async {
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken');
+          moduleToken: 'moduleToken',
+          spec: (
+            body: null,
+            schema: null,
+            handler: 'hi',
+            route: Route.get('/test'),
+          ));
       router.registerRoute(routeData);
       final result = router.getRouteByPathAndMethod('/test', HttpMethod.post);
       expect(result.route, isNull);

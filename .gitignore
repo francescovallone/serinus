@@ -7,7 +7,7 @@
 *.ipr
 *.iws
 .idea/
-
+*.DS_Store
 # Conventional directory for build output.
 build/
 

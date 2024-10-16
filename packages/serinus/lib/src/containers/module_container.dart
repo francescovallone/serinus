@@ -327,6 +327,7 @@ final class ModulesContainer {
         ...providers.providers.whereNot((e) => e is DeferredProvider),
         ...providers.exportedProviders.whereNot((e) => e is DeferredProvider),
         ...injectables.providers.whereNot((e) => e is DeferredProvider),
+        ...globalProviders
       },
     );
   }
@@ -356,7 +357,8 @@ final class ModulesContainer {
         providers: {
           ...providersInjectable,
           ...subModuleInjectables.providers,
-          ...exportedProvidersInjectables
+          ...exportedProvidersInjectables,
+          ...globalProviders,
         },
       );
     }
