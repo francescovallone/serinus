@@ -48,7 +48,7 @@ class ModelsAnalyzer {
           for (final c in constructors) {
             if (!hasFromJson) {
               for(final s in deserializeKeywords) {
-                if (c.name.contains(s.name) && s.isStatic && c.isStatic) {
+                if (c.name.contains(s.name) && !s.isStatic && !c.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${c.name}';
                   break;
@@ -79,17 +79,19 @@ class ModelsAnalyzer {
           final path = file.split(Platform.pathSeparator);
           final libIndex = path.indexOf('lib');
           path.removeRange(0, libIndex + 1);
-          models.add(
-            Model(
-              filename: path.join('/'),
-              name: name,
-              hasFromJson: hasFromJson,
-              hasToJson: hasToJson,
-              fromJson: fromJson,
-              toJson: toJson,
-              isDartMappable: isDartMappable,
-            ),
-          );
+          if(hasToJson || hasFromJson) {
+            models.add(
+              Model(
+                filename: path.join('/'),
+                name: name,
+                hasFromJson: hasFromJson,
+                hasToJson: hasToJson,
+                fromJson: fromJson,
+                toJson: toJson,
+                isDartMappable: isDartMappable,
+              ),
+            );
+          }
         }
       }
     }

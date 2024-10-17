@@ -8,7 +8,6 @@ import 'package:dart_style/dart_style.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:serinus_cli/src/commands/generate/generate_models/models_analyzer.dart';
-import 'package:serinus_cli/src/commands/generate/recase.dart';
 import 'package:serinus_cli/src/utils/config.dart';
 import 'package:yaml/yaml.dart';
 
@@ -65,26 +64,28 @@ class GenerateModelsCommand extends Command<int> {
     final modelProviderProgress = _logger?.progress(
       'Generating model provider...',
     );
-    await generateModelProvider(
+    final models = await generateModelProvider(
       Directory.current.path,
       config['name'] as String,
       config,
     );
     modelProviderProgress?.complete('Model provider generated successfully!');
+    _logger?.info(
+      '✨Added ${models.map((e) => e.name).join(', ')} to the model provider',);
     return ExitCode.success.code;
   }
  
-  Future<void> generateModelProvider(String path, String name, Map<String, dynamic> config) async {
+  Future<List<Model>> generateModelProvider(String path, String name, Map<String, dynamic> config) async {
     final modelProvider = File('$path/lib/model_provider.dart');
     final modelsConfig = Map<String, dynamic>.from(
-      config['models'] as Map<dynamic, dynamic>);
+      config['models'] as Map<dynamic, dynamic>? ?? {});
     if (!modelProvider.existsSync()) {
       modelProvider.createSync(recursive: true);
     }
-    final fromKeywords = (modelsConfig['deserialize_keywords'] as YamlList).nodes.map(
+    final fromKeywords = ((modelsConfig['deserialize_keywords'] ?? YamlList()) as YamlList).nodes.map(
       (e) => Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
     ).toList();
-    final toKeywords = (modelsConfig['serialize_keywords'] as YamlList).nodes.map(
+    final toKeywords = ((modelsConfig['serialize_keywords'] ?? YamlList()) as YamlList).nodes.map(
       (e) => Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
     ).toList();
     final deserializeKeywords = List<DeserializeKeyword>.of(
@@ -116,8 +117,7 @@ class GenerateModelsCommand extends Command<int> {
     );
     final modelProviderContent = await _getContent(models, name);
     modelProvider.writeAsStringSync(modelProviderContent);
-    _logger?.info(
-      '✨Added ${models.map((e) => e.name).join(', ')} to the model provider',);
+    return models;
   }
 
   Future<List<File>> _recursiveGetFiles(
@@ -132,7 +132,7 @@ class GenerateModelsCommand extends Command<int> {
       '.freezed',
       '.g',
       ...List<String>.from(
-        config['extensions'] as Iterable<dynamic>).map((e) => '.$e'),
+        (config['extensions'] ?? <dynamic>[]) as Iterable<dynamic>).map((e) => '.$e'),
     ];
     final entities = dir.listSync();
     final generatedEntities = <String>[];
@@ -183,16 +183,14 @@ class GenerateModelsCommand extends Command<int> {
     final library = Library((b) {
       b.directives.addAll([
         Directive.import('package:serinus/serinus.dart'),
-        for (final model in models)
-          Directive.import(
-            model.filename,
-          ),
+        for (final model in models.map((e) => e.filename).toSet())
+          Directive.import(model)
       ]);
       b.body.add(
         Class((c) {
           c
             ..name =
-                '${ReCase(name).getSentenceCase(separator: '')}ModelProvider'
+                '${name.pascalCase}ModelProvider'
             ..extend = refer('ModelProvider');
           c.methods.add(
             Method((m) {

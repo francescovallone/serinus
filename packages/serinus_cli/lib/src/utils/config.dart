@@ -15,7 +15,7 @@ Future<Map<String, dynamic>> getProjectConfiguration(Logger logger) async {
   final configFile = File(path.join(Directory.current.path, 'config.yaml'));
   final pubspecContent = await pubspec.readAsString();
   final pubspecYaml = loadYaml(pubspecContent) as YamlMap;
-  final pubspecMap = Map<String, dynamic>.from(Map<dynamic, dynamic>.fromEntries(pubspecYaml.entries)['serinus'] as Map);
+  final pubspecMap = Map<String, dynamic>.from(Map<dynamic, dynamic>.fromEntries(pubspecYaml.entries)['serinus'] as Map? ?? {});
   if (pubspecMap.isEmpty && !configFile.existsSync()) {
     logger.err('No serinus configuration found in pubspec.yaml');
     return {
