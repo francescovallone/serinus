@@ -19,9 +19,9 @@ extension JsonParsing on Object {
       return false;
     }
     return this is Map ||
-        this is List<Map> ||
+        this is Iterable<Map> ||
         this is JsonObject ||
-        this is List<JsonObject> ||
-        this is List;
+        this is Iterable<JsonObject> ||
+        this is Iterable;
   }
 }

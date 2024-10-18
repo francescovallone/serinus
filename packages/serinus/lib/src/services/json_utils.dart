@@ -3,6 +3,9 @@ import '../mixins/mixins.dart';
 
 /// Utility function to parse a json to a response.
 dynamic parseJsonToResponse(dynamic data) {
+  if(data == null) {
+    return null;
+  }
   if ((data as Object).isPrimitive()) {
     return data;
   }
@@ -11,16 +14,21 @@ dynamic parseJsonToResponse(dynamic data) {
     return data.map((key, value) {
       if (value is JsonObject) {
         return MapEntry(key, parseJsonToResponse(value.toJson()));
-      } else if (value is List<JsonObject>) {
+      } else if (value is Iterable<JsonObject>) {
         return MapEntry(
             key, value.map((e) => parseJsonToResponse(e.toJson())).toList());
+      } else if (value is DateTime || value is DateTime?) {
+        return MapEntry(key, value?.toIso8601String());
+      }
+      if (value is Map) {
+        return MapEntry(key, parseJsonToResponse(value));
       }
       return MapEntry(key, value);
     });
   }
 
-  if (data is List<Map> || data is List<Object>) {
-    return (data as List<Object>)
+  if (data is Iterable<Map> || data is Iterable<Object>) {
+    return (data as Iterable<Object>)
         .map((e) => parseJsonToResponse(e))
         .toList(growable: false);
   }
@@ -29,7 +37,7 @@ dynamic parseJsonToResponse(dynamic data) {
     return parseJsonToResponse(data.toJson());
   }
 
-  if (data is List<JsonObject>) {
+  if (data is Iterable<JsonObject>) {
     return data
         .map((e) => parseJsonToResponse(e.toJson()))
         .toList(growable: false);
