@@ -3,7 +3,7 @@ import '../mixins/mixins.dart';
 
 /// Utility function to parse a json to a response.
 dynamic parseJsonToResponse(dynamic data) {
-  if(data == null) {
+  if (data == null) {
     return null;
   }
   if ((data as Object).isPrimitive()) {
