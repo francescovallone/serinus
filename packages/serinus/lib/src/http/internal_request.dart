@@ -67,6 +67,8 @@ class InternalRequest {
     return InternalRequest(headers: headers, original: request);
   }
 
+  List<Cookie> get cookies => original.cookies;
+
   /// The [events] property contains the events of the request
   final StreamController<(RequestEvent, EventData)> _events =
       StreamController.broadcast(sync: true);

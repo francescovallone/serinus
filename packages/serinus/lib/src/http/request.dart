@@ -74,6 +74,9 @@ class Request {
   /// The content type of the request.
   ContentType get contentType => _original.contentType;
 
+  /// The cookies of the request.
+  List<Cookie> get cookies => _original.cookies;
+
   /// The params of the request.
   final Map<String, dynamic> _params = {};
 
