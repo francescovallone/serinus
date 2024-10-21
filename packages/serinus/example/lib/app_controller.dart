@@ -9,7 +9,7 @@ class AppController extends Controller {
     on(HelloWorldRoute(), _handleEcho);
   }
 
-  Future<String> _handleEcho(RequestContext context) async {
-    return 'Echo';
+  Future<Map<String, dynamic>> _handleEcho(RequestContext context) async {
+    return {'message': 'Hello, World!'};
   }
 }

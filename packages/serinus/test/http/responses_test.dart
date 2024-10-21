@@ -224,7 +224,7 @@ void main() async {
         final res = parseJsonToResponse([
           {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestJsonObject()},
           TestObj('Jane Doe')
-        ]);
+        ], null);
         expect(
             jsonEncode(res),
             jsonEncode([

@@ -110,7 +110,7 @@ class RequestHandler extends Handler {
         context, route, handler, routeData.isStatic, routeSpec.body);
     await executeAfterHandle(context, route, result);
     if (result?.canBeJson() ?? false) {
-      result = parseJsonToResponse(result);
+      result = parseJsonToResponse(result, config.modelProvider);
       context.res.contentType = ContentType.json;
     }
     if (config.modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
@@ -177,7 +177,7 @@ class RequestHandler extends Handler {
             traced: 'm-${middlewares.elementAt(i).runtimeType}');
         if (data != null) {
           if (data.canBeJson()) {
-            data = parseJsonToResponse(data);
+            data = parseJsonToResponse(data, config.modelProvider);
             context.res.contentType = ContentType.json;
           }
           if (data is Uint8List) {
