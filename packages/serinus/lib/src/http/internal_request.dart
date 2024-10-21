@@ -67,6 +67,7 @@ class InternalRequest {
     return InternalRequest(headers: headers, original: request);
   }
 
+  /// The [cookies] property contains the cookies of the request
   List<Cookie> get cookies => original.cookies;
 
   /// The [events] property contains the events of the request
