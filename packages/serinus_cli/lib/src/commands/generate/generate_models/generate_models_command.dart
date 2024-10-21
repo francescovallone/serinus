@@ -45,7 +45,7 @@ class GenerateModelsCommand extends Command<int> {
   final Logger? _logger;
 
   @override
-  Future<int> run() async {
+  Future<int> run([String? output]) async {
     final config = await getProjectConfiguration(_logger!);
     if (config.length == 1 && config.containsKey('error')) {
       return config['error'] as int;
@@ -69,14 +69,15 @@ class GenerateModelsCommand extends Command<int> {
       Directory.current.path,
       config['name'] as String,
       config,
+      output,
     );
     modelProviderProgress?.complete('Model provider generated successfully!');
     return ExitCode.success.code;
   }
 
   Future<void> generateModelProvider(
-      String path, String name, Map<String, dynamic> config) async {
-    final modelProvider = File('$path/lib/model_provider.dart');
+      String path, String name, Map<String, dynamic> config, [String? output]) async {
+    final modelProvider = File('${output ?? path}/lib/model_provider.dart');
     final modelsConfig =
         Map<String, dynamic>.from(config['models'] as Map<dynamic, dynamic>);
     if (!modelProvider.existsSync()) {
