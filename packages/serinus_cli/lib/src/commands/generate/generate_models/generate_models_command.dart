@@ -76,7 +76,11 @@ class GenerateModelsCommand extends Command<int> {
   }
 
   Future<void> generateModelProvider(
-      String path, String name, Map<String, dynamic> config, [String? output]) async {
+    String path, 
+    String name, 
+    Map<String, dynamic> config, 
+    [String? output,]
+  ) async {
     final modelProvider = File('${output ?? path}/lib/model_provider.dart');
     final modelsConfig =
         Map<String, dynamic>.from(config['models'] as Map<dynamic, dynamic>);

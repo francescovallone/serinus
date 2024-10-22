@@ -57,7 +57,7 @@ class GenerateClientCommand extends Command<int> {
     try {
       final outputDirectory = Directory.fromUri(
         Uri.file(
-          item!,
+          item!.contains('/lib') ? item : 'lib/$item',
           windows: Platform.isWindows,
         ),
       );
@@ -317,7 +317,8 @@ class GenerateClientCommand extends Command<int> {
                     ..name = e.camelCase
                     ..returns = Reference(e)
                     ..body = Code(
-                        '${ReCase(e).getCapitalizeCase(separator: '')}(client)');
+                        '${ReCase(e).getCapitalizeCase(separator: '')}(client)',
+                      );
                 }),
               ),
             ]);
@@ -391,9 +392,9 @@ class GenerateClientCommand extends Command<int> {
                 return Method((m) {
                   m
                     ..returns = refer(
-                        e.returnType?.trim().replaceAll('\n', '') ?? 'dynamic')
+                        e.returnType?.trim().replaceAll('\n', '') ?? 'dynamic',)
                     ..name = _buildMethodName(
-                        e.rawPath!, controller.value.path, e.method!, verbose)
+                        e.rawPath!, controller.value.path, e.method!, verbose,)
                     ..requiredParameters.addAll([
                       ...e.parameters.map((param) {
                         return Parameter((p) {
@@ -461,8 +462,6 @@ return client.${e.method!.toLowerCase()}<${e.returnType?.replaceAll('Future<', '
       ...(controllerPath.split('/')..removeWhere((e) => e.isEmpty)),
       ...pathTokens,
     ];
-    // /users/<id>/details/<name> -> getUserDetailsByIdAndName
-    // [users, <id>, details, <name>] -> [users, details], [<id>, <name>]
     final resourceTokens = <String>[];
     final parametersTokens = <String>[];
     for (final token in pathTokens) {
@@ -478,11 +477,23 @@ return client.${e.method!.toLowerCase()}<${e.returnType?.replaceAll('Future<', '
   }
 
   String _getClientMethod(String method, String library) {
-    switch (library) {
+    switch (library.toLowerCase()) {
       case 'dio':
         return '''
-          final response = await base.$method(url, queryParameters: queryParameters, data: data);
+          final response = await base.$method(
+            url, 
+            queryParameters: queryParameters, 
+            data: data,
+          );
           return response.data;
+        ''';
+      case 'http':
+        return '''
+          final response = await base.$method(
+            Uri.parse(url).replace(queryParameters: queryParameters), 
+            body: data,
+          );
+          return response.body;
         ''';
     }
     return '';
