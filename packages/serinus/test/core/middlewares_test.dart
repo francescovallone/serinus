@@ -1,6 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
-
-import 'package:http/http.dart' as http;
 import 'package:serinus/serinus.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
@@ -115,7 +115,7 @@ void main() {
       app = await serinus.createApplication(
           entrypoint:
               TestModule(controllers: [TestController()], middlewares: [r]),
-          port: 3003,
+          port: 8888,
           loggingLevel: LogLevel.none);
       await app?.serve();
     });
@@ -125,55 +125,61 @@ void main() {
     test(
         '''when a request is made to a route with a middleware in the module, then the middleware should be executed''',
         () async {
-      final response = await http.get(
-        Uri.parse('http://localhost:3003/middleware'),
-      );
+      final request = await HttpClient().getUrl(Uri.parse('http://localhost:8888/middleware'));
+      final response = await request.close();
       expect(response.statusCode, 200);
-      expect(response.headers.containsKey('x-middleware'), true);
+      expect(response.headers.toMap().containsKey('x-middleware'), true);
     });
 
     test(
         '''when a request is made to a route with a shelf middleware in the module, then the shelf middleware should be executed''',
         () async {
-      final response = await http.get(
-        Uri.parse('http://localhost:3003/middleware'),
-      );
+      final request = await HttpClient().getUrl(Uri.parse('http://localhost:8888/middleware'));
+      final response = await request.close();
       expect(response.statusCode, 200);
-      expect(response.headers.containsKey('x-shelf-middleware'), true);
+      expect(response.headers.toMap().containsKey('x-shelf-middleware'), true);
     });
 
     test(
         '''when a request is made to a route with a shelf handler as a Middleware in the module, then the shelf middleware should be executed''',
         () async {
-      final response = await http.get(
-        Uri.parse('http://localhost:3003/value/1'),
+      final request = await HttpClient().getUrl(
+        Uri.parse('http://localhost:8888/value/1'),
       );
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).toList();
       expect(response.statusCode, 200);
-      expect(response.body.contains('{"id":"json-obj"}'), true);
+      expect(body.contains('{"id":"json-obj"}'), true);
 
-      final response2 = await http.get(
-        Uri.parse('http://localhost:3003/value/2'),
+      final request2 = await HttpClient().getUrl(
+        Uri.parse('http://localhost:8888/value/2'),
       );
+      final response2 = await request2.close();
+      final body2 = await response2.transform(utf8.decoder).toList();
       expect(response2.statusCode, 200);
-      expect(response2.body.contains('Hello, World!'), true);
+      expect(body2.contains('Hello, World!'), true);
     });
 
     test(
         '''when a request is made to a route with a shelf handler as a Middleware in the module, then the shelf middleware should be executed''',
         () async {
-      final response = await http.get(
-        Uri.parse('http://localhost:3003/middleware'),
+      final request = await HttpClient().getUrl(
+        Uri.parse('http://localhost:8888/middleware'),
       );
+      final response = await request.close();
+      final body = await response.transform(utf8.decoder).toList();
+
       expect(response.statusCode, 200);
-      expect(response.body.contains('Hello world from shelf'), true);
+      expect(body.contains('Hello world from shelf'), true);
     });
 
     test(
         '''a middleware subscribing to a request event should be able to listen to the event''',
         () async {
-      final response = await http.get(
-        Uri.parse('http://localhost:3003/request-event'),
+      final request = await HttpClient().getUrl(
+        Uri.parse('http://localhost:8888/request-event'),
       );
+      final response = await request.close();
       expect(response.statusCode, 200);
       expect(r.hasClosed, true);
       expect(r.hasException, false);

@@ -317,7 +317,7 @@ class RequestHandler extends Handler {
           request: context.request,
           context: context,
           traced: 'r-${route.runtimeType}');
-      await route.beforeHandle(context);
+      await (route as OnBeforeHandle).beforeHandle(context);
       await config.tracerService.addSyncEvent(
           name: TraceEvents.onBeforeHandle,
           request: context.request,
@@ -369,7 +369,7 @@ class RequestHandler extends Handler {
           request: context.request,
           context: context,
           traced: 'r-${route.runtimeType}');
-      await route.afterHandle(context, result);
+      await (route as OnAfterHandle).afterHandle(context, result);
       await config.tracerService.addSyncEvent(
           name: TraceEvents.onAfterHandle,
           request: context.request,

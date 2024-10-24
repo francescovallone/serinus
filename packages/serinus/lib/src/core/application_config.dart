@@ -152,10 +152,10 @@ final class HooksContainer {
       reqResHooks.add(hook);
     }
     if (hook is OnBeforeHandle) {
-      beforeHooks.add(hook);
+      beforeHooks.add(hook as OnBeforeHandle);
     }
     if (hook is OnAfterHandle) {
-      afterHooks.add(hook);
+      afterHooks.add(hook as OnAfterHandle);
     }
   }
 }
