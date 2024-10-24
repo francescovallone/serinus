@@ -10,7 +10,6 @@ class HookTest extends Hook with OnRequestResponse, OnBeforeHandle, OnAfterHandl
 
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {
-    print("HELLO");
     data['onRequest'] = true;
   }
 
