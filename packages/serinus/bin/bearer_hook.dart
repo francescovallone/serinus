@@ -1,7 +1,7 @@
 // coverage:ignore-file
 import 'package:serinus/serinus.dart';
 
-class BearerHook extends Hook {
+class BearerHook extends Hook with OnRequestResponse {
   final String header;
 
   final String body;

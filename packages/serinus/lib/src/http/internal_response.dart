@@ -146,9 +146,9 @@ class InternalResponse {
     }
     final coding = _original.headers['transfer-encoding']?.join(';');
     if (data is File) {
-      for (final hook in config.hooks) {
-        await hook.onResponse(
-            data, context?.res ?? properties ?? ResponseProperties());
+      for (final hook in config.hooks.reqResHooks) {
+        await hook.onResponse((context?.request ?? request)!, data,
+            context?.res ?? properties ?? ResponseProperties());
       }
       contentType(context?.res.contentType ??
           ContentType.parse('application/octet-stream'));
@@ -169,9 +169,9 @@ class InternalResponse {
             'multipart/byteranges') {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
     }
-    for (final hook in config.hooks) {
-      await hook.onResponse(
-          data, context?.res ?? properties ?? ResponseProperties());
+    for (final hook in config.hooks.reqResHooks) {
+      await hook.onResponse((context?.request ?? request)!, data,
+          context?.res ?? properties ?? ResponseProperties());
     }
     if (data.isPrimitive()) {
       responseBody = utf8.encode(data.toString());

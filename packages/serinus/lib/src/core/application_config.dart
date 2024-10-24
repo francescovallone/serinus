@@ -6,6 +6,7 @@ import '../adapters/server_adapter.dart';
 import '../containers/model_provider.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
+import '../mixins/mixins.dart';
 import '../services/tracers_service.dart';
 import '../versioning.dart';
 import 'hook.dart';
@@ -104,8 +105,8 @@ final class ApplicationConfig {
   /// E.g. [SseAdapter], [WsAdapter], etc.
   final Map<Type, Adapter> adapters = {};
 
-  /// The hooks for the application
-  final Set<Hook> hooks = {};
+  /// The hooks container for the application
+  final HooksContainer hooks = HooksContainer();
 
   /// The model provider for the application
   final ModelProvider? modelProvider;
@@ -115,7 +116,7 @@ final class ApplicationConfig {
 
   /// Add a hook to the application
   void addHook(Hook hook) {
-    hooks.add(hook);
+    hooks.addHook(hook);
   }
 
   /// Register a tracer to the application
@@ -132,4 +133,29 @@ final class ApplicationConfig {
     this.modelProvider,
     this.securityContext,
   });
+}
+
+/// The hooks container for the application
+final class HooksContainer {
+  /// The request response hooks for the application
+  final Set<OnRequestResponse> reqResHooks = {};
+
+  /// The before hooks for the application
+  final Set<OnBeforeHandle> beforeHooks = {};
+
+  /// The after hooks for the application
+  final Set<OnAfterHandle> afterHooks = {};
+
+  /// Add a hook to the application
+  void addHook(Hook hook) {
+    if (hook is OnRequestResponse) {
+      reqResHooks.add(hook);
+    }
+    if (hook is OnBeforeHandle) {
+      beforeHooks.add(hook as OnBeforeHandle);
+    }
+    if (hook is OnAfterHandle) {
+      afterHooks.add(hook as OnAfterHandle);
+    }
+  }
 }
