@@ -19,7 +19,7 @@ export default defineConfig({
   themeConfig: {
     footer: {
       copyright: 'Copyright © 2024 Francesco Vallone',
-      message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/serinus-nest">Serinus Nest</a>'
+      message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/avesbox">Avesbox</a>'
     },
     // https://vitepress.dev/reference/default-theme-config
     logo: '/serinus-logo.png',
@@ -156,7 +156,7 @@ export default defineConfig({
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
-      { icon: 'twitter', link: 'https://twitter.com/serinus_nest'},
+      { icon: 'twitter', link: 'https://twitter.com/avesboxx'},
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ],
   },
