@@ -24,5 +24,12 @@ head:
 
 <Blog
 	:posts="[
+		{
+			title: 'Serinus 0.6 - Welcome to the Meta-World',
+			src: '/blog/serinus_0_6/serinus_0_6.webp',
+			alt: 'Serinus 0.6 - Welcome to the Meta-World',
+			date: '1 Aug 2024',
+			href: '/blog/serinus_0_6',
+		}
 	]"
 />
