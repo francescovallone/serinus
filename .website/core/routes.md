@@ -63,7 +63,7 @@ You should use a class when you need to define a route that has some specific be
 
 ## Transform the RequestContext
 
-You can transform the `RequestContext` before it reaches the route handler by overriding the `transform` method.
+You can transform the `RequestContext` before it reaches the route handler by augment the class with the mixin `OnTransform` and overriding the method `transform`.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -109,12 +109,12 @@ To learn more about the ParseSchema, check the [Schema](/validation/schema) sect
 
 ## Route hooks
 
-You can also define hooks that will be executed before and after the route is executed.
+You can also define hooks that will be executed before and after the route is executed. To use them you need to augment the class with the mixin `OnBeforeHandle` and `OnAfterHandle` and override the methods `beforeHandle` and `afterHandle`.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class GetRoute extends Route {
+class GetRoute extends Route with OnBeforeHandle, OnAfterHandle {
     const GetRoute({
         required super.path, 
         super.method = HttpMethod.get,
