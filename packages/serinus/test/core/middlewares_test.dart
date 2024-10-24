@@ -125,7 +125,8 @@ void main() {
     test(
         '''when a request is made to a route with a middleware in the module, then the middleware should be executed''',
         () async {
-      final request = await HttpClient().getUrl(Uri.parse('http://localhost:8888/middleware'));
+      final request = await HttpClient()
+          .getUrl(Uri.parse('http://localhost:8888/middleware'));
       final response = await request.close();
       expect(response.statusCode, 200);
       expect(response.headers.toMap().containsKey('x-middleware'), true);
@@ -134,7 +135,8 @@ void main() {
     test(
         '''when a request is made to a route with a shelf middleware in the module, then the shelf middleware should be executed''',
         () async {
-      final request = await HttpClient().getUrl(Uri.parse('http://localhost:8888/middleware'));
+      final request = await HttpClient()
+          .getUrl(Uri.parse('http://localhost:8888/middleware'));
       final response = await request.close();
       expect(response.statusCode, 200);
       expect(response.headers.toMap().containsKey('x-shelf-middleware'), true);

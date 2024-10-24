@@ -15,17 +15,17 @@ mixin OnRequestResponse on Hook {
 /// The [OnBeforeHandle] mixin is used to execute code before the request is handled
 mixin OnBeforeHandle on Hookable {
   /// The [beforeHandle] method is used to execute code before the request is handled
-  Future<void> beforeHandle(RequestContext context) async {}
+  Future<void> beforeHandle(RequestContext context);
 }
 
 /// The [OnAfterHandle] mixin is used to execute code after the request is handled
 mixin OnAfterHandle on Hookable {
   /// The [afterHandle] method is used to execute code after the request is handled
-  Future<void> afterHandle(RequestContext context, dynamic response) async {}
+  Future<void> afterHandle(RequestContext context, dynamic response);
 }
 
 /// The [OnTransform] mixin is used to execute code before the request is handled
 mixin OnTransform on Route {
   /// The [transform] method is used to execute code before the request is handled
-  Future<void> transform(RequestContext context) async {}
+  Future<void> transform(RequestContext context);
 }

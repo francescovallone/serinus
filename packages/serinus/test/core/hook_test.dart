@@ -4,8 +4,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
-class HookTest extends Hook with OnRequestResponse, OnBeforeHandle, OnAfterHandle {
-
+class HookTest extends Hook
+    with OnRequestResponse, OnBeforeHandle, OnAfterHandle {
   final Map<String, dynamic> data = {};
 
   @override
@@ -24,14 +24,15 @@ class HookTest extends Hook with OnRequestResponse, OnBeforeHandle, OnAfterHandl
   }
 
   @override
-  Future<void> onResponse(Request request, dynamic data, ResponseProperties properties) async {
+  Future<void> onResponse(
+      Request request, dynamic data, ResponseProperties properties) async {
     this.data['onResponse'] = true;
   }
-
 }
 
-class MockRequest extends Mock implements Request {
+class NoOverrideHook extends Hook with OnRequestResponse {}
 
+class MockRequest extends Mock implements Request {
   final Map<String, dynamic> _data = {};
 
   @override
@@ -39,7 +40,6 @@ class MockRequest extends Mock implements Request {
 
   @override
   void operator []=(String key, dynamic value) => _data[key] = value;
-
 }
 
 class MockResponse extends Mock implements InternalResponse {}
@@ -47,7 +47,6 @@ class MockResponse extends Mock implements InternalResponse {}
 class MockStreamableResponse extends Mock implements StreamableResponse {}
 
 class HookRoute extends Route with OnTransform, OnBeforeHandle, OnAfterHandle {
-
   final Map<String, dynamic> data = {};
 
   HookRoute({super.path = '/', super.method = HttpMethod.get});
@@ -66,32 +65,24 @@ class HookRoute extends Route with OnTransform, OnBeforeHandle, OnAfterHandle {
   Future<void> afterHandle(RequestContext context, dynamic response) async {
     data['afterHandle-route'] = true;
   }
-
-
-
 }
 
 class TestController extends Controller {
   TestController({required Route route, super.path = '/'}) {
-    on(
-      route,
-      (context) async => 'ok!'
-    );
+    on(route, (context) async => 'ok!');
   }
 }
 
 class TestModule extends Module {
-  
   TestModule({super.controllers});
-
 }
 
 void main() {
-  
   group('$Hook', () {
-    test('HookTest', () async {
+    test('if a hook is augmented and the methods are called then the data should be populated', () async {
       final hook = HookTest();
-      final context = RequestContext({}, MockRequest(), MockStreamableResponse());
+      final context =
+          RequestContext({}, MockRequest(), MockStreamableResponse());
       await hook.onRequest(context.request, MockResponse());
       expect(hook.data['onRequest'], true);
       await hook.beforeHandle(context);
@@ -104,15 +95,18 @@ void main() {
   });
 
   group('$Hookable', () {
-    test(('Hookable Test'), () async {
+    test('if a hook or a route are augmented and the methods are called then the data should be populated', () async {
       final route = HookRoute();
-      final app = await serinus.createApplication(entrypoint: TestModule(
-        controllers: [TestController(route: route)]
-      ), port: 9000, loggingLevel: LogLevel.none);
+      final app = await serinus.createApplication(
+          entrypoint: TestModule(controllers: [TestController(route: route)]),
+          port: 9000,
+          loggingLevel: LogLevel.none);
       final hook = HookTest();
       app.use(hook);
+      app.use(NoOverrideHook());
       await app.serve();
-      final request = await HttpClient().getUrl(Uri.parse('http://localhost:9000'));
+      final request =
+          await HttpClient().getUrl(Uri.parse('http://localhost:9000'));
       final response = await request.close();
       expect(response.statusCode, 200);
       await app.close();
