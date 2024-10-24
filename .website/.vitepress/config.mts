@@ -35,6 +35,10 @@ export default defineConfig({
         text: 'Pub.dev',
         link: 'https://pub.dev/packages/serinus'
       },
+      {
+        text: 'Blog',
+        link: '/blog/'
+      }
     ],
     sidebar: [
       {
