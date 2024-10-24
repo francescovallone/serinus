@@ -79,7 +79,9 @@ class TestModule extends Module {
 
 void main() {
   group('$Hook', () {
-    test('if a hook is augmented and the methods are called then the data should be populated', () async {
+    test(
+        'if a hook is augmented and the methods are called then the data should be populated',
+        () async {
       final hook = HookTest();
       final context =
           RequestContext({}, MockRequest(), MockStreamableResponse());
@@ -95,7 +97,9 @@ void main() {
   });
 
   group('$Hookable', () {
-    test('if a hook or a route are augmented and the methods are called then the data should be populated', () async {
+    test(
+        'if a hook or a route are augmented and the methods are called then the data should be populated',
+        () async {
       final route = HookRoute();
       final app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController(route: route)]),
