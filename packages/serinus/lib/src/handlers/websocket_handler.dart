@@ -54,6 +54,7 @@ class WebSocketHandler extends Handler {
             for (final provider in scopedProviders)
               provider.runtimeType: provider
           },
+          config.hooks.services,
           Request(request),
           provider.serializer);
       (config.adapters[WsAdapter] as WsAdapter?)

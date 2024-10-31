@@ -84,7 +84,7 @@ void main() {
         () async {
       final hook = HookTest();
       final context =
-          RequestContext({}, MockRequest(), MockStreamableResponse());
+          RequestContext({}, {}, MockRequest(), MockStreamableResponse());
       await hook.onRequest(context.request, MockResponse());
       expect(hook.data['onRequest'], true);
       await hook.beforeHandle(context);
