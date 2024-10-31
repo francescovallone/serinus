@@ -33,7 +33,7 @@ class RequestContext extends BaseContext {
   Map<String, dynamic> get query => request.query;
 
   /// The constructor of the [RequestContext] class.
-  RequestContext(super.providers, this.request, this._streamable);
+  RequestContext(super.providers, super.services, this.request, this._streamable);
 
   /// The [streamable] property contains the streamable response of the request.
   final StreamableResponse _streamable;
@@ -118,6 +118,9 @@ final class ResponseProperties {
 
   /// The [redirect] property contains the redirect of the response.
   Redirect? redirect;
+
+  /// The [cookies] property contains the cookies of the response.
+  List<Cookie> cookies = [];
 
   /// The [ResponseProperties] constructor.
   ResponseProperties();

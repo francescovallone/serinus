@@ -62,6 +62,7 @@ abstract class Handler {
       Request request, InternalResponse response) {
     return RequestContext(
       {for (final provider in providers) provider.runtimeType: provider},
+      config.hooks.services,
       request,
       StreamableResponse(response),
     );

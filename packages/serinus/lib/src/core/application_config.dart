@@ -146,6 +146,9 @@ final class HooksContainer {
   /// The after hooks for the application
   final Set<OnAfterHandle> afterHooks = {};
 
+  /// The services exposed by the hooks
+  final Map<Type, Object> services = {};
+
   /// Add a hook to the application
   void addHook(Hook hook) {
     if (hook is OnRequestResponse) {
@@ -156,6 +159,9 @@ final class HooksContainer {
     }
     if (hook is OnAfterHandle) {
       afterHooks.add(hook as OnAfterHandle);
+    }
+    if(hook.service != null) {
+      services[hook.service!.runtimeType] = hook.service!;
     }
   }
 }

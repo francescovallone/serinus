@@ -103,6 +103,11 @@ class InternalResponse {
       request: context?.request ?? request,
       traced: traced ?? context?.request.id ?? request?.id ?? '',
     );
+    for (final hook in config.hooks.reqResHooks) {
+      await hook.onResponse((context?.request ?? request)!, data,
+          context?.res ?? properties ?? ResponseProperties());
+    }
+    _original.cookies.addAll(context?.res.cookies ?? properties?.cookies ?? []);
     if (data is StreamedResponse) {
       await _original.flush();
       _original.close();
@@ -146,10 +151,6 @@ class InternalResponse {
     }
     final coding = _original.headers['transfer-encoding']?.join(';');
     if (data is File) {
-      for (final hook in config.hooks.reqResHooks) {
-        await hook.onResponse((context?.request ?? request)!, data,
-            context?.res ?? properties ?? ResponseProperties());
-      }
       contentType(context?.res.contentType ??
           ContentType.parse('application/octet-stream'));
       final readPipe = data.openRead();
@@ -168,10 +169,6 @@ class InternalResponse {
                 properties?.contentType?.mimeType) !=
             'multipart/byteranges') {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-    }
-    for (final hook in config.hooks.reqResHooks) {
-      await hook.onResponse((context?.request ?? request)!, data,
-          context?.res ?? properties ?? ResponseProperties());
     }
     if (data.isPrimitive()) {
       responseBody = utf8.encode(data.toString());
