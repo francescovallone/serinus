@@ -99,7 +99,6 @@ export default defineConfig({
               { text: 'Model View Controller', link: 'mvc' },
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
-              { text: 'Body Size Limit', link: 'body_size_limit' },
               { text: 'Shelf Interoperability', link: 'shelf_interop' },
               { text: 'Configuration', link: 'configuration' },
               { 
@@ -114,6 +113,15 @@ export default defineConfig({
                   { text: 'Deploy', link: 'deploy' },
                 ]
               },
+            ]
+          },
+          {
+            text: 'Built-in Hooks',
+            base: '/hooks/',
+            collapsed: true,
+            items: [
+              { text: 'Body Size Limit', link: 'body_size_limit' },
+              { text: 'Secure Session', link: 'secure_session' },
             ]
           },
           {
