@@ -24,8 +24,8 @@ final class WebSocketContext extends BaseContext {
   Map<String, dynamic> get headers => request.headers;
 
   /// The constructor of the [WebSocketContext] class.
-  const WebSocketContext(this._wsAdapter, this.id, super.providers, super.services,
-      this.request, this._serializer);
+  const WebSocketContext(this._wsAdapter, this.id, super.providers,
+      super.services, this.request, this._serializer);
 
   /// This method is used to send data to the client.
   ///

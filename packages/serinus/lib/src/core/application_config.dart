@@ -160,7 +160,7 @@ final class HooksContainer {
     if (hook is OnAfterHandle) {
       afterHooks.add(hook as OnAfterHandle);
     }
-    if(hook.service != null) {
+    if (hook.service != null) {
       services[hook.service!.runtimeType] = hook.service!;
     }
   }

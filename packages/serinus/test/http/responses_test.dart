@@ -120,7 +120,7 @@ void main() async {
           secret: 's' * 16,
           salt: 'a' * 16,
         ),
-        ]));
+      ]));
       await app?.serve();
     });
     tearDownAll(() async {
