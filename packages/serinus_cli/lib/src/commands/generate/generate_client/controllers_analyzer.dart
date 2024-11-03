@@ -195,7 +195,7 @@ class ControllersAnalyzer {
           String? controllerPath;
           final controllerRoutes = <Route>[];
           final classMethods = List<MethodDeclaration>.from(
-              declaration.members.where((e) => e is MethodDeclaration));
+              declaration.members.whereType<MethodDeclaration>());
           for (final member in declaration.members) {
             if (member is ConstructorDeclaration) {
               if (member.redirectedConstructor != null ||
