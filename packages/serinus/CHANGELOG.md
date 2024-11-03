@@ -1,8 +1,12 @@
 # Changelog
 
+## 1.0.0-rc.1
+
+- feat: first release candidate of Serinus 1.0.0
+
 ## 0.6.2
 
-- chore: update spanner to 1.0.3 
+- chore: update spanner to 1.0.3
 
 ## 0.6.1
 
