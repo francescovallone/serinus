@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0-rc.2
+
+- fix: change dependency constraints to ensure compatibility with the latest version of the packages
+
 ## 1.0.0-rc.1
 
 - feat: first release candidate of Serinus 1.0.0
