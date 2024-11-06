@@ -24,12 +24,19 @@ head:
 
 <Blog
 	:posts="[
+    {
+      title: 'The goal of Serinus',
+      src: '/blog/the_goal_of_serinus/the_goal_of_serinus.webp',
+      alt: 'The goal of Serinus',
+      date: '04 Nov 2024',
+      href: '/blog/the_goal_of_serinus',
+    },
 		{
 			title: 'Serinus 0.6 - Welcome to the Meta-World',
 			src: '/blog/serinus_0_6/serinus_0_6.webp',
 			alt: 'Serinus 0.6 - Welcome to the Meta-World',
 			date: '1 Aug 2024',
 			href: '/blog/serinus_0_6',
-		}
+		},
 	]"
 />

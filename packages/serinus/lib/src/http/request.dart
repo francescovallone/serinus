@@ -139,8 +139,7 @@ class Request {
     final parsedJson = parsedBody.tryParse();
     if ((parsedJson != null && contentType == ContentType.json) ||
         parsedJson != null) {
-      final json = parsedJson;
-      body = Body(contentType, json: json);
+      body = Body(contentType, json: JsonBody.fromJson(parsedJson));
       return;
     }
 

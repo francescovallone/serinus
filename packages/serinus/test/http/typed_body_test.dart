@@ -56,9 +56,12 @@ void main() {
       expect(body, 'test');
 
       body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.json, json: {'test': 'test'})), Map);
+          _MockContext(Body(ContentType.json, json: JsonBodyObject({'test': 'test'}))), Map);
 
       expect(body, {'test': 'test'});
+
+      body = requestHandler.getBodyValue(
+          _MockContext(Body(ContentType.json, json: JsonList(['test']))), List);
 
       body = requestHandler.getBodyValue(
           _MockContext(Body(ContentType.binary, bytes: [1, 2, 3])), Uint8List);
@@ -100,7 +103,7 @@ void main() {
       final RequestHandler requestHandler = RequestHandler(
           Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
       final body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.json, json: {'name': 'test'})),
+          _MockContext(Body(ContentType.json, json: JsonBodyObject({'name': 'test'}))),
           TestObject);
       expect(body.name, 'test');
     });
