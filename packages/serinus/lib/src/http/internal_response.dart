@@ -97,12 +97,12 @@ class InternalResponse {
     String? traced,
     ResponseProperties? properties,
   }) async {
-    // config.tracerService.addEvent(
-    //   name: TraceEvents.onResponse,
-    //   begin: true,
-    //   request: context?.request ?? request,
-    //   traced: traced ?? context?.request.id ?? request?.id ?? '',
-    // );
+    config.tracerService.addEvent(
+      name: TraceEvents.onResponse,
+      begin: true,
+      request: context?.request ?? request,
+      traced: traced ?? context?.request.id ?? request?.id ?? '',
+    );
     for (final hook in config.hooks.reqResHooks) {
       await hook.onResponse((context?.request ?? request)!, data,
           context?.res ?? properties ?? ResponseProperties());
@@ -177,12 +177,12 @@ class InternalResponse {
     } else if (!isView) {
       responseBody = utf8.encode(jsonEncode(data));
     }
-    // await config.tracerService.addSyncEvent(
-    //   name: TraceEvents.onResponse,
-    //   request: request,
-    //   context: context,
-    //   traced: traced ?? context?.request.id ?? request?.id ?? '',
-    // );
+    await config.tracerService.addSyncEvent(
+      name: TraceEvents.onResponse,
+      request: request,
+      context: context,
+      traced: traced ?? context?.request.id ?? request?.id ?? '',
+    );
     headers({
       ...context?.res.headers ?? properties?.headers ?? {},
       HttpHeaders.contentLengthHeader: responseBody.length.toString()
