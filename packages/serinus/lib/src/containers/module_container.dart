@@ -81,12 +81,15 @@ final class ModulesContainer {
 
     final existingInjectables = _moduleInjectables[token];
     if (existingInjectables != null) {
-      _moduleInjectables[token] = moduleInjectables?.concatTo(existingInjectables) ?? existingInjectables;
+      _moduleInjectables[token] =
+          moduleInjectables?.concatTo(existingInjectables) ??
+              existingInjectables;
     } else {
       final newInjectables = ModuleInjectables(
         middlewares: {...module.middlewares},
       );
-      _moduleInjectables[token] = moduleInjectables?.concatTo(newInjectables) ?? newInjectables;
+      _moduleInjectables[token] =
+          moduleInjectables?.concatTo(newInjectables) ?? newInjectables;
     }
 
     final split = initializedModule.providers.splitBy<DeferredProvider>();

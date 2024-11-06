@@ -27,16 +27,16 @@ class BearerHook extends Hook with OnRequestResponse {
       request['bearer'] = request.query['access_token'];
     }
     final jsonBody = request.body?.json;
-    if(jsonBody != null) {
-      if(jsonBody.multiple) {
+    if (jsonBody != null) {
+      if (jsonBody.multiple) {
         final List<dynamic> list = jsonBody.value;
         for (final item in list) {
-          if(item is Map<String, dynamic> && item.containsKey(body)) {
+          if (item is Map<String, dynamic> && item.containsKey(body)) {
             request['bearer'] = item[body];
             break;
           }
         }
-      } else if(jsonBody.value.containsKey(body)) {
+      } else if (jsonBody.value.containsKey(body)) {
         request['bearer'] = jsonBody.value[body];
       }
     }

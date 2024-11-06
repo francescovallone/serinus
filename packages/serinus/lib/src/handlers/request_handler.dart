@@ -73,8 +73,8 @@ class RequestHandler extends Handler {
     final route = routeSpec.route;
     final handler = routeSpec.handler;
     final schema = routeSpec.schema;
-    final scopedProviders = injectables.providers
-        .addAllIfAbsent(modulesContainer.globalProviders);
+    final scopedProviders =
+        injectables.providers.addAllIfAbsent(modulesContainer.globalProviders);
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest, response);
     final body = getBodyValue(context, routeSpec.body);
@@ -144,7 +144,8 @@ class RequestHandler extends Handler {
     return metadata;
   }
 
-  Object? _processResult(Object? result, RequestContext context, ApplicationConfig config) {
+  Object? _processResult(
+      Object? result, RequestContext context, ApplicationConfig config) {
     if (result?.canBeJson() ?? false) {
       result = parseJsonToResponse(result, config.modelProvider);
       context.res.contentType = ContentType.json;
@@ -268,8 +269,8 @@ class RequestHandler extends Handler {
   /// This method will parse the request body, query, params and headers.
   /// Also it will atomically add the parsed values to the request context.
   /// It means that if any of the values are not present in the request, they will not be added to the context.
-  Future<void> executeOnParse(
-      RequestContext context, ParseSchema schema, Route route, dynamic body) async {
+  Future<void> executeOnParse(RequestContext context, ParseSchema schema,
+      Route route, dynamic body) async {
     config.tracerService.addEvent(
         name: TraceEvents.onParse,
         begin: true,
@@ -435,9 +436,11 @@ class RequestHandler extends Handler {
     }
     if (config.modelProvider != null) {
       try {
-        if(context.body.json != null) {
-          if(context.body.json!.multiple) {
-            return context.body.json!.value.map((e) => config.modelProvider!.from(body, e)).toList();
+        if (context.body.json != null) {
+          if (context.body.json!.multiple) {
+            return context.body.json!.value
+                .map((e) => config.modelProvider!.from(body, e))
+                .toList();
           } else {
             return config.modelProvider!.from(body, context.body.json!.value);
           }

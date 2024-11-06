@@ -80,10 +80,9 @@ class Body {
 }
 
 /// The class [JsonBody] is used to create a json body for the request.
-/// 
+///
 /// The [JsonBody] class is an abstract class that is used express both a single json object and a list of json objects.
 abstract class JsonBody<T> {
-
   /// true if the body is a list of json objects.
   final bool multiple;
 
@@ -95,7 +94,7 @@ abstract class JsonBody<T> {
 
   /// This method is used to create a new instance of the [JsonBody] class from a json object.
   factory JsonBody.fromJson(dynamic json) {
-    if(json is List) {
+    if (json is List) {
       return JsonList(json) as JsonBody<T>;
     }
     return JsonBodyObject(json) as JsonBody<T>;
@@ -103,37 +102,32 @@ abstract class JsonBody<T> {
 
   @override
   String toString() => jsonEncode(value);
-
 }
 
 /// The class [JsonObject] is used to create a json object body for the request.
 class JsonBodyObject extends JsonBody<Map<String, dynamic>> {
-
   /// The [JsonObject] constructor is used to create a new instance of the [JsonObject] class.
   JsonBodyObject(super.value);
-
 }
 
 /// The class [JsonList] is used to create a json list body for the request.
-/// 
+///
 /// The [JsonList] class is used to express a list of json objects.
-/// Examples: 
-/// 
+/// Examples:
+///
 /// ```dart
 /// final body = JsonList([
 ///  {'name': 'John Doe', 'age': 30},
 /// {'name': 'Jane Doe', 'age': 25},
 /// ]);
-/// 
+///
 /// final body = JsonList(['1', '2', '3']);
-/// 
+///
 /// final body = JsonList([1, 2, 3]);
-/// 
+///
 /// final body = JsonList([true, false, true]);
 /// ```
 class JsonList extends JsonBody<List<dynamic>> {
-
   /// The [JsonList] constructor is used to create a new instance of the [JsonList] class.
   JsonList(super.value) : super(multiple: true);
-
 }
