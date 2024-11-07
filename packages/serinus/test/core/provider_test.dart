@@ -3,6 +3,9 @@ import 'dart:math';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/router.dart';
+import 'package:serinus/src/handlers/handler.dart';
+import 'package:serinus/src/handlers/request_handler.dart';
 import 'package:test/test.dart';
 
 class _MockAdapter extends Mock implements SerinusHttpAdapter {
@@ -10,6 +13,11 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
   Future<void> listen(covariant RequestCallback requestCallback,
       {InternalRequest? request, ErrorHandler? errorHandler}) {
     return Future.value();
+  }
+
+  @override
+  Handler getHandler(ModulesContainer container, ApplicationConfig config, Router router) {
+    return RequestHandler(router, container, config);
   }
 
   @override

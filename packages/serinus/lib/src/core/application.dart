@@ -9,8 +9,7 @@ import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
-import '../handlers/request_handler.dart';
-import '../handlers/websocket_handler.dart';
+import '../handlers/handler.dart';
 import '../http/http.dart';
 import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
@@ -141,8 +140,12 @@ class SerinusApplication extends Application {
   Future<void> serve() async {
     await initialize();
     _logger.info('Starting server on $url');
-    final requestHandler = RequestHandler(router, modulesContainer, config);
-    final wsHandler = WebSocketHandler(router, modulesContainer, config);
+    final requestHandler = adapter.getHandler(modulesContainer, config, router);
+    final handlers = <Type, Handler>{};
+    for (final adapter in config.adapters.values) {
+      final handler = adapter.getHandler(modulesContainer, config, router);
+      handlers[adapter.runtimeType] = handler;
+    }
     Future<void> Function(InternalRequest, InternalResponse) handler;
     try {
       for (final adapter in config.adapters.values) {
@@ -153,9 +156,11 @@ class SerinusApplication extends Application {
       adapter.listen(
         (request, response) {
           handler = requestHandler.handle;
-          if (config.adapters[WsAdapter] != null &&
-              config.adapters[WsAdapter]?.canHandle(request) == true) {
-            handler = wsHandler.handle;
+          for (final adapter in config.adapters.values) {
+            if (adapter.canHandle(request)) {
+              handler = handlers[adapter.runtimeType]!.handle;
+              break;
+            }
           }
           return handler(request, response);
         },
