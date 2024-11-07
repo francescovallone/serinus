@@ -17,7 +17,8 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
   }
 
   @override
-  Handler getHandler(ModulesContainer container, ApplicationConfig config, Router router) {
+  Handler getHandler(
+      ModulesContainer container, ApplicationConfig config, Router router) {
     return RequestHandler(router, container, config);
   }
 
