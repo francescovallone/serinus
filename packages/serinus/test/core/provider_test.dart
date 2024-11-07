@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/router.dart';
-import 'package:serinus/src/handlers/handler.dart';
 import 'package:serinus/src/handlers/request_handler.dart';
 import 'package:test/test.dart';
 
