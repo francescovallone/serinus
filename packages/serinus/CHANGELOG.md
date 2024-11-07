@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0-rc.3
+
+- feat: add a sealed class families to define a JsonBody object.
+- feat: decouple the adapters allowing for more flexibility in the implementation of the adapters.
+
 ## 1.0.0-rc.2
 
 - fix: change dependency constraints to ensure compatibility with the latest version of the packages
