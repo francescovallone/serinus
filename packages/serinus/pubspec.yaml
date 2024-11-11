@@ -4,7 +4,7 @@ description: Serinus is a framework written in Dart
 documentation: https://develop.serinus.app
 homepage: https://develop.serinus.app
 repository: https://github.com/francescovallone/serinus
-version: 1.0.0-rc.3
+version: 1.0.0-rc.4
 funding:
   - https://www.patreon.com/francescovallone
   - https://github.com/sponsors/francescovallone

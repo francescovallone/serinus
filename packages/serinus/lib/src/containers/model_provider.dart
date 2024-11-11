@@ -13,5 +13,4 @@ abstract class ModelProvider {
 
   /// Converts a model of type [T] to a [Map<String, dynamic>]
   Map<String, dynamic> to<T>(T model);
-
 }

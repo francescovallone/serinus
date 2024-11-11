@@ -19,11 +19,9 @@ class _MockContext extends Mock implements RequestContext {
 }
 
 class _MockModelProvider extends Mock implements ModelProvider {
-
   @override
-  Map<Type, Function> get fromJsonModels => {
-    TestObject: (json) => TestObject.fromJson(json)
-  };
+  Map<Type, Function> get fromJsonModels =>
+      {TestObject: (json) => TestObject.fromJson(json)};
 
   @override
   Object from(Type model, Map<String, dynamic> json) {
@@ -42,7 +40,6 @@ class TestObject {
   factory TestObject.fromJson(Map<String, dynamic> json) {
     return TestObject(json['name']);
   }
-  
 }
 
 final config = ApplicationConfig(
@@ -131,8 +128,8 @@ void main() {
           Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
       expect(
           () => requestHandler.getBodyValue(
-              _MockContext(
-                  Body(ContentType.json, json: JsonBodyObject({'name': 'test'}))),
+              _MockContext(Body(ContentType.json,
+                  json: JsonBodyObject({'name': 'test'}))),
               String),
           throwsA(isA<PreconditionFailedException>()));
     });
@@ -148,9 +145,10 @@ void main() {
           modelProvider: _MockModelProvider());
       final RequestHandler requestHandler = RequestHandler(
           Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
-            final body = requestHandler.getBodyValue(
-          _MockContext(
-              Body(ContentType.parse('application/x-www-form-urlencoded'), formData: FormData(fields: {'name': 'test'}))),
+      final body = requestHandler.getBodyValue(
+          _MockContext(Body(
+              ContentType.parse('application/x-www-form-urlencoded'),
+              formData: FormData(fields: {'name': 'test'}))),
           TestObject);
       expect(body.name, 'test');
     });

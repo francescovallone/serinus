@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0-rc.4
+
+- feat(#104): add form data support to the models system.
+
 ## 1.0.0-rc.3
 
 - feat: add a sealed class families to define a JsonBody object.
