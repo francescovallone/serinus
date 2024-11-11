@@ -436,6 +436,14 @@ class RequestHandler extends Handler {
     }
     if (config.modelProvider != null) {
       try {
+        if (context.body.formData != null) {
+          return config.modelProvider!.from(body, {
+            ...context.body.formData!.fields,
+            ...Map<String, dynamic>.fromEntries(
+              context.body.formData!.files.entries.map((e) => MapEntry(e.key, e.value.toJson()))
+            ),
+          });
+        }
         if (context.body.json != null) {
           if (context.body.json!.multiple) {
             return context.body.json!.value

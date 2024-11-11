@@ -19,6 +19,12 @@ class _MockContext extends Mock implements RequestContext {
 }
 
 class _MockModelProvider extends Mock implements ModelProvider {
+
+  @override
+  Map<Type, Function> get fromJsonModels => {
+    TestObject: (json) => TestObject.fromJson(json)
+  };
+
   @override
   Object from(Type model, Map<String, dynamic> json) {
     if (model == TestObject) {
@@ -36,6 +42,7 @@ class TestObject {
   factory TestObject.fromJson(Map<String, dynamic> json) {
     return TestObject(json['name']);
   }
+  
 }
 
 final config = ApplicationConfig(
@@ -107,6 +114,43 @@ void main() {
       final body = requestHandler.getBodyValue(
           _MockContext(
               Body(ContentType.json, json: JsonBodyObject({'name': 'test'}))),
+          TestObject);
+      expect(body.name, 'test');
+    });
+
+    test(
+        'if the body type is not in the [ModelProvider] then a [PreconditionFailedException] should be thrown',
+        () {
+      final modelProviderConfig = ApplicationConfig(
+          host: 'host',
+          port: 10000,
+          poweredByHeader: '',
+          serverAdapter: _MockAdapter(),
+          modelProvider: _MockModelProvider());
+      final RequestHandler requestHandler = RequestHandler(
+          Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
+      expect(
+          () => requestHandler.getBodyValue(
+              _MockContext(
+                  Body(ContentType.json, json: JsonBodyObject({'name': 'test'}))),
+              String),
+          throwsA(isA<PreconditionFailedException>()));
+    });
+
+    test(
+        'if the body type is in the [ModelProvider] and the raw body is a FormData then the body should be converted to the model',
+        () {
+      final modelProviderConfig = ApplicationConfig(
+          host: 'host',
+          port: 10000,
+          poweredByHeader: '',
+          serverAdapter: _MockAdapter(),
+          modelProvider: _MockModelProvider());
+      final RequestHandler requestHandler = RequestHandler(
+          Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
+            final body = requestHandler.getBodyValue(
+          _MockContext(
+              Body(ContentType.parse('application/x-www-form-urlencoded'), formData: FormData(fields: {'name': 'test'}))),
           TestObject);
       expect(body.name, 'test');
     });

@@ -2,7 +2,6 @@ import '../adapters/adapters.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
-import '../extensions/iterable_extansions.dart';
 import '../http/http.dart';
 import '../mixins/mixins.dart';
 import 'handler.dart';
@@ -44,8 +43,7 @@ class WebSocketHandler extends Handler {
           modulesContainer.getModuleByProvider(provider.runtimeType);
       final injectables = modulesContainer.getModuleInjectablesByToken(
           modulesContainer.moduleToken(providerModule));
-      final scopedProviders = List<Provider>.from(injectables.providers
-          .addAllIfAbsent(modulesContainer.globalProviders));
+      final scopedProviders = List<Provider>.from(injectables.providers);
       scopedProviders.remove(provider);
       final context = WebSocketContext(
           (config.adapters[WsAdapter] as WsAdapter?)!,
