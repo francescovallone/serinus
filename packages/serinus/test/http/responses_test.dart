@@ -77,6 +77,11 @@ class TestController extends Controller {
       },
     );
     onStatic(Route.get('/static'), 'test');
+    on(Route.get('/session'), (RequestContext context) {
+      final session = context.use<SecureSession>();
+      session.write('hello', 'session');
+      return 'ok!';
+    });
   }
 }
 
@@ -109,6 +114,13 @@ void main() async {
           entrypoint:
               TestModule(controllers: [controller], middlewares: [middleware]),
           loggingLevel: LogLevel.none);
+      app?.use(SecureSessionHook(options: [
+        SessionOptions(
+          defaultSessionName: 'session',
+          secret: 's' * 16,
+          salt: 'a' * 16,
+        ),
+      ]));
       await app?.serve();
     });
     tearDownAll(() async {
@@ -224,7 +236,7 @@ void main() async {
         final res = parseJsonToResponse([
           {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestJsonObject()},
           TestObj('Jane Doe')
-        ]);
+        ], null);
         expect(
             jsonEncode(res),
             jsonEncode([
@@ -263,6 +275,22 @@ void main() async {
         final response = await request.close();
         final body = await response.transform(Utf8Decoder()).join();
         expect(body, 'test');
+      },
+    );
+
+    test(
+      'if a session is written, then it should be available in the response',
+      () async {
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/session'));
+        final response = await request.close();
+        final body = await response.transform(Utf8Decoder()).join();
+        expect(body, 'ok!');
+        for (var cookie in response.cookies) {
+          if (cookie.name == 'session') {
+            expect(cookie.value, isNotEmpty);
+          }
+        }
       },
     );
   });

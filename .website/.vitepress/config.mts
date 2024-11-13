@@ -19,7 +19,7 @@ export default defineConfig({
   themeConfig: {
     footer: {
       copyright: 'Copyright © 2024 Francesco Vallone',
-      message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/serinus-nest">Serinus Nest</a>'
+      message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/avesbox">Avesbox</a>'
     },
     // https://vitepress.dev/reference/default-theme-config
     logo: '/serinus-logo.png',
@@ -35,6 +35,10 @@ export default defineConfig({
         text: 'Pub.dev',
         link: 'https://pub.dev/packages/serinus'
       },
+      {
+        text: 'Blog',
+        link: '/blog/'
+      }
     ],
     sidebar: [
       {
@@ -95,7 +99,6 @@ export default defineConfig({
               { text: 'Model View Controller', link: 'mvc' },
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
-              { text: 'Body Size Limit', link: 'body_size_limit' },
               { text: 'Shelf Interoperability', link: 'shelf_interop' },
               { text: 'Configuration', link: 'configuration' },
               { 
@@ -110,6 +113,15 @@ export default defineConfig({
                   { text: 'Deploy', link: 'deploy' },
                 ]
               },
+            ]
+          },
+          {
+            text: 'Built-in Hooks',
+            base: '/hooks/',
+            collapsed: true,
+            items: [
+              { text: 'Body Size Limit', link: 'body_size_limit' },
+              { text: 'Secure Session', link: 'secure_session' },
             ]
           },
           {
@@ -152,7 +164,7 @@ export default defineConfig({
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
-      { icon: 'twitter', link: 'https://twitter.com/serinus_nest'},
+      { icon: 'twitter', link: 'https://twitter.com/avesboxx'},
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ],
   },

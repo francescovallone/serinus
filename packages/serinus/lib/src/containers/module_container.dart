@@ -63,20 +63,27 @@ final class ModulesContainer {
   Future<void> registerModule(Module module, Type entrypoint,
       [ModuleInjectables? moduleInjectables]) async {
     final token = moduleToken(module);
+
     if (_modules.containsKey(token)) {
       throw InitializationError(
           'The module ${module.runtimeType} is already registered in the application');
     }
-    final initializedModule =
-        _modules[token] = await module.registerAsync(config);
+
+    final initializedModule = await module.registerAsync(config);
+    _modules[token] = initializedModule;
+
     if (initializedModule.runtimeType == entrypoint &&
         initializedModule.exports.isNotEmpty) {
       throw InitializationError('The entrypoint module cannot have exports');
     }
+
     _providers[token] = [];
-    if (_moduleInjectables.containsKey(token)) {
+
+    final existingInjectables = _moduleInjectables[token];
+    if (existingInjectables != null) {
       _moduleInjectables[token] =
-          moduleInjectables!.concatTo(_moduleInjectables[token]);
+          moduleInjectables?.concatTo(existingInjectables) ??
+              existingInjectables;
     } else {
       final newInjectables = ModuleInjectables(
         middlewares: {...module.middlewares},
@@ -84,6 +91,7 @@ final class ModulesContainer {
       _moduleInjectables[token] =
           moduleInjectables?.concatTo(newInjectables) ?? newInjectables;
     }
+
     final split = initializedModule.providers.splitBy<DeferredProvider>();
     for (final provider in split.notOfType) {
       await initIfUnregistered(provider);
@@ -93,10 +101,13 @@ final class ModulesContainer {
         _providers[token]?.add(provider);
       }
     }
+
     _moduleInjectables[token] = _moduleInjectables[token]!.copyWith(
       providers: {..._moduleInjectables[token]!.providers, ...split.notOfType},
     );
+
     _deferredProviders[token] = split.ofType;
+
     logger.info(
         'Initializing ${initializedModule.runtimeType}${initializedModule.token.isNotEmpty ? '(${initializedModule.token})' : ''} dependencies.');
   }
@@ -311,6 +322,7 @@ final class ModulesContainer {
     for (final subModule in module.imports) {
       final subModuleToken = moduleToken(subModule);
       final subModuleInjectables = _moduleInjectables[subModuleToken]!;
+      subModuleInjectables.providers.addAllIfAbsent(globalProviders);
       _moduleInjectables[subModuleToken] = subModuleInjectables.copyWith(
         providers: {
           ...moduleInjectables.providers.whereNot((e) => e is DeferredProvider),
@@ -330,6 +342,7 @@ final class ModulesContainer {
         ...globalProviders
       },
     );
+    _moduleInjectables[token]?.providers.addAllIfAbsent(globalProviders);
   }
 
   /// Gets the module scoped providers

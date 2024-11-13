@@ -67,6 +67,9 @@ class InternalRequest {
     return InternalRequest(headers: headers, original: request);
   }
 
+  /// The [cookies] property contains the cookies of the request
+  List<Cookie> get cookies => original.cookies;
+
   /// The [events] property contains the events of the request
   final StreamController<(RequestEvent, EventData)> _events =
       StreamController.broadcast(sync: true);
@@ -137,6 +140,7 @@ class InternalRequest {
     await for (var part in original) {
       data += part;
     }
+    _bytes = Uint8List.fromList(data);
     return utf8.decode(data);
   }
 
@@ -168,10 +172,8 @@ class InternalRequest {
 
   /// This method is used to get the body of the request as a [Uint8List]
   /// it is used internally by the [body], the [json] and the [stream] methods
-  Future<Uint8List> bytes() async {
+  Uint8List bytes() {
     try {
-      final data = await body();
-      _bytes ??= Uint8List.fromList((encoding ?? utf8).encode(data));
       return _bytes!;
     } catch (_) {
       return Uint8List(0);
@@ -181,7 +183,6 @@ class InternalRequest {
   /// This method is used to get the body of the request as a [Stream<List<int>>]
   Future<Stream<List<int>>> stream() async {
     try {
-      await bytes();
       return Stream.value(List<int>.from(_bytes!));
     } catch (_) {
       return Stream.value(List<int>.from(Uint8List(0)));

@@ -15,8 +15,6 @@ const scalePadding = (value, max) =>
 	`padding-left: ${((value / max) * 100).toFixed(2)}%`
 const format = new Intl.NumberFormat().format
 
-console.log(scale(props.value, props.max))
-
 </script>
 
 <template>

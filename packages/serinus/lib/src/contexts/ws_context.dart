@@ -25,7 +25,7 @@ final class WebSocketContext extends BaseContext {
 
   /// The constructor of the [WebSocketContext] class.
   const WebSocketContext(this._wsAdapter, this.id, super.providers,
-      this.request, this._serializer);
+      super.services, this.request, this._serializer);
 
   /// This method is used to send data to the client.
   ///

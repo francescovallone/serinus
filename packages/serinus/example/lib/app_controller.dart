@@ -12,7 +12,7 @@ class AppController extends Controller {
     }, body: String);
   }
 
-  Future<String> _handleEcho(RequestContext context) async {
-    return 'Echo';
+  Future<Map<String, dynamic>> _handleEcho(RequestContext context) async {
+    return {'message': 'Hello, World!'};
   }
 }

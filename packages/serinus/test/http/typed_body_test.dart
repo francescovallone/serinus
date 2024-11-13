@@ -20,6 +20,10 @@ class _MockContext extends Mock implements RequestContext {
 
 class _MockModelProvider extends Mock implements ModelProvider {
   @override
+  Map<Type, Function> get fromJsonModels =>
+      {TestObject: (json) => TestObject.fromJson(json)};
+
+  @override
   Object from(Type model, Map<String, dynamic> json) {
     if (model == TestObject) {
       return TestObject.fromJson(json);
@@ -56,9 +60,14 @@ void main() {
       expect(body, 'test');
 
       body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.json, json: {'test': 'test'})), Map);
+          _MockContext(
+              Body(ContentType.json, json: JsonBodyObject({'test': 'test'}))),
+          Map);
 
       expect(body, {'test': 'test'});
+
+      body = requestHandler.getBodyValue(
+          _MockContext(Body(ContentType.json, json: JsonList(['test']))), List);
 
       body = requestHandler.getBodyValue(
           _MockContext(Body(ContentType.binary, bytes: [1, 2, 3])), Uint8List);
@@ -100,7 +109,46 @@ void main() {
       final RequestHandler requestHandler = RequestHandler(
           Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
       final body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.json, json: {'name': 'test'})),
+          _MockContext(
+              Body(ContentType.json, json: JsonBodyObject({'name': 'test'}))),
+          TestObject);
+      expect(body.name, 'test');
+    });
+
+    test(
+        'if the body type is not in the [ModelProvider] then a [PreconditionFailedException] should be thrown',
+        () {
+      final modelProviderConfig = ApplicationConfig(
+          host: 'host',
+          port: 10000,
+          poweredByHeader: '',
+          serverAdapter: _MockAdapter(),
+          modelProvider: _MockModelProvider());
+      final RequestHandler requestHandler = RequestHandler(
+          Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
+      expect(
+          () => requestHandler.getBodyValue(
+              _MockContext(Body(ContentType.json,
+                  json: JsonBodyObject({'name': 'test'}))),
+              String),
+          throwsA(isA<PreconditionFailedException>()));
+    });
+
+    test(
+        'if the body type is in the [ModelProvider] and the raw body is a FormData then the body should be converted to the model',
+        () {
+      final modelProviderConfig = ApplicationConfig(
+          host: 'host',
+          port: 10000,
+          poweredByHeader: '',
+          serverAdapter: _MockAdapter(),
+          modelProvider: _MockModelProvider());
+      final RequestHandler requestHandler = RequestHandler(
+          Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
+      final body = requestHandler.getBodyValue(
+          _MockContext(Body(
+              ContentType.parse('application/x-www-form-urlencoded'),
+              formData: FormData(fields: {'name': 'test'}))),
           TestObject);
       expect(body.name, 'test');
     });

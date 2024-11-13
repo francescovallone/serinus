@@ -1,7 +1,7 @@
 // coverage:ignore-file
 import 'package:serinus/serinus.dart';
 
-class BearerHook extends Hook {
+class BearerHook extends Hook with OnRequestResponse {
   final String header;
 
   final String body;
@@ -26,8 +26,19 @@ class BearerHook extends Hook {
     if (request.query.containsKey('access_token')) {
       request['bearer'] = request.query['access_token'];
     }
-    if (request.body?.containsKey('access_token') ?? false) {
-      request['bearer'] = request.body?['access_token'];
+    final jsonBody = request.body?.json;
+    if (jsonBody != null) {
+      if (jsonBody.multiple) {
+        final List<dynamic> list = jsonBody.value;
+        for (final item in list) {
+          if (item is Map<String, dynamic> && item.containsKey(body)) {
+            request['bearer'] = item[body];
+            break;
+          }
+        }
+      } else if (jsonBody.value.containsKey(body)) {
+        request['bearer'] = jsonBody.value[body];
+      }
     }
     return;
   }
