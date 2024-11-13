@@ -148,7 +148,8 @@ class RequestHandler extends Handler {
   Object? _processResult(
       Object? result, RequestContext context, ApplicationConfig config) {
     if (result?.canBeJson() ?? false) {
-      result = JsonUtf8Encoder().convert(parseJsonToResponse(result, config.modelProvider));
+      result = JsonUtf8Encoder()
+          .convert(parseJsonToResponse(result, config.modelProvider));
       context.res.contentType = context.res.contentType ?? ContentType.json;
     }
     if (config.modelProvider?.toJsonModels.containsKey(result.runtimeType) ??

@@ -183,7 +183,6 @@ class InternalRequest {
   /// This method is used to get the body of the request as a [Stream<List<int>>]
   Future<Stream<List<int>>> stream() async {
     try {
-      await bytes();
       return Stream.value(List<int>.from(_bytes!));
     } catch (_) {
       return Stream.value(List<int>.from(Uint8List(0)));
