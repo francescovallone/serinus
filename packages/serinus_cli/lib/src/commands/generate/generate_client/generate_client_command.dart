@@ -11,6 +11,8 @@ import 'package:serinus_cli/src/utils/config.dart';
 
 import '../recase.dart';
 
+final dartTypesRegex = RegExp(r'\b(?!int\b|Future\b|double\b|num\b|bool\b|String\b|null\b|void\b|List\b|Map\b)\w+');
+
 /// {@template generate_command}
 ///
 /// `serinus_cli sample`
@@ -98,24 +100,26 @@ class GenerateClientCommand extends Command<int> {
     if (output == null) {
       return ExitCode.usage.code;
     }
-    final language = (config['client']['language'] as String?) ??
-        _logger?.chooseOne<String>(
-          'Client language',
-          choices: [
-            'Dart',
-            // 'JS/TS',
-          ],
-          defaultValue: 'Dart',
-        );
-    final httpClient = (config['client']['httpClient'] as String?) ??
-        _logger?.chooseOne(
-          'Which HTTP Client do you prefer?',
-          choices: [
-            if (language == 'JS/TS') ...['fetch'],
-            if (language == 'Dart') ...['dio', 'http'],
-          ],
-          defaultValue: language == 'JS/TS' ? 'fetch' : 'dio',
-        );
+    const language = 'Dart';
+    const httpClient = 'dio';
+    // final language = (config['client']['language'] as String?) ??
+    //     _logger?.chooseOne<String>(
+    //       'Client language',
+    //       choices: [
+    //         'Dart',
+    //         // 'JS/TS',
+    //       ],
+    //       defaultValue: 'Dart',
+    //     );
+    // final httpClient = (config['client']['httpClient'] as String?) ??
+    //     _logger?.chooseOne(
+    //       'Which HTTP Client do you prefer?',
+    //       choices: [
+    //         if (language == 'JS/TS') ...['fetch'],
+    //         if (language == 'Dart') ...['dio', 'http'],
+    //       ],
+    //       defaultValue: language == 'JS/TS' ? 'fetch' : 'dio',
+    //     );
     if (!libraries.containsKey(httpClient)) {
       _logger?.err(
           '''The http client $httpClient is not supported. If you want it to be supported please click here: https://github.com/francescovallone/serinus/issues/new?assignees=&labels=feature&projects=&template=feature.md&title=feat%3A+Add%20$httpClient%20support%20to%20the%20client%20generation%20command''');
@@ -390,9 +394,16 @@ class GenerateClientCommand extends Command<int> {
             c.methods.addAll([
               ...controller.value.routes.map((e) {
                 return Method((m) {
+                  String? returnType;
+                  if (e.returnType == null) {
+                    returnType = 'Future<dynamic>';
+                  } else {
+                    returnType = e.returnType?.getDisplayString()
+                      .replaceAll(dartTypesRegex, 'Map<String, dynamic>');
+                  }
                   m
                     ..returns = refer(
-                        e.returnType?.trim().replaceAll('\n', '') ?? 'dynamic',)
+                        returnType?.trim().replaceAll('\n', '') ?? 'dynamic',)
                     ..name = _buildMethodName(
                         e.rawPath!, controller.value.path, e.method!, verbose,)
                     ..requiredParameters.addAll([
@@ -422,7 +433,7 @@ class GenerateClientCommand extends Command<int> {
                     ])
                     ..body = Code(
                       '''
-return client.${e.method!.toLowerCase()}<${e.returnType?.replaceAll('Future<', '').replaceFirst('>', '') ?? 'dynamic'}>(
+return client.${e.method!.toLowerCase()}<${returnType?.replaceAll('Future<', '').replaceFirst('>', '') ?? 'dynamic'}>(
   '\$basePath${e.path}', 
   queryParameters: ${_stringifyQueryParameters(e.queryParamters)},
   ${e.bodyType != null ? 'data: body' : ''}

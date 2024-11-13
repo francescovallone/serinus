@@ -7,8 +7,8 @@ import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:serinus_cli/src/commands/generate/builder.dart';
-import 'package:serinus_cli/src/commands/generate/generate_models/generate_models_command.dart';
 import 'package:serinus_cli/src/commands/generate/generate_client/generate_client_command.dart';
+import 'package:serinus_cli/src/commands/generate/generate_models/generate_models_command.dart';
 import 'package:serinus_cli/src/commands/generate/generator/generator.dart';
 import 'package:serinus_cli/src/commands/generate/recase.dart';
 

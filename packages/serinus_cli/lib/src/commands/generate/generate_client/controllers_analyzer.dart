@@ -4,6 +4,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -64,7 +65,7 @@ class ControllersAnalyzer {
                   );
                   continue;
                 }
-                for (var element in <ParameterElement>[
+                for (final element in <ParameterElement>[
                   ...member.declaredElement?.parameters ?? [],
                   ...member.declaredElement?.superConstructor?.parameters ?? [],
                 ]) {
@@ -110,8 +111,9 @@ class ControllersAnalyzer {
                         .replaceAll(')', '')
                         .split(RegExp(r',\s*|,'));
                     for (final token in tokens) {
-                      if (token.startsWith('path:')) {
-                        final path = token
+                      final trimmedToken = token.trim();
+                      if (trimmedToken.startsWith('path:')) {
+                        final path = trimmedToken
                             .split('path:')
                             .last
                             .replaceAll("'", '')
@@ -294,7 +296,7 @@ class ControllersAnalyzer {
                 }
                 if (arg is FunctionExpression) {
                   route.returnType =
-                      arg.declaredElement?.returnType.getDisplayString();
+                      arg.declaredElement?.returnType;
                 }
                 if (arg is NamedExpression) {
                   if (arg.name.label.name == 'body') {
@@ -308,7 +310,7 @@ class ControllersAnalyzer {
                           (arg.token.stringValue ?? arg.token.toString()))
                       .firstOrNull;
                   if (m != null) {
-                    route.returnType = m.returnType?.type?.getDisplayString();
+                    route.returnType = m.returnType?.type;
                   }
                 }
               }
@@ -428,7 +430,7 @@ class Route {
   String? rawPath;
   String? path;
   String? method;
-  String? returnType;
+  DartType? returnType;
   String? bodyType;
   Map<String, dynamic> queryParamters = {};
   List<String> parameters = [];
