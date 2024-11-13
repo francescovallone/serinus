@@ -6,10 +6,11 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  serinus: ^0.6.0
+  serinus: ^0.6.2
   dart_mappable: ^4.2.2
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
+  dio: ^5.7.0
 dev_dependencies:
   freezed: ^2.5.7
   build_runner: ^2.4.12
@@ -25,4 +26,8 @@ serinus:
         static_method: true
     serialize_keywords:
       - keyword: "toBody"
+  client:
+    verbose: false
+    language: 'Dart'
+    httpClient: 'dio'
         

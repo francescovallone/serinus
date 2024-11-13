@@ -72,7 +72,7 @@ class RequestContext extends BaseContext {
 
   /// The [stream] method is used to stream data to the response.
   StreamableResponse stream() {
-    return _streamable..init();
+    return _streamable;
   }
 }
 

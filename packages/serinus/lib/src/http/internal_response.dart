@@ -63,6 +63,9 @@ class InternalResponse {
 
   /// This method is used to set the status code of the response.
   void status(int statusCode) {
+    if (statusCode == _original.statusCode) {
+      return;
+    }
     _original.statusCode = statusCode;
   }
 

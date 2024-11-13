@@ -4,7 +4,6 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/v4.dart';
 
-import '../containers/router.dart';
 import '../contexts/contexts.dart';
 import 'metadata.dart';
 import 'parse_schema.dart';
@@ -37,8 +36,8 @@ abstract class Controller {
   Map<String, RouteHandler> get routes => UnmodifiableMapView(_routes);
 
   /// The [get] method is used to get a route.
-  RouteHandler? get(RouteData routeData) {
-    return _routes[routeData.id];
+  RouteHandler? get(String routeId) {
+    return _routes[routeId];
   }
 
   /// The [metadata] property contains the metadata of the controller.

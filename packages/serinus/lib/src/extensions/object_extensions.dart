@@ -15,7 +15,7 @@ extension JsonParsing on Object {
 
   /// This method is used to check if the object can be converted to a json.
   bool canBeJson() {
-    if (this is Uint8List) {
+    if (this is Uint8List || isPrimitive()) {
       return false;
     }
     return this is Map ||

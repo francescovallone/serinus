@@ -44,7 +44,7 @@ class GenerateModelsCommand extends Command<int> {
   final Logger? _logger;
 
   @override
-  Future<int> run() async {
+  Future<int> run([String? output]) async {
     final config = await getProjectConfiguration(_logger!);
     if (config.length == 1 && config.containsKey('error')) {
       return config['error'] as int;
@@ -68,30 +68,45 @@ class GenerateModelsCommand extends Command<int> {
       Directory.current.path,
       config['name'] as String,
       config,
+      output,
     );
     modelProviderProgress?.complete('Model provider generated successfully!');
     _logger?.info(
       '✨Added ${models.map((e) => e.name).join(', ')} to the model provider',);
     return ExitCode.success.code;
   }
- 
-  Future<List<Model>> generateModelProvider(String path, String name, Map<String, dynamic> config) async {
-    final modelProvider = File('$path/lib/model_provider.dart');
-    final modelsConfig = Map<String, dynamic>.from(
-      config['models'] as Map<dynamic, dynamic>? ?? {});
+
+  Future<void> generateModelProvider(
+    String path, 
+    String name, 
+    Map<String, dynamic> config, 
+    [String? output,]
+  ) async {
+    final modelProvider = File('${output ?? path}/lib/model_provider.dart');
+    final modelsConfig =
+        Map<String, dynamic>.from(config['models'] as Map<dynamic, dynamic>);
     if (!modelProvider.existsSync()) {
       modelProvider.createSync(recursive: true);
     }
-    final fromKeywords = ((modelsConfig['deserialize_keywords'] ?? YamlList()) as YamlList).nodes.map(
-      (e) => Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
-    ).toList();
-    final toKeywords = ((modelsConfig['serialize_keywords'] ?? YamlList()) as YamlList).nodes.map(
-      (e) => Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
-    ).toList();
+    final fromKeywords = (modelsConfig['deserialize_keywords'] as YamlList)
+        .nodes
+        .map(
+          (e) =>
+              Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
+        )
+        .toList();
+    final toKeywords = (modelsConfig['serialize_keywords'] as YamlList)
+        .nodes
+        .map(
+          (e) =>
+              Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
+        )
+        .toList();
     final deserializeKeywords = List<DeserializeKeyword>.of(
       fromKeywords.map<DeserializeKeyword>(
         (Map<dynamic, dynamic> e) => DeserializeKeyword(
-          e['keyword'] as String, isStatic: (e['static_method'] as bool?) ?? false,
+          e['keyword'] as String,
+          isStatic: (e['static_method'] as bool?) ?? false,
         ),
       ),
     )..add(DeserializeKeyword('fromJson'));
@@ -110,18 +125,21 @@ class GenerateModelsCommand extends Command<int> {
     );
     final analyzer = ModelsAnalyzer();
     final models = await analyzer.analyze(
-      files, 
+      files,
       modelsConfig,
       serializeKeywords,
       deserializeKeywords,
     );
     final modelProviderContent = await _getContent(models, name);
     modelProvider.writeAsStringSync(modelProviderContent);
+    _logger?.info(
+      '✨Added ${models.map((e) => e.name).join(', ')} to the model provider',
+    );
     return models;
   }
 
   Future<List<File>> _recursiveGetFiles(
-    Directory dir, 
+    Directory dir,
     Map<String, dynamic> config,
     List<SerializeKeyword> serializeKeywords,
     List<DeserializeKeyword> deserializeKeywords,
@@ -131,6 +149,8 @@ class GenerateModelsCommand extends Command<int> {
       '.mapper',
       '.freezed',
       '.g',
+      ...List<String>.from(config['extensions'] as Iterable<dynamic>)
+          .map((e) => '.$e'),
       ...List<String>.from(
         (config['extensions'] ?? <dynamic>[]) as Iterable<dynamic>).map((e) => '.$e'),
     ];
@@ -164,16 +184,20 @@ class GenerateModelsCommand extends Command<int> {
         }
         final content = entity.readAsStringSync();
         if (content.contains('class') &&
-            (
-              serializeKeywords.any((e) => content.contains(e.name)) || 
-              deserializeKeywords.any((e) => content.contains(e.name))
-            ) &&
+            (serializeKeywords.any((e) => content.contains(e.name)) ||
+                deserializeKeywords.any((e) => content.contains(e.name))) &&
             !entity.path.endsWith('model_provider.dart')) {
           files.add(entity);
         }
       } else if (entity is Directory) {
-        files.addAll(await _recursiveGetFiles(
-          entity, config, serializeKeywords, deserializeKeywords,),);
+        files.addAll(
+          await _recursiveGetFiles(
+            entity,
+            config,
+            serializeKeywords,
+            deserializeKeywords,
+          ),
+        );
       }
     }
     return files;
@@ -300,14 +324,12 @@ class GenerateModelsCommand extends Command<int> {
 }
 
 class DeserializeKeyword {
-
   DeserializeKeyword(this.name, {this.isStatic = false});
   final String name;
   final bool isStatic;
 }
 
 class SerializeKeyword {
-
   SerializeKeyword(this.name);
   final String name;
 }

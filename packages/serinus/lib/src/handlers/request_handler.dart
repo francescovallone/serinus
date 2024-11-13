@@ -64,13 +64,8 @@ class RequestHandler extends Handler {
 
     final injectables =
         modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
+    final routeSpec = routeData.spec;
     final controller = routeData.controller;
-    final routeSpec = controller.get(routeData);
-    if (routeSpec == null) {
-      throw InternalServerErrorException(
-          message: 'Route spec not found for route ${routeData.path}');
-    }
-
     final route = routeSpec.route;
     final handler = routeSpec.handler;
     final schema = routeSpec.schema;
