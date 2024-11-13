@@ -136,7 +136,7 @@ class Request {
     }
 
     /// If the content type is json, it will parse the body as a json object.
-    final parsedJson = parsedBody.tryParse();
+    final parsedJson = _original.bytes().tryParse();
     if ((parsedJson != null && contentType == ContentType.json) ||
         parsedJson != null) {
       body = Body(contentType, json: JsonBody.fromJson(parsedJson));
@@ -145,7 +145,7 @@ class Request {
 
     /// If the content type is binary, it will parse the body as a binary data.
     if (contentType == ContentType.binary) {
-      body = Body(contentType, bytes: parsedBody.codeUnits);
+      body = Body(contentType, bytes: _original.bytes());
       return;
     }
 

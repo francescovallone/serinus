@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -147,16 +148,16 @@ class RequestHandler extends Handler {
   Object? _processResult(
       Object? result, RequestContext context, ApplicationConfig config) {
     if (result?.canBeJson() ?? false) {
-      result = parseJsonToResponse(result, config.modelProvider);
-      context.res.contentType = ContentType.json;
+      result = JsonUtf8Encoder().convert(parseJsonToResponse(result, config.modelProvider));
+      context.res.contentType = context.res.contentType ?? ContentType.json;
     }
     if (config.modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
         false) {
-      result = config.modelProvider?.to(result);
-      context.res.contentType = ContentType.json;
+      result = JsonUtf8Encoder().convert(config.modelProvider?.to(result));
+      context.res.contentType = context.res.contentType ?? ContentType.json;
     }
     if (result is Uint8List) {
-      context.res.contentType = ContentType.binary;
+      context.res.contentType = context.res.contentType ?? ContentType.binary;
     }
     return result;
   }
@@ -189,13 +190,7 @@ class RequestHandler extends Handler {
             context: context,
             traced: 'm-${middlewares.elementAt(i).runtimeType}');
         if (data != null) {
-          if (data.canBeJson()) {
-            data = parseJsonToResponse(data, config.modelProvider);
-            context.res.contentType = ContentType.json;
-          }
-          if (data is Uint8List) {
-            context.res.contentType = ContentType.binary;
-          }
+          data = _processResult(data, context, config);
           request.emit(
             RequestEvent.data,
             EventData(data: data, properties: context.res),

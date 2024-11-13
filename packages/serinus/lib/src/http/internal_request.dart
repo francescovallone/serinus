@@ -140,6 +140,7 @@ class InternalRequest {
     await for (var part in original) {
       data += part;
     }
+    _bytes = Uint8List.fromList(data);
     return utf8.decode(data);
   }
 
@@ -171,10 +172,8 @@ class InternalRequest {
 
   /// This method is used to get the body of the request as a [Uint8List]
   /// it is used internally by the [body], the [json] and the [stream] methods
-  Future<Uint8List> bytes() async {
+  Uint8List bytes() {
     try {
-      final data = await body();
-      _bytes ??= Uint8List.fromList((encoding ?? utf8).encode(data));
       return _bytes!;
     } catch (_) {
       return Uint8List(0);
