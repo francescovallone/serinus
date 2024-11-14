@@ -295,8 +295,7 @@ class ControllersAnalyzer {
                   }
                 }
                 if (arg is FunctionExpression) {
-                  route.returnType =
-                      arg.declaredElement?.returnType;
+                  route.returnType = arg.declaredElement?.returnType;
                 }
                 if (arg is NamedExpression) {
                   if (arg.name.label.name == 'body') {

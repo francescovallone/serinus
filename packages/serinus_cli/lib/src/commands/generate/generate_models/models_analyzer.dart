@@ -47,7 +47,7 @@ class ModelsAnalyzer {
           }
           for (final c in constructors) {
             if (!hasFromJson) {
-              for(final s in deserializeKeywords) {
+              for (final s in deserializeKeywords) {
                 if (c.name.contains(s.name) && !s.isStatic && !c.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${c.name}';
@@ -79,7 +79,7 @@ class ModelsAnalyzer {
           final path = file.split(Platform.pathSeparator);
           final libIndex = path.indexOf('lib');
           path.removeRange(0, libIndex + 1);
-          if(hasToJson || hasFromJson) {
+          if (hasToJson || hasFromJson) {
             models.add(
               Model(
                 filename: path.join('/'),

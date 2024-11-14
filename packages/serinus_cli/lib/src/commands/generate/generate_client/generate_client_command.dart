@@ -11,7 +11,8 @@ import 'package:serinus_cli/src/utils/config.dart';
 
 import '../recase.dart';
 
-final dartTypesRegex = RegExp(r'\b(?!int\b|Future\b|double\b|num\b|bool\b|String\b|null\b|void\b|List\b|Map\b)\w+');
+final dartTypesRegex = RegExp(
+    r'\b(?!int\b|Future\b|double\b|num\b|bool\b|String\b|null\b|void\b|List\b|Map\b)\w+');
 
 /// {@template generate_command}
 ///
@@ -321,8 +322,8 @@ class GenerateClientCommand extends Command<int> {
                     ..name = e.camelCase
                     ..returns = Reference(e)
                     ..body = Code(
-                        '${ReCase(e).getCapitalizeCase(separator: '')}(client)',
-                      );
+                      '${ReCase(e).getCapitalizeCase(separator: '')}(client)',
+                    );
                 }),
               ),
             ]);
@@ -398,14 +399,20 @@ class GenerateClientCommand extends Command<int> {
                   if (e.returnType == null) {
                     returnType = 'Future<dynamic>';
                   } else {
-                    returnType = e.returnType?.getDisplayString()
-                      .replaceAll(dartTypesRegex, 'Map<String, dynamic>');
+                    returnType = e.returnType
+                        ?.getDisplayString()
+                        .replaceAll(dartTypesRegex, 'Map<String, dynamic>');
                   }
                   m
                     ..returns = refer(
-                        returnType?.trim().replaceAll('\n', '') ?? 'dynamic',)
+                      returnType?.trim().replaceAll('\n', '') ?? 'dynamic',
+                    )
                     ..name = _buildMethodName(
-                        e.rawPath!, controller.value.path, e.method!, verbose,)
+                      e.rawPath!,
+                      controller.value.path,
+                      e.method!,
+                      verbose,
+                    )
                     ..requiredParameters.addAll([
                       ...e.parameters.map((param) {
                         return Parameter((p) {

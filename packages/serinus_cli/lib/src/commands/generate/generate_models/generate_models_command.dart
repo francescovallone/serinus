@@ -64,24 +64,22 @@ class GenerateModelsCommand extends Command<int> {
     final modelProviderProgress = _logger?.progress(
       'Generating model provider...',
     );
-    final models = await generateModelProvider(
+    await generateModelProvider(
       Directory.current.path,
       config['name'] as String,
       config,
       output,
     );
-    modelProviderProgress?.complete('Model provider generated successfully!');
-    _logger?.info(
-      '✨Added ${models.map((e) => e.name).join(', ')} to the model provider',);
+    modelProviderProgress?.complete('✨ Model provider generated successfully!');
     return ExitCode.success.code;
   }
 
-  Future<void> generateModelProvider(
-    String path, 
-    String name, 
-    Map<String, dynamic> config, 
-    [String? output,]
-  ) async {
+  Future<List<Model>> generateModelProvider(
+    String path,
+    String name,
+    Map<String, dynamic> config, [
+    String? output,
+  ]) async {
     final modelProvider = File('${output ?? path}/lib/model_provider.dart');
     final modelsConfig =
         Map<String, dynamic>.from(config['models'] as Map<dynamic, dynamic>);
@@ -152,7 +150,8 @@ class GenerateModelsCommand extends Command<int> {
       ...List<String>.from(config['extensions'] as Iterable<dynamic>)
           .map((e) => '.$e'),
       ...List<String>.from(
-        (config['extensions'] ?? <dynamic>[]) as Iterable<dynamic>).map((e) => '.$e'),
+              (config['extensions'] ?? <dynamic>[]) as Iterable<dynamic>)
+          .map((e) => '.$e'),
     ];
     final entities = dir.listSync();
     final generatedEntities = <String>[];
@@ -213,8 +212,7 @@ class GenerateModelsCommand extends Command<int> {
       b.body.add(
         Class((c) {
           c
-            ..name =
-                '${name.pascalCase}ModelProvider'
+            ..name = '${name.pascalCase}ModelProvider'
             ..extend = refer('ModelProvider');
           c.methods.add(
             Method((m) {
