@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/router.dart';
 import 'package:spanner/spanner.dart';

@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:serinus/src/errors/initialization_error.dart';
 import 'package:test/test.dart';
 

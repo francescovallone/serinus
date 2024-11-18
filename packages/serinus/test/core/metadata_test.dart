@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'dart:convert';
 import 'dart:io';
 

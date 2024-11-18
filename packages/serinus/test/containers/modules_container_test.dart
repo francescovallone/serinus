@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';

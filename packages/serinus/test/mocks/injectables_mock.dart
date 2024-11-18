@@ -1,3 +1,4 @@
+// coverage:ignore-file
 import 'package:serinus/serinus.dart';
 
 class TestProvider extends Provider {
