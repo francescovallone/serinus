@@ -1,4 +1,3 @@
-// coverage:ignore-file
 import 'package:serinus/serinus.dart';
 
 import 'injectables_mock.dart';

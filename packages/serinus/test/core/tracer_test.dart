@@ -1,4 +1,3 @@
-// coverage:ignore-file
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
