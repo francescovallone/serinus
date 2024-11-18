@@ -1,8 +1,8 @@
 name: serinus
 description: Serinus is a framework written in Dart 
   for building efficient and scalable server-side applications.
-documentation: https://develop.serinus.app
-homepage: https://develop.serinus.app
+documentation: https://serinus.app
+homepage: https://serinus.app
 repository: https://github.com/francescovallone/serinus
 version: 1.0.0-rc.4
 funding:
