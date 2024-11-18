@@ -25,6 +25,13 @@ head:
 <Blog
 	:posts="[
     {
+      title: 'Serinus 1.0 - Primavera',
+      src: '/blog/serinus_1_0/serinus_1_0.webp',
+      alt: 'Serinus 1.0 - Primavera',
+      date: '18 Nov 2024',
+      href: '/blog/serinus_1_0',
+    },
+    {
       title: 'The goal of Serinus',
       src: '/blog/the_goal_of_serinus/the_goal_of_serinus.webp',
       alt: 'The goal of Serinus',
