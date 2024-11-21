@@ -34,14 +34,17 @@ void main() {
     await app?.close();
   });
 
-  test('when a CORS hook is set, then the application should return 200', () async {
-    final request = await HttpClient()
-        .getUrl(Uri.parse('http://localhost:7501/'));
+  test('when a CORS hook is set, then the application should return 200',
+      () async {
+    final request =
+        await HttpClient().getUrl(Uri.parse('http://localhost:7501/'));
     final response = await request.close();
     expect(response.statusCode, 200);
   });
 
-  test('when a CORS hook is set and a OPTIONS request is made, then the application should return 200', () async {
+  test(
+      'when a CORS hook is set and a OPTIONS request is made, then the application should return 200',
+      () async {
     final request = await HttpClient()
         .openUrl('OPTIONS', Uri.parse('http://localhost:7501/'));
     final response = await request.close();

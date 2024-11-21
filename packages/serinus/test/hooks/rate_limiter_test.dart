@@ -38,13 +38,13 @@ void main() {
       'when a rate limit is set, then after the number of requests set as "maxRequests" the application should return 429',
       () async {
     for (int i = 0; i < 5; ++i) {
-      final request = await HttpClient()
-          .getUrl(Uri.parse('http://localhost:7500/'));
+      final request =
+          await HttpClient().getUrl(Uri.parse('http://localhost:7500/'));
       final response = await request.close();
       expect(response.statusCode, 200);
     }
-    final request = await HttpClient()
-        .getUrl(Uri.parse('http://localhost:7500/'));
+    final request =
+        await HttpClient().getUrl(Uri.parse('http://localhost:7500/'));
     final response = await request.close();
     expect(response.statusCode, 429);
   });

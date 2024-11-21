@@ -51,7 +51,8 @@ class RateLimiterHook extends Hook with OnRequestResponse {
   }
 
   @override
-  Future<void> onResponse(Request request, dynamic data, ResponseProperties properties) async {
+  Future<void> onResponse(
+      Request request, dynamic data, ResponseProperties properties) async {
     if (properties.statusCode < 400 && rateLimiter != null) {
       properties.headers.addAll({
         'X-RateLimit-Limit': '$maxRequests',

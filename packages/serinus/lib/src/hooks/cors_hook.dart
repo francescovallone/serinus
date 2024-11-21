@@ -1,11 +1,11 @@
-
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../http/http.dart';
 import '../mixins/mixins.dart';
 
 /// The [CorsHook] class is a hook that adds CORS headers to the response.
-class CorsHook extends Hook with OnRequestResponse, OnAfterHandle, OnBeforeHandle {
+class CorsHook extends Hook
+    with OnRequestResponse, OnAfterHandle, OnBeforeHandle {
   /// The allowed origins.
   final List<String> allowedOrigins;
 
