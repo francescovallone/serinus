@@ -27,11 +27,11 @@ The client provide an immediate way to interact with your API from your frontend
 
 Right now the client supports the following languages and libraries:
 
-| Language | Library |
-| --- | --- |
-| Dart | `http` |
-| Dart | `dio` |
-| Dart | `chopper` |
+| Language | Library | Support |
+| --- | --- | ------ |
+| Dart | `dio` | ✅ |
+
+The team is also working on adding support for other languages and libraries.
 
 This commands can also be tweaked thanks to the configuration in the `pubspec.yaml` file.
 [Here](/techniques/configuration#client-configuration) you can see the available options.

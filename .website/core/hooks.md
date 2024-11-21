@@ -63,3 +63,27 @@ void main(List<String> arguments) async {
 In the example above, the `MyHook` hook is added to the application using the `use` method. This will execute the hook methods at the specified points in the request lifecycle.
 
 Hooks are executed in the order that they are added to the application. If you need to execute a hook before another hook, you can add it before the other hook.
+
+## Expose a Service
+
+Hooks can also expose services to the application. This can be done by overriding the `service` getter in the hook class.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyHook extends Hook {
+
+  @override
+  MyService get service => MyService();
+
+}
+
+class MyService {
+  void doSomething() {
+    print('Doing something');
+  }
+}
+  
+```
+
+In the example above, the `MyHook` class exposes a `MyService` object to the application. This service will behave as a global provider and will be accessible using the `use` method on the `RequestContext` object.
