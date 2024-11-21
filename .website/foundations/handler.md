@@ -109,7 +109,7 @@ class MyObject {
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(Route.get('/'), body: MyObject, (context, body) async {
+    on(Route.get('/'), body: MyObject, (RequestContext context, MyObject body) async {
       return 'Hello ${body.name}!';
     });
   }
@@ -135,7 +135,7 @@ class MyObject {
 
 class MyController extends Controller {
   MyController({super.path = '/'}) {
-    on(Route.get('/<name>'), body: MyObject, (context, body, String name) async {
+    on(Route.get('/<name>'), body: MyObject, (RequestContext context, MyObject body, String name) async {
       return 'Hello $name ${body.name}!';
     });
   }
