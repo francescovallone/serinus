@@ -146,4 +146,11 @@ void main() {
     expect(exception.statusCode, 412);
     expect(exception.message, 'Custom message!');
   });
+  test(
+      'should instantiate a RateLimitExceeded with default message and status code',
+      () {
+    RateLimitExceeded exception = RateLimitExceeded();
+    expect(exception.statusCode, 429);
+    expect(exception.message, 'Rate limit exceeded');
+  });
 }

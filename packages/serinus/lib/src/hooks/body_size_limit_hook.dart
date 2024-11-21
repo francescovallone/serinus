@@ -1,4 +1,8 @@
-import '../../serinus.dart';
+
+import '../core/core.dart';
+import '../exceptions/exceptions.dart';
+import '../http/http.dart';
+import '../mixins/mixins.dart';
 
 /// The [BodySizeLimitHook] class is used to define a body size limit hook.
 class BodySizeLimitHook extends Hook with OnRequestResponse {
