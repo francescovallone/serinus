@@ -352,8 +352,8 @@ class UnsupportedMediaTypeException extends SerinusException {
 }
 
 /// Exception thrown when rate limit is exceeded.
-class RateLimitExceeded extends SerinusException {
+class TooManyRequestsException extends SerinusException {
   /// Constructor.
-  const RateLimitExceeded(
-      {super.message = 'Rate limit exceeded', super.statusCode = 429});
+  const TooManyRequestsException(
+      {super.message = 'Too many requests!', super.statusCode = 429});
 }

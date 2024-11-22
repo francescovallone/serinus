@@ -38,7 +38,7 @@ class RateLimiterHook extends Hook with OnRequestResponse {
         rateLimiter!.reset(duration);
         return;
     }
-    throw RateLimitExceeded();
+    throw TooManyRequestsException();
   }
 
   /// Get the key from the request.

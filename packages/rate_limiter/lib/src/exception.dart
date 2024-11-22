@@ -1,8 +1,8 @@
 import 'package:serinus/serinus.dart';
 
 /// Exception thrown when rate limit is exceeded.
-class RateLimitExceeded extends SerinusException {
+class TooManyRequests extends SerinusException {
   /// Constructor.
-  const RateLimitExceeded(
-      {super.message = 'Rate limit exceeded', super.statusCode = 429});
+  const TooManyRequests(
+      {super.message = '', super.statusCode = 429});
 }
