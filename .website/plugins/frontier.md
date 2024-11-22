@@ -1,13 +1,4 @@
----
-head:
-    - - meta
-      - name: 'description'
-        content: Authentication and authorization in Serinus
 
-    - - meta
-      - property: 'og:description'
-        content: Authentication and authorization in Serinus
----
 
 # Frontier
 

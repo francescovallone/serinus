@@ -18,7 +18,7 @@ head:
 
     - - meta
       - property: 'og:image'
-        content:
+        content: https://serinus.app/blog/serinus_1_0/serinus_1_0.webp
 
     - - meta
       - property: 'twitter:image'
