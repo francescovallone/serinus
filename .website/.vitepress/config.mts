@@ -32,13 +32,13 @@ export default defineConfig({
         link: '/in_a_nutshell'
       },
       {
+        text: 'Blog',
+        link: '/blog/'
+      },
+      {
         text: 'Pub.dev',
         link: 'https://pub.dev/packages/serinus'
       },
-      {
-        text: 'Blog',
-        link: '/blog/'
-      }
     ],
     sidebar: [
       {
@@ -131,8 +131,6 @@ export default defineConfig({
             items: [
               { text: 'Configuration', link: 'configuration' },
               { text: 'Serve Static Files', link: 'serve_static' },
-              { text: 'CORS', link: 'cors' },
-              { text: 'Rate Limiter', link: 'rate_limiter' },
               { 
                 text: 'Swagger', 
                 collapsed: true,
@@ -146,6 +144,7 @@ export default defineConfig({
               },
               { text: 'Health Check [WIP]' },
               { text: 'Cron [WIP]' },
+              { text: 'Socket.IO [WIP]', link: 'socketio' },
             ],
             link: '/'
           },

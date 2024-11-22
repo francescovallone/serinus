@@ -46,7 +46,7 @@ void main() async {
           port: 3100,
           entrypoint: TestModule(controllers: [controller]),
           loggingLevel: LogLevel.none);
-      app?.useViewEngine(ViewEngineTest());
+      app?.viewEngine = ViewEngineTest();
       await app?.serve();
     });
     tearDownAll(() async {

@@ -110,19 +110,17 @@ class SerinusApplication extends Application {
   @override
   String get url => config.baseUrl;
 
-  /// The [useViewEngine] method is used to set the view engine of the application.
-  void useViewEngine(ViewEngine viewEngine) {
+  /// The [viewEngine] method is used to set the view engine of the application.
+  set viewEngine(ViewEngine viewEngine) {
     config.viewEngine = viewEngine;
   }
 
-  /// The [enableVersioning] method is used to enable versioning.
-  void enableVersioning(
-      {required VersioningType type, int version = 1, String? header}) {
-    config.versioningOptions =
-        VersioningOptions(type: type, version: version, header: header);
+  /// The [versioning] setter is used to enable versioning.
+  set versioning(VersioningOptions options) {
+    config.versioningOptions = options;
   }
 
-  /// The [setGlobalPrefix] method is used to set the global prefix of the application.
+  /// The [globalPrefix] setter is used to set the global prefix of the application.
   set globalPrefix(String prefix) {
     if (prefix == '/') {
       return;

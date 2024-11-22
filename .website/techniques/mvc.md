@@ -56,14 +56,14 @@ In the `MustacheViewEngine` class, you can pass the following parameters to the 
 
 ## Using a View Engine
 
-To use a View Engine first you need to call the `useViewEngine` method in your application.
+To use a View Engine first you need to call the `viewEngine` setter in your application.
 
 ```dart
 void main(List<String> arguments) async {
   SerinusApplication application = await serinus.createApplication(
     entrypoint: AppModule()
   );
-  application.useViewEngine(MustacheViewEngine());
+  application.viewEngine = MustacheViewEngine();
   await application.serve();
 }
 ```

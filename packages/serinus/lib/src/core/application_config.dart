@@ -41,7 +41,7 @@ final class ApplicationConfig {
   final String applicationId = UuidV4().generate();
 
   /// The versioning options for the application
-  /// This can be set using the [enableVersioning] method
+  /// This can be set using the [versioning] method
   /// The versioning options can be set only once
   /// If the versioning options are already set, a [StateError] will be thrown
   VersioningOptions? _versioningOptions;

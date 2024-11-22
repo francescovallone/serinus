@@ -9,6 +9,6 @@ Future<void> bootstrap() async {
     host: 'localhost',
     port: 3000
   );
-  app.useViewEngine(MustacheViewEngine(viewFolder: 'views'));
+  app.viewEngine = MustacheViewEngine(viewFolder: 'views');
   await app.serve();
 }
