@@ -151,6 +151,6 @@ void main() {
       () {
     TooManyRequestsException exception = TooManyRequestsException();
     expect(exception.statusCode, 429);
-    expect(exception.message, 'Rate limit exceeded');
+    expect(exception.message, 'Too many requests!');
   });
 }
