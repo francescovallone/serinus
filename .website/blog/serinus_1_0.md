@@ -141,7 +141,7 @@ Streamline your development process making easier to interact with your API is o
 
 Right now the client generation is available only for Dart and will use the library [Dio](https://pub.dev/packages/dio), but we are working to make it available for other languages and libraries too.
 
-You can find more information about Client Generation in the [documentation](/techniques/client_generation.html).
+You can find more information about Client Generation in the [documentation](/techniques/cli/generate.html#client).
 
 ## Typed Body
 
