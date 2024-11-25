@@ -167,10 +167,6 @@ final class ModulesContainer {
     _deferredProviders.clear();
     _providerDependencies.clear();
     injectProvidersInSubModule(entrypoint);
-    final registeredProviders = getAll<OnApplicationBootstrap>();
-    for (final provider in registeredProviders) {
-      await provider.onApplicationBootstrap();
-    }
   }
 
   /// Initializes the deferred providers

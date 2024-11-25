@@ -48,7 +48,7 @@ Serinus is an open-source framework for building efficient and scalable backend 
 
 A lot! And when I say a lot, I mean a lot. But let's go step by step.
 
-### ModelProvider
+## ModelProvider
 
 ModelProvider is a new feature that allows you to define your models that can be encoded and decoded from JSON.
 
@@ -133,7 +133,7 @@ class GenModelProvider extends ModelProvider {
   
 You can find more information about ModelProvider in the [documentation](/techniques/model_provider.html).
 
-### Client Generation
+## Client Generation
 
 Client Generation is another new feature that allows you to generate a client for your API.
 
@@ -143,7 +143,7 @@ Right now the client generation is available only for Dart and will use the libr
 
 You can find more information about Client Generation in the [documentation](/techniques/client_generation.html).
 
-### Typed Body
+## Typed Body
 
 One of the things we wanted to improve in Serinus was the usage of the body of the request. In the previous version of Serinus, the body could just be one of the followng types:
 
@@ -176,13 +176,114 @@ class AppController extends Controller {
 }
 ```
 
-### Static Routes
+If you want to know more about Typed Body, you can read the [documentation](/foundations/handler.html).
+
+## Static Routes
 
 Another new feature is the Static Routes. Static Routes are routes that just return a static value.
 
 This can be useful when you need to return a static value without doing any computation.
 
+A static route can be created using the `onStatic` method in the controller.
 
+```dart
+import 'package:serinus/serinus.dart';
+
+class AppController extends Controller {
+
+  AppController({this.path = '/app'}) {
+    onStatic(Route.get('/'), 'Hello World');
+  }
+
+}
+```
+
+If you want to know more about Static Routes, you can read the [documentation](/foundations/handler.html).
+
+## Parametrized Handlers
+
+Do you remember? Developer Experience is one of the main goals of Serinus, and we are always looking for ways to improve it.
+
+One of the new features that improve the Developer Experience is the Parametrized Handlers.
+
+What we mean by that? We mean that instead of getting the Path Parameters from the `RequestContext` you can get them directly in the handler.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class AppController extends Controller {
+
+  AppController({this.path = '/app'}) {
+    on(Route.get('/:id'), _getApp);
+  }
+
+  Future<String> _getApp(RequestContext context, String id) async {
+    return 'App $id';
+  }
+
+}
+```
+
+Don't worry, you can still get them from the `RequestContext` if you prefer.
+
+::: warning
+If you use a Parametrized Handler and a Typed Body, the Typed Body will be the first parameter after the RequestContext.
+:::
+
+If you want to know more about Parametrized Handlers, you can read the [documentation](/foundations/handler.html).
+
+## Hooks Mixins and Hooks Service
+
+One of the breaking changes in Serinus 1.0 are the Hooks Mixins.
+
+Hooks are always (since 0.4.0) been a part of Serinus, but in the 1.0 we decided to make them more flexible.
+
+Now you can decide which hooks methods you want to use instead of having all of them set as an empty method.
+
+This will also allow you to be more explicit in your code.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class HelloHook extends Hook with OnBeforeHandle, OnAfterHandle {
+  
+  @override
+  Future<void> onBeforeHandle(RequestContext context) async {
+    print('Hello');
+  }
+
+  @override
+  Future<void> onAfterHandle(RequestContext context, dynamic response) async {
+    print('Bye');
+  }
+  
+}
+```
+
+Also hooks can now expose a service that will behave like a global provider.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class HelloHook extends Hook with OnBeforeHandle, OnAfterHandle {
+  
+  @override
+  Future<void> onBeforeHandle(RequestContext context) async {
+    print('Hello');
+  }
+
+  @override
+  Future<void> onAfterHandle(RequestContext context, dynamic response) async {
+    print('Bye');
+  }
+
+  @override
+  String get service => 'hello';
+  
+}
+```
+
+You can call it in your handlers like you would do with a provider.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -194,10 +295,41 @@ class AppController extends Controller {
   }
 
   Future<String> _getApp(RequestContext context) async {
-    return 'App';
+    final hello = context.use<String>();
+    return 'App $hello';
   }
 
 }
 ```
+
+You can read more about Hooks in the [documentation](/core/hooks.html).
+
+## More lifecycle hooks
+
+In Serinus 1.0 we added more lifecycle hooks to the application.
+
+Now you can use two new lifecycle hooks `OnApplicationBootstrap` and `OnApplicationReady`.
+
+The first one will be called after the application is created and before the server is started, while the second one will be called after the server is started.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class HelloProvider extends Provider with OnApplicationBootstrap, OnApplicationReady {
+  
+  @override
+  Future<void> onApplicationBootstrap() async {
+    print('Application is bootstrapping');
+  }
+
+  @override
+  Future<void> onApplicationReady() async {
+    print('Application is ready');
+  }
+  
+}
+```
+
+You can read more about Lifecycle Hooks in the [documentation](/core/providers.html).
 
 </BlogPage>

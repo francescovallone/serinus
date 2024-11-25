@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { defineProps, onMounted, onUnmounted } from 'vue'
+import { defineProps, onMounted, onUnmounted, ref } from 'vue'
 
 const authors = {
     "Francesco Vallone": {
@@ -21,13 +21,18 @@ const props = defineProps<{
 
 const author = authors[props.author]
 const profile = `/blog/authors/${author.src}`
-const twitter = `https://twitter.com/${author.twitter}`
+const x = `https://x.com/${author.twitter}`
+const WPM = 238
+
+const readingTime = ref('0')
 
 const mutated = ['.aside', '.content', '.content-container', '.VPDocFooter']
 onMounted(() => {
     mutated.forEach((selector) => {
         document.querySelector(selector)?.classList.add('blog')
     })
+    readingTime.value = calculateReadingTime(document.querySelector('#blog-content')?.textContent || '')
+    
 })
 
 onUnmounted(() => {
@@ -35,6 +40,12 @@ onUnmounted(() => {
         document.querySelector(selector)?.classList.remove('blog')
     })
 })
+
+function calculateReadingTime(text: string): string {
+  const words = text.trim().split(/\s+/).length;
+  return (words / WPM).toFixed(1);
+}
+
 </script>
 
 <template>
@@ -42,23 +53,28 @@ onUnmounted(() => {
         <h1 class="!text-3xl !md:text-4xl font-medium">
             {{ props.title }}
         </h1>
-        <aside class="flex gap-3 items-center mt-4">
-            <img
-                class="w-9 h-9 rounded-full"
-                :src="profile"
-                :alt="props.author"
-            />
-            <div class="flex flex-col justify-start">
-                <h3 class="!text-sm !m-0 opacity-75">{{ props.author }}</h3>
-                <p
-                    class="flex flex-row items-center gap-2 !text-xs !m-0 opacity-75"
-                >
-                    <span>{{ props.date }}</span>
-                    <span>ー</span>
-                    <a :href="twitter" target="_blank">@{{ author.twitter }}</a>
-                </p>
+        <div class="flex gap-3 mt-4 justify-between">
+            <div class="flex gap-3">
+                <img
+                    class="w-9 h-9 rounded-full"
+                    :src="profile"
+                    :alt="props.author"
+                />
+                <div class="flex flex-col justify-start">
+                    <h3 class="!text-sm !m-0 opacity-75">{{ props.author }}</h3>
+                    <p
+                        class="flex flex-row items-center gap-2 !text-xs !m-0 opacity-75"
+                    >
+                        <span>{{ props.date }}</span>
+                        <span>ー</span>
+                        <a :href="x" target="_blank">@{{ author.twitter }}</a>
+                    </p>
+                </div>
             </div>
-        </aside>
+            <p class="!text-xs !m-0 opacity-75 flex items-center gap-1">
+                <span class="font-bold">{{ readingTime }}</span> min read
+            </p>
+        </div>
         <img :src="props.src" :alt="props.alt" class="w-full mt-6 mb-2" :class="props.shadow ? 'shadow-xl' : 'border'" />
         <main id="blog-content">
             <slot />
