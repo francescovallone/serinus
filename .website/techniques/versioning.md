@@ -1,4 +1,4 @@
-# Versioning <Badge type="tip" text="^0.2.1" />
+# Versioning
 
 The technique of versioning allows to have different versions for controllers or routes within the same application.
 
@@ -22,7 +22,7 @@ void main() {
     SerinusApplication application = await serinus.createApplication(
         entrypoint: AppModule()
     );
-    application.enableVersioning(
+    application.versioning = VersioningOptions(
         type: VersioningType.uri,
         version: 1
     );
@@ -30,7 +30,7 @@ void main() {
 }
 ```
 
-As can be seen, the `enableVersioning` method also receives a `version` parameter, which is the version that will be used in the application.
+As can be seen, the `versioning` setter receives a `VersioningOptions` object, which contains the `type` and `version` parameters.
 
 ::: warning
 The `version` parameter is required when using the URI versioning.
@@ -49,7 +49,7 @@ void main() {
     SerinusApplication application = await serinus.createApplication(
         entrypoint: AppModule()
     );
-    application.enableVersioning(
+    application.versioning = VersioningOptions(
         type: VersioningType.header,
         version: 1,
         header: 'X-API-Version'
@@ -58,10 +58,10 @@ void main() {
 }
 ```
 
-As can be seen, the `enableVersioning` method also receives a `header` parameter, which is the name of the custom header that will be used in the application.
+As can be seen, the `versioning` setter also receives a `header` parameter, which is the name of the custom header that will be used in the application.
 
 ::: warning
-The `header`parameter and the `version` parameter are required when using the header versioning.
+The `header` parameter and the `version` parameter are required when using the header versioning.
 :::
 
 ## Controller-Specific Versioning

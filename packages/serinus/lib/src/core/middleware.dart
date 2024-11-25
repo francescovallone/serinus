@@ -4,10 +4,9 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../contexts/request_context.dart';
-import '../http/http.dart';
 
 /// The [NextFunction] type is used to define the next function of the middleware.
-typedef NextFunction = Future<void> Function();
+typedef NextFunction = Future<void> Function([Object? data]);
 
 /// The [Middleware] class is used to define a middleware.
 abstract class Middleware {
@@ -18,8 +17,7 @@ abstract class Middleware {
   const Middleware({this.routes = const ['*']});
 
   /// The [use] method is used to execute the middleware.
-  Future<void> use(RequestContext context, InternalResponse response,
-      NextFunction next) async {
+  Future<void> use(RequestContext context, NextFunction next) async {
     return next();
   }
 
@@ -49,8 +47,7 @@ class _ShelfMiddleware extends Middleware {
   ///
   /// Let's thank [codekeyz](https://github.com/codekeyz) for his work.
   @override
-  Future<void> use(RequestContext context, InternalResponse response,
-      NextFunction next) async {
+  Future<void> use(RequestContext context, NextFunction next) async {
     final shelf.Request request = _createShelfRequest(context);
     late shelf.Response shelfResponse;
     if (_handler is shelf.Middleware) {
@@ -61,22 +58,22 @@ class _ShelfMiddleware extends Middleware {
     } else {
       throw Exception('Handler must be a shelf.Middleware or a shelf.Handler');
     }
-    await _responseFromShelf(context.request, response, shelfResponse);
-    return next();
+    final response = await _responseFromShelf(context, shelfResponse);
+    return next(response);
   }
 
-  Future<void> _responseFromShelf(
-      Request req, InternalResponse res, shelf.Response response) async {
+  Future<dynamic> _responseFromShelf(
+      RequestContext context, shelf.Response response) async {
     Map<String, String> headers = {
       for (var key in response.headers.keys)
         key: response.headers[key].toString()
     };
     response.headers.forEach((key, value) => headers[key] = value);
-    res.status(response.statusCode);
-    res.headers(headers);
+    context.res.statusCode = response.statusCode;
+    context.res.headers.addAll(headers);
     final responseBody = await response.readAsString();
     if (responseBody.isNotEmpty && !ignoreResponse) {
-      res.send(utf8.encode(responseBody));
+      return utf8.encode(responseBody);
     }
   }
 

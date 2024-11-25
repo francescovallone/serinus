@@ -19,6 +19,7 @@ Serinus provides a set of built-in exceptions that you can use to handle common 
 | `PayloadTooLargeException` | Thrown when the request payload is too large. | 413 |
 | `UnsupportedMediaTypeException` | Thrown when the media type is not supported. | 415 |
 | `UnprocessableEntityException` | Thrown when the request is valid, but the server cannot process it. | 422 |
+| `TooManyRequestsException` | Thrown when the client has sent too many requests in a given amount of time. | 429 |
 | `InternalServerErrorException` | Thrown when an internal server error occurs. | 500 |
 | `NotImplementedException` | Thrown when the requested feature is not implemented. | 501 |
 | `BadGatewayException` | Thrown when the gateway is bad. | 502 |

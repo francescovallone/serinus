@@ -6,8 +6,10 @@ import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../containers/module_container.dart';
+import '../containers/router.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
+import '../handlers/handler.dart';
 import '../handlers/websocket_handler.dart';
 import '../http/internal_request.dart';
 import '../services/logger_service.dart';
@@ -118,4 +120,10 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
 
   @override
   bool get shouldBeInitilized => false;
+
+  @override
+  Handler getHandler(
+      ModulesContainer container, ApplicationConfig config, Router router) {
+    return WebSocketHandler(router, container, config);
+  }
 }

@@ -7,11 +7,9 @@ import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
-import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
-import '../handlers/request_handler.dart';
-import '../handlers/websocket_handler.dart';
+import '../handlers/handler.dart';
 import '../http/http.dart';
 import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
@@ -20,7 +18,7 @@ import '../versioning.dart';
 import 'core.dart';
 
 /// The [Application] class is used to create an application.
-sealed class Application {
+abstract class Application {
   /// The [level] property contains the log level of the application.
   final LogLevel level;
 
@@ -40,6 +38,7 @@ sealed class Application {
   /// The [config] property contains the application configuration.
   final ApplicationConfig config;
 
+  /// The [Application] constructor is used to create a new instance of the [Application] class.
   Application({
     required this.entrypoint,
     required this.config,
@@ -50,6 +49,11 @@ sealed class Application {
   })  : router = router ?? Router(),
         loggerService = loggerService ?? LoggerService(level: level),
         modulesContainer = modulesContainer ?? ModulesContainer(config);
+
+  /// The [setLoggerPrefix] method is used to set the logger prefix of the application.
+  set loggerPrefix(String prefix) {
+    loggerService?.prefix = prefix;
+  }
 
   /// The [url] property contains the URL of the application.
   String get url;
@@ -99,34 +103,47 @@ class SerinusApplication extends Application {
     required super.config,
     super.level,
     super.loggerService,
+    super.router,
+    super.modulesContainer,
   });
 
   @override
   String get url => config.baseUrl;
 
-  /// The [useViewEngine] method is used to set the view engine of the application.
-  void useViewEngine(ViewEngine viewEngine) {
+  /// The [viewEngine] method is used to set the view engine of the application.
+  set viewEngine(ViewEngine viewEngine) {
     config.viewEngine = viewEngine;
   }
 
-  /// The [enableVersioning] method is used to enable versioning.
-  void enableVersioning(
-      {required VersioningType type, int version = 1, String? header}) {
-    config.versioningOptions =
-        VersioningOptions(type: type, version: version, header: header);
+  /// The [versioning] setter is used to enable versioning.
+  set versioning(VersioningOptions options) {
+    config.versioningOptions = options;
   }
 
-  /// The [setGlobalPrefix] method is used to set the global prefix of the application.
-  void setGlobalPrefix(GlobalPrefix prefix) {
-    config.globalPrefix = prefix;
+  /// The [globalPrefix] setter is used to set the global prefix of the application.
+  set globalPrefix(String prefix) {
+    if (prefix == '/') {
+      return;
+    }
+    if (!prefix.startsWith('/')) {
+      prefix = '/$prefix';
+    }
+    if (prefix.endsWith('/')) {
+      prefix = prefix.substring(0, prefix.length - 1);
+    }
+    config.globalPrefix = GlobalPrefix(prefix: prefix);
   }
 
   @override
   Future<void> serve() async {
     await initialize();
     _logger.info('Starting server on $url');
-    final requestHandler = RequestHandler(router, modulesContainer, config);
-    final wsHandler = WebSocketHandler(router, modulesContainer, config);
+    final requestHandler = adapter.getHandler(modulesContainer, config, router);
+    final handlers = <Type, Handler>{};
+    for (final adapter in config.adapters.values) {
+      final handler = adapter.getHandler(modulesContainer, config, router);
+      handlers[adapter.runtimeType] = handler;
+    }
     Future<void> Function(InternalRequest, InternalResponse) handler;
     try {
       for (final adapter in config.adapters.values) {
@@ -137,14 +154,20 @@ class SerinusApplication extends Application {
       adapter.listen(
         (request, response) {
           handler = requestHandler.handle;
-          if (config.adapters[WsAdapter] != null &&
-              config.adapters[WsAdapter]?.canHandle(request) == true) {
-            handler = wsHandler.handle;
+          for (final adapter in config.adapters.values) {
+            if (adapter.canHandle(request)) {
+              handler = handlers[adapter.runtimeType]!.handle;
+              break;
+            }
           }
           return handler(request, response);
         },
         errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
       );
+      final providers = modulesContainer.getAll<OnApplicationReady>();
+      for (final provider in providers) {
+        await provider.onApplicationReady();
+      }
     } on SocketException catch (e) {
       _logger.severe('Failed to start server on ${e.address}:${e.port}');
       await close();
@@ -162,10 +185,6 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> initialize() async {
-    if (entrypoint is DeferredModule) {
-      throw InitializationError(
-          'The entry point of the application cannot be a DeferredModule');
-    }
     if (!modulesContainer.isInitialized) {
       await modulesContainer.registerModules(
           entrypoint, entrypoint.runtimeType);
@@ -173,6 +192,11 @@ class SerinusApplication extends Application {
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
+    final registeredProviders =
+        modulesContainer.getAll<OnApplicationBootstrap>();
+    for (final provider in registeredProviders) {
+      await provider.onApplicationBootstrap();
+    }
   }
 
   @override

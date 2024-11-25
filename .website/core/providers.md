@@ -104,12 +104,15 @@ class MyProvider extends Provider {
 
 ## Deferred Providers
 
-By default, all providers are created when the module is created. If you want to create the provider after all the modules are registered, you can extend the `DeferredProvider` class.
+By default, all providers are registered when the module is registeredd. However, you can defer the registration of a provider until it can be resolved. This is useful when you need to perform asynchronous operations to create the provider or you want to inject another provider into the provider.
 
-This class has a `init` property that accepts a function that returns the provider.
+These use cases can be achieved by using the `DeferredProvider` class.
 
-Also the `init` function has access to the application context and contains all the providers initialized.
-When a DeferredProvider is initialized, its provider is added to the application context so that it can be used as dependency by other providers. This grant a incremental initialization of the providers.
+The `DeferredProvider` class has the following properties:
+
+- `inject`: A list of providers that you want to inject into the provider (Only the types of the provider).
+- `init`: A function that returns the provider, it receives the list of providers that you want to inject.
+- `type`: The type of the provider that you want to create.
 
 ::: tip
 You can also use a shorthand to create a DeferredProvider by using the `Provider.deferred` factory constructor.
@@ -137,10 +140,10 @@ class MyModule extends Module {
       TestProvider(),
       DeferredProvider(
         inject: [TestProvider],
-        init: (context) async {
-          final prov = context.use<TestProvider>();
-          return MyProvider(prov);
-        }
+        init: (TestProvider provider) async {
+          return MyProvider(provider);
+        },
+        type: MyProvider,
       ),
     ],
   );
@@ -148,3 +151,46 @@ class MyModule extends Module {
 ```
 
 :::
+
+## Lifecycle Hooks
+
+Providers can implement 4 lifecycle hooks:
+
+| Hook                | Description                                                                 |
+|---------------------|-----------------------------------------------------------------------------|
+| `onApplicationInit` | Called when the application is initializing itself and the provider is registered   |
+| `onApplicationBootstrap`      | Called when the application is initialized and all the provider (even the deferred) are registered |
+| `onApplicationReady`      | Called when the application is ready to serve requests |
+| `onApplicationShutdown`      | Called when the application is shutting down |
+
+Each hook is a method that returns a `Future<void>`.
+
+To implement a hook, you just need to use the mixin `OnApplicationInit`, `OnApplicationBootstrap`, `OnApplicationReady`, or `OnApplicationShutdown` and override the method.
+
+```dart [Lifecycle Hooks]
+import 'package:serinus/serinus.dart';
+
+class MyProvider extends Provider with OnApplicationInit, OnApplicationBootstrap, OnApplicationReady, OnApplicationShutdown {
+  MyProvider();
+
+  @override
+  Future<void> onApplicationInit() async {
+    // Do something
+  }
+
+  @override
+  Future<void> onApplicationBootstrap() async {
+    // Do something
+  }
+
+  @override
+  Future<void> onApplicationReady() async {
+    // Do something
+  }
+
+  @override
+  Future<void> onApplicationShutdown() async {
+    // Do something
+  }
+}
+```

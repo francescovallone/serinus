@@ -1,5 +1,3 @@
-import '../contexts/contexts.dart';
-
 /// The [Provider] class is used to define a provider.
 abstract class Provider {
   /// The [isGlobal] property is used to define if the provider is global.
@@ -13,11 +11,9 @@ abstract class Provider {
   ///
   /// The [init] function is called when the provider is initialized.
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
-  factory Provider.deferred(
-    Future<Provider> Function(ApplicationContext context) init, {
-    required List<Type> inject,
-  }) =>
-      DeferredProvider(init, inject: inject);
+  factory Provider.deferred(Function init,
+          {required List<Type> inject, required Type type}) =>
+      DeferredProvider(init, inject: inject, type: type);
 }
 
 /// The [DeferredProvider] class is used to define a provider that is initialized asynchronously.
@@ -25,14 +21,14 @@ abstract class Provider {
 /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
 class DeferredProvider extends Provider {
   /// The [init] function is called when the provider is initialized.
-  final Future<Provider> Function(ApplicationContext context) init;
+  final Function init;
+
+  /// The [type] property contains the type of the provider that will be initialized.
+  final Type type;
 
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
   final List<Type> inject;
 
   /// The [DeferredProvider] constructor is used to create a new instance of the [DeferredProvider] class.
-  const DeferredProvider(
-    this.init, {
-    required this.inject,
-  });
+  DeferredProvider(this.init, {required this.inject, required this.type});
 }

@@ -6,11 +6,6 @@ import 'package:serinus_cli/src/commands/generate/builder.dart';
 import 'package:serinus_cli/src/commands/generate/recase.dart';
 
 class Generator {
-  final Directory outputDirectory;
-  final File? entrypointFile;
-  final ReCase itemName;
-  final SerinusAnalyzer analyzer;
-
   Generator({
     required this.outputDirectory,
     required this.entrypointFile,
@@ -18,13 +13,21 @@ class Generator {
     required this.analyzer,
   });
 
+  final Directory outputDirectory;
+  final File? entrypointFile;
+  final ReCase itemName;
+  final SerinusAnalyzer analyzer;
+
   final DartEmitter emitter = DartEmitter(
     allocator: Allocator(),
     orderDirectives: true,
   );
 
   Future<void> replaceGetters(
-      String filePath, String fileName, GeneratedElement element) async {
+    String filePath,
+    String fileName,
+    GeneratedElement element,
+  ) async {
     if (entrypointFile != null) {
       final updates = await analyzer.analyze(
         outputDirectory.absolute.path,
@@ -55,8 +58,10 @@ class Generator {
         final outputUri = File('${outputDirectory.absolute.path}/$filePath')
             .uri
             .toFilePath(windows: Platform.isWindows);
-        final sameFolder = (outputUri.split('/')..removeLast()).join('/') ==
-            (entrypointUri.split('/')..removeLast()).join('/');
+        final sameFolder =
+            (outputUri.split(Platform.pathSeparator)..removeLast()).join('/') ==
+                (entrypointUri.split(Platform.pathSeparator)..removeLast())
+                    .join('/');
         if (!replaced.contains(sameFolder ? fileName : filePath)) {
           final lastImport = replaced.lastIndexOf('import ');
           final lastImportSemiColon = replaced.indexOf(';', lastImport);

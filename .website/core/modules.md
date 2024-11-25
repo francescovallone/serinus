@@ -30,54 +30,6 @@ class AppModule extends Module {
 | `middlewares` | A list of `Middleware`s you want to include in the module. |
 | `exports` | A list of `Provider`s you want to export to other modules. |
 
-## Creating a DeferredModule
-
-Modules are loaded instantly when the application starts, but if you need to create a module dependent on providers within the application, you can wrap a `Module` with the `DeferredModule` class.
-
-The `DeferredModule` class takes two parameters:
-
-| Parameter | Description |
-| --- | --- |
-| `inject` | A list of providers that the module needs to load. |
-| `init` | A function that returns a `Module` object. |
-
-It also has access to all the properties of the `Module` class, so you can pass the same parameters to the `super` constructor.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-class ModuleWithDependencies extends Module {
-  final TestProvider testProvider;
-  ModuleWithDependencies(this.testProvider) : super(
-    imports: [],
-    controllers: [],
-    providers: [],
-    middlewares: []
-  );
-}
-
-class AppModule extends Module {
-  AppModule(): super(
-    imports: [
-      DeferredModule(
-        inject: [TestProvider],
-        (context) async {
-          final prov = context.use<TestProvider>();
-          return ModuleWithDependencies(prov);
-        }
-      )
-    ],
-    controllers: [],
-    providers: [TestProvider(isGlobal: true)],
-    middlewares: []
-  );
-}
-```
-
-::: warning
-The entry point of the application must be a module that extends `Module` and cannot be wrapped by the `DeferredModule` class.
-:::
-
 ## Register components asynchronously
 
 Modules can also use the `registerAsync` method to register controllers, providers, and other modules asynchronously. This is useful when you need to perform asynchronous operations to register the components of the module.

@@ -5,7 +5,7 @@ import '../http/http.dart';
 import 'base_context.dart';
 
 /// The [RequestContext] class is used to create the request context.
-final class RequestContext extends BaseContext {
+class RequestContext extends BaseContext {
   /// The [request] property contains the request of the context.
   final Request request;
 
@@ -33,7 +33,8 @@ final class RequestContext extends BaseContext {
   Map<String, dynamic> get query => request.query;
 
   /// The constructor of the [RequestContext] class.
-  RequestContext(super.providers, this.request, this._streamable);
+  RequestContext(
+      super.providers, super.services, this.request, this._streamable);
 
   /// The [streamable] property contains the streamable response of the request.
   final StreamableResponse _streamable;
@@ -71,7 +72,7 @@ final class RequestContext extends BaseContext {
 
   /// The [stream] method is used to stream data to the response.
   StreamableResponse stream() {
-    return _streamable..init();
+    return _streamable;
   }
 }
 
@@ -93,7 +94,19 @@ final class Redirect {
 /// It contains the status code, headers, and redirect properties.
 final class ResponseProperties {
   /// The [statusCode] property contains the status code of the response.
-  int statusCode = HttpStatus.ok;
+  int _statusCode = HttpStatus.ok;
+
+  /// The [statusCode] getter is used to get the status code of the response.
+  int get statusCode => _statusCode;
+
+  /// The [statusCode] setter is used to set the status code of the response.
+  set statusCode(int value) {
+    if (value < 100 || value > 999) {
+      throw ArgumentError(
+          'The status code must be between 100 and 999. $value is not a valid status code.');
+    }
+    _statusCode = value;
+  }
 
   /// The [contentType] property contains the content type of the response.
   ContentType? contentType;
@@ -106,6 +119,9 @@ final class ResponseProperties {
 
   /// The [redirect] property contains the redirect of the response.
   Redirect? redirect;
+
+  /// The [cookies] property contains the cookies of the response.
+  List<Cookie> cookies = [];
 
   /// The [ResponseProperties] constructor.
   ResponseProperties();

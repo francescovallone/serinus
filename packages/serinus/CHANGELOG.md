@@ -1,8 +1,25 @@
 # Changelog
 
+## 1.0.0-rc.4
+
+- feat(#104): add form data support to the models system.
+
+## 1.0.0-rc.3
+
+- feat: add a sealed class families to define a JsonBody object.
+- feat: decouple the adapters allowing for more flexibility in the implementation of the adapters.
+
+## 1.0.0-rc.2
+
+- fix: change dependency constraints to ensure compatibility with the latest version of the packages
+
+## 1.0.0-rc.1
+
+- feat: first release candidate of Serinus 1.0.0
+
 ## 0.6.2
 
-- chore: update spanner to 1.0.3 
+- chore: update spanner to 1.0.3
 
 ## 0.6.1
 

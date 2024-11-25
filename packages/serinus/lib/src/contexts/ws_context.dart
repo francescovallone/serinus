@@ -25,7 +25,7 @@ final class WebSocketContext extends BaseContext {
 
   /// The constructor of the [WebSocketContext] class.
   const WebSocketContext(this._wsAdapter, this.id, super.providers,
-      this.request, this._serializer);
+      super.services, this.request, this._serializer);
 
   /// This method is used to send data to the client.
   ///
@@ -33,19 +33,13 @@ final class WebSocketContext extends BaseContext {
   ///
   /// The [broadcast] parameter is used to broadcast the data to all clients.
   void send(dynamic data) {
-    if (_serializer != null) {
-      data = _serializer!.serialize(data);
-    }
-    _wsAdapter.send(data, key: id);
+    _wsAdapter.send(_serializer?.serialize(data) ?? data, key: id);
   }
 
   /// This method is used to broadcast data to all clients.
   ///
   /// The [data] parameter is the data to be sent.
   void broadcast(dynamic data) {
-    if (_serializer != null) {
-      data = _serializer!.serialize(data);
-    }
-    _wsAdapter.send(data);
+    _wsAdapter.send(_serializer?.serialize(data) ?? data);
   }
 }

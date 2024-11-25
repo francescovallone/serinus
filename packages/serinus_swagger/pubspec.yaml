@@ -1,6 +1,6 @@
 name: serinus_swagger
 description: A Serinus plugin to generate OpenAPI documentation from your Serinus app.
-version: 1.0.2
+version: 1.0.3
 repository: https://github.com/francescovallone/serinus
 homepage: https://docs.serinus.app
 documentation: https://docs.serinus.app/plugins/swagger
@@ -15,7 +15,7 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  serinus: ^0.6.0
+  serinus: ^1.0.0
   yaml_writer: ^2.0.0
 
 dev_dependencies:

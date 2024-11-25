@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../enums/enums.dart';
 import '../extensions/content_type_extensions.dart';
 import '../extensions/string_extensions.dart';
 import 'http.dart';
@@ -73,6 +74,9 @@ class Request {
   /// The content type of the request.
   ContentType get contentType => _original.contentType;
 
+  /// The cookies of the request.
+  List<Cookie> get cookies => _original.cookies;
+
   /// The params of the request.
   final Map<String, dynamic> _params = {};
 
@@ -84,6 +88,12 @@ class Request {
   /// The operator []= is used to set data to the request.
   void operator []=(String key, dynamic value) {
     _data[key] = value;
+  }
+
+  /// This method is used to listen to a request event.
+  void on(RequestEvent event,
+      Future<void> Function(RequestEvent, EventData) listener) {
+    _original.on(event, listener);
   }
 
   /// The body of the request.
@@ -126,17 +136,16 @@ class Request {
     }
 
     /// If the content type is json, it will parse the body as a json object.
-    final parsedJson = parsedBody.tryParse();
+    final parsedJson = _original.bytes().tryParse();
     if ((parsedJson != null && contentType == ContentType.json) ||
         parsedJson != null) {
-      final json = parsedJson;
-      body = Body(contentType, json: json);
+      body = Body(contentType, json: JsonBody.fromJson(parsedJson));
       return;
     }
 
     /// If the content type is binary, it will parse the body as a binary data.
     if (contentType == ContentType.binary) {
-      body = Body(contentType, bytes: parsedBody.codeUnits);
+      body = Body(contentType, bytes: _original.bytes());
       return;
     }
 

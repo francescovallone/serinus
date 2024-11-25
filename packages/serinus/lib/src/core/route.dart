@@ -1,9 +1,8 @@
-import '../contexts/request_context.dart';
 import '../enums/http_method.dart';
-import 'metadata.dart';
+import 'core.dart';
 
 /// The [Route] class is used to define the routes of the application.
-class Route {
+class Route implements Hookable {
   /// The path of the route.
   final String path;
 
@@ -26,21 +25,6 @@ class Route {
 
   /// The [metadata] getter is used to get the List of [Metadata] of the route.
   final List<Metadata> metadata;
-
-  /// The [transform] method is used to transform the request context.
-  ///
-  /// It can be overridden if needed.
-  Future<void> transform(RequestContext context) async {}
-
-  /// The [beforeHandle] method is used to execute code before the route is handled.
-  ///
-  /// It can be overridden if needed.
-  Future<void> beforeHandle(RequestContext context) async {}
-
-  /// The [afterHandle] method is used to execute code after the route is handled.
-  ///
-  /// It can be overridden if needed.
-  Future<void> afterHandle(RequestContext context, dynamic response) async {}
 
   /// The [Route.get] factory constructor is used to create a new instance of the [Route] class with the GET method.
   factory Route.get(String path, {List<Metadata> metadata = const []}) {

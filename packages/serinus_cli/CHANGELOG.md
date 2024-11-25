@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-rc.1
+
+- Update the CLI to use the new version of the Serinus framework.
+- Add generate models command to the CLI.
+- Update generate command to be easier to use.
+- Add generate client command to the CLI.
+- Add deprecation warning for the old configuration file.
+
 ## 0.4.0
 
 - Add generate command to the CLI.

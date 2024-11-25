@@ -146,4 +146,11 @@ void main() {
     expect(exception.statusCode, 412);
     expect(exception.message, 'Custom message!');
   });
+  test(
+      'should instantiate a TooManyRequests with default message and status code',
+      () {
+    TooManyRequestsException exception = TooManyRequestsException();
+    expect(exception.statusCode, 429);
+    expect(exception.message, 'Too many requests!');
+  });
 }

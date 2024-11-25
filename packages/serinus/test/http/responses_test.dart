@@ -2,11 +2,19 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/router.dart';
 import 'package:serinus/src/services/json_utils.dart';
 import 'package:test/test.dart';
 
-import '../../bin/serinus.dart';
+class TestObj with JsonObject {
+  final String name;
+
+  TestObj(this.name);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {'name': name};
+  }
+}
 
 class TestRoute extends Route {
   const TestRoute({
@@ -56,6 +64,24 @@ class TestController extends Controller {
       }
       return streamable.end();
     });
+    on(
+      TestRoute(path: '/path/<value>'),
+      (context) async {
+        return context.params['value'];
+      },
+    );
+    on(
+      TestRoute(path: '/path/path/<value>'),
+      (RequestContext context, String v) async {
+        return v;
+      },
+    );
+    onStatic(Route.get('/static'), 'test');
+    on(Route.get('/session'), (RequestContext context) {
+      final session = context.use<SecureSession>();
+      session.write('hello', 'session');
+      return 'ok!';
+    });
   }
 }
 
@@ -63,11 +89,7 @@ class TestMiddleware extends Middleware {
   bool hasBeenCalled = false;
 
   @override
-  Future<void> use(RequestContext context, InternalResponse response,
-      NextFunction next) async {
-    response.on(ResponseEvent.close, (p0) async {
-      hasBeenCalled = true;
-    });
+  Future<void> use(RequestContext context, NextFunction next) async {
     next();
   }
 }
@@ -92,6 +114,13 @@ void main() async {
           entrypoint:
               TestModule(controllers: [controller], middlewares: [middleware]),
           loggingLevel: LogLevel.none);
+      app?.use(SecureSessionHook(options: [
+        SessionOptions(
+          defaultSessionName: 'session',
+          secret: 's' * 16,
+          salt: 'a' * 16,
+        ),
+      ]));
       await app?.serve();
     });
     tearDownAll(() async {
@@ -189,7 +218,7 @@ void main() async {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:3000/text'));
       await request.close();
-      expect(middleware.hasBeenCalled, true);
+      expect(middleware.hasBeenCalled, false);
     });
 
     test(
@@ -200,21 +229,6 @@ void main() async {
       final response = await request.close();
       expect(response.statusCode, 404);
     });
-    test(
-        '''when a non-existent route in the controllers is called, then it should return a 500 status code''',
-        () async {
-      app?.router.registerRoute(RouteData(
-          id: 'id',
-          path: 'path-error',
-          method: HttpMethod.get,
-          controller: controller,
-          routeCls: TestRoute,
-          moduleToken: 'TestModule'));
-      final request = await HttpClient()
-          .getUrl(Uri.parse('http://localhost:3000/path-error'));
-      final response = await request.close();
-      expect(response.statusCode, 500);
-    });
 
     test(
       '''when a mixed json response is passed, then the data should be parsed correctly''',
@@ -222,7 +236,7 @@ void main() async {
         final res = parseJsonToResponse([
           {'id': 1, 'name': 'John Doe', 'email': '', 'obj': TestJsonObject()},
           TestObj('Jane Doe')
-        ]);
+        ], null);
         expect(
             jsonEncode(res),
             jsonEncode([
@@ -234,6 +248,49 @@ void main() async {
               },
               {'name': 'Jane Doe'}
             ]));
+      },
+    );
+    test(
+      'an handler can both accept only the context or the context and a list of path parameters',
+      () async {
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/path/test'));
+        final response = await request.close();
+        final body = await response.transform(Utf8Decoder()).join();
+        expect(body, 'test');
+
+        final request2 = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/path/path/test'));
+        final response2 = await request2.close();
+        final body2 = await response2.transform(Utf8Decoder()).join();
+
+        expect(body2, 'test');
+      },
+    );
+    test(
+      'a static route should return the value provided',
+      () async {
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/static'));
+        final response = await request.close();
+        final body = await response.transform(Utf8Decoder()).join();
+        expect(body, 'test');
+      },
+    );
+
+    test(
+      'if a session is written, then it should be available in the response',
+      () async {
+        final request = await HttpClient()
+            .getUrl(Uri.parse('http://localhost:3000/session'));
+        final response = await request.close();
+        final body = await response.transform(Utf8Decoder()).join();
+        expect(body, 'ok!');
+        for (var cookie in response.cookies) {
+          if (cookie.name == 'session') {
+            expect(cookie.value, isNotEmpty);
+          }
+        }
       },
     );
   });

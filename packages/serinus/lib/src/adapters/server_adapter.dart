@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import '../containers/module_container.dart';
+import '../containers/router.dart';
 import '../core/core.dart';
+import '../handlers/handler.dart';
 import '../http/internal_request.dart';
 import '../http/internal_response.dart';
 
@@ -41,4 +43,8 @@ abstract class Adapter<TServer> {
     InternalRequest request,
     ErrorHandler? errorHandler,
   });
+
+  /// The [getHandler] method is used to get the handler for the adapter.
+  Handler getHandler(
+      ModulesContainer container, ApplicationConfig config, Router router);
 }

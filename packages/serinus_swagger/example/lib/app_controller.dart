@@ -7,7 +7,7 @@ class AppController extends Controller {
     on(HelloWorldRoute(), _handleHelloWorld);
   }
 
-  Future<Response> _handleHelloWorld(RequestContext context) async {
-    return Response.text('Hello world');
+  Future<String> _handleHelloWorld(RequestContext context) async {
+    return 'Hello, World!';
   }
 }

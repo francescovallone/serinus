@@ -4,47 +4,45 @@ Hooks are a way to execute custom code at specific points in the Serinus request
 
 ## Creating a Hook
 
-To create a hook, you need to create a class that extends the `Hook` class. Each hook has multiple methods that you can override to add custom logic.
+To create a hook, you first need to create a class that extends the `Hook` class then you need to augment the class using the provided mixins.
 
-These are the methods that you can override:
-
-| Method | Description |
+| Mixin | Description |
 | --- | --- |
-| `onRequest` | This method is called before the router is called. |
-| `beforeHandle` | This method is called before the route handler is called. |
-| `afterHandle` | This method is called after the route handler is called. |
-| `onResponse` | This method is called after the response is generated. |
+| `OnRequestResponse` | Exposes the methods `onRequest` and `onResponse` |
+| `OnBeforeHandle` | Exposes the method `beforeHandle` |
+| `OnAfterHandle` | Exposes the method `afterHandle` |
+
+Here is an example of a hook class that extends the `Hook` class and uses the `OnRequestResponse`, `OnBeforeHandle`, and `OnAfterHandle` mixins.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyHook extends Hook {
+class MyHook extends Hook with OnRequestResponse, OnBeforeHandle, OnAfterHandle {
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {
     print('Request received');
   }
 
   @override
-  Future<void> beforeHandle(Request request, InternalResponse response) async {
+  Future<void> beforeHandle(RequestContext context) async {
     print('Before handle');
   }
 
   @override
-  Future<void> afterHandle(Request request, InternalResponse response) async {
+  Future<void> afterHandle(RequestContext context) async {
     print('After handle');
   }
 
   @override
-  Future<void> onResponse(Response response) async {
+  Future<void> onResponse(Request request, dynamic data, ResponseProperties properties) async {
     print('Response sent');
   }
 }
 ```
 
-In the `MyHook` class, you can override the methods that you want to add custom logic to. You can access the `Request` object and the `InternalResponse` object in the `onRequest`, `beforeHandle`, and `afterHandle` methods, and the `Response` object in the `onResponse` method.
+In the `MyHook` class, the `onRequest`, `beforeHandle`, `afterHandle`, and `onResponse` methods are implemented to log messages at specific points in the request lifecycle.
 
-The `onResponse` can also know if the response was successful or not by checking the `response.isError` property.
-This property will be `true` if the response status code is greater than or equal to 400.
+The `onResponse` can also know if the response was successful or not by checking the `statusCode` getter available in the `ResponseProperties` object.
 
 ## Adding a Hook
 
@@ -65,3 +63,27 @@ void main(List<String> arguments) async {
 In the example above, the `MyHook` hook is added to the application using the `use` method. This will execute the hook methods at the specified points in the request lifecycle.
 
 Hooks are executed in the order that they are added to the application. If you need to execute a hook before another hook, you can add it before the other hook.
+
+## Expose a Service
+
+Hooks can also expose services to the application. This can be done by overriding the `service` getter in the hook class.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyHook extends Hook {
+
+  @override
+  MyService get service => MyService();
+
+}
+
+class MyService {
+  void doSomething() {
+    print('Doing something');
+  }
+}
+  
+```
+
+In the example above, the `MyHook` class exposes a `MyService` object to the application. This service will behave as a global provider and will be accessible using the `use` method on the `RequestContext` object.

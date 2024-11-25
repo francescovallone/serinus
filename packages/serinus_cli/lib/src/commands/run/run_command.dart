@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
 import 'package:path/path.dart' as path;
+import 'package:serinus_cli/src/utils/config.dart';
 import 'package:watcher/watcher.dart';
-import 'package:yaml/yaml.dart';
 
 /// {@template create_command}
 ///
@@ -51,28 +51,11 @@ class RunCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final pubspec = File(path.join(Directory.current.path, 'pubspec.yaml'));
-    if (!pubspec.existsSync()) {
-      _logger?.err('No pubspec.yaml file found');
-      return ExitCode.noInput.code;
+    final config = await getProjectConfiguration(_logger!);
+    if (config.length == 1 && config.containsKey('error')) {
+      return config['error'] as int;
     }
-    final configFile = File(path.join(Directory.current.path, 'config.yaml'));
-    var entrypoint = '';
-    var content = <String, dynamic>{};
-    if (!configFile.existsSync()) {
-      _logger?.warn(
-        'No config.yaml file found, using pubspec.yaml to get entrypoint',
-      );
-      final pubspecContent = await pubspec.readAsString();
-      content = Map<String, dynamic>.from(loadYaml(pubspecContent) as Map);
-      content['name'] = content['name'] as String;
-      entrypoint = 'bin/${content['name']}.dart';
-    } else {
-      final configContent = await configFile.readAsString();
-      content = Map<String, dynamic>.from(loadYaml(configContent) as Map);
-      entrypoint = content['entrypoint'] as String;
-    }
-
+    final entrypoint = config['entrypoint'] as String? ?? 'bin/main.dart';
     var process = await serve(entrypoint);
     if (_isWindows) {
       ProcessSignal.sigint.watch().listen((event) {

@@ -15,13 +15,13 @@ extension JsonParsing on Object {
 
   /// This method is used to check if the object can be converted to a json.
   bool canBeJson() {
-    if (this is Uint8List) {
+    if (this is Uint8List || isPrimitive()) {
       return false;
     }
     return this is Map ||
-        this is List<Map> ||
+        this is Iterable<Map> ||
         this is JsonObject ||
-        this is List<JsonObject> ||
-        this is List;
+        this is Iterable<JsonObject> ||
+        this is Iterable;
   }
 }

@@ -59,18 +59,18 @@ final class Explorer {
       }
       routePath = normalizePath(routePath);
       final routeMethod = spec.route.method;
-      _router.registerRoute(
-        RouteData(
-            id: entry.key,
-            path: routePath,
-            controller: controller,
-            routeCls: spec.route.runtimeType,
-            method: routeMethod,
-            moduleToken: module.token.isEmpty
-                ? module.runtimeType.toString()
-                : module.token,
-            queryParameters: spec.route.queryParameters),
-      );
+      _router.registerRoute(RouteData(
+        id: entry.key,
+        path: routePath,
+        controller: controller,
+        routeCls: spec.route.runtimeType,
+        method: routeMethod,
+        moduleToken:
+            module.token.isEmpty ? module.runtimeType.toString() : module.token,
+        isStatic: spec.handler is! Function,
+        queryParameters: spec.route.queryParameters,
+        spec: spec,
+      ));
       logger.info('Mapped {$routePath, $routeMethod} route');
     }
   }

@@ -1,7 +1,10 @@
 import 'dart:io' as io;
 
 import '../containers/module_container.dart';
+import '../containers/router.dart';
 import '../core/core.dart';
+import '../handlers/handler.dart';
+import '../handlers/request_handler.dart';
 import '../http/internal_request.dart';
 import 'http_adapter.dart';
 import 'server_adapter.dart';
@@ -69,4 +72,10 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
 
   @override
   bool get shouldBeInitilized => true;
+
+  @override
+  Handler getHandler(
+      ModulesContainer container, ApplicationConfig config, Router router) {
+    return RequestHandler(router, container, config);
+  }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -5,6 +6,7 @@ import 'dart:typed_data';
 import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 
+import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import 'internal_response.dart';
 import 'session.dart';
@@ -65,6 +67,28 @@ class InternalRequest {
     return InternalRequest(headers: headers, original: request);
   }
 
+  /// The [cookies] property contains the cookies of the request
+  List<Cookie> get cookies => original.cookies;
+
+  /// The [events] property contains the events of the request
+  final StreamController<(RequestEvent, EventData)> _events =
+      StreamController.broadcast(sync: true);
+
+  /// This method is used to listen to a request event.
+  void on(RequestEvent event,
+      Future<void> Function(RequestEvent, EventData) listener) {
+    _events.stream.listen((e) {
+      if (e.$1 == event || e.$1 == RequestEvent.all) {
+        listener(e.$1, e.$2);
+      }
+    });
+  }
+
+  /// This method is used to emit a request event.
+  void emit(RequestEvent event, EventData data) {
+    _events.sink.add((event, data));
+  }
+
   /// The [session] getter is used to get the session of the request
   Session get session => Session(original.session);
 
@@ -116,6 +140,7 @@ class InternalRequest {
     await for (var part in original) {
       data += part;
     }
+    _bytes = Uint8List.fromList(data);
     return utf8.decode(data);
   }
 
@@ -147,10 +172,8 @@ class InternalRequest {
 
   /// This method is used to get the body of the request as a [Uint8List]
   /// it is used internally by the [body], the [json] and the [stream] methods
-  Future<Uint8List> bytes() async {
+  Uint8List bytes() {
     try {
-      final data = await body();
-      _bytes ??= Uint8List.fromList((encoding ?? utf8).encode(data));
       return _bytes!;
     } catch (_) {
       return Uint8List(0);
@@ -160,7 +183,6 @@ class InternalRequest {
   /// This method is used to get the body of the request as a [Stream<List<int>>]
   Future<Stream<List<int>>> stream() async {
     try {
-      await bytes();
       return Stream.value(List<int>.from(_bytes!));
     } catch (_) {
       return Stream.value(List<int>.from(Uint8List(0)));

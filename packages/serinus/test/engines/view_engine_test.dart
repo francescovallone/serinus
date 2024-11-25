@@ -13,19 +13,6 @@ class TestController extends Controller {
   }
 }
 
-class TestMiddleware extends Middleware {
-  bool hasBeenCalled = false;
-
-  @override
-  Future<void> use(RequestContext context, InternalResponse response,
-      NextFunction next) async {
-    response.on(ResponseEvent.close, (p0) async {
-      hasBeenCalled = true;
-    });
-    next();
-  }
-}
-
 class TestModule extends Module {
   TestModule({
     super.controllers,
@@ -54,14 +41,12 @@ void main() async {
   group('$ViewEngine', () {
     SerinusApplication? app;
     final controller = TestController();
-    final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
           port: 3100,
-          entrypoint:
-              TestModule(controllers: [controller], middlewares: [middleware]),
+          entrypoint: TestModule(controllers: [controller]),
           loggingLevel: LogLevel.none);
-      app?.useViewEngine(ViewEngineTest());
+      app?.viewEngine = ViewEngineTest();
       await app?.serve();
     });
     tearDownAll(() async {

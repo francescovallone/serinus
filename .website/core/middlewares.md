@@ -11,7 +11,7 @@ import 'package:serinus/serinus.dart';
 
 class MyMiddleware extends Middleware {
   @override
-  Future<void> use(RequestContext context, InternalResponse response, NextFunction next) async {
+  Future<void> use(RequestContext context, NextFunction next) async {
     print('Middleware executed');
     return next();
   }
@@ -33,7 +33,7 @@ import 'package:serinus/serinus.dart';
 
 class MyMiddleware extends Middleware {
   @override
-  Future<void> use(RequestContext context, InternalResponse response, NextFunction next) async {
+  Future<void> use(RequestContext context, NextFunction next) async {
     print('Middleware executed');
     return next();
   }
@@ -66,7 +66,7 @@ class MyMiddleware extends Middleware {
   MyMiddleware() : super(routes: ['/']);
   
   @override
-  Future<void> use(RequestContext context, InternalResponse response, NextFunction next) async {
+  Future<void> use(RequestContext context, NextFunction next) async {
     print('Middleware executed');
     return next();
   }
@@ -74,3 +74,25 @@ class MyMiddleware extends Middleware {
 ```
 
 This will make the middleware only be applied to the routes that match the pattern `/`.
+
+## Request Blocking Middleware
+
+You can also create a middleware that blocks the request from reaching the controller.
+
+This can be useful if, for example, you want to block requests from a certain IP address or if you want to block requests that don't have a certain header and return early.
+
+The values passed to the `next` function will be returned as the response body and the execution will stop.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyMiddleware extends Middleware {
+  @override
+  Future<void> use(RequestContext context, NextFunction next) async {
+    if (context.request.headers['x-custom-header'] != 'value') {
+      return next('Request blocked');
+    }
+    return next();
+  }
+}
+```
