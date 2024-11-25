@@ -309,19 +309,6 @@ void main() async {
   });
 
   test(
-    'when a $Provider use the mixin $OnApplicationBootstrap, then the onApplicationBootstrap method should be called',
-    () async {
-      final container = ModulesContainer(config);
-      final module = TestModule(providers: [TestProviderHooks()]);
-      await container.registerModules(module, Type);
-
-      await container.finalize(module);
-
-      expect(container.get<TestProviderHooks>()!.isBootstraped, true);
-    },
-  );
-
-  test(
     'when a $Provider use the mixin $OnApplicationReady, then the onApplicationReady method should be called',
     () async {
       final container = ModulesContainer(config);

@@ -192,7 +192,8 @@ class SerinusApplication extends Application {
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
-    final registeredProviders = modulesContainer.getAll<OnApplicationBootstrap>();
+    final registeredProviders =
+        modulesContainer.getAll<OnApplicationBootstrap>();
     for (final provider in registeredProviders) {
       await provider.onApplicationBootstrap();
     }
