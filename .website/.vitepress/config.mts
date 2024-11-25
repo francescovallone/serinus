@@ -14,6 +14,9 @@ export default defineConfig({
       lazyLoading: true
     }
   },
+  sitemap: {
+    hostname: 'https://serinus.app'
+  },
   lastUpdated: true,
   appearance: 'force-dark',
   themeConfig: {

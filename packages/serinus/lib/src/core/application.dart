@@ -51,7 +51,7 @@ abstract class Application {
         modulesContainer = modulesContainer ?? ModulesContainer(config);
 
   /// The [setLoggerPrefix] method is used to set the logger prefix of the application.
-  void setLoggerPrefix(String prefix) {
+  set loggerPrefix(String prefix) {
     loggerService?.prefix = prefix;
   }
 

@@ -28,7 +28,7 @@ head:
       title: 'Serinus 1.0 - Primavera',
       src: '/blog/serinus_1_0/serinus_1_0.webp',
       alt: 'Serinus 1.0 - Primavera',
-      date: '18 Nov 2024',
+      date: '26 Nov 2024',
       href: '/blog/serinus_1_0',
     },
     {

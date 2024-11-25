@@ -34,11 +34,16 @@ head:
     src="/blog/serinus_1_0/serinus_1_0.webp"
     alt="Serinus 1.0 - Primavera"
     author="Francesco Vallone"
-    date="18 Nov 2024"
+    date="26 Nov 2024"
     shadow
 >
 
-Serinus 1.0, code name Primavera, is the first stable release of Serinus. It introduces ModelProvider, Client Generation, typed bodies and many other features.
+Serinus 1.0, code name Primavera, is the first stable release of Serinus. It introduces ModelProvider, Client Generation, typed bodies and many other 
+features.
+
+## Table of Contents
+
+[[toc]]
 
 ## What is Serinus?
 
@@ -48,7 +53,7 @@ Serinus is an open-source framework for building efficient and scalable backend 
 
 A lot! And when I say a lot, I mean a lot. But let's go step by step.
 
-## ModelProvider
+### ModelProvider
 
 ModelProvider is a new feature that allows you to define your models that can be encoded and decoded from JSON.
 
@@ -133,7 +138,7 @@ class GenModelProvider extends ModelProvider {
   
 You can find more information about ModelProvider in the [documentation](/techniques/model_provider.html).
 
-## Client Generation
+### Client Generation
 
 Client Generation is another new feature that allows you to generate a client for your API.
 
@@ -143,7 +148,7 @@ Right now the client generation is available only for Dart and will use the libr
 
 You can find more information about Client Generation in the [documentation](/techniques/cli/generate.html#client).
 
-## Typed Body
+### Typed Body
 
 One of the things we wanted to improve in Serinus was the usage of the body of the request. In the previous version of Serinus, the body could just be one of the followng types:
 
@@ -178,7 +183,7 @@ class AppController extends Controller {
 
 If you want to know more about Typed Body, you can read the [documentation](/foundations/handler.html).
 
-## Static Routes
+### Static Routes
 
 Another new feature is the Static Routes. Static Routes are routes that just return a static value.
 
@@ -200,7 +205,7 @@ class AppController extends Controller {
 
 If you want to know more about Static Routes, you can read the [documentation](/foundations/handler.html).
 
-## Parametrized Handlers
+### Parametrized Handlers
 
 Do you remember? Developer Experience is one of the main goals of Serinus, and we are always looking for ways to improve it.
 
@@ -232,7 +237,131 @@ If you use a Parametrized Handler and a Typed Body, the Typed Body will be the f
 
 If you want to know more about Parametrized Handlers, you can read the [documentation](/foundations/handler.html).
 
-## Hooks Mixins and Hooks Service
+### More lifecycle hooks
+
+In Serinus 1.0 we added more lifecycle hooks to the application.
+
+Now you can use two new lifecycle hooks `OnApplicationBootstrap` and `OnApplicationReady`.
+
+The first one will be called after the application is created and before the server is started, while the second one will be called after the server is started.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class HelloProvider extends Provider with OnApplicationBootstrap, OnApplicationReady {
+  
+  @override
+  Future<void> onApplicationBootstrap() async {
+    print('Application is bootstrapping');
+  }
+
+  @override
+  Future<void> onApplicationReady() async {
+    print('Application is ready');
+  }
+  
+}
+```
+
+You can read more about Lifecycle Hooks in the [documentation](/core/providers.html).
+
+### Simplified access to application configuration
+
+In Serinus 1.0 we simplified the global prefix.
+
+Now you can set the global prefix using the `globalPrefix` setter in your application.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+void main() async {
+  final app = await serinus.createApplication(
+    entrypoint: AppModule(),
+    host: '0.0.0.0',
+    port: 3000
+  );
+  app.setGlobalPrefix('/api'); // [!code --]
+  app.globalPrefix = '/api'; // [!code ++]
+
+  await app.serve();
+}
+```
+
+We also simplified the view engine configuration.
+
+Now you can set the view engine using the `viewEngine` setter in your application.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+void main() async {
+  final app = await serinus.createApplication(
+    entrypoint: AppModule(),
+    host: '0.0.0.0',
+    port: 3000
+  );
+  app.useViewEngine(MyViewEngine()); // [!code --]
+  app.viewEngine = MyViewEngine(); // [!code ++]
+
+  await app.serve();
+}
+```
+
+And also the versioning configuration.
+
+Now you can set the versioning using the `versioning` setter in your application.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+void main() async {
+  final app = await serinus.createApplication(
+    entrypoint: AppModule(),
+    host: '0.0.0.0',
+    port: 3000
+  );
+  app.enableVersioning(type: VersioningType.uri); // [!code --]
+  app.versioning = VersioningOptions(type: VersioningType.uri); // [!code ++]
+  await app.serve();
+}
+```
+
+### Framework Configuration
+
+If you have ever created a Serinus project using the CLI, you may have noticed a file called `config.yaml`. This file was used until the 1.0 to configure your application.
+
+In the 1.0 we decided to remove it and use the `pubspec.yaml` file to configure your application.
+
+This will make it easier to manage the configuration of your application and will make it easier to share your configuration with others.
+
+You can find more information about the configuration in the [documentation](/techniques/configuration.html).
+
+### Logger Prefix
+
+In the 1.0 you can set a prefix for the logger.
+
+This will allow you to have a more readable log and to identify the log of your application.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+void main() async {
+  final app = await serinus.createApplication(
+    entrypoint: AppModule(),
+    host: '0.0.0.0',
+    port: 3000
+  );
+  app.loggerPrefix = 'MyApp';
+  await app.serve();
+}
+
+```
+
+## Breaking Changes
+
+Serinus 1.0 is a major release and comes with some breaking changes. (Sorry for that!)
+
+### Hooks Mixins and Hooks Service
 
 One of the breaking changes in Serinus 1.0 are the Hooks Mixins.
 
@@ -304,32 +433,122 @@ class AppController extends Controller {
 
 You can read more about Hooks in the [documentation](/core/hooks.html).
 
-## More lifecycle hooks
+### Next Function in Middlewares
 
-In Serinus 1.0 we added more lifecycle hooks to the application.
+Another breaking change is the `next` function in the middlewares.
 
-Now you can use two new lifecycle hooks `OnApplicationBootstrap` and `OnApplicationReady`.
+In the previous version of Serinus, the `next` function was a `Future<void>` function that you had to call to pass the request to the next middleware but could not emit a response.
 
-The first one will be called after the application is created and before the server is started, while the second one will be called after the server is started.
+To close the response you had to manually add the response data, header and status code to the `InternalResponse` object.
+
+In the 1.0 we changed this behavior. Now the `next` function can take an object and returns a `Future<void>`.
+
+If you pass an object to the `next` function, the object will be used as the response of the request will be closed.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class HelloProvider extends Provider with OnApplicationBootstrap, OnApplicationReady {
+class HelloMiddleware extends Middleware {
   
   @override
-  Future<void> onApplicationBootstrap() async {
-    print('Application is bootstrapping');
-  }
-
-  @override
-  Future<void> onApplicationReady() async {
-    print('Application is ready');
+  Future<void> use(RequestContext context, NextFunction next) async {
+    // The request will be closed with the response 'Hello'
+    return next({'id': 'json-obj'});
   }
   
 }
 ```
 
-You can read more about Lifecycle Hooks in the [documentation](/core/providers.html).
+You can read more about Middlewares in the [documentation](/core/middlewares.html).
+
+### Request Events
+
+In the previous version of Serinus, in the middlewares was possible to listen to `ResponseEvents` but this interface was very limited and not very flexible.
+
+In the 1.0 we decided to remove the `ResponseEvents` and introduce the `RequestEvents`.
+
+`RequestEvents` are more explicit and flexible than the `ResponseEvents` and will also provide you with a `EventData` object containing the information that you need.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class HelloMiddleware extends Middleware {
+  
+  @override
+  Future<void> use(RequestContext context, NextFunction next) async {
+    context.on(RequestEvents.data, (event, data) {
+      print('Data received: $data');
+    });
+
+    return next();
+  }
+  
+}
+```
+
+You can read more about Request Events in the [documentation](/techniques/request_events.html).
+
+### Improved Dependency Injection
+
+In the 1.0 we improved the Dependency Injection system. In the previous versions to access the dependencies of needed for a provider you had to use the `ApplicationContext` object. And while this was working, it was not very straightforward and could lead to some confusion.
+
+In the 1.0 we decided to change this behavior. Now you can access the dependencies directly in the provider.
+
+::: code-group
+
+```dart[providers.dart]
+import 'package:serinus/serinus.dart';
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class ByeProvider extends Provider {
+  
+  void sayBye() {
+    print('Bye');
+  }
+  
+}
+
+
+class HelloProvider extends Provider {
+  
+  final ByeProvider hello;
+
+  HelloProvider({required this.bye});
+
+  void sayHello() {
+    print('Hello');
+  }
+  
+}
+```
+  
+```dart[module.dart]
+import 'package:serinus/serinus.dart';
+
+class AppModule extends Module {
+  
+  AppModule() : super(providers: [
+    Provider.deferred(
+      (ByeProvider bye) => HelloProvider(bye: bye),
+      inject: [ByeProvider], 
+      type: HelloProvider
+    ),
+    ByeProvider(),
+  ]);
+  
+}
+```
+
+:::
+
+You can read more about how deferred providers work in the [documentation](/core/providers.html).
+
+## Conclusion
+
+Serinus 1.0 is a major release that brings a lot of new features and improvements. We are very excited about this release and we hope you are too. We are looking forward to seeing what you will build with Serinus 1.0 and we can't wait to hear your feedback.
+
+Also, while the release has been tested thoroughly, there may be some bugs that we missed. If you find any bugs or have any suggestions, please let us know by opening an issue on our [GitHub repository](https:://github.com/francescovallone/serinus).
 
 </BlogPage>

@@ -65,7 +65,7 @@ void main() {
             serverAdapter: _AdapterMock(),
           ),
         );
-        app.setLoggerPrefix('Custom App');
+        app.loggerPrefix = 'Custom App';
         expect(app.loggerService!.prefix, 'Custom App');
       },
     );
