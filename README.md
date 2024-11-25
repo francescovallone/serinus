@@ -18,8 +18,6 @@ Serinus is a framework written in Dart for building efficient and scalable serve
 | [serinus_cli](https://pub.dev/packages/serinus_cli) | [![Pub Version](https://img.shields.io/pub/v/serinus_cli?color=green&logo=dart)](https://pub.dev/packages/serinus_cli) |
 | [serinus_config](https://pub.dev/packages/serinus_config) | [![Pub Version](https://img.shields.io/pub/v/serinus_config?color=green&logo=dart)](https://pub.dev/packages/serinus_config) |
 | [serinus_swagger](https://pub.dev/packages/serinus_swagger) | [![Pub Version](https://img.shields.io/pub/v/serinus_swagger?color=green&logo=dart)](https://pub.dev/packages/serinus_swagger) |
-| [serinus_cors](https://pub.dev/packages/serinus_cors) | [![Pub Version](https://img.shields.io/pub/v/serinus_cors?color=green&logo=dart)](https://pub.dev/packages/serinus_cors) |
-| [serinus_rate_limiter](https://pub.dev/packages/serinus_rate_limiter) | [![Pub Version](https://img.shields.io/pub/v/serinus_rate_limiter?color=green&logo=dart)](https://pub.dev/packages/serinus_rate_limiter) |
 | [serinus_serve_static](https://pub.dev/packages/serinus_serve_static) | [![Pub Version](https://img.shields.io/pub/v/serinus_serve_static?color=green&logo=dart)](https://pub.dev/packages/serinus_serve_static) |
 
 ## Installation
