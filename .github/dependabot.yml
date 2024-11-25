@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: "pub"
+    directories:
+      - packages/**/*
+    schedule:
+      interval: "daily"
+    versioning-strategy: "widen"
+    open-pull-requests-limit: 1
