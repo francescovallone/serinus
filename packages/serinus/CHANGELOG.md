@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0
+
+This first stable release is packed with game-changing features designed to elevate your development experience:
+
+- ModelProvider for seamless serialization and deserialization of JSON and form-data
+- Typed Bodies to ensure type-safety when dealing with the request body.
+- Client Generation for easy API integration
+- Static Routes for optimized performance
+- Lifecycle hooks to enhance control
+- Improved dependency injection for cleaner architecture
+
 ## 1.0.0-rc.4
 
 - feat(#104): add form data support to the models system.
