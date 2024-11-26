@@ -238,6 +238,15 @@ class GenerateClientCommand extends Command<int> {
                 ..assignment = Code(chosenLibrary.baseClass);
             }),
           );
+          c.fields.add(
+            Field((f) {
+              f
+                ..name = 'baseUrl'
+                ..type = const Reference('String')
+                ..modifier = FieldModifier.final$
+                ..assignment = const Code("'http://localhost:3000'");
+            })
+          );
           c.buildSingleton('SerinusClient');
           c.methods.addAll([
             ...['get', 'post', 'put', 'patch', 'delete'].map((s) {
@@ -289,6 +298,14 @@ class GenerateClientCommand extends Command<int> {
                   ..assignment = const Code('SerinusClient()');
               }),
             )
+            ..fields.add(
+              Field((f) {
+                f
+                  ..name = '_isInitialized'
+                  ..type = const Reference('bool')
+                  ..assignment = const Code('false');
+              }),
+            )
             ..methods.addAll([
               Method((m) {
                 m
@@ -297,6 +314,18 @@ class GenerateClientCommand extends Command<int> {
                   ..type = MethodType.getter
                   ..lambda = true
                   ..body = const Code('client.base');
+              }),
+              Method((m) {
+                m
+                  ..name = 'init'
+                  ..returns = const Reference('void')
+                  ..body = const Code('''
+if (_isInitialized) {
+  return;
+}
+_isInitialized = true;
+// Add your initialization code here
+''');
               }),
               ...controllers.map(
                 (e) => Method((m) {
@@ -476,7 +505,7 @@ return client.${e.method!.toLowerCase()}<${returnType?.replaceAll('Future<', '')
       case 'dio':
         return '''
           final response = await base.$method(
-            url, 
+            '\$baseUrl\$url', 
             queryParameters: queryParameters, 
             data: data,
           );
@@ -485,7 +514,7 @@ return client.${e.method!.toLowerCase()}<${returnType?.replaceAll('Future<', '')
       case 'http':
         return '''
           final response = await base.$method(
-            Uri.parse(url).replace(queryParameters: queryParameters), 
+            Uri.parse('\$baseUrl\$url').replace(queryParameters: queryParameters), 
             body: data,
           );
           return response.body;
