@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- Updated `serinus_swagger` to be compatible with `serinus` version `1.x.x`.
+
 ## 1.0.2
 
 - Updated `serinus_swagger` to be compatible with `serinus` version `0.6`.
