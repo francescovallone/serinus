@@ -8,6 +8,7 @@ import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:serinus_cli/src/commands/generate/generate_client/controllers_analyzer.dart';
 import 'package:serinus_cli/src/utils/config.dart';
+import 'package:serinus_cli/src/utils/extensions.dart';
 
 import '../recase.dart';
 
@@ -237,25 +238,7 @@ class GenerateClientCommand extends Command<int> {
                 ..assignment = Code(chosenLibrary.baseClass);
             }),
           );
-          c.fields.add(
-            Field((f) {
-              f
-                ..name = '_instance'
-                ..static = true
-                ..modifier = FieldModifier.final$
-                ..assignment = const Code('SerinusClient._()');
-            }),
-          );
-          c.constructors.addAll([
-            Constructor((c) {
-              c.name = '_';
-            }),
-            Constructor((c) {
-              c
-                ..body = const Code('return _instance;')
-                ..factory = true;
-            }),
-          ]);
+          c.buildSingleton('SerinusClient');
           c.methods.addAll([
             ...['get', 'post', 'put', 'patch', 'delete'].map((s) {
               return Method((m) {
@@ -295,6 +278,7 @@ class GenerateClientCommand extends Command<int> {
       b.body.add(
         Class((c) {
           c
+            ..buildSingleton('Serinus')
             ..name = 'Serinus'
             ..fields.add(
               Field((f) {
@@ -308,7 +292,7 @@ class GenerateClientCommand extends Command<int> {
             ..methods.addAll([
               Method((m) {
                 m
-                  ..name = 'baseClient'
+                  ..name = 'adapter'
                   ..returns = Reference(chosenLibrary.type)
                   ..type = MethodType.getter
                   ..lambda = true
@@ -329,13 +313,6 @@ class GenerateClientCommand extends Command<int> {
             ]);
         }),
       );
-      b.body.add(Field((f) {
-        f
-          ..name = 'serinus'
-          ..type = const Reference('Serinus')
-          ..assignment = const Code('Serinus()')
-          ..modifier = FieldModifier.final$;
-      }));
     });
     final content = DartFormatter().format(
       library
