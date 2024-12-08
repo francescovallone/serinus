@@ -74,8 +74,6 @@ class TracersService {
         case (TraceEvents.onTransform, true):
           _properties[event.request!.id]?.stopwatch.reset();
           break;
-        default:
-          break;
       }
     });
   }

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- chore: update dependencies to the latest version
+
 ## 1.0.0
 
 This first stable release is packed with game-changing features designed to elevate your development experience:
