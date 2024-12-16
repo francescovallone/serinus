@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.1
+
+- Update dependencies to the latest version.
+- Fix `generate` command for the resources.
+
 ## 1.0.0
 
 - Update the CLI to use the new version of the Serinus framework.

@@ -107,6 +107,15 @@ abstract class GenerateItemCommand extends Command<int> {
         usage,
       );
     }
+
+    if (name == '--name' || name == '-n') {
+      throw UsageException(
+        '''
+The item name cannot be a flag. The correct usage is:
+  `serinus generate $itemName --name=<name>` or `serinus generate $itemName -n=<name>`''',
+        usage,
+      );
+    }
   }
 
   ReCase get _item {
@@ -118,7 +127,7 @@ abstract class GenerateItemCommand extends Command<int> {
     }
     final item = argResults.arguments.first;
     _validateItemName(item);
-    return ReCase(item);
+    return ReCase(item.replaceAll('name=', '').replaceAll('n=', ''));
   }
 
   @override
@@ -216,6 +225,7 @@ Future<void> generateItem(
   final outputDirectory = Directory(
     path.join(Directory.current.path, 'lib'),
   );
+  print(name);
   final progress = logger?.progress(
     'Generate $name $type...',
   );

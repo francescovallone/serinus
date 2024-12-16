@@ -71,6 +71,7 @@ class Generator {
             "\nimport '${sameFolder ? fileName : filePath}';\n",
           );
         }
+        print(replaced);
         entrypointFile!.writeAsStringSync(DartFormatter().format(replaced));
       }
     }
@@ -130,6 +131,8 @@ class Generator {
       allocator: Allocator(),
       orderDirectives: true,
     );
+    print(element.name);
+    print(itemName);
     final newModule = Library((b) {
       b.directives.add(Directive.import('package:serinus/serinus.dart'));
       b.body.add(
