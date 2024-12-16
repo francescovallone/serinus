@@ -5,7 +5,6 @@ extension NullIfEmpty on String? {
 }
 
 extension SingletonBuilder on ClassBuilder {
-
   void buildSingleton(String className) {
     fields.add(
       Field((f) {
@@ -27,5 +26,4 @@ extension SingletonBuilder on ClassBuilder {
       }),
     ]);
   }
-
 }

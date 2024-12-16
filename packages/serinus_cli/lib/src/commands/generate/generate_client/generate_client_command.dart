@@ -238,15 +238,13 @@ class GenerateClientCommand extends Command<int> {
                 ..assignment = Code(chosenLibrary.baseClass);
             }),
           );
-          c.fields.add(
-            Field((f) {
-              f
-                ..name = 'baseUrl'
-                ..type = const Reference('String')
-                ..modifier = FieldModifier.final$
-                ..assignment = const Code("'http://localhost:3000'");
-            })
-          );
+          c.fields.add(Field((f) {
+            f
+              ..name = 'baseUrl'
+              ..type = const Reference('String')
+              ..modifier = FieldModifier.final$
+              ..assignment = const Code("'http://localhost:3000'");
+          }));
           c.buildSingleton('SerinusClient');
           c.methods.addAll([
             ...['get', 'post', 'put', 'patch', 'delete'].map((s) {

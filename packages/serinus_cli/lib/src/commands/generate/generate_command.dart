@@ -225,7 +225,6 @@ Future<void> generateItem(
   final outputDirectory = Directory(
     path.join(Directory.current.path, 'lib'),
   );
-  print(name);
   final progress = logger?.progress(
     'Generate $name $type...',
   );
