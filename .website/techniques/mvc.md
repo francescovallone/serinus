@@ -95,4 +95,9 @@ class MyController extends Controller {
   }
 }
 ```
+
+```mustache [index.mustache]
+Hello {{name}}
+```
+
 :::
