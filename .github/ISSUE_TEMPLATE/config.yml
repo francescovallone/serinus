@@ -1,1 +1,6 @@
 blank_issues_enabled: false
+
+contact_links:
+  - name: Questions and Community Support 🤗
+    url: https://discord.gg/zydgnJ3ksJ
+    about: If you have any questions, reach out to us on Discord.
