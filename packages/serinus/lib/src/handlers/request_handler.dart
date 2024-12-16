@@ -345,11 +345,14 @@ class RequestHandler extends Handler {
         result = await handler.call(context);
       } else {
         final bodyValue = getBodyValue(context, body);
-        result = await Function.apply(handler, [
+        result = Function.apply(handler, [
           context,
           if (bodyValue != null) bodyValue,
           ...context.params.values
         ]);
+        if(result is Future) {
+          result = await result;
+        }
       }
     }
     await config.tracerService.addSyncEvent(

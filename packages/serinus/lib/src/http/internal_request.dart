@@ -38,6 +38,12 @@ class InternalRequest {
   /// The [headers] property contains the headers of the request
   final Map<String, dynamic> headers;
 
+  /// The [port] property contains the port of the request
+  final int port;
+
+  /// The [host] property contains the host of the request
+  final String host;
+
   /// The [bytes] property contains the bytes of the request body
   Uint8List? _bytes;
 
@@ -56,7 +62,7 @@ class InternalRequest {
   HttpConnectionInfo? get clientInfo => original.connectionInfo;
 
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
-  factory InternalRequest.from(HttpRequest request) {
+  factory InternalRequest.from(HttpRequest request, int port, String host) {
     Map<String, String> headers = {};
     request.headers.forEach((name, values) {
       if (name == HttpHeaders.transferEncodingHeader) {
@@ -64,7 +70,7 @@ class InternalRequest {
       }
       headers[name] = values.join(',');
     });
-    return InternalRequest(headers: headers, original: request);
+    return InternalRequest(headers: headers, original: request, port: port, host: host);
   }
 
   /// The [cookies] property contains the cookies of the request
@@ -122,6 +128,8 @@ class InternalRequest {
   InternalRequest({
     required this.headers,
     required this.original,
+    required this.port,
+    required this.host,
   }) : id = '${original.hashCode}-${DateTime.timestamp()}';
 
   /// The [response] getter is used to get the response of the request

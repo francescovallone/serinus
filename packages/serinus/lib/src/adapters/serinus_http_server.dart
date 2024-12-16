@@ -58,7 +58,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       {InternalRequest? request, ErrorHandler? errorHandler}) async {
     try {
       await for (final req in server!) {
-        final request = InternalRequest.from(req);
+        final request = InternalRequest.from(req, port, host);
         final response = request.response;
         requestCallback.call(request, response);
       }

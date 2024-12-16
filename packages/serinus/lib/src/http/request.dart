@@ -74,6 +74,26 @@ class Request {
   /// The content type of the request.
   ContentType get contentType => _original.contentType;
 
+  /// The host of the request.
+  /// 
+  /// It returns a concatenated string of the host and the port.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final host = request.host; /// localhost:3000
+  /// ```
+  String get host => '${_original.host}:${_original.port}';
+
+  /// The hostname of the request.
+  /// 
+  /// It returns the host of the request.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final hostname = request.hostname; /// localhost
+  /// ```
+  String get hostname => _original.host;
+
   /// The cookies of the request.
   List<Cookie> get cookies => _original.cookies;
 
