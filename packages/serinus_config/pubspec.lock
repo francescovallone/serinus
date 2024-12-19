@@ -197,10 +197,10 @@ packages:
     dependency: "direct dev"
     description:
       name: lints
-      sha256: cbf8d4b858bb0134ef3ef87841abdf8d63bfc255c266b7bf6b39daa1085c4290
+      sha256: "4a16b3f03741e1252fda5de3ce712666d010ba2122f8e912c94f9f7b90e1a4c3"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "5.1.0"
   logging:
     dependency: transitive
     description:
@@ -292,10 +292,11 @@ packages:
   serinus:
     dependency: "direct main"
     description:
-      path: "../serinus"
-      relative: true
-    source: path
-    version: "1.0.0"
+      name: serinus
+      sha256: "400141b320b53f63f747b7d893dc68ff08aa47de7285c0094ab01cebecf9cc89"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   shelf:
     dependency: transitive
     description:
