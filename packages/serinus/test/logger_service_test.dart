@@ -29,9 +29,7 @@ void main() {
     test(
       'should create a new instance of the LoggerService class with a custom log level',
       () {
-        final loggerService = LoggerService(levels: [
-          LogLevel.severe
-        ]);
+        final loggerService = LoggerService(levels: [LogLevel.severe]);
         expect(loggerService.levels.contains(LogLevel.severe), isTrue);
       },
     );

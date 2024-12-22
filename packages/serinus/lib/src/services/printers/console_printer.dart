@@ -6,8 +6,7 @@ import 'package:logging/logging.dart';
 import '../../../serinus.dart';
 
 /// The [ConsolePrinter] class is used to print logs to the console using the [stdout] and [stderr] streams.
-class ConsolePrinter extends Printer{
-
+class ConsolePrinter extends Printer {
   /// The [ConsolePrinter] constructor is used to create a new instance of the [ConsolePrinter] class.
   ConsolePrinter();
 
@@ -26,13 +25,17 @@ class ConsolePrinter extends Printer{
     final formattedTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
     final message = record.message;
     final loggerName = record.loggerName;
-    final formattedMessage = '$formattedPid$formattedTime\t$logLevel [$loggerName] $message';
+    final formattedMessage =
+        '$formattedPid$formattedTime\t$logLevel [$loggerName] $message';
     stdout.writeln(formattedMessage);
   }
 
-  String _formatErrorMessage(String message, Object? error, StackTrace? stackTrace) {
+  String _formatErrorMessage(
+      String message, Object? error, StackTrace? stackTrace) {
     if (error != null) {
-      final errorString = error is SerinusException ? '${error.statusCode} ${error.message}' : error.toString();
+      final errorString = error is SerinusException
+          ? '${error.statusCode} ${error.message}'
+          : error.toString();
       return '$message - $errorString';
     }
     return message;
@@ -48,8 +51,8 @@ class ConsolePrinter extends Printer{
     final error = record.error;
     final stackTrace = record.stackTrace;
     final errorMessage = _formatErrorMessage(message, error, stackTrace);
-    final formattedMessage = '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage';
+    final formattedMessage =
+        '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage';
     stderr.writeln(formattedMessage);
   }
-
 }

@@ -1,18 +1,23 @@
 /// The log level of the logger.
 enum LogLevel implements Comparable<LogLevel> {
-
   /// The [none] log level is used to disable logging.
   none(999999999),
+
   /// The [verbose] log level is used to log virtually everything.
   verbose(0),
+
   /// The [debug] log level is used to log debug and higher.
   debug(1),
+
   /// The [info] log level is used to log info and higher.
   info(2),
+
   /// The [warning] log level is used to log warning and higher.
   warning(3),
+
   /// The [severe] log level is used to log severe and higher.
   severe(5),
+
   /// The [shout] log level is used to log shout and higher.
   shout(6);
 

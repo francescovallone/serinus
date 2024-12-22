@@ -102,7 +102,6 @@ class AppModule extends Module {
 }
 
 class LogMiddleware extends Middleware {
-
   @override
   // TODO: implement routes
   List<String> get routes => ['*'];
@@ -116,7 +115,6 @@ class LogMiddleware extends Middleware {
     });
     return next();
   }
-
 }
 
 class AppController extends Controller {

@@ -70,7 +70,8 @@ class InternalRequest {
       }
       headers[name] = values.join(',');
     });
-    return InternalRequest(headers: headers, original: request, port: port, host: host);
+    return InternalRequest(
+        headers: headers, original: request, port: port, host: host);
   }
 
   /// The [cookies] property contains the cookies of the request
