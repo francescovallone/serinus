@@ -94,7 +94,7 @@ void main() async {
       app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [controller]),
           port: 3015,
-          loggingLevel: LogLevel.none);
+          logLevels: [LogLevel.none]);
       await app?.serve();
     });
     tearDownAll(() async {

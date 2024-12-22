@@ -20,7 +20,7 @@ import 'core.dart';
 /// The [Application] class is used to create an application.
 abstract class Application {
   /// The [level] property contains the log level of the application.
-  final LogLevel level;
+  List<LogLevel> get levels => loggerService?.levels ?? [];
 
   /// The [entrypoint] property contains the entry point of the application.
   final Module entrypoint;
@@ -42,12 +42,12 @@ abstract class Application {
   Application({
     required this.entrypoint,
     required this.config,
-    this.level = LogLevel.debug,
+    List<LogLevel> levels = const [LogLevel.verbose],
     Router? router,
     ModulesContainer? modulesContainer,
     LoggerService? loggerService,
   })  : router = router ?? Router(),
-        loggerService = loggerService ?? LoggerService(level: level),
+        loggerService = loggerService ?? LoggerService(levels: levels),
         modulesContainer = modulesContainer ?? ModulesContainer(config);
 
   /// The [setLoggerPrefix] method is used to set the logger prefix of the application.
@@ -101,7 +101,7 @@ class SerinusApplication extends Application {
   SerinusApplication({
     required super.entrypoint,
     required super.config,
-    super.level,
+    super.levels,
     super.loggerService,
     super.router,
     super.modulesContainer,

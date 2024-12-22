@@ -113,7 +113,7 @@ void main() async {
       app = await serinus.createApplication(
           entrypoint:
               TestModule(controllers: [controller], middlewares: [middleware]),
-          loggingLevel: LogLevel.none);
+          logLevels: [LogLevel.none]);
       app?.use(SecureSessionHook(options: [
         SessionOptions(
           defaultSessionName: 'session',

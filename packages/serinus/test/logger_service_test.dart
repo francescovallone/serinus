@@ -2,9 +2,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
-class AppModule extends Mock implements Module {}
+class _AppModule extends Mock implements Module {}
 
 class _AdapterMock extends Mock implements Adapter {}
+
+class _MockPrinter extends Mock implements Printer {}
 
 void main() {
   group('$LoggerService', () {
@@ -27,16 +29,18 @@ void main() {
     test(
       'should create a new instance of the LoggerService class with a custom log level',
       () {
-        final loggerService = LoggerService(level: LogLevel.errors);
-        expect(loggerService.level, LogLevel.errors);
+        final loggerService = LoggerService(levels: [
+          LogLevel.severe
+        ]);
+        expect(loggerService.levels.contains(LogLevel.severe), isTrue);
       },
     );
 
     test(
-      'should create a new instance of the LoggerService class with a custom log callback',
+      'should create a new instance of the LoggerService class with a custom printer',
       () {
-        final loggerService = LoggerService(onLog: (prefix, record, delta) {});
-        expect(loggerService.onLog, isNotNull);
+        final loggerService = LoggerService(printer: _MockPrinter());
+        expect(loggerService.printer, isA<_MockPrinter>());
       },
     );
 
@@ -57,7 +61,7 @@ void main() {
         expect(loggerService.prefix, 'Custom');
 
         SerinusApplication app = SerinusApplication(
-          entrypoint: AppModule(),
+          entrypoint: _AppModule(),
           config: ApplicationConfig(
             port: 3000,
             host: 'localhost',

@@ -96,12 +96,32 @@ class AppModule extends Module {
           TestProvider(isGlobal: true),
           Provider.deferred((TestProviderThree tp) => TestProviderTwo(tp),
               inject: [TestProviderThree], type: TestProviderTwo),
-        ], middlewares: []);
+        ], middlewares: [
+          LogMiddleware()
+        ]);
+}
+
+class LogMiddleware extends Middleware {
+
+  @override
+  // TODO: implement routes
+  List<String> get routes => ['*'];
+
+  final logger = Logger('LogMiddleware');
+
+  @override
+  Future<void> use(RequestContext context, NextFunction next) {
+    context.request.on(RequestEvent.error, (event, data) async {
+      logger.severe('Error occurred', data.exception, StackTrace.current);
+    });
+    return next();
+  }
+
 }
 
 class AppController extends Controller {
   AppController({super.path = '/'}) {
-    onStatic(Route.get('/'), 'ok!');
+    onStatic(Route.get('/'), NotFoundException());
   }
 }
 

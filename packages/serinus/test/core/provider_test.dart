@@ -314,7 +314,7 @@ void main() async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [TestProviderHooks()]);
       final SerinusApplication app = SerinusApplication(
-        level: LogLevel.none,
+        levels: [LogLevel.none],
         entrypoint: module,
         modulesContainer: container,
         config: ApplicationConfig(
@@ -336,7 +336,7 @@ void main() async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [TestProviderHooks()]);
       final SerinusApplication app = SerinusApplication(
-        level: LogLevel.none,
+        levels: [LogLevel.none],
         entrypoint: module,
         modulesContainer: container,
         config: ApplicationConfig(

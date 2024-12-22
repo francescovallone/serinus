@@ -115,7 +115,7 @@ void main() {
       final app = SerinusApplication(
           entrypoint: SimpleMockModule(controllers: [MockController()]),
           config: config,
-          level: LogLevel.none);
+          levels: [LogLevel.none]);
       app.globalPrefix = '/';
       expect(app.config.globalPrefix, isNull);
     });
@@ -136,7 +136,7 @@ void main() {
       final app = SerinusApplication(
           entrypoint: SimpleMockModule(controllers: [MockController()]),
           config: config,
-          level: LogLevel.none);
+          levels: [LogLevel.none]);
       app.globalPrefix = 'api';
       expect(app.config.globalPrefix!.prefix, '/api');
     });
@@ -157,7 +157,7 @@ void main() {
       final app = SerinusApplication(
           entrypoint: SimpleMockModule(controllers: [MockController()]),
           config: config,
-          level: LogLevel.none);
+          levels: [LogLevel.none]);
       app.globalPrefix = '/api/';
       expect(app.config.globalPrefix!.prefix, '/api');
     });

@@ -45,7 +45,7 @@ void main() async {
       app = await serinus.createApplication(
           port: 3100,
           entrypoint: TestModule(controllers: [controller]),
-          loggingLevel: LogLevel.none);
+          logLevels: [LogLevel.none]);
       app?.viewEngine = ViewEngineTest();
       await app?.serve();
     });

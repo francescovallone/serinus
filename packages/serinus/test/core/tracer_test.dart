@@ -108,7 +108,7 @@ void main() {
           entrypoint:
               TestModule(controllers: [controller], middlewares: [middleware]),
           port: 4000,
-          loggingLevel: LogLevel.none);
+          logLevels: [LogLevel.none]);
       app?.trace(ServerTimingTracer());
       await app?.serve();
     });

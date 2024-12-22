@@ -37,7 +37,7 @@ void main() {
       app = await serinus.createApplication(
           port: 3010,
           entrypoint: TestModule(controllers: [controller]),
-          loggingLevel: LogLevel.none);
+          logLevels: [LogLevel.none]);
       app?.use(BodySizeLimitHook(maxSize: 5));
       await app?.serve();
     });

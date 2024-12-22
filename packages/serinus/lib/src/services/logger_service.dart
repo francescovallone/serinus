@@ -1,65 +1,61 @@
 // ignore_for_file: avoid_print
-
-import 'dart:io' as io;
-
-import 'package:intl/intl.dart';
 import 'package:logging/logging.dart' as logging;
-
 import '../enums/log_level.dart';
+import 'printers/console_printer.dart';
 
-/// The [LogCallback] is used to style the logs.
-typedef LogCallback = void Function(
-    String prefix, logging.LogRecord record, int deltaTime);
-
-/// The [LoggerService] is used to bootstrap the logging in the application.
+/// The [LoggerService] is used to bootstrap the Loggers in the application, it keeps the default configuration for all the loggers.
 class LoggerService {
-  /// The [onLog] callback is used to style the logs.
-  LogCallback? onLog;
 
-  int _time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  /// The [_printer] of the logger.
+  Printer _printer = ConsolePrinter();
+
+  /// The [printer] of the logger.
+  Printer get printer => _printer;
 
   /// The [level] of the logger.
-  LogLevel level;
+  final List<LogLevel> levels;
 
   /// The [prefix] of the logger.
   String prefix;
 
   /// The [LoggerService] constructor is used to create a new instance of the [LoggerService] class.
   factory LoggerService({
-    LogCallback? onLog,
-    LogLevel level = LogLevel.debug,
+    Printer? printer,
+    List<LogLevel> levels = const [LogLevel.verbose],
     String prefix = 'Serinus',
   }) {
-    return LoggerService._(onLog: onLog, level: level, prefix: prefix);
+    return LoggerService._(printer: printer, levels: levels, prefix: prefix);
+  }
+
+  logging.Level _getLowestLevel(List<LogLevel> levels) {
+    final sorted = levels.toList()..sort();
+    return switch(sorted.first) {
+      LogLevel.none => logging.Level.OFF,
+      LogLevel.verbose => logging.Level.ALL,
+      LogLevel.debug => logging.Level.FINE,
+      LogLevel.info => logging.Level.INFO,
+      LogLevel.warning => logging.Level.WARNING,
+      LogLevel.severe => logging.Level.SEVERE,
+      LogLevel.shout => logging.Level.SHOUT,
+    };
   }
 
   LoggerService._({
-    this.onLog,
-    this.level = LogLevel.debug,
+    Printer? printer,
+    this.levels = const [LogLevel.verbose],
     this.prefix = 'Serinus',
   }) {
+    _printer = printer ?? ConsolePrinter();
     /// The root level of the logger.
-    logging.Logger.root.level = switch (level) {
-      LogLevel.debug => logging.Level.ALL,
-      LogLevel.errors => logging.Level.SEVERE,
-      LogLevel.none => logging.Level.OFF,
-      LogLevel.info => logging.Level('INFO', 101),
-    };
+    logging.Logger.root.level = _getLowestLevel(levels);
 
     /// The listener for the logs.
     logging.Logger.root.onRecord.listen((record) {
-      double delta =
-          DateTime.now().millisecondsSinceEpoch / 1000 - _time.toDouble();
-      _time = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      if (onLog != null) {
-        onLog?.call(prefix, record, delta.ceil());
-        return;
+      if(record.error != null || record.stackTrace != null) {
+        _printer.printErrors(record, prefix);
       } else {
-        print('[$prefix] ${io.pid}\t'
-            '${DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time)}'
-            '\t${record.level.name} [${record.loggerName}] '
-            '${record.message} +${delta.ceil()}ms');
-      }
+        _printer.print(record, prefix);
+      } 
     });
   }
 
@@ -83,31 +79,51 @@ class Logger {
   }
 
   /// Logs a message at level [logging.Level.INFO]. it is used to log info messages.
-  void info(Object? message, [Object? error, StackTrace? stackTrace]) {
-    _logger.log(logging.Level.INFO, message, error, stackTrace);
+  void info(Object? message, [Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
+    _logger.info(LogMessage(message, metadata: metadata), error, stackTrace);
   }
 
-  /// Logs a message at level [logging.Level.ERROR]. it is used to log error messages.
-  void error(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      _logger.log(logging.Level('ERROR', 1900), message, error, stackTrace);
-
   /// Logs a message at level [logging.Level.VERBOSE]. it is used to log verbose messages.
-  void verbose(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      _logger.log(logging.Level('VERBOSE', 2000), message, error, stackTrace);
+  void verbose(Object? message, [Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) =>
+      _logger.log(logging.Level.ALL, LogMessage(message, metadata: metadata), error, stackTrace);
 
   /// Logs a message at level [logging.Level.SHOUT]. it is used to shout messages.
-  void shout(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      _logger.log(logging.Level('SHOUT', 3000), message, error, stackTrace);
+  void shout(Object? message, [Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) =>
+      _logger.shout(LogMessage(message, metadata: metadata), error, stackTrace);
 
   /// Logs a message at level [logging.Level.WARNING]. it is used to log warning messages.
-  void warning(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      _logger.log(logging.Level.WARNING, message, error, stackTrace);
+  void warning(Object? message, [Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) =>
+      _logger.warning(LogMessage(message, metadata: metadata), error, stackTrace);
 
   /// Logs a message at level [logging.Level.DEBUG]. it is used to log config messages.
-  void debug(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      _logger.log(logging.Level('DEBUG', 100), message, error, stackTrace);
+  void debug(Object? message, [Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) =>
+      _logger.fine(LogMessage(message, metadata: metadata), error, stackTrace);
 
   /// Logs a message at level [logging.Level.SEVERE]. it is used to log severe messages.
-  void severe(Object? message, [Object? error, StackTrace? stackTrace]) =>
-      _logger.log(logging.Level.SEVERE, message, error, stackTrace);
+  void severe(Object? message, [Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) =>
+      _logger.severe(LogMessage(message, metadata: metadata), error, stackTrace);
+}
+
+/// The [Printer] class is used as an interface for the different printers.
+abstract class Printer {
+  
+  /// The [print] method is used to print a log record.
+  void print(logging.LogRecord record, String prefix);
+
+  /// The [printErrors] method is used to print a log record with errors.
+  void printErrors(logging.LogRecord record, String prefix);
+
+}
+
+/// The [LogMessage] class is used to create a new instance of the [LogMessage] class.
+final class LogMessage {
+
+  /// The [message] of the log message.
+  final Object? message;
+  /// The [metadata] of the log message.
+  final Map<String, dynamic>? metadata;
+
+  /// The [LogMessage] constructor is used to create a new instance of the [LogMessage] class.
+  LogMessage(this.message, {this.metadata});
+
 }
