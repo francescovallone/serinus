@@ -58,11 +58,6 @@ class LoggerService {
       }
     });
   }
-
-  /// The [getLogger] method is used to get a logger with a specific name.
-  Logger getLogger(String name) {
-    return Logger(name);
-  }
 }
 
 /// The [Logger] class is a wrapper around the [logging.Logger] class.

@@ -23,11 +23,11 @@ class ConsolePrinter extends Printer {
     final formattedPid = _formatPid(pid, prefix);
     final logLevel = _formatLogLevel(record.level);
     final formattedTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
-    final message = record.message;
+    final message = (record.object as LogMessage?)?.message;
     final loggerName = record.loggerName;
     final formattedMessage =
         '$formattedPid$formattedTime\t$logLevel [$loggerName] $message';
-    stdout.writeln(formattedMessage);
+    stdout.nonBlocking.writeln(formattedMessage);
   }
 
   String _formatErrorMessage(
@@ -46,13 +46,13 @@ class ConsolePrinter extends Printer {
     final formattedPid = _formatPid(pid, prefix);
     final logLevel = _formatLogLevel(record.level);
     final loggerName = record.loggerName;
-    final message = record.message;
+    final message = (record.object as LogMessage?)?.message.toString() ?? '';
     final formattedTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
     final error = record.error;
     final stackTrace = record.stackTrace;
     final errorMessage = _formatErrorMessage(message, error, stackTrace);
     final formattedMessage =
         '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage';
-    stderr.writeln(formattedMessage);
+    stderr.nonBlocking.writeln(formattedMessage);
   }
 }
