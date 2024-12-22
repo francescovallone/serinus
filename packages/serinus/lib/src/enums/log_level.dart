@@ -23,7 +23,7 @@ enum LogLevel implements Comparable<LogLevel> {
   const LogLevel(this.value);
 
   /// The [isLogLevelEnabled] method is used to check if a log level is enabled and the message should be logged.
-  static isLogLevelEnabled(Set<LogLevel> levels, LogLevel targetLevel) {
+  static bool isLogLevelEnabled(Set<LogLevel> levels, LogLevel targetLevel) {
     final sorted = levels.toList()..sort();
     return sorted.first.compareTo(targetLevel) <= 0;
   }
