@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- chore: update dependencies to the latest version
+
 ## 1.0.1
 
 - chore: update dependencies to the latest version
