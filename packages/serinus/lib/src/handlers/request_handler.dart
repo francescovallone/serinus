@@ -350,7 +350,7 @@ class RequestHandler extends Handler {
           if (bodyValue != null) bodyValue,
           ...context.params.values
         ]);
-        if(result is Future) {
+        if (result is Future) {
           result = await result;
         }
       }

@@ -75,9 +75,9 @@ class Request {
   ContentType get contentType => _original.contentType;
 
   /// The host of the request.
-  /// 
+  ///
   /// It returns a concatenated string of the host and the port.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final host = request.host; /// localhost:3000
@@ -85,9 +85,9 @@ class Request {
   String get host => '${_original.host}:${_original.port}';
 
   /// The hostname of the request.
-  /// 
+  ///
   /// It returns the host of the request.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final hostname = request.hostname; /// localhost
