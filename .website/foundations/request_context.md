@@ -15,7 +15,7 @@ The `RequestContext` class has the following properties:
 | **headers** | A map of headers that were sent in the request. |
 | **params** | A map of path parameters that were sent in the request. |
 | **query** | A map of query parameters that were sent in the request. |
-| **body** | The body of the request. |
+| **body** | The body of the request. [Read more](body) |
 | **path** | The path of the request that triggered the handler |
 | **res** | Utility class to interact with the response headers and statusCode. |
 
