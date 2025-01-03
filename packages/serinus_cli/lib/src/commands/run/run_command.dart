@@ -95,26 +95,22 @@ class RunCommand extends Command<int> {
       },
     );
     progress?.complete();
-    process.stdout.transform(utf8.decoder).listen(
-          (data) {
-            if(data.endsWith('\n')) {
-              data = data.substring(0, data.length - 1);
-            }
-            _logger?.info(
-              data,
-            );
-          }
-        );
-    process.stderr.transform(utf8.decoder).listen(
-          (data) {
-            if(data.endsWith('\n')) {
-              data = data.substring(0, data.length - 1);
-            }
-            _logger?.err(
-              data,
-            );
-          }
-        );
+    process.stdout.transform(utf8.decoder).listen((data) {
+      if (data.endsWith('\n')) {
+        data = data.substring(0, data.length - 1);
+      }
+      _logger?.info(
+        data,
+      );
+    });
+    process.stderr.transform(utf8.decoder).listen((data) {
+      if (data.endsWith('\n')) {
+        data = data.substring(0, data.length - 1);
+      }
+      _logger?.err(
+        data,
+      );
+    });
     return process;
   }
 

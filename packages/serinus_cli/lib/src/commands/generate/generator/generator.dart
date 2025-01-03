@@ -71,9 +71,11 @@ class Generator {
             "\nimport '${sameFolder ? fileName : filePath}';\n",
           );
         }
-        entrypointFile!.writeAsStringSync(DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion,
-        ).format(replaced),);
+        entrypointFile!.writeAsStringSync(
+          DartFormatter(
+            languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+          ).format(replaced),
+        );
       }
     }
   }

@@ -81,25 +81,27 @@ class GenerateModelsCommand extends Command<int> {
     String? output,
   ]) async {
     final modelProvider = File('${output ?? path}/lib/model_provider.dart');
-    final modelsConfig =
-        Map<String, dynamic>.from(config['models'] as Map<dynamic, dynamic>? ?? {});
+    final modelsConfig = Map<String, dynamic>.from(
+        config['models'] as Map<dynamic, dynamic>? ?? {});
     if (!modelProvider.existsSync()) {
       modelProvider.createSync(recursive: true);
     }
     final fromKeywords = (modelsConfig['deserialize_keywords'] as YamlList?)
-        ?.nodes
-        .map(
-          (e) =>
-              Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
-        )
-        .toList() ?? [];
+            ?.nodes
+            .map(
+              (e) => Map<dynamic, dynamic>.fromEntries(
+                  (e.value as YamlMap).entries),
+            )
+            .toList() ??
+        [];
     final toKeywords = (modelsConfig['serialize_keywords'] as YamlList?)
-        ?.nodes
-        .map(
-          (e) =>
-              Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
-        )
-        .toList() ?? [];
+            ?.nodes
+            .map(
+              (e) => Map<dynamic, dynamic>.fromEntries(
+                  (e.value as YamlMap).entries),
+            )
+            .toList() ??
+        [];
     final deserializeKeywords = List<DeserializeKeyword>.of(
       fromKeywords.map<DeserializeKeyword>(
         (Map<dynamic, dynamic> e) => DeserializeKeyword(

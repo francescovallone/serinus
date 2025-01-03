@@ -17,12 +17,13 @@ Future<Map<String, dynamic>> getProjectConfiguration(Logger logger,
   final pubspecContent = await pubspec.readAsString();
   final pubspecYaml = loadYaml(pubspecContent) as YamlMap;
   final pubspecMap = Map<String, dynamic>.from(
-      Map<dynamic, dynamic>.fromEntries(pubspecYaml.entries)['serinus']
-              as Map? ??
-          {},);
+    Map<dynamic, dynamic>.fromEntries(pubspecYaml.entries)['serinus'] as Map? ??
+        {},
+  );
   if (pubspecMap.isEmpty) {
     logger.warn('No serinus configuration found in pubspec.yaml');
-    pubspecMap['entrypoint'] = 'bin/${pubspecYaml['name'] as String? ?? 'serinus_app'}.dart';
+    pubspecMap['entrypoint'] =
+        'bin/${pubspecYaml['name'] as String? ?? 'serinus_app'}.dart';
   }
   if (configFile.existsSync()) {
     logger

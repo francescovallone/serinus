@@ -151,8 +151,12 @@ class GenerateClientCommand extends Command<int> {
       config,
       _logger,
     );
-    await _generateClientCode(language, httpClient, controllers,
-        config['client']?['verbose'] as bool? ?? argResults.flag('verbose'),);
+    await _generateClientCode(
+      language,
+      httpClient,
+      controllers,
+      config['client']?['verbose'] as bool? ?? argResults.flag('verbose'),
+    );
     return ExitCode.success.code;
   }
 
