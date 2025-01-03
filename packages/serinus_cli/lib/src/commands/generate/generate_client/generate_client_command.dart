@@ -7,10 +7,9 @@ import 'package:dart_style/dart_style.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:serinus_cli/src/commands/generate/generate_client/controllers_analyzer.dart';
+import 'package:serinus_cli/src/commands/generate/recase.dart';
 import 'package:serinus_cli/src/utils/config.dart';
 import 'package:serinus_cli/src/utils/extensions.dart';
-
-import '../recase.dart';
 
 final dartTypesRegex = RegExp(
     r'\b(?!int\b|Future\b|double\b|num\b|bool\b|String\b|null\b|void\b|List\b|Map\b)\w+');
@@ -123,13 +122,13 @@ class GenerateClientCommand extends Command<int> {
     //       defaultValue: language == 'JS/TS' ? 'fetch' : 'dio',
     //     );
     if (!libraries.containsKey(httpClient)) {
-      _logger?.err(
+      _logger.err(
           '''The http client $httpClient is not supported. If you want it to be supported please click here: https://github.com/francescovallone/serinus/issues/new?assignees=&labels=feature&projects=&template=feature.md&title=feat%3A+Add%20$httpClient%20support%20to%20the%20client%20generation%20command''');
       return ExitCode.config.code;
     }
-    if (!Map<String, String>.from(config['dependencies'] as Map)
+    if (!Map<String, String>.from(config['dependencies'] as Map? ?? {})
         .containsKey(httpClient)) {
-      _logger?.warn(
+      _logger.warn(
           'The choosen http client does not exist in your pubspec! Please add it using "dart pub add $httpClient"!');
     }
     final files = await _recursiveGetFiles(
@@ -144,16 +143,16 @@ class GenerateClientCommand extends Command<int> {
     final routes = await analyzer.analyzeRoutes(
       routeFiles,
       config,
-      _logger!,
+      _logger,
     );
     final controllers = await analyzer.analyzeControllers(
       controllerFiles,
       routes,
       config,
-      _logger!,
+      _logger,
     );
     await _generateClientCode(language, httpClient, controllers,
-        config['client']['verbose'] as bool? ?? argResults.flag('verbose'));
+        config['client']?['verbose'] as bool? ?? argResults.flag('verbose'),);
     return ExitCode.success.code;
   }
 
@@ -341,7 +340,9 @@ _isInitialized = true;
         }),
       );
     });
-    final content = DartFormatter().format(
+    final content = DartFormatter(
+      languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+    ).format(
       library
           .accept(
             DartEmitter(
@@ -457,7 +458,9 @@ return client.${e.method!.toLowerCase()}<${returnType?.replaceAll('Future<', '')
           }),
         );
       });
-      final content = DartFormatter().format(
+      final content = DartFormatter(
+        languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+      ).format(
         library
             .accept(
               DartEmitter(

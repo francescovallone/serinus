@@ -81,6 +81,7 @@ class RunCommand extends Command<int> {
     final progress = _logger?.progress(
       '${restarting ? 'Res' : 'S'}tarting your application...',
     );
+    print(entrypoint);
     final mainFile = File(
       path.join(Directory.current.path, entrypoint),
     );
@@ -95,14 +96,24 @@ class RunCommand extends Command<int> {
     );
     progress?.complete();
     process.stdout.transform(utf8.decoder).listen(
-          (data) => _logger?.info(
-            data.replaceAll('\n', ''),
-          ),
+          (data) {
+            if(data.endsWith('\n')) {
+              data = data.substring(0, data.length - 1);
+            }
+            _logger?.info(
+              data,
+            );
+          }
         );
     process.stderr.transform(utf8.decoder).listen(
-          (data) => _logger?.info(
-            data.replaceAll('\n', ''),
-          ),
+          (data) {
+            if(data.endsWith('\n')) {
+              data = data.substring(0, data.length - 1);
+            }
+            _logger?.err(
+              data,
+            );
+          }
         );
     return process;
   }

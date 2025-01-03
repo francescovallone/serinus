@@ -32,7 +32,7 @@ class BuildCommand extends Command<int> {
       return config['error'] as int;
     }
     final entrypoint = config['entrypoint'] as String? ?? 'bin/main.dart';
-    final progress = _logger?.progress('Building application...');
+    final progress = _logger.progress('Building application...');
     final dist = Directory('dist');
     if (!dist.existsSync()) {
       dist.createSync();
@@ -46,7 +46,7 @@ class BuildCommand extends Command<int> {
       final lines = data.split('\n');
       for (final line in lines) {
         if (line.isNotEmpty) {
-          _logger?.info(line);
+          _logger.info(line);
         }
       }
     });
@@ -55,12 +55,12 @@ class BuildCommand extends Command<int> {
       final lines = data.split('\n');
       for (final line in lines) {
         if (line.isNotEmpty) {
-          _logger?.err(line);
+          _logger.err(line);
         }
       }
-      progress?.fail('Failed to build application');
+      progress.fail('Failed to build application');
     });
-    progress?.complete('Application built successfully!');
+    progress.complete('Application built successfully!');
     return ExitCode.success.code;
   }
 }
