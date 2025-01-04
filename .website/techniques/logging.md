@@ -28,14 +28,14 @@ This will print (if you have the default logger service):
 
 ## Change the logger prefix
 
-You can change the prefix of the logger by using the `setLoggerPrefix` method from your application.
+You can change the prefix of the logger by using the `loggerPrefix` method from your application.
 
 ```dart
 void main(List<String> arguments) async {
   SerinusApplication application = await serinus.createApplication(
       entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
-  application.setLoggerPrefix('MyApp');
+  application.loggerPrefix('MyApp');
   await application.serve();
 }
 ```
