@@ -449,10 +449,11 @@ packages:
   serinus:
     dependency: "direct main"
     description:
-      path: ".."
-      relative: true
-    source: path
-    version: "1.0.1"
+      name: serinus
+      sha256: dd1c007826f6c655a6b3cf4ab60686de39b66d8ae0db10f5cb502990869cbfa3
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
   shelf:
     dependency: transitive
     description:
