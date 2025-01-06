@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: acanthis
-      sha256: "027bd866392748368ff992c58a7d17143a6f4257425fc03d113252c04786ba5d"
+      sha256: "801eca9cd9cabdb353cce7b268baa326cb35944767d8dda43456d5a3cb4de4d5"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.3"
+    version: "1.0.0"
   analyzer:
     dependency: transitive
     description:
@@ -101,10 +101,10 @@ packages:
     dependency: transitive
     description:
       name: email_validator
-      sha256: e9a90f27ab2b915a27d7f9c2a7ddda5dd752d6942616ee83529b686fc086221b
+      sha256: b19aa5d92fdd76fbc65112060c94d45ba855105a28bb6e462de7ff03b12fa1fb
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.17"
+    version: "3.0.0"
   encrypt:
     dependency: transitive
     description:
@@ -285,10 +285,10 @@ packages:
     dependency: "direct main"
     description:
       name: serinus
-      sha256: "400141b320b53f63f747b7d893dc68ff08aa47de7285c0094ab01cebecf9cc89"
+      sha256: dd1c007826f6c655a6b3cf4ab60686de39b66d8ae0db10f5cb502990869cbfa3
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.3"
   shelf:
     dependency: transitive
     description:
