@@ -8,7 +8,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  serinus: ^0.6.0
+  serinus: ">=0.6.0 <2.0.0"
   frontier: ^0.0.1
 
 dev_dependencies:
