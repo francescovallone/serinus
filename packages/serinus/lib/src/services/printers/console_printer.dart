@@ -1,7 +1,8 @@
-import 'dart:io' show pid, stdout, stderr;
+import 'dart:io' show IOSink, pid, stderr, stdout;
 
 import 'package:intl/intl.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../../../serinus.dart';
 
@@ -9,6 +10,15 @@ import '../../../serinus.dart';
 class ConsolePrinter extends Printer {
   /// The [ConsolePrinter] constructor is used to create a new instance of the [ConsolePrinter] class.
   ConsolePrinter();
+  
+  IOSink _channel = stdout.nonBlocking;
+
+  @override
+  IOSink get channel => _channel;
+
+  @visibleForTesting
+  // ignore: public_member_api_docs
+  set channel(IOSink value) => _channel = value;
 
   String _formatPid(int pid, String prefix) {
     return '[$prefix] $pid  - ';
@@ -27,7 +37,7 @@ class ConsolePrinter extends Printer {
     final loggerName = record.loggerName;
     final formattedMessage =
         '$formattedPid$formattedTime\t$logLevel [$loggerName] $message';
-    stdout.nonBlocking.writeln(formattedMessage);
+    channel.writeln(formattedMessage);
   }
 
   String _formatErrorMessage(
@@ -53,6 +63,6 @@ class ConsolePrinter extends Printer {
     final errorMessage = _formatErrorMessage(message, error, stackTrace);
     final formattedMessage =
         '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage';
-    stderr.nonBlocking.writeln(formattedMessage);
+    channel.writeln(formattedMessage);
   }
 }

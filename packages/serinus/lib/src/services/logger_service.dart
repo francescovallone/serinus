@@ -119,7 +119,11 @@ class Logger {
 }
 
 /// The [Printer] class is used as an interface for the different printers.
-abstract class Printer {
+abstract class Printer<T> {
+
+  /// The [channel] where the logs will be displayed or saved.
+  T get channel;
+  
   /// The [print] method is used to print a log record.
   void print(logging.LogRecord record, String prefix);
 
