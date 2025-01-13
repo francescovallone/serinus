@@ -68,7 +68,6 @@ final class Explorer {
         moduleToken:
             module.token.isEmpty ? module.runtimeType.toString() : module.token,
         isStatic: spec.handler is! Function,
-        queryParameters: spec.route.queryParameters,
         spec: spec,
       ));
       logger.info('Mapped {$routePath, $routeMethod} route');

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import '../containers/module_container.dart';
 import '../containers/router.dart';
@@ -31,22 +30,24 @@ abstract class Handler {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
       final error = utf8.encode(jsonEncode(e.toJson()));
-      final properties = ResponseProperties()
-        ..statusCode = e.statusCode
-        ..contentType = ContentType.json;
+      final currentContext = buildRequestContext(
+        [],
+        Request(request),
+        response,
+      );
       request.emit(
         RequestEvent.error,
         EventData(
           data: error,
-          properties: properties,
+          properties: currentContext.res,
           exception: e,
         ),
       );
       response.end(
-          data: error,
-          config: config,
-          properties: properties,
-          request: Request(request));
+        data: error,
+        config: config,
+        context: currentContext,
+      );
       return;
     }
   }

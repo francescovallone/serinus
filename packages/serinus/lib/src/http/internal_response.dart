@@ -71,13 +71,18 @@ class InternalResponse {
 
   /// This method is used to set the content type of the response.
   void contentType(ContentType contentType) {
-    _original.headers.set(HttpHeaders.contentTypeHeader, contentType.value);
+    headers({
+      HttpHeaders.contentTypeHeader: contentType.toString(),
+    });
   }
 
   /// This method is used to set the headers of the response.
   void headers(Map<String, String> headers) {
     for (final key in headers.keys) {
-      _original.headers.set(key, headers[key]!);
+      final currentValue = _original.headers.value(key);
+      if(currentValue == null || currentValue != headers[key]) {
+        _original.headers.set(key, headers[key]!);
+      }
     }
   }
 
@@ -95,22 +100,21 @@ class InternalResponse {
   Future<void> end({
     required Object data,
     required ApplicationConfig config,
-    RequestContext? context,
-    Request? request,
+    required RequestContext context,
     String? traced,
-    ResponseProperties? properties,
   }) async {
     config.tracerService.addEvent(
       name: TraceEvents.onResponse,
       begin: true,
-      request: context?.request ?? request,
-      traced: traced ?? context?.request.id ?? request?.id ?? '',
+      request: context.request,
+      traced: traced ?? context.request.id,
     );
     for (final hook in config.hooks.reqResHooks) {
-      await hook.onResponse((context?.request ?? request)!, data,
-          context?.res ?? properties ?? ResponseProperties());
+      await hook.onResponse(context.request, data, context.res);
     }
-    _original.cookies.addAll(context?.res.cookies ?? properties?.cookies ?? []);
+    _original.cookies.addAll([
+      ...context.res.cookies,
+    ]);
     if (data is StreamedResponse) {
       await _original.flush();
       _original.close();
@@ -120,56 +124,49 @@ class InternalResponse {
     if (isView && config.viewEngine == null) {
       throw StateError('ViewEngine is required to render views');
     }
-    final resRedirect = context?.res.redirect ?? properties?.redirect;
+    final resRedirect = context.res.redirect;
     if (resRedirect != null) {
       headers({
         HttpHeaders.locationHeader: resRedirect.location,
-        ...context?.res.headers ?? properties?.headers ?? {}
+        ...context.res.headers
       });
       return redirect(resRedirect.location, resRedirect.statusCode);
     }
-    final statusCode =
-        (context?.res.statusCode ?? properties?.statusCode ?? 200);
+    final statusCode = context.res.statusCode;
     status(statusCode);
     if (statusCode >= 400) {}
     headers({
-      ...context?.res.headers ?? properties?.headers ?? {},
+      ...context.res.headers,
       HttpHeaders.transferEncodingHeader: 'chunked'
     });
     Uint8List responseBody = Uint8List(0);
-    contentType(context?.res.contentType ??
-        properties?.contentType ??
+    contentType(context.res.contentType ?? 
         ContentType.text);
     if (isView) {
       final rendered = await (data is View
           ? config.viewEngine!.render(data)
           : config.viewEngine!.renderString(data as ViewString));
       responseBody = utf8.encode(rendered);
-      contentType(context?.res.contentType ??
-          properties?.contentType ??
-          ContentType.html);
+      contentType(context.res.contentType ?? ContentType.html);
       headers({
         HttpHeaders.contentLengthHeader: responseBody.length.toString(),
       });
     }
     final coding = _original.headers['transfer-encoding']?.join(';');
     if (data is File) {
-      contentType(context?.res.contentType ??
+      contentType(context.res.contentType ??
           ContentType.parse('application/octet-stream'));
       final readPipe = data.openRead();
       return sendStream(readPipe);
     }
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-    } else if ((context?.res.statusCode ??
-                properties?.statusCode ??
-                ResponseProperties().statusCode) >=
+    } else if (statusCode >=
             200 &&
-        (context?.res.statusCode ?? properties?.statusCode) != 204 &&
-        (context?.res.statusCode ?? properties?.statusCode) != 304 &&
-        (context?.res.contentLength ?? properties?.contentLength) == null &&
-        (context?.res.contentType?.mimeType ??
-                properties?.contentType?.mimeType) !=
+        statusCode != 204 &&
+        statusCode != 304 &&
+        context.res.contentLength == null &&
+        context.res.contentType?.mimeType !=
             'multipart/byteranges') {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
     }
@@ -182,12 +179,12 @@ class InternalResponse {
     }
     await config.tracerService.addSyncEvent(
       name: TraceEvents.onResponse,
-      request: request,
+      request: context.request,
       context: context,
-      traced: traced ?? context?.request.id ?? request?.id ?? '',
+      traced: traced ?? context.request.id,
     );
     headers({
-      ...context?.res.headers ?? properties?.headers ?? {},
+      ...context.res.headers,
       HttpHeaders.contentLengthHeader: responseBody.length.toString()
     });
     return send(responseBody);

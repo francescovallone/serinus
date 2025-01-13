@@ -9,9 +9,6 @@ class Route implements Hookable {
   /// The HTTP method of the route.
   final HttpMethod method;
 
-  /// The query parameters of the route.
-  final Map<String, Type> queryParameters;
-
   /// The [version] property contains the version of the route.
   int? get version => null;
 
@@ -19,7 +16,6 @@ class Route implements Hookable {
   const Route({
     required this.path,
     required this.method,
-    this.queryParameters = const {},
     this.metadata = const [],
   });
 

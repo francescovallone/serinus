@@ -65,7 +65,6 @@ class RequestHandler extends Handler {
     final injectables =
         modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
     final routeSpec = routeData.spec;
-    final controller = routeData.controller;
     final route = routeSpec.route;
     final handler = routeSpec.handler;
     final schema = routeSpec.schema;
@@ -73,9 +72,8 @@ class RequestHandler extends Handler {
         injectables.providers.addAllIfAbsent(modulesContainer.globalProviders);
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest, response);
+    context.metadata = await _resolveMetadata(routeData.metadata, context);
     final body = getBodyValue(context, routeSpec.body);
-    context.metadata = await _resolveMetadata(controller.metadata, context);
-    context.metadata.addAll(await _resolveMetadata(route.metadata, context));
     final bodyValue = body ?? context.body.value;
     if (route is OnTransform) {
       await executeOnTransform(context, route);
@@ -92,7 +90,6 @@ class RequestHandler extends Handler {
         return;
       }
     }
-
     await executeBeforeHandle(context, route);
     Object? result = await executeHandler(
         context, route, handler, routeData.isStatic, bodyValue, routeSpec.body);
@@ -114,7 +111,6 @@ class RequestHandler extends Handler {
       data: result ?? 'null',
       config: config,
       context: context,
-      request: wrappedRequest,
       traced: 'r-${route.runtimeType}',
     );
 
@@ -195,7 +191,6 @@ class RequestHandler extends Handler {
               data: data!,
               config: config,
               context: context,
-              request: context.request,
               traced: 'm-${middlewares.elementAt(i).runtimeType}');
           request.emit(
             RequestEvent.close,
