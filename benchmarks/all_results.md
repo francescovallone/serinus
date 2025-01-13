@@ -1,4 +1,4 @@
  | Server | Req/sec | Trans/sec | Req/sec DIFF | Avg Latency |
  |:-|:-|:-|:-|:-|
- | serinus | 29499.5 | 72.85 KB/s | +0.00% | 3.389893 |
- | dart_http | 37617.8 | 95.35 KB/s | +27.52% | 2.658316 |
+ | serinus | 27055.63 | 5.50MB | +0.00% | 9.33 |
+ | dart_http | 34407.15 | 6.50MB | +27.17% | 6.14 |

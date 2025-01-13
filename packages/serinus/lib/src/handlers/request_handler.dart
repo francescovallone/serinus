@@ -74,12 +74,12 @@ class RequestHandler extends Handler {
         buildRequestContext(scopedProviders, wrappedRequest, response);
     context.metadata = await _resolveMetadata(routeData.metadata, context);
     final body = getBodyValue(context, routeSpec.body);
-    final bodyValue = body ?? context.body.value;
+    dynamic bodyValue = body ?? context.body.value;
     if (route is OnTransform) {
       await executeOnTransform(context, route);
     }
     if (schema != null) {
-      await executeOnParse(context, schema, route, bodyValue);
+      bodyValue = await executeOnParse(context, schema, route, bodyValue);
     }
 
     final middlewares = injectables.filterMiddlewaresByRoute(
@@ -255,7 +255,7 @@ class RequestHandler extends Handler {
   /// This method will parse the request body, query, params and headers.
   /// Also it will atomically add the parsed values to the request context.
   /// It means that if any of the values are not present in the request, they will not be added to the context.
-  Future<void> executeOnParse(RequestContext context, ParseSchema schema,
+  Future<dynamic> executeOnParse(RequestContext context, ParseSchema schema,
       Route route, dynamic body) async {
     config.tracerService.addEvent(
         name: TraceEvents.onParse,
@@ -288,6 +288,7 @@ class RequestHandler extends Handler {
         request: context.request,
         context: context,
         traced: 'r-${route.runtimeType}');
+    return body;
   }
 
   /// Executes the [beforeHandle] hook from the route

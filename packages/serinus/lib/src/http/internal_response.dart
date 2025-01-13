@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
+import 'package:http_parser/http_parser.dart';
 
 import '../contexts/contexts.dart';
 import '../core/core.dart';
@@ -50,6 +51,9 @@ class InternalResponse {
   void write(String data) {
     _original.write(data);
   }
+  
+  /// A simple wrapper for [HttpResponse.cookies].
+  List<Cookie> get cookies => _original.cookies;
 
   /// This method is used to send a stream of data to the response.
   ///
@@ -86,6 +90,12 @@ class InternalResponse {
     }
   }
 
+  Future<void> flushAndClose() async {
+    await _original.flush();
+    _original.close();
+    _isClosed = true;
+  }
+
   /// This method is used to get the current headers of the response.
   HttpHeaders get currentHeaders => _original.headers;
 
@@ -103,45 +113,45 @@ class InternalResponse {
     required RequestContext context,
     String? traced,
   }) async {
-    config.tracerService.addEvent(
-      name: TraceEvents.onResponse,
-      begin: true,
-      request: context.request,
-      traced: traced ?? context.request.id,
-    );
-    for (final hook in config.hooks.reqResHooks) {
-      await hook.onResponse(context.request, data, context.res);
-    }
-    _original.cookies.addAll([
-      ...context.res.cookies,
-    ]);
-    if (data is StreamedResponse) {
-      await _original.flush();
-      _original.close();
-      return;
-    }
-    final isView = data is View || data is ViewString;
-    if (isView && config.viewEngine == null) {
-      throw StateError('ViewEngine is required to render views');
-    }
-    final resRedirect = context.res.redirect;
-    if (resRedirect != null) {
-      headers({
-        HttpHeaders.locationHeader: resRedirect.location,
-        ...context.res.headers
-      });
-      return redirect(resRedirect.location, resRedirect.statusCode);
-    }
-    final statusCode = context.res.statusCode;
-    status(statusCode);
-    if (statusCode >= 400) {}
-    headers({
-      ...context.res.headers,
-      HttpHeaders.transferEncodingHeader: 'chunked'
-    });
-    Uint8List responseBody = Uint8List(0);
-    contentType(context.res.contentType ?? 
-        ContentType.text);
+    // Normale Componente
+    // config.tracerService.addEvent(
+    //   name: TraceEvents.onResponse,
+    //   begin: true,
+    //   request: context.request,
+    //   traced: traced ?? context.request.id,
+    // );
+    // for (final hook in config.hooks.reqResHooks) {
+    //   await hook.onResponse(context.request, data, context.res);
+    // }
+    // _original.cookies.addAll([
+    //   ...context.res.cookies,
+    // ]);
+    /// BlockingComponent
+    // if (data is StreamedResponse) {
+    //   flushAndClose();
+    //   return;
+    // }
+    /// BlockingComponent
+    // final resRedirect = context.res.redirect;
+    // if (resRedirect != null) {
+    //   headers({
+    //     HttpHeaders.locationHeader: resRedirect.location,
+    //     ...context.res.headers
+    //   });
+    //   return redirect(resRedirect.location, resRedirect.statusCode);
+    // }
+    /// NormalComponent
+    // final statusCode = context.res.statusCode;
+    // status(statusCode);
+    // headers({
+    //   ...context.res.headers,
+    //   HttpHeaders.transferEncodingHeader: 'chunked'
+    // });
+    // Uint8List responseBody = Uint8List(0);
+    // contentType(context.res.contentType ?? 
+    //     ContentType.text);
+    /// ReturningComponent
+
     if (isView) {
       final rendered = await (data is View
           ? config.viewEngine!.render(data)
@@ -152,14 +162,24 @@ class InternalResponse {
         HttpHeaders.contentLengthHeader: responseBody.length.toString(),
       });
     }
-    final coding = _original.headers['transfer-encoding']?.join(';');
+    /// BlockingComponent
     if (data is File) {
       contentType(context.res.contentType ??
           ContentType.parse('application/octet-stream'));
       final readPipe = data.openRead();
       return sendStream(readPipe);
     }
+    /// NormalComponent
+    if (data.isPrimitive()) {
+      responseBody = utf8.encode(data.toString());
+    } else if (data is Uint8List) {
+      responseBody = data;
+    } else if (!isView) {
+      responseBody = utf8.encode(jsonEncode(data));
+    }
+    final coding = _original.headers['transfer-encoding']?.join(';');
     if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
+      responseBody = Uint8List.fromList(chunkedCoding.decoder.convert(responseBody.toList()));
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
     } else if (statusCode >=
             200 &&
@@ -169,13 +189,6 @@ class InternalResponse {
         context.res.contentType?.mimeType !=
             'multipart/byteranges') {
       _original.headers.set(HttpHeaders.transferEncodingHeader, 'chunked');
-    }
-    if (data.isPrimitive()) {
-      responseBody = utf8.encode(data.toString());
-    } else if (data is Uint8List) {
-      responseBody = data;
-    } else if (!isView) {
-      responseBody = utf8.encode(jsonEncode(data));
     }
     await config.tracerService.addSyncEvent(
       name: TraceEvents.onResponse,

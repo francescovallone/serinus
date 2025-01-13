@@ -11,7 +11,7 @@ import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
 import '../handlers/handler.dart';
 import '../http/http.dart';
-import '../injector/explorer.dart';
+import '../containers/explorer.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
