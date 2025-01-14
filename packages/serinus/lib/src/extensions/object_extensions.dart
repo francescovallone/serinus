@@ -7,8 +7,6 @@ extension JsonParsing on Object {
   /// This method is used to check if the object is a primitive type.
   bool isPrimitive() {
     return this is String ||
-        this is int ||
-        this is double ||
         this is bool ||
         this is num;
   }

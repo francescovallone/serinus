@@ -7,6 +7,7 @@ import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
+import 'response_handler.dart';
 
 /// The base class for all handlers in the application
 abstract class Handler {
@@ -38,16 +39,13 @@ abstract class Handler {
       request.emit(
         RequestEvent.error,
         EventData(
-          data: error,
+          data: e.toJson(),
           properties: currentContext.res,
           exception: e,
         ),
       );
-      response.end(
-        data: error,
-        config: config,
-        context: currentContext,
-      );
+      final resHandler = ResponseHandler(response, currentContext, config, null);
+      await resHandler.handle(error);
       return;
     }
   }

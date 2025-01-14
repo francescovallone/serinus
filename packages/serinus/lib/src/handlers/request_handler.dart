@@ -13,6 +13,7 @@ import '../http/http.dart';
 import '../mixins/mixins.dart';
 import '../services/json_utils.dart';
 import 'handler.dart';
+import 'response_handler.dart';
 
 /// The [RequestHandler] class is used to handle the HTTP requests.
 class RequestHandler extends Handler {
@@ -107,12 +108,8 @@ class RequestHandler extends Handler {
       );
     }
 
-    await response.end(
-      data: result ?? 'null',
-      config: config,
-      context: context,
-      traced: 'r-${route.runtimeType}',
-    );
+    final resHandler = ResponseHandler(response, context, config, 'r-${route.runtimeType}');
+    await resHandler.handle(result ?? 'null');
 
     request.emit(
       RequestEvent.close,
@@ -187,11 +184,8 @@ class RequestHandler extends Handler {
             RequestEvent.data,
             EventData(data: data, properties: context.res),
           );
-          await response.end(
-              data: data!,
-              config: config,
-              context: context,
-              traced: 'm-${middlewares.elementAt(i).runtimeType}');
+          final resHandler = ResponseHandler(response, context, config, 'm-${middlewares.elementAt(i).runtimeType}');
+          await resHandler.handle(data!);
           request.emit(
             RequestEvent.close,
             EventData(
