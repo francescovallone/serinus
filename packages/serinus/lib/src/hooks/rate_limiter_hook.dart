@@ -30,10 +30,11 @@ class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
     return;
   }
 
-    @override
+  @override
   Future<void> beforeHandle(RequestContext context) async {
-    final shouldSkip = context.metadata.values.any((element) => element is SkipRateLimit);
-    if(shouldSkip) {
+    final shouldSkip =
+        context.metadata.values.any((element) => element is SkipRateLimit);
+    if (shouldSkip) {
       return;
     }
     final key = getKey(context.request);
@@ -71,7 +72,6 @@ class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
       });
     }
   }
-  
 }
 
 /// The [RateStorage] class is used by the [RateLimiterHook] to store the rate limiters.
@@ -134,8 +134,6 @@ class ClientRateLimiter {
 
 /// The [SkipRateLimit] class is used to skip the rate limit for a request.
 class SkipRateLimit extends Metadata<bool> {
-  
   /// The [SkipRateLimit] constructor is used to create a new instance of the [SkipRateLimit] class.
-  SkipRateLimit(): super(name: 'SkipRateLimit', value: true);
-
+  SkipRateLimit() : super(name: 'SkipRateLimit', value: true);
 }

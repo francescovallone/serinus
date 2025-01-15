@@ -10,7 +10,6 @@ class Session {
   /// The [Session] constructor is used to create a new instance of the [Session] class.
   Session(this._original);
 
-
   /// This method is used to get a value from the session.
   ///
   /// Returns a value from the session. (dynamic, it can be null)
@@ -19,7 +18,8 @@ class Session {
   }
 
   /// This method is used to get all the values from the session.
-  Map<dynamic, dynamic> get all => Map<dynamic, dynamic>.fromEntries(_original.entries);
+  Map<dynamic, dynamic> get all =>
+      Map<dynamic, dynamic>.fromEntries(_original.entries);
 
   /// This method is used to put a value in the session.
   ///

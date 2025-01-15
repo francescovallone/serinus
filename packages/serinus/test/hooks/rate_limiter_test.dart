@@ -6,7 +6,8 @@ import 'package:test/test.dart';
 class TestController extends Controller {
   TestController({super.path = '/'}) {
     on(Route.get('/'), (context) async => 'ok!');
-    on(Route.get('/skip', metadata: [SkipRateLimit()]), (context) async => 'ok!');
+    on(Route.get('/skip', metadata: [SkipRateLimit()]),
+        (context) async => 'ok!');
   }
 }
 

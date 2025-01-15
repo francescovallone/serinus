@@ -154,7 +154,7 @@ class SerinusApplication extends Application {
       adapter.listen(
         (request, response) {
           handler = requestHandler.handle;
-          if(config.adapters.isNotEmpty) {
+          if (config.adapters.isNotEmpty) {
             for (final adapter in config.adapters.values) {
               if (adapter.canHandle(request)) {
                 handler = handlers[adapter.runtimeType]!.handle;
