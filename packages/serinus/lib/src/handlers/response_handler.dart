@@ -63,13 +63,11 @@ class ResponseHandler{
       throw StateError('ViewEngine is required to render views');
     }
     if (isView) {
-      late String rendered;
       if (data is View) {
-        rendered = await config.viewEngine!.render(data);
+        data = await config.viewEngine!.render(data);
       } else if (data is ViewString) {
-        rendered = await config.viewEngine!.renderString(data);
+        data = await config.viewEngine!.renderString(data);
       }
-      responseBody = utf8.encode(rendered);
       response.contentType(context.res.contentType ?? ContentType.html);
       response.headers({
         HttpHeaders.contentLengthHeader: responseBody.length.toString(),

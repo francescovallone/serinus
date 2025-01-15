@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 import 'dart:typed_data';
 
 import '../contexts/contexts.dart';
@@ -134,12 +133,12 @@ class RequestHandler extends Handler {
     return metadata;
   }
 
-  Future<Object?> _processResult(
-      Object? result, RequestContext context, ApplicationConfig config) async {
+  Object? _processResult(
+      Object? result, RequestContext context, ApplicationConfig config) {
         final modelProvider = config.modelProvider;
     if (result?.canBeJson() ?? false) {
-      result = await Isolate.run(() => JsonUtf8Encoder()
-          .convert(parseJsonToResponse(result, modelProvider)));
+      result = JsonUtf8Encoder()
+          .convert(parseJsonToResponse(result, modelProvider));
       context.res.contentType = context.res.contentType ?? ContentType.json;
     }
     if (modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
@@ -181,7 +180,7 @@ class RequestHandler extends Handler {
             context: context,
             traced: 'm-${middlewares.elementAt(i).runtimeType}');
         if (data != null) {
-          data = await _processResult(data, context, config);
+          data = _processResult(data, context, config);
           request.emit(
             RequestEvent.data,
             EventData(data: data, properties: context.res),
