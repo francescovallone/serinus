@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
-import 'package:http_parser/http_parser.dart';
 
 import '../contexts/contexts.dart';
 import '../core/application_config.dart';
@@ -106,16 +105,17 @@ class ResponseHandler{
       responseBody = utf8.encode(jsonEncode(data));
     }
     final coding = response.currentHeaders['transfer-encoding']?.join(';');
-    if (coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) {
-      responseBody = Uint8List.fromList(chunkedCoding.decoder.convert(responseBody.toList()));
-      response.headers({HttpHeaders.transferEncodingHeader: 'chunked'});
-    } else if (statusCode >=
-            200 &&
+    if (
+      (
+        coding != null && !equalsIgnoreAsciiCase(coding, 'identity')
+      ) || (
+        statusCode >= 200 &&
         statusCode != 204 &&
         statusCode != 304 &&
         context.res.contentLength == null &&
-        context.res.contentType?.mimeType !=
-            'multipart/byteranges') {
+        context.res.contentType?.mimeType != 'multipart/byteranges'
+      )
+    ) {
       response.headers({HttpHeaders.transferEncodingHeader: 'chunked'});
     }
     return responseBody;
