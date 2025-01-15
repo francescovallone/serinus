@@ -6,6 +6,7 @@ import 'package:test/test.dart';
 class TestController extends Controller {
   TestController({super.path = '/'}) {
     on(Route.get('/'), (context) async => 'ok!');
+    on(Route.get('/skip', metadata: [SkipRateLimit()]), (context) async => 'ok!');
   }
 }
 
@@ -47,5 +48,20 @@ void main() {
         await HttpClient().getUrl(Uri.parse('http://localhost:7500/'));
     final response = await request.close();
     expect(response.statusCode, 429);
+  });
+
+  test(
+      'when a rate limit is set and the route has the SkipRateLimit metadata, then the rate limit should be skipped',
+      () async {
+    for (int i = 0; i < 5; ++i) {
+      final request =
+          await HttpClient().getUrl(Uri.parse('http://localhost:7500/skip'));
+      final response = await request.close();
+      expect(response.statusCode, 200);
+    }
+    final request =
+        await HttpClient().getUrl(Uri.parse('http://localhost:7500/skip'));
+    final response = await request.close();
+    expect(response.statusCode, 200);
   });
 }

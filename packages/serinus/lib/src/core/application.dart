@@ -154,10 +154,12 @@ class SerinusApplication extends Application {
       adapter.listen(
         (request, response) {
           handler = requestHandler.handle;
-          for (final adapter in config.adapters.values) {
-            if (adapter.canHandle(request)) {
-              handler = handlers[adapter.runtimeType]!.handle;
-              break;
+          if(config.adapters.isNotEmpty) {
+            for (final adapter in config.adapters.values) {
+              if (adapter.canHandle(request)) {
+                handler = handlers[adapter.runtimeType]!.handle;
+                break;
+              }
             }
           }
           return handler(request, response);

@@ -8,32 +8,29 @@ class Session {
   final HttpSession _original;
 
   /// The [Session] constructor is used to create a new instance of the [Session] class.
-  Session(this._original) : _entries = Map<String, dynamic>.from(_original);
+  Session(this._original);
 
-  final Map<String, dynamic> _entries;
 
   /// This method is used to get a value from the session.
   ///
   /// Returns a value from the session. (dynamic, it can be null)
   dynamic get(String key) {
-    return _entries[key];
+    return _original[key];
   }
 
   /// This method is used to get all the values from the session.
-  Map<String, dynamic> get all => _entries;
+  Map<dynamic, dynamic> get all => Map<dynamic, dynamic>.fromEntries(_original.entries);
 
   /// This method is used to put a value in the session.
   ///
   /// Puts a value in the session.
   void put(String key, dynamic value) {
     _original[key] = value;
-    _entries[key] = value;
   }
 
   /// This method is used to remove a value from the session.
   void remove(String key) {
     _original.remove(key);
-    _entries.remove(key);
   }
 
   /// The id of the session.

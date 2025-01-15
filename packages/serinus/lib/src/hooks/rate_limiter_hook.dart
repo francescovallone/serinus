@@ -7,7 +7,7 @@ import '../http/http.dart';
 import '../mixins/mixins.dart';
 
 /// The [RateLimiterHook] class is a hook that limits the number of requests a client can make.
-class RateLimiterHook extends Hook with OnRequestResponse {
+class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
   /// Maximum number of requests.
   int maxRequests;
 
@@ -27,7 +27,16 @@ class RateLimiterHook extends Hook with OnRequestResponse {
 
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {
-    final key = getKey(request);
+    return;
+  }
+
+    @override
+  Future<void> beforeHandle(RequestContext context) async {
+    final shouldSkip = context.metadata.values.any((element) => element is SkipRateLimit);
+    if(shouldSkip) {
+      return;
+    }
+    final key = getKey(context.request);
     rateLimiter = storage.get(key) ?? storage.add(key, duration);
     final result = rateLimiter!.resetAt.compareTo(DateTime.now()) > 0;
     switch ([result, rateLimiter!.count <= maxRequests]) {
@@ -62,6 +71,7 @@ class RateLimiterHook extends Hook with OnRequestResponse {
       });
     }
   }
+  
 }
 
 /// The [RateStorage] class is used by the [RateLimiterHook] to store the rate limiters.
@@ -120,4 +130,12 @@ class ClientRateLimiter {
     resetAt = DateTime.now().add(duration);
     count = 1;
   }
+}
+
+/// The [SkipRateLimit] class is used to skip the rate limit for a request.
+class SkipRateLimit extends Metadata<bool> {
+  
+  /// The [SkipRateLimit] constructor is used to create a new instance of the [SkipRateLimit] class.
+  SkipRateLimit(): super(name: 'SkipRateLimit', value: true);
+
 }
