@@ -1,7 +1,7 @@
 import 'package:spanner/spanner.dart';
 
-import '../../serinus.dart';
 import '../core/controller.dart';
+import '../core/metadata.dart';
 import '../enums/http_method.dart';
 import '../versioning.dart';
 

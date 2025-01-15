@@ -8,7 +8,7 @@ dynamic parseJsonToResponse(dynamic data, ModelProvider? provider) {
     return null;
   }
 
-  if ((data as Object).isPrimitive()) {
+  if ((data as Object).runtimeType.isPrimitive()) {
     return data;
   }
 

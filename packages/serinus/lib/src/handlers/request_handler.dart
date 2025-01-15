@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import '../contexts/contexts.dart';
@@ -95,7 +96,7 @@ class RequestHandler extends Handler {
     Object? result = await executeHandler(
         context, route, handler, routeData.isStatic, bodyValue, routeSpec.body);
     await executeAfterHandle(context, route, result);
-    result = _processResult(result, context, config);
+    result = await _processResult(result, context, config);
     if (context.res.redirect != null) {
       request.emit(
         RequestEvent.redirect,
@@ -133,16 +134,17 @@ class RequestHandler extends Handler {
     return metadata;
   }
 
-  Object? _processResult(
-      Object? result, RequestContext context, ApplicationConfig config) {
+  Future<Object?> _processResult(
+      Object? result, RequestContext context, ApplicationConfig config) async {
+        final modelProvider = config.modelProvider;
     if (result?.canBeJson() ?? false) {
-      result = JsonUtf8Encoder()
-          .convert(parseJsonToResponse(result, config.modelProvider));
+      result = await Isolate.run(() => JsonUtf8Encoder()
+          .convert(parseJsonToResponse(result, modelProvider)));
       context.res.contentType = context.res.contentType ?? ContentType.json;
     }
-    if (config.modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
+    if (modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
         false) {
-      result = JsonUtf8Encoder().convert(config.modelProvider?.to(result));
+      result = JsonUtf8Encoder().convert(modelProvider?.to(result));
       context.res.contentType = context.res.contentType ?? ContentType.json;
     }
     if (result is Uint8List) {
@@ -179,7 +181,7 @@ class RequestHandler extends Handler {
             context: context,
             traced: 'm-${middlewares.elementAt(i).runtimeType}');
         if (data != null) {
-          data = _processResult(data, context, config);
+          data = await _processResult(data, context, config);
           request.emit(
             RequestEvent.data,
             EventData(data: data, properties: context.res),

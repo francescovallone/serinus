@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/adapters.dart';
+import '../containers/explorer.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -11,7 +12,6 @@ import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
 import '../handlers/handler.dart';
 import '../http/http.dart';
-import '../containers/explorer.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';

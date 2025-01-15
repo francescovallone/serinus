@@ -97,12 +97,14 @@ class ResponseHandler{
   }
 
   Uint8List _convertData(Object data, bool isView, Uint8List responseBody) {
-    if (data.isPrimitive()) {
-      responseBody = utf8.encode(data.toString());
-    } else if (data is Uint8List) {
+    if(data is! Uint8List) {
+      if (data.runtimeType.isPrimitive()) {
+        responseBody = data.toBytes();
+      } else {
+        responseBody = jsonEncode(data).toBytes();
+      }
+    } else {
       responseBody = data;
-    } else if (!isView) {
-      responseBody = utf8.encode(jsonEncode(data));
     }
     final coding = response.currentHeaders['transfer-encoding']?.join(';');
     if (

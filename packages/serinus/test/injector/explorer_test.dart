@@ -1,6 +1,6 @@
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/router.dart';
 import 'package:serinus/src/containers/explorer.dart';
+import 'package:serinus/src/containers/router.dart';
 import 'package:test/test.dart';
 
 import '../mocks/controller_mock.dart';

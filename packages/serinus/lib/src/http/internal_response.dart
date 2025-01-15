@@ -79,6 +79,7 @@ class InternalResponse {
     }
   }
 
+  /// This method is used to flush all the buffered content and then to close the response stream.
   Future<void> flushAndClose() async {
     await _original.flush();
     _original.close();
