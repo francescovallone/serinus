@@ -44,6 +44,7 @@ abstract class Handler {
           exception: e,
         ),
       );
+      currentContext.res.statusCode = e.statusCode;
       final resHandler = ResponseHandler(response, currentContext, config, null);
       await resHandler.handle(error);
       return;

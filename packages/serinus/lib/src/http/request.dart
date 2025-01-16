@@ -40,7 +40,7 @@ class Request {
   Map<String, dynamic> get headers => _original.headers;
 
   /// The query parameters of the request.
-  Map<String, String> get query => _original.queryParameters;
+  Map<String, dynamic> get query => Map.from(_original.queryParameters);
 
   /// The session of the request.
   Session get session => _original.session;
