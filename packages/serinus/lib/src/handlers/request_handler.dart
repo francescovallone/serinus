@@ -74,11 +74,7 @@ class RequestHandler extends Handler {
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest, response);
     context.metadata = await _resolveMetadata(routeData.metadata, context);
-    final body = getBodyValue(context, routeSpec.body);
-    dynamic bodyValue = body ?? context.body.value;
-    if (route is OnTransform) {
-      await executeOnTransform(context, route);
-    }
+    dynamic bodyValue = getBodyValue(context, routeSpec.body) ?? context.body.value;
     if (schema != null) {
       bodyValue = await executeOnParse(context, schema, route, bodyValue);
     }
@@ -139,15 +135,15 @@ class RequestHandler extends Handler {
     if (result?.canBeJson() ?? false) {
       result = JsonUtf8Encoder()
           .convert(parseJsonToResponse(result, modelProvider));
-      context.res.contentType = context.res.contentType ?? ContentType.json;
+      context.res.contentType ??= ContentType.json;
     }
     if (modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
         false) {
       result = JsonUtf8Encoder().convert(modelProvider?.to(result));
-      context.res.contentType = context.res.contentType ?? ContentType.json;
+      context.res.contentType ??= ContentType.json;
     }
     if (result is Uint8List) {
-      context.res.contentType = context.res.contentType ?? ContentType.binary;
+      context.res.contentType ??= ContentType.binary;
     }
     return result;
   }
@@ -228,23 +224,6 @@ class RequestHandler extends Handler {
     }
   }
 
-  /// Executes the [transform] hook from the route
-  Future<void> executeOnTransform(
-      RequestContext context, OnTransform route) async {
-    config.tracerService.addEvent(
-        name: TraceEvents.onTransform,
-        request: context.request,
-        begin: true,
-        context: context,
-        traced: 'r-${route.runtimeType}');
-    await route.transform(context);
-    await config.tracerService.addSyncEvent(
-        name: TraceEvents.onTransform,
-        request: context.request,
-        context: context,
-        traced: 'r-${route.runtimeType}');
-  }
-
   /// Executes the [ParseSchema] from the route
   ///
   /// This method will parse the request body, query, params and headers.
@@ -269,7 +248,10 @@ class RequestHandler extends Handler {
       toParse['params'] = context.request.params;
     }
     if (schema.headers != null) {
-      toParse['headers'] = context.request.headers;
+      toParse['headers'] = {
+        for(final key in schema.headers!.fields.keys)
+          key: context.request.headers[key]
+      };
     }
     if (schema.session != null) {
       toParse['session'] = context.request.session.all;

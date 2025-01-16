@@ -21,7 +21,7 @@ final class WebSocketContext extends BaseContext {
   Map<String, dynamic> get query => request.query;
 
   /// The [headers] property contains the headers of the request.
-  Map<String, dynamic> get headers => request.headers;
+  SerinusHeaders get headers => request.headers;
 
   /// The constructor of the [WebSocketContext] class.
   const WebSocketContext(this._wsAdapter, this.id, super.providers,

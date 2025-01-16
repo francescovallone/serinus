@@ -28,6 +28,9 @@ class RateLimiterHook extends Hook with OnRequestResponse {
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {
     final key = getKey(request);
+    if(key == null) {
+      return;
+    } 
     rateLimiter = storage.get(key) ?? storage.add(key, duration);
     final result = rateLimiter!.resetAt.compareTo(DateTime.now()) > 0;
     switch ([result, rateLimiter!.count <= maxRequests]) {
@@ -45,7 +48,7 @@ class RateLimiterHook extends Hook with OnRequestResponse {
   ///
   /// If the request has the header 'X-Forwarded-For' it will return the value of the header.
   /// Otherwise, it will return the remote address of the client.
-  String getKey(Request request) {
+  String? getKey(Request request) {
     return request.headers['X-Forwarded-For'] ??
         request.clientInfo?.remoteAddress.address;
   }

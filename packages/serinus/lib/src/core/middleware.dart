@@ -82,7 +82,7 @@ class _ShelfMiddleware extends Middleware {
       context.request.method,
       context.request.uri,
       body: context.request.body.toString(),
-      headers: Map<String, Object>.from(context.request.headers),
+      headers: Map<String, Object>.from(context.request.headers.values),
       context: {'shelf.io.connection_info': context.request.clientInfo!},
     );
   }

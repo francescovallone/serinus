@@ -37,7 +37,7 @@ class Request {
   String get method => _original.method;
 
   /// The headers of the request.
-  Map<String, dynamic> get headers => _original.headers;
+  SerinusHeaders get headers => _original.headers;
 
   /// The query parameters of the request.
   Map<String, dynamic> get query => Map.from(_original.queryParameters);
