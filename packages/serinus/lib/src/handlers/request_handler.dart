@@ -95,7 +95,7 @@ class RequestHandler extends Handler {
     Object? result = await executeHandler(
         context, route, handler, routeData.isStatic, bodyValue, routeSpec.body);
     await executeAfterHandle(context, route, result);
-    result = await _processResult(result, context, config);
+    result = _processResult(result, context, config);
     if (context.res.redirect != null) {
       request.emit(
         RequestEvent.redirect,
