@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import '../containers/module_container.dart';
 import '../containers/router.dart';
@@ -45,6 +46,7 @@ abstract class Handler {
         ),
       );
       currentContext.res.statusCode = e.statusCode;
+      currentContext.res.contentType = ContentType.json;
       final resHandler = ResponseHandler(response, currentContext, config, null);
       await resHandler.handle(error);
       return;

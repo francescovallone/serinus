@@ -87,7 +87,7 @@ class SwaggerModule {
           final apiSpec = (route.route as ApiRoute).apiSpec;
           final parameters = [
             ...apiSpec.parameters,
-            ...apiSpec.intersectQueryParameters(route.route.queryParameters),
+            ...apiSpec.intersectQueryParameters((route.route as ApiRoute).queryParameters),
             ...pathParameters
           ];
           pathObj.methods.add(PathMethod(
