@@ -15,9 +15,6 @@ abstract class Tracer {
   /// Called to trace the onRequest event
   Future<void> onRequest(TraceEvent event, Duration delta) async {}
 
-  /// Called to trace the onTransform event
-  Future<void> onTranform(TraceEvent event, Duration delta) async {}
-
   /// Called to trace the onParse event
   Future<void> onParse(TraceEvent event, Duration delta) async {}
 
@@ -85,10 +82,6 @@ enum TraceEvents {
   /// This event is triggered when a onRequest hook has been executed.
   /// Each onRequest hook has its own event.
   onRequest,
-
-  /// The onTransform event.
-  /// This event is triggered when a transform has been executed.
-  onTransform,
 
   /// The onParse event.
   /// This event is triggered when a parse has been executed.

@@ -14,7 +14,6 @@ These are the methods that you can override:
 | ------ | ----------- | --------------------- |
 | `onRequestReceived` | Called when a request is received. | ❌ |
 | `onRequest` | Called when a `onRequest` hook is executed | ✅ |
-| `onTransform` | Called when the `transform` hook is executed | ❌ |
 | `onParse` | Called when the `parse` hook is executed | ❌ |
 | `onMiddleware` | Called when a middleware is executed | ✅ |
 | `onBeforeHandle` | Called when the `beforeHandle` hook is executed | ✅ |
