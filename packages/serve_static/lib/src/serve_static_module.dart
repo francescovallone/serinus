@@ -39,7 +39,7 @@ class ServeStaticModule extends Module {
   Future<Module> registerAsync(ApplicationConfig config) async {
     final serveStaticController =
         ServeStaticController(
-          path: '$rootPath',
+          path: rootPath,
           routePath: '/$renderPath$serveRoot',
           exclude: exclude,
           extensions: extensions,

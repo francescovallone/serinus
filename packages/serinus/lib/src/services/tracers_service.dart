@@ -32,10 +32,6 @@ class TracersService {
           await tracer.onRequest(event, elapsed);
           _properties[event.request!.id]?.completers[event.name]?.complete();
           break;
-        case (TraceEvents.onTransform, false):
-          await tracer.onTranform(event, elapsed);
-          _properties[event.request!.id]?.completers[event.name]?.complete();
-          break;
         case (TraceEvents.onParse, false):
           await tracer.onParse(event, elapsed);
           _properties[event.request!.id]?.completers[event.name]?.complete();
@@ -71,7 +67,6 @@ class TracersService {
         case (TraceEvents.onHandle, true):
         case (TraceEvents.onAfterHandle, true):
         case (TraceEvents.onResponse, true):
-        case (TraceEvents.onTransform, true):
           _properties[event.request!.id]?.stopwatch.reset();
           break;
       }
