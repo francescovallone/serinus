@@ -44,11 +44,6 @@ class ServerTimingTracer extends Tracer {
   }
 
   @override
-  Future<void> onTranform(TraceEvent event, Duration delta) async {
-    _timings['duration'] = (_timings['duration'] ?? 0) + delta.inMilliseconds;
-  }
-
-  @override
   Future<void> onResponse(TraceEvent event, Duration delta) async {
     _timings['duration'] = (_timings['duration'] ?? 0) + delta.inMilliseconds;
 
