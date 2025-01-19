@@ -9,7 +9,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   http: ^1.2.2
-  serinus: ^0.6.0
+  serinus: ">=0.6.0 <2.0.0"
   async: ^2.0.8
   collection: ^1.0.0
   logging: ^1.0.0
