@@ -7,5 +7,5 @@ class HelloWorldRoute extends Route {
       : super(
             path: '/',
             method: HttpMethod.get,
-            queryParameters: {'hello': String});
+  );
 }

@@ -102,6 +102,14 @@ class AppModule extends Module {
 class AppController extends Controller {
   AppController({super.path = '/'}) {
     onStatic(Route.get('/'), 'ok!');
+    // on(Route.get('/1'), (context) async* {
+    //   yield 1;
+    //   Future.delayed(Duration(seconds: 2));
+    //   yield 2;
+    // });
+    on(Route.get('/2'), (context) async {
+      return 2;
+    });
   }
 }
 

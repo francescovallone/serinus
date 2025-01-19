@@ -1,1 +1,1 @@
-{"results":[{"server":"serinus","rps":24529.39,"transferRate":"5.50MB","reqSecDiff":0.0,"avgLatency":45.08},{"server":"dart_http","rps":32624.36,"transferRate":"6.16MB","reqSecDiff":33.00110602016602,"avgLatency":31.33}]}
+{"results":[{"server":"serinus","rps":27055.63,"transferRate":"5.50MB","reqSecDiff":0.0,"avgLatency":9.33},{"server":"dart_http","rps":34407.15,"transferRate":"6.50MB","reqSecDiff":27.17186774065139,"avgLatency":6.14}]}

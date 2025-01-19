@@ -498,10 +498,10 @@ packages:
     dependency: transitive
     description:
       name: spanner
-      sha256: "52768be5029fb1d408e2e762cb282214b79b52c4702e1efb144df139ba40d6cd"
+      sha256: "10aa269fc21a09033c255620bae2ee75d22870f7a1eb9b477fe0fc3444f1105d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   sprintf:
     dependency: transitive
     description:
