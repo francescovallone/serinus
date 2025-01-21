@@ -74,7 +74,8 @@ class RequestHandler extends Handler {
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest, response);
     context.metadata = await _resolveMetadata(routeData.metadata, context);
-    dynamic bodyValue = getBodyValue(context, routeSpec.body) ?? context.body.value;
+    dynamic bodyValue =
+        getBodyValue(context, routeSpec.body) ?? context.body.value;
     if (schema != null) {
       bodyValue = await executeOnParse(context, schema, route, bodyValue);
     }
@@ -104,7 +105,8 @@ class RequestHandler extends Handler {
       );
     }
 
-    final resHandler = ResponseHandler(response, context, config, 'r-${route.runtimeType}');
+    final resHandler =
+        ResponseHandler(response, context, config, 'r-${route.runtimeType}');
     await resHandler.handle(result ?? 'null');
 
     request.emit(
@@ -131,14 +133,13 @@ class RequestHandler extends Handler {
 
   Object? _processResult(
       Object? result, RequestContext context, ApplicationConfig config) {
-        final modelProvider = config.modelProvider;
+    final modelProvider = config.modelProvider;
     if (result?.canBeJson() ?? false) {
-      result = JsonUtf8Encoder()
-          .convert(parseJsonToResponse(result, modelProvider));
+      result =
+          JsonUtf8Encoder().convert(parseJsonToResponse(result, modelProvider));
       context.res.contentType ??= ContentType.json;
     }
-    if (modelProvider?.toJsonModels.containsKey(result.runtimeType) ??
-        false) {
+    if (modelProvider?.toJsonModels.containsKey(result.runtimeType) ?? false) {
       result = JsonUtf8Encoder().convert(modelProvider?.to(result));
       context.res.contentType ??= ContentType.json;
     }
@@ -180,7 +181,8 @@ class RequestHandler extends Handler {
             RequestEvent.data,
             EventData(data: data, properties: context.res),
           );
-          final resHandler = ResponseHandler(response, context, config, 'm-${middlewares.elementAt(i).runtimeType}');
+          final resHandler = ResponseHandler(response, context, config,
+              'm-${middlewares.elementAt(i).runtimeType}');
           await resHandler.handle(data!);
           request.emit(
             RequestEvent.close,
@@ -246,7 +248,7 @@ class RequestHandler extends Handler {
     }
     if (schema.headers != null) {
       toParse['headers'] = {
-        for(final key in schema.headers!.fields.keys)
+        for (final key in schema.headers!.fields.keys)
           key: context.request.headers[key]
       };
     }

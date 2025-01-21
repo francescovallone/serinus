@@ -53,7 +53,6 @@ class ServerTimingTracer extends Tracer {
   Future<void> onCustomEvent(TraceEvent event, Duration delta) async {
     _timings['duration'] = (_timings['duration'] ?? 0) + delta.inMilliseconds;
   }
-
 }
 
 class TestRoute extends Route {

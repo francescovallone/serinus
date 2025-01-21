@@ -1,12 +1,11 @@
 import 'dart:io';
 
 /// The [SerinusHeaders] are a helper class to expose the headers in the Serinus Framework.
-/// 
+///
 /// The class is used mainly to get and add headers to the request.
-/// The fetch of a header is lazy since it will get the 
+/// The fetch of a header is lazy since it will get the
 /// value only if requested otherwise will not copy it.
 class SerinusHeaders {
-
   /// The [values] currently available
   final Map<String, String> values = {};
 
@@ -14,11 +13,11 @@ class SerinusHeaders {
 
   /// Constructor for the [SerinusHeaders] class
   SerinusHeaders(this._request);
- 
+
   /// Operator to get a value by its [key]
   String? operator [](String key) {
     var value = values[key];
-    if(value != null) {
+    if (value != null) {
       return value;
     }
     value ??= _request.headers.value(key);
@@ -42,5 +41,4 @@ class SerinusHeaders {
   operator []=(String key, String value) {
     values[key] = value;
   }
-
 }

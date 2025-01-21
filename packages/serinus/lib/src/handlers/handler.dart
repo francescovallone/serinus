@@ -47,7 +47,8 @@ abstract class Handler {
       );
       currentContext.res.statusCode = e.statusCode;
       currentContext.res.contentType = ContentType.json;
-      final resHandler = ResponseHandler(response, currentContext, config, null);
+      final resHandler =
+          ResponseHandler(response, currentContext, config, null);
       await resHandler.handle(error);
       return;
     }

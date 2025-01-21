@@ -64,7 +64,11 @@ class InternalRequest {
 
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
   factory InternalRequest.from(HttpRequest request, int port, String host) {
-    return InternalRequest(headers: SerinusHeaders(request), original: request, port: port, host: host);
+    return InternalRequest(
+        headers: SerinusHeaders(request),
+        original: request,
+        port: port,
+        host: host);
   }
 
   /// The [cookies] property contains the cookies of the request

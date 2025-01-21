@@ -13,19 +13,22 @@ import '../http/internal_response.dart';
 import '../http/streamable_response.dart';
 
 /// The [ResponseHandler] class is used to handle the response of a request.
-class ResponseHandler{
-
+class ResponseHandler {
   /// The [InternalResponse] object.
   final InternalResponse response;
+
   /// The [RequestContext] of the request.
   final RequestContext context;
+
   /// The [ApplicationConfig] object.
   final ApplicationConfig config;
+
   /// The traced id of the request.
   final String? traced;
+
   /// The status code of the response.
   int get statusCode => context.res.statusCode;
-  
+
   /// Creates a new instance of [ResponseHandler].
   const ResponseHandler(
     this.response,
@@ -55,9 +58,7 @@ class ResponseHandler{
       HttpHeaders.transferEncodingHeader: 'chunked'
     });
     Uint8List responseBody = Uint8List(0);
-    response.contentType(
-      context.res.contentType ?? ContentType.text
-    );
+    response.contentType(context.res.contentType ?? ContentType.text);
     final isView = data is View || data is ViewString;
     if (isView && config.viewEngine == null) {
       throw StateError('ViewEngine is required to render views');
@@ -74,9 +75,8 @@ class ResponseHandler{
       });
     }
     if (data is File) {
-      response.contentType(
-        context.res.contentType ?? ContentType.parse('application/octet-stream')
-      );
+      response.contentType(context.res.contentType ??
+          ContentType.parse('application/octet-stream'));
       final readPipe = data.openRead();
       return response.sendStream(readPipe);
     }
@@ -96,7 +96,7 @@ class ResponseHandler{
   }
 
   Uint8List _convertData(Object data, bool isView, Uint8List responseBody) {
-    if(data is! Uint8List) {
+    if (data is! Uint8List) {
       if (data.runtimeType.isPrimitive()) {
         responseBody = data.toBytes();
       } else {
@@ -106,17 +106,12 @@ class ResponseHandler{
       responseBody = data;
     }
     final coding = response.currentHeaders['transfer-encoding']?.join(';');
-    if (
-      (
-        coding != null && !equalsIgnoreAsciiCase(coding, 'identity')
-      ) || (
-        statusCode >= 200 &&
-        statusCode != 204 &&
-        statusCode != 304 &&
-        context.res.contentLength == null &&
-        context.res.contentType?.mimeType != 'multipart/byteranges'
-      )
-    ) {
+    if ((coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) ||
+        (statusCode >= 200 &&
+            statusCode != 204 &&
+            statusCode != 304 &&
+            context.res.contentLength == null &&
+            context.res.contentType?.mimeType != 'multipart/byteranges')) {
       response.headers({HttpHeaders.transferEncodingHeader: 'chunked'});
     }
     return responseBody;
@@ -136,5 +131,4 @@ class ResponseHandler{
       ...context.res.cookies,
     ]);
   }
-
 }

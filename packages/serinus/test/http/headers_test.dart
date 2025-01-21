@@ -16,25 +16,17 @@ class _MockHeaders extends Mock implements HttpHeaders {
 }
 
 class _MockRequest extends Mock implements HttpRequest {
-
   @override
   HttpHeaders get headers => _MockHeaders();
-
 }
 
 void main() {
-  group(
-    '$SerinusHeaders',
-    () {
-      test(
-        '',
-        () {
-          final SerinusHeaders headers = SerinusHeaders(_MockRequest());
-          expect(headers.values.containsKey('DateTime'), equals(false));
-          headers['DateTime'];
-          expect(headers.values.containsKey('DateTime'), equals(true));
-        }
-      );
-    }
-  );
+  group('$SerinusHeaders', () {
+    test('', () {
+      final SerinusHeaders headers = SerinusHeaders(_MockRequest());
+      expect(headers.values.containsKey('DateTime'), equals(false));
+      headers['DateTime'];
+      expect(headers.values.containsKey('DateTime'), equals(true));
+    });
+  });
 }

@@ -62,7 +62,7 @@ class TraceEvent {
   DateTime? _endAt;
 
   set endAt(DateTime? value) {
-    if(_endAt != null) {
+    if (_endAt != null) {
       throw StateError('The endAt property has already been set');
     }
     _endAt = value;
@@ -127,14 +127,17 @@ enum TraceEvents {
   onRequestReceived
 }
 
+/// Traces a function.
+///
+/// This function is used to wrap a function and trace it.
+/// It can be used only with synchronous functions.
 T trace<T>(
-  T Function() toTrace,
-{
+  T Function() toTrace, {
   required RequestContext context,
   required String eventName,
   String? traced,
 }) {
-  if(toTrace is Future<T> Function()) {
+  if (toTrace is Future<T> Function()) {
     throw StateError('The toTrace function should not be a Future');
   }
   final tracerService = TracersService();
@@ -154,9 +157,12 @@ T trace<T>(
   return result;
 }
 
+/// Traces an asynchronous function.
+///
+/// This function is used to wrap a function and trace it.
+/// It can be used only with asynchronous functions.
 Future<T> traceAsync<T>(
-  Future<T> Function() toTrace,
-{
+  Future<T> Function() toTrace, {
   required RequestContext context,
   required String eventName,
   String? traced,

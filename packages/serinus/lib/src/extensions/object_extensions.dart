@@ -5,7 +5,6 @@ import '../mixins/object_mixins.dart';
 
 /// This extension is used to parse a [Map] to a [String] and convert a [Map] to a [Map<String, dynamic>]
 extension ObjectExtensions on Object {
-
   /// This method is used to check if the object can be converted to a json.
   bool canBeJson() {
     if (this is Uint8List || runtimeType.isPrimitive()) {
@@ -26,14 +25,8 @@ extension ObjectExtensions on Object {
 
 /// Extension for the Type type
 extension TypeExtensions on Type {
-
   /// This method is used to check if the type is a primitive type.
   bool isPrimitive() {
-    return [
-      String,
-      num,
-      bool
-    ].contains(this);
+    return [String, num, bool].contains(this);
   }
-
 }
