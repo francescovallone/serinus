@@ -46,9 +46,14 @@ class ServerTimingTracer extends Tracer {
   @override
   Future<void> onResponse(TraceEvent event, Duration delta) async {
     _timings['duration'] = (_timings['duration'] ?? 0) + delta.inMilliseconds;
-
     event.context?.res.headers['duration'] = _timings['duration'].toString();
   }
+
+  @override
+  Future<void> onCustomEvent(TraceEvent event, Duration delta) async {
+    _timings['duration'] = (_timings['duration'] ?? 0) + delta.inMilliseconds;
+  }
+
 }
 
 class TestRoute extends Route {
@@ -67,7 +72,23 @@ class TestJsonObject with JsonObject {
 
 class TestController extends Controller {
   TestController({super.path = '/'}) {
-    on(Route.get('/'), (context) async => 'ok!');
+    on(Route.get('/'), (context) async {
+      final r = trace(
+        () => countTo(100),
+        context: context,
+        eventName: 'countTo',
+      );
+      final t = await traceAsync(
+        () async => countTo(100),
+        context: context,
+        eventName: 'countTo',
+      );
+      return r + t;
+    });
+  }
+
+  int countTo(int n) {
+    return n;
   }
 }
 

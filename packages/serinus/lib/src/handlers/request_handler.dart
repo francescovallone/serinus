@@ -39,7 +39,7 @@ class RequestHandler extends Handler {
       InternalRequest request, InternalResponse response) async {
     final Request wrappedRequest = Request(request);
     await wrappedRequest.parseBody();
-    await config.tracerService.addSyncEvent(
+    config.tracerService.addEvent(
         name: TraceEvents.onRequestReceived,
         request: wrappedRequest,
         traced: 'RequestHandler');
@@ -164,13 +164,12 @@ class RequestHandler extends Handler {
     for (int i = 0; i < middlewares.length; i++) {
       config.tracerService.addEvent(
           name: TraceEvents.onMiddleware,
-          begin: true,
           request: context.request,
           context: context,
           traced: 'm-${middlewares.elementAt(i).runtimeType}');
       final middleware = middlewares.elementAt(i);
       await middleware.use(context, ([data]) async {
-        await config.tracerService.addSyncEvent(
+        config.tracerService.addEvent(
             name: TraceEvents.onMiddleware,
             request: context.request,
             context: context,
@@ -210,14 +209,13 @@ class RequestHandler extends Handler {
     for (final hook in config.hooks.reqResHooks) {
       config.tracerService.addEvent(
           name: TraceEvents.onRequest,
-          begin: true,
           request: wrappedRequest,
           traced: 'h-${hook.runtimeType}');
       if (response.isClosed) {
         return;
       }
       await hook.onRequest(wrappedRequest, response);
-      await config.tracerService.addSyncEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onRequest,
           request: wrappedRequest,
           traced: 'h-${hook.runtimeType}');
@@ -233,7 +231,6 @@ class RequestHandler extends Handler {
       Route route, dynamic body) async {
     config.tracerService.addEvent(
         name: TraceEvents.onParse,
-        begin: true,
         request: context.request,
         context: context,
         traced: 'r-${route.runtimeType}');
@@ -260,7 +257,7 @@ class RequestHandler extends Handler {
     context.request.headers.addAll(result['headers'] ?? <String, String>{});
     context.request.params.addAll(result['params'] ?? {});
     context.request.query.addAll(result['query'] ?? {});
-    await config.tracerService.addSyncEvent(
+    config.tracerService.addEvent(
         name: TraceEvents.onParse,
         request: context.request,
         context: context,
@@ -273,12 +270,11 @@ class RequestHandler extends Handler {
     for (final hook in config.hooks.beforeHooks) {
       config.tracerService.addEvent(
           name: TraceEvents.onBeforeHandle,
-          begin: true,
           request: context.request,
           context: context,
           traced: 'h-${hook.runtimeType}');
       await hook.beforeHandle(context);
-      await config.tracerService.addSyncEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onBeforeHandle,
           request: context.request,
           context: context,
@@ -287,12 +283,11 @@ class RequestHandler extends Handler {
     if (route is OnBeforeHandle) {
       config.tracerService.addEvent(
           name: TraceEvents.onBeforeHandle,
-          begin: true,
           request: context.request,
           context: context,
           traced: 'r-${route.runtimeType}');
       await (route as OnBeforeHandle).beforeHandle(context);
-      await config.tracerService.addSyncEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onBeforeHandle,
           request: context.request,
           context: context,
@@ -305,7 +300,6 @@ class RequestHandler extends Handler {
       Object handler, bool isStatic, dynamic bodyValue, Type? body) async {
     config.tracerService.addEvent(
         name: TraceEvents.onHandle,
-        begin: true,
         request: context.request,
         context: context,
         traced: 'r-${route.runtimeType}');
@@ -328,7 +322,7 @@ class RequestHandler extends Handler {
         }
       }
     }
-    await config.tracerService.addSyncEvent(
+    config.tracerService.addEvent(
         name: TraceEvents.onHandle,
         request: context.request,
         context: context,
@@ -342,12 +336,11 @@ class RequestHandler extends Handler {
     if (route is OnAfterHandle) {
       config.tracerService.addEvent(
           name: TraceEvents.onAfterHandle,
-          begin: true,
           request: context.request,
           context: context,
           traced: 'r-${route.runtimeType}');
       await (route as OnAfterHandle).afterHandle(context, result);
-      await config.tracerService.addSyncEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onAfterHandle,
           request: context.request,
           context: context,
@@ -356,12 +349,11 @@ class RequestHandler extends Handler {
     for (final hook in config.hooks.afterHooks) {
       config.tracerService.addEvent(
           name: TraceEvents.onAfterHandle,
-          begin: true,
           request: context.request,
           context: context,
           traced: 'h-${hook.runtimeType}');
       await hook.afterHandle(context, result);
-      await config.tracerService.addSyncEvent(
+      config.tracerService.addEvent(
           name: TraceEvents.onAfterHandle,
           request: context.request,
           context: context,

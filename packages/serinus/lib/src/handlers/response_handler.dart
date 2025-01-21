@@ -81,12 +81,13 @@ class ResponseHandler{
       return response.sendStream(readPipe);
     }
     responseBody = _convertData(data, isView, responseBody);
-    await config.tracerService.addSyncEvent(
+    config.tracerService.addEvent(
       name: TraceEvents.onResponse,
       request: context.request,
       context: context,
       traced: traced ?? context.request.id,
     );
+    await config.tracerService.endTrace(context.request);
     response.headers({
       ...context.res.headers,
       HttpHeaders.contentLengthHeader: responseBody.length.toString()
@@ -124,8 +125,8 @@ class ResponseHandler{
   Future<void> _startResponseHandling(Object data) async {
     config.tracerService.addEvent(
       name: TraceEvents.onResponse,
-      begin: true,
       request: context.request,
+      context: context,
       traced: traced ?? context.request.id,
     );
     for (final hook in config.hooks.reqResHooks) {
