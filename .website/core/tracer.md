@@ -20,6 +20,7 @@ These are the methods that you can override:
 | `onHandler` | Called when the handler is executed | ✅ |
 | `onAfterHandle` | Called when the `afterHandle` hook is executed | ✅ |
 | `onResponse` | Called when the response is being closed | ❌ |
+| `onCustomEvent` | Called when a custom event is being fired during the lifecycle | ✅ |
 
 ## Using a Tracer
 
@@ -39,8 +40,8 @@ The `TraceEvent` class has the following properties:
 | `request` | The `Request` object of the current request. **(Can be null)** |
 | `context` | The `RequestContext` object of the current request. **(Can be null)** |
 | `name` | The name of the event. |
-| `timestamp` | The `DateTime` of the event.  |
-| `begin` | Whether the event is the beginning of a cycle. |
+| `startAt` | The start `DateTime` of the event.  |
+| `endAt` | The end `DateTime` of the event. **(Can be null)** |
 | `traced` | The traced event. |
 
 The `traced` property follows a naming convention of:
@@ -48,3 +49,21 @@ The `traced` property follows a naming convention of:
 - `r-*` for route-related events (e.g. route handler, route hooks)
 - `m-*` for middleware-related events
 - `h-*` for hooks-related events (e.g. global hooks)
+
+## Create a Custom Event
+
+You can create a custom event by wrapping the function you want to trace with the methods `trace` or `traceAsync` and passing the `RequestContext` and the `name` of the event.
+
+```dart
+void myFunction() {
+  // Your code here
+}
+
+trace(
+    () => myFunction(), 
+    context: context,
+    name: 'myFunction'
+)
+```
+
+The `trace` and `traceAsync` methods will return the result of the function that you passed to it and will also fire a custom event with the name that you passed.
