@@ -1,5 +1,6 @@
 import '../contexts/contexts.dart';
 import '../http/http.dart';
+import '../services/tracers_service.dart';
 
 /// Base class for all tracers.
 abstract class Tracer {
@@ -32,12 +33,15 @@ abstract class Tracer {
 
   /// Called to trace the onResponse event
   Future<void> onResponse(TraceEvent event, Duration delta) async {}
+
+  /// Called to trace a custom event
+  Future<void> onCustomEvent(TraceEvent event, Duration delta) async {}
 }
 
 /// Represents a trace event.
 class TraceEvent {
   /// The name of the event.
-  final TraceEvents name;
+  final String name;
 
   /// The context of the event.
   final RequestContext? context;
@@ -45,11 +49,8 @@ class TraceEvent {
   /// The Request of the event.
   final Request? request;
 
-  /// The timestamp of the event.
-  final DateTime timestamp;
-
-  /// Whether the event is the beginning of a cycle.
-  final bool begin;
+  /// The [DateTime] at which the event has been fired.
+  final DateTime createdAt;
 
   /// The traced event.
   /// This property follows a naming convention of:
@@ -58,21 +59,29 @@ class TraceEvent {
   /// - 'h-*' for hooks-related events (e.g. global hooks)
   final String traced;
 
-  /// The duration of the lifecycle of the request.
-  late final Duration requestDuration;
+  DateTime? _endAt;
+
+  set endAt(DateTime? value) {
+    if (_endAt != null) {
+      throw StateError('The endAt property has already been set');
+    }
+    _endAt = value;
+  }
+
+  /// The [DateTime] at which the event has been consumed.
+  DateTime? get endAt => _endAt;
 
   /// Creates a new [TraceEvent] with the given [name], [context] and [traced].
   TraceEvent({
     required this.name,
     required this.traced,
-    this.begin = false,
     this.context,
     this.request,
-  }) : timestamp = DateTime.now();
+  }) : createdAt = DateTime.now();
 
   @override
   String toString() {
-    return 'TraceEvent{name: $name, context: $context, request: $request, timestamp: $timestamp, begin: $begin, traced: $traced}';
+    return 'TraceEvent{name: $name, context: $context, request: $request, createdAt: $createdAt, traced: $traced}';
   }
 }
 
@@ -116,4 +125,61 @@ enum TraceEvents {
   /// This event is triggered when a request is received.
   /// �
   onRequestReceived
+}
+
+/// Traces a function.
+///
+/// This function is used to wrap a function and trace it.
+/// It can be used only with synchronous functions.
+T trace<T>(
+  T Function() toTrace, {
+  required RequestContext context,
+  required String eventName,
+  String? traced,
+}) {
+  if (toTrace is Future<T> Function()) {
+    throw StateError('The toTrace function should not be a Future');
+  }
+  final tracerService = TracersService();
+  tracerService.addCustomEvent(
+    name: eventName,
+    traced: traced ?? eventName,
+    context: context,
+    request: context.request,
+  );
+  var result = toTrace();
+  tracerService.addCustomEvent(
+    name: eventName,
+    traced: traced ?? eventName,
+    context: context,
+    request: context.request,
+  );
+  return result;
+}
+
+/// Traces an asynchronous function.
+///
+/// This function is used to wrap a function and trace it.
+/// It can be used only with asynchronous functions.
+Future<T> traceAsync<T>(
+  Future<T> Function() toTrace, {
+  required RequestContext context,
+  required String eventName,
+  String? traced,
+}) async {
+  final tracerService = TracersService();
+  tracerService.addCustomEvent(
+    name: eventName,
+    traced: traced ?? eventName,
+    context: context,
+    request: context.request,
+  );
+  var result = await toTrace();
+  tracerService.addCustomEvent(
+    name: eventName,
+    traced: traced ?? eventName,
+    context: context,
+    request: context.request,
+  );
+  return result;
 }

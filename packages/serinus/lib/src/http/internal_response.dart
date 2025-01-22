@@ -40,7 +40,7 @@ class InternalResponse {
   void write(String data) {
     _original.write(data);
   }
-  
+
   /// A simple wrapper for [HttpResponse.cookies].
   List<Cookie> get cookies => _original.cookies;
 
@@ -73,7 +73,7 @@ class InternalResponse {
   void headers(Map<String, String> headers) {
     for (final key in headers.keys) {
       final currentValue = _original.headers.value(key);
-      if(currentValue == null || currentValue != headers[key]) {
+      if (currentValue == null || currentValue != headers[key]) {
         _original.headers.set(key, headers[key]!);
       }
     }

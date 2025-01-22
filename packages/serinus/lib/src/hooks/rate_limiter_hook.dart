@@ -38,7 +38,7 @@ class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
       return;
     }
     final key = getKey(context.request);
-    if(key == null) {
+    if (key == null) {
       throw InternalServerErrorException();
     }
     rateLimiter = storage.get(key) ?? storage.add(key, duration);

@@ -86,9 +86,9 @@ class RouteData {
 
   /// The [metadata] property contains the metadata that directly or indirectly affects the route.
   List<Metadata> get metadata => [
-    ...controller.metadata,
-    ...spec.route.metadata,
-  ];
+        ...controller.metadata,
+        ...spec.route.metadata,
+      ];
 
   /// The [RouteData] constructor is used to create a new instance of the [RouteData] class.
   const RouteData({
