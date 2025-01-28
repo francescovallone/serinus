@@ -1,3 +1,4 @@
+import '../contexts/contexts.dart';
 import '../contexts/request_context.dart';
 
 /// The [Metadata] class is used to define metadata.
@@ -22,7 +23,7 @@ class Metadata<T> {
 ///
 /// It doesn't have a constant value, but a function that returns a value based on the [RequestContext].
 class ContextualizedMetadata<T>
-    extends Metadata<Future<T> Function(RequestContext)> {
+    extends Metadata<Future<T> Function(BaseContext)> {
   /// The [ContextualizedMetadata] constructor is used to create a new instance of the [ContextualizedMetadata] class.
   const ContextualizedMetadata({
     required super.value,
