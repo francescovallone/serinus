@@ -1,5 +1,4 @@
 import '../contexts/contexts.dart';
-import '../contexts/request_context.dart';
 
 /// The [Metadata] class is used to define metadata.
 class Metadata<T> {
@@ -31,7 +30,7 @@ class ContextualizedMetadata<T>
   });
 
   /// The [resolve] method is used to resolve the metadata.
-  Future<Metadata<T>> resolve(RequestContext context) async {
+  Future<Metadata<T>> resolve(BaseContext context) async {
     return Metadata<T>(
       name: name,
       value: await value(context),
