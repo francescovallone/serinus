@@ -30,18 +30,29 @@ class HeaderStrategy extends Strategy<HeaderOptions> {
 
   @override
   Future<void> authenticate(StrategyRequest request) async {
-    callback.call(options, (request.headers[options.key.toLowerCase()] == options.value) ? true : null, done);
+    callback.call(
+        options,
+        (request.headers[options.key.toLowerCase()] == options.value)
+            ? true
+            : null,
+        done);
   }
 }
 
 class AppModule extends Module {
   AppModule()
       : super(
-          imports: [FrontierModule(
-            [HeaderStrategy(HeaderOptions(key: 'Authorization', value: 'hello'), (options, result, done) async {
-              done(result);
-            })],
-          )],
+          imports: [
+            FrontierModule(
+              [
+                HeaderStrategy(
+                    HeaderOptions(key: 'Authorization', value: 'hello'),
+                    (options, result, done) async {
+                  done(result);
+                })
+              ],
+            )
+          ],
           controllers: [AppController()],
         );
 }
