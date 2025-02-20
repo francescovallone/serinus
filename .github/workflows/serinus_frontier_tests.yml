@@ -1,4 +1,4 @@
-name: Serinus Config Tests
+name: Serinus Frontier Tests
 
 on:
   push:
