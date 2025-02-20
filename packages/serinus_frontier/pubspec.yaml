@@ -1,9 +1,15 @@
 name: serinus_frontier
-description: A sample command-line application.
+description: A module for Serinus applications that exposes the frontier package allowing you to use all the auth strategies.
 version: 1.0.0
 repository: https://github.com/francescovallone/serinus
 homepage: https://serinus.app
-documentation: https://serinus.app
+documentation: https://serinus.app/plugins/frontier.html
+topics:
+  - server
+  - httpserver
+  - backend
+  - web
+  - authentication
 
 environment:
   sdk: '>=3.5.0 <4.0.0'

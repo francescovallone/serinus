@@ -1,11 +1,20 @@
 import 'package:frontier/frontier.dart';
 import 'package:serinus/serinus.dart';
 
+export 'package:frontier/frontier.dart';
+
+/// The [FrontierModule] class is used to register strategies in the application.
+/// 
+/// It is the main class of the library. It is used to define and use strategies.
 class FrontierModule extends Module {
 
+  /// The [strategies] to be used.
   final List<Strategy> strategies;
+
+  /// The [onError] function to be called when an error occurs.
   final void Function([Exception? exception])? onError;
 
+  /// Create a new instance of [FrontierModule].
   FrontierModule(this.strategies, {this.onError});
 
   @override
@@ -16,11 +25,16 @@ class FrontierModule extends Module {
 
 }
 
+/// The [FrontierHook] class is used to authenticate requests using strategies.
 class FrontierHook extends Hook with OnBeforeHandle {
 
+  /// The [strategies] to be used.
   final List<Strategy> strategies;
+  
+  /// The [onError] function to be called when an error occurs.
   final void Function([Exception? exception])? onError;
 
+  /// Create a new instance of [FrontierHook].
   FrontierHook(this.strategies, {this.onError}) {
     for(final strategy in strategies) {
       service.use(strategy);
@@ -71,8 +85,10 @@ class FrontierHook extends Hook with OnBeforeHandle {
 
 }
 
+/// The [GuardMeta] class is used to define the strategy to be used.
 class GuardMeta extends Metadata<String> {
 
+  /// Create a new instance of [GuardMeta].
   GuardMeta(String strategy): super(
     name: 'GuardMeta', 
     value: strategy

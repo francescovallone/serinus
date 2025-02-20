@@ -146,10 +146,10 @@ export default defineConfig({
                   { text: 'Components', link: 'components' },
                 ],
               },
+              { text: 'Frontier', link: 'frontier' },
               { text: 'Health Check [WIP]' },
               { text: 'Cron [WIP]' },
               { text: 'Socket.IO [WIP]', link: 'socketio' },
-              { text: 'Frontier [WIP]', link: 'frontier' },
             ],
             link: '/'
           },

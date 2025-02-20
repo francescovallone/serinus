@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:frontier/frontier.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus_frontier/serinus_frontier.dart';
 import 'package:test/test.dart';
