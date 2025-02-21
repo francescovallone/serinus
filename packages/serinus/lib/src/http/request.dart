@@ -17,32 +17,12 @@ class Request {
   /// It accepts an [InternalRequest] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
-  Request(this._original) {
-    /// This loop is used to parse the query parameters of the request.
-    /// It will try to parse the query parameters to the correct type.
-    for (final entry in _original.queryParameters.entries) {
-      switch (entry.value.runtimeType) {
-        case == int:
-          _queryParamters[entry.key] = int.parse(entry.value);
-          break;
-        case == double:
-          _queryParamters[entry.key] = double.parse(entry.value);
-          break;
-        case == bool:
-          _queryParamters[entry.key] = entry.value.toLowerCase() == 'true';
-          break;
-        default:
-          _queryParamters[entry.key] = entry.value;
-      }
-    }
-  }
+  Request(this._original);
 
   /// This method is used to set the parameters of the request.
   set params(Map<String, dynamic> params) {
     this.params.addAll(params);
   }
-
-  final Map<String, dynamic> _queryParamters = {};
 
   /// The id of the request.
   String get id => _original.id;
@@ -57,10 +37,10 @@ class Request {
   String get method => _original.method;
 
   /// The headers of the request.
-  Map<String, dynamic> get headers => _original.headers;
+  SerinusHeaders get headers => _original.headers;
 
   /// The query parameters of the request.
-  Map<String, dynamic> get query => _queryParamters;
+  Map<String, dynamic> get query => Map.from(_original.queryParameters);
 
   /// The session of the request.
   Session get session => _original.session;

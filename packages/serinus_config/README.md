@@ -1,9 +1,8 @@
-
-[![Serinus Logo][logo_white]][repo_link]
+![Serinus Banner](https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/github-header.png)
 
 # Serinus Config
 
-A module for Serinus applications that exposes the dotenv package allowing you to load environment variables from a .env file.
+Serinus Config is a package that allows you to load configuration files in your Serinus application.
 
 ## Installation
 
@@ -15,5 +14,13 @@ dart pub add serinus_config
 
 You can see the example usage in the example directory.
 
-[logo_white]: https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/serinus-logo-long.png
-[repo_link]: https://github.com/francescovallone/serinus
+```dart
+import 'package:serinus_config/serinus_config.dart';
+
+class AppModule extends Module {
+
+    AppModule() : super(
+        imports: [ConfigModule()],
+    );
+
+}

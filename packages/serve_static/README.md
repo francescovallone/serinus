@@ -1,9 +1,8 @@
+![Serinus Banner](https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/github-header.png)
 
-[![Serinus Logo][logo_white]][repo_link]
+# Serve Static
 
-# Serinus Serve Static
-
-A module for Serinus applications 🐤 to serve static files.
+Serve Static is a package that allows you to serve static files in your Serinus application.
 
 ## Installation
 
@@ -13,7 +12,13 @@ dart pub add serinus_serve_static
 
 ## Usage
 
-You can see the example usage in the example directory.
-
-[logo_white]: https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/serinus-logo-long.png
-[repo_link]: https://github.com/francescovallone/serinus
+```dart
+class AppModule extends Module {
+  AppModule()
+      : super(
+          imports: [ServeStaticModule()],
+          controllers: [AppController()],
+          providers: [AppProvider()],
+        );
+}
+```

@@ -63,8 +63,6 @@ final class SchemaObject<T> extends ComponentValue {
         return example?.value ?? 0;
       case SchemaType.boolean:
         return example?.value ?? false;
-      default:
-        return {};
     }
   }
 

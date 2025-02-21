@@ -25,11 +25,20 @@ head:
 <Blog
 	:posts="[
     {
+      title: 'How Hooks and Metadata can improve your Serinus application',
+      src: '/blog/hooks_and_metadata/hooks_and_metadata.webp',
+      alt: 'How Hooks and Metadata can improve your Serinus application',
+      date: '28 Jan 2025',
+      href: '/blog/hooks_and_metadata',
+      tags: ['techniques'],
+    },
+    {
       title: 'Serinus 1.0 - Primavera',
       src: '/blog/serinus_1_0/serinus_1_0.webp',
       alt: 'Serinus 1.0 - Primavera',
       date: '26 Nov 2024',
       href: '/blog/serinus_1_0',
+      tags: ['release'],
     },
     {
       title: 'The goal of Serinus',
@@ -37,6 +46,7 @@ head:
       alt: 'The goal of Serinus',
       date: '04 Nov 2024',
       href: '/blog/the_goal_of_serinus',
+      tags: ['philosophy'],
     },
 		{
 			title: 'Serinus 0.6 - Welcome to the Meta-World',
@@ -44,6 +54,7 @@ head:
 			alt: 'Serinus 0.6 - Welcome to the Meta-World',
 			date: '1 Aug 2024',
 			href: '/blog/serinus_0_6',
+      tags: ['release'],
 		},
 	]"
 />

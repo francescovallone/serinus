@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/adapters.dart';
+import '../containers/explorer.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
@@ -11,7 +12,6 @@ import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
 import '../handlers/handler.dart';
 import '../http/http.dart';
-import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
@@ -50,7 +50,7 @@ abstract class Application {
         loggerService = loggerService ?? LoggerService(levels: levels),
         modulesContainer = modulesContainer ?? ModulesContainer(config);
 
-  /// The [setLoggerPrefix] method is used to set the logger prefix of the application.
+  /// The [loggerPrefix] method is used to set the logger prefix of the application.
   set loggerPrefix(String prefix) {
     loggerService?.prefix = prefix;
   }
@@ -154,10 +154,12 @@ class SerinusApplication extends Application {
       adapter.listen(
         (request, response) {
           handler = requestHandler.handle;
-          for (final adapter in config.adapters.values) {
-            if (adapter.canHandle(request)) {
-              handler = handlers[adapter.runtimeType]!.handle;
-              break;
+          if (config.adapters.isNotEmpty) {
+            for (final adapter in config.adapters.values) {
+              if (adapter.canHandle(request)) {
+                handler = handlers[adapter.runtimeType]!.handle;
+                break;
+              }
             }
           }
           return handler(request, response);

@@ -46,15 +46,10 @@ class MockResponse extends Mock implements InternalResponse {}
 
 class MockStreamableResponse extends Mock implements StreamableResponse {}
 
-class HookRoute extends Route with OnTransform, OnBeforeHandle, OnAfterHandle {
+class HookRoute extends Route with OnBeforeHandle, OnAfterHandle {
   final Map<String, dynamic> data = {};
 
   HookRoute({super.path = '/', super.method = HttpMethod.get});
-
-  @override
-  Future<void> transform(RequestContext context) async {
-    data['transform'] = true;
-  }
 
   @override
   Future<void> beforeHandle(RequestContext context) async {
@@ -114,7 +109,6 @@ void main() {
       final response = await request.close();
       expect(response.statusCode, 200);
       await app.close();
-      expect(route.data['transform'], true);
       expect(route.data['beforeHandle-route'], true);
       expect(route.data['afterHandle-route'], true);
       expect(hook.data['onRequest'], true);

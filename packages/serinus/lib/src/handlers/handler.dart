@@ -8,6 +8,7 @@ import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
+import 'response_handler.dart';
 
 /// The base class for all handlers in the application
 abstract class Handler {
@@ -31,22 +32,24 @@ abstract class Handler {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
       final error = utf8.encode(jsonEncode(e.toJson()));
-      final properties = ResponseProperties()
-        ..statusCode = e.statusCode
-        ..contentType = ContentType.json;
+      final currentContext = buildRequestContext(
+        [],
+        Request(request),
+        response,
+      );
       request.emit(
         RequestEvent.error,
         EventData(
-          data: error,
-          properties: properties,
+          data: e.toJson(),
+          properties: currentContext.res,
           exception: e,
         ),
       );
-      response.end(
-          data: error,
-          config: config,
-          properties: properties,
-          request: Request(request));
+      currentContext.res.statusCode = e.statusCode;
+      currentContext.res.contentType = ContentType.json;
+      final resHandler =
+          ResponseHandler(response, currentContext, config, null);
+      await resHandler.handle(error);
       return;
     }
   }

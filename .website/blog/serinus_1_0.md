@@ -35,6 +35,7 @@ head:
     alt="Serinus 1.0 - Primavera"
     author="Francesco Vallone"
     date="26 Nov 2024"
+    :tags="['release']"
     shadow
 >
 

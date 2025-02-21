@@ -1,8 +1,8 @@
-import '../containers/module_container.dart';
-import '../containers/router.dart';
 import '../core/core.dart';
 import '../enums/versioning_type.dart';
 import '../services/logger_service.dart';
+import 'module_container.dart';
+import 'router.dart';
 
 /// The [Explorer] class is used to explore the routes of the application.
 final class Explorer {
@@ -68,7 +68,6 @@ final class Explorer {
         moduleToken:
             module.token.isEmpty ? module.runtimeType.toString() : module.token,
         isStatic: spec.handler is! Function,
-        queryParameters: spec.route.queryParameters,
         spec: spec,
       ));
       logger.info('Mapped {$routePath, $routeMethod} route');

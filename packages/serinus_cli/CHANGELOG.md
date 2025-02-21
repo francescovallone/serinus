@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+- Update dependencies to the latest version.
+- Update required Dart version to >= 3.5.0.
+- Fix the `run` command and improved the how the cli reads the configuration.
+
 ## 1.0.1
 
 - Update dependencies to the latest version.

@@ -16,7 +16,7 @@ class RequestContext extends BaseContext {
   String get path => request.path;
 
   /// The [method] property contains the method of the request.
-  Map<String, dynamic> get headers => request.headers;
+  SerinusHeaders get headers => request.headers;
 
   /// The [operator []] is used to get data from the request.
   dynamic operator [](String key) => request[key];

@@ -13,8 +13,10 @@ class ApiRoute extends Route {
     required super.path,
     required this.apiSpec,
     super.method = HttpMethod.get,
-    super.queryParameters,
+    this.queryParameters = const {},
   });
+
+  final Map<String, Type> queryParameters;
 
   /// The [get] factory constructor is used to create a new instance of the [ApiRoute] class with the GET method.
   factory ApiRoute.get({

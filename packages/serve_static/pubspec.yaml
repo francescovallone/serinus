@@ -17,4 +17,5 @@ environment:
 
 dependencies:
   serinus: ^1.0.0
+  mime: ^2.0.0
   

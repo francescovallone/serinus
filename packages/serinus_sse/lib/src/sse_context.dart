@@ -5,7 +5,7 @@ import 'sse_adapter.dart';
 class SseContext extends BaseContext {
   final SseAdapter _adapter;
 
-  SseContext(this._adapter, super.providers);
+  SseContext(this._adapter, super.providers, super.services);
 
   /// This method is used to send data to the client.
   ///

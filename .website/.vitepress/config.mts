@@ -62,6 +62,7 @@ export default defineConfig({
               { text: 'Paths', link: 'paths' },
               { text: 'Handler', link: 'handler' },
               { text: 'RequestContext', link: 'request_context' },
+              { text: 'Body', link: 'body' },
               { text: 'Dependency Injection', link: 'dependency_injection' },
               { text: 'Request Lifecycle', link: 'request_lifecycle' },
             ]
@@ -145,10 +146,10 @@ export default defineConfig({
                   { text: 'Components', link: 'components' },
                 ],
               },
+              { text: 'Frontier', link: 'frontier' },
               { text: 'Health Check [WIP]' },
               { text: 'Cron [WIP]' },
               { text: 'Socket.IO [WIP]', link: 'socketio' },
-              { text: 'Frontier [WIP]', link: 'frontier' },
             ],
             link: '/'
           },

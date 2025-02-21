@@ -9,17 +9,43 @@ import 'serve_static_controller.dart';
 ///
 /// You can also use the constructor to initialize any dependencies that your plugin may have.
 class ServeStaticModule extends Module {
-  final String path;
+  
+  final String rootPath;
 
-  final List<String> allowedExtensions;
+  final String renderPath;
+
+  final String serveRoot;
+
+  final List<String> exclude;
+
+  final List<String> extensions;
+
+  final List<String> index;
+
+  final bool redirect;
 
   /// The [ServeStaticModule] constructor is used to create a new instance of the [ServeStaticModule] class.
-  ServeStaticModule({this.path = '/public', this.allowedExtensions = const []});
+  ServeStaticModule({
+    this.rootPath = '/public',
+    this.renderPath = '*',
+    this.serveRoot = '',
+    this.exclude = const [],
+    this.extensions = const [],
+    this.index = const ['index.html'],
+    this.redirect = true,
+  });
 
   @override
   Future<Module> registerAsync(ApplicationConfig config) async {
     final serveStaticController =
-        ServeStaticController(path: path, extensions: allowedExtensions);
+        ServeStaticController(
+          path: rootPath,
+          routePath: '/$renderPath$serveRoot',
+          exclude: exclude,
+          extensions: extensions,
+          redirect: redirect,
+          index: index,
+        );
     controllers = [serveStaticController];
     return this;
   }

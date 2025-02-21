@@ -49,19 +49,19 @@ class GenerateModelsCommand extends Command<int> {
     if (config.length == 1 && config.containsKey('error')) {
       return config['error'] as int;
     }
-    final modelProgress = _logger?.progress('Generating models...');
+    final modelProgress = _logger.progress('Generating models...');
     final process = await Process.start(
       'dart',
       ['pub', 'run', 'build_runner', 'build', '--delete-conflicting-outputs'],
     );
     process.stderr.transform(utf8.decoder).listen(
-          (data) => _logger?.info(
+          (data) => _logger.info(
             data.replaceAll('\n', ''),
           ),
         );
     await process.exitCode;
-    modelProgress?.complete('Models generated successfully!');
-    final modelProviderProgress = _logger?.progress(
+    modelProgress.complete('Models generated successfully!');
+    final modelProviderProgress = _logger.progress(
       'Generating model provider...',
     );
     await generateModelProvider(
@@ -70,7 +70,7 @@ class GenerateModelsCommand extends Command<int> {
       config,
       output,
     );
-    modelProviderProgress?.complete('✨ Model provider generated successfully!');
+    modelProviderProgress.complete('✨ Model provider generated successfully!');
     return ExitCode.success.code;
   }
 
@@ -81,25 +81,27 @@ class GenerateModelsCommand extends Command<int> {
     String? output,
   ]) async {
     final modelProvider = File('${output ?? path}/lib/model_provider.dart');
-    final modelsConfig =
-        Map<String, dynamic>.from(config['models'] as Map<dynamic, dynamic>);
+    final modelsConfig = Map<String, dynamic>.from(
+        config['models'] as Map<dynamic, dynamic>? ?? {});
     if (!modelProvider.existsSync()) {
       modelProvider.createSync(recursive: true);
     }
-    final fromKeywords = (modelsConfig['deserialize_keywords'] as YamlList)
-        .nodes
-        .map(
-          (e) =>
-              Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
-        )
-        .toList();
-    final toKeywords = (modelsConfig['serialize_keywords'] as YamlList)
-        .nodes
-        .map(
-          (e) =>
-              Map<dynamic, dynamic>.fromEntries((e.value as YamlMap).entries),
-        )
-        .toList();
+    final fromKeywords = (modelsConfig['deserialize_keywords'] as YamlList?)
+            ?.nodes
+            .map(
+              (e) => Map<dynamic, dynamic>.fromEntries(
+                  (e.value as YamlMap).entries),
+            )
+            .toList() ??
+        [];
+    final toKeywords = (modelsConfig['serialize_keywords'] as YamlList?)
+            ?.nodes
+            .map(
+              (e) => Map<dynamic, dynamic>.fromEntries(
+                  (e.value as YamlMap).entries),
+            )
+            .toList() ??
+        [];
     final deserializeKeywords = List<DeserializeKeyword>.of(
       fromKeywords.map<DeserializeKeyword>(
         (Map<dynamic, dynamic> e) => DeserializeKeyword(
@@ -308,7 +310,9 @@ class GenerateModelsCommand extends Command<int> {
         }),
       );
     });
-    return DartFormatter().format(
+    return DartFormatter(
+      languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+    ).format(
       library
           .accept(
             DartEmitter(

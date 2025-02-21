@@ -31,7 +31,7 @@ class TestController extends Controller {
     on(Route.get('/<id>'), (context) async => 'ok!',
         schema: AcanthisParseSchema(
             params: object({
-              'id': string().customCheck(
+              'id': string().refine(
                   onCheck: (value) => int.tryParse(value) != null,
                   error: 'Invalid id',
                   name: 'id'),
@@ -43,7 +43,7 @@ class TestController extends Controller {
     on(Route.post('/<id>'), (context) async => 'ok!',
         schema: AcanthisParseSchema(
             params: object({
-              'id': string().customCheck(
+              'id': string().refine(
                   onCheck: (value) => int.tryParse(value) != null,
                   error: 'Invalid id',
                   name: 'id'),
@@ -58,7 +58,7 @@ class TestController extends Controller {
     on(Route.get('/<id>/sub'), (context) async => 'ok!',
         schema: AcanthisParseSchema(
             params: object({
-              'id': string().customCheck(
+              'id': string().refine(
                   onCheck: (value) => int.tryParse(value) != null,
                   error: 'Invalid id',
                   name: 'id'),

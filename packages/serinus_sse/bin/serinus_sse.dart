@@ -5,13 +5,19 @@ import 'package:serinus_sse/src/sse_module.dart';
 import 'package:serinus_sse/src/sse_provider.dart';
 
 class SseTest extends SseProvider with OnSseConnect {
+
+  SseTest() : super('/sse');
+
   @override
-  void onConnect(String clientId) {
+  Stream<String> onConnect(String clientId) async* {
     print('Client connected: $clientId');
+    yield 'Client connected: $clientId';
+    await Future.delayed(Duration(seconds: 2));
+    yield 'Client connected: $clientId';
   }
 
   @override
-  Future<void> onResponse(
+  Future<void> onMessage(
       String clientId, String data, SseContext context) async {
     print('Data received from client($clientId): $data');
     context.send('Data received: $data', clientId);

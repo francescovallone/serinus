@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.3
+
+- chore: format the codebase with the latest version of dartfmt
+
+## 1.0.2
+
+- chore: update dependencies to the latest version
+
 ## 1.0.1
 
 - chore: update dependencies to the latest version
