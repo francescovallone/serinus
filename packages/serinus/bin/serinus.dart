@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/services/console_logger_service.dart';
 
 class TestProvider extends Provider {
   final List<String> testList = [
