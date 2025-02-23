@@ -11,9 +11,6 @@ import 'logger_service.dart';
 
 /// The [ConsoleLogger] class is used to log messages to the console.
 class ConsoleLogger implements LoggerService {
-
-  /// The [instanceRef] of the logger.
-  static ConsoleLogger? instanceRef;
   
   /// The [prefix] of the logger.
   final String prefix;
@@ -38,9 +35,14 @@ class ConsoleLogger implements LoggerService {
   final bool timestamp;
 
   /// Utility method to get the lowest level from a list of [LogLevel]s.
-  logging.Level getLowestLevel(List<LogLevel> levels) {
-    final sorted = levels.toList()..sort();
-    return switch (sorted.first) {
+  logging.Level getLowestLevel(Set<LogLevel> levels) {
+    LogLevel lowestLevel = LogLevel.none;
+    for(final level in levels) {
+      if(level.compareTo(lowestLevel) < 0) {
+        lowestLevel = level;
+      }
+    }
+    return switch (lowestLevel) {
       LogLevel.none => logging.Level.OFF,
       LogLevel.verbose => logging.Level.ALL,
       LogLevel.debug => logging.Level.FINE,
@@ -51,12 +53,19 @@ class ConsoleLogger implements LoggerService {
     };
   }
 
+
+  /// The [logLevels] of the logger.
+  Set<LogLevel> get logLevels => Logger.logLevels;
+
   /// The [ConsoleLogger] constructor.
-  ConsoleLogger({this.json = false, this.prefix = 'Serinus', this.timestamp = false}) {
+  ConsoleLogger({this.json = false, this.prefix = 'Serinus', this.timestamp = false, Set<LogLevel>? levels}) {
+    if(levels != null) {
+      Logger.setLogLevels(levels);
+    }
     if(logging.Logger.attachedLoggers.isNotEmpty) {
       return;
     }
-    logging.Logger.root.level = getLowestLevel(logLevels);
+    logging.Logger.root.level = getLowestLevel(Logger.logLevels);
     logging.Logger.root.onRecord.listen((logging.LogRecord rec) {
       final hasError = rec.object is AugmentedMessage && (rec.object as AugmentedMessage).params?.error != null;
       if (hasError) {
@@ -65,17 +74,8 @@ class ConsoleLogger implements LoggerService {
         printMessages(rec, prefix);
       }
     });
+    
   }
-  
-  /// The [logLevels] of the logger.
-  List<LogLevel> logLevels = [
-    LogLevel.verbose,
-    LogLevel.debug,
-    LogLevel.info,
-    LogLevel.warning,
-    LogLevel.severe,
-    LogLevel.shout,
-  ];
 
   String _formatPid(int pid, String prefix) {
     return json ? '$pid' : '[$prefix] $pid  - ';
@@ -143,7 +143,7 @@ class ConsoleLogger implements LoggerService {
 
   @override
   void debug(Object? message, [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.debug, logLevels: logLevels)) {
+    if(!Logger.isLevelEnabled(LogLevel.debug)) {
       return;
     }
     final logger = logging.Logger.root;
@@ -153,22 +153,22 @@ class ConsoleLogger implements LoggerService {
   @override
   void info(Object? message,
     [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.info, logLevels: logLevels)) {
+    if(!Logger.isLevelEnabled(LogLevel.info)) {
       return;
     }
     final logger = logging.Logger.root;
     logger.info(AugmentedMessage(message, optionalParameters), optionalParameters?.error, optionalParameters?.stackTrace);
   }
 
-  @override
-  void setLogLevels(List<LogLevel> levels) {
-    logLevels = levels;
-    logging.Logger.root.level = getLowestLevel(logLevels);
+  /// Sets the log levels of the logger.
+  void setLogLevels(Set<LogLevel> levels) {
+    Logger.setLogLevels(levels);
+    logging.Logger.root.level = getLowestLevel(Logger.logLevels);
   }
 
   @override
   void severe(Object? message, [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.severe, logLevels: logLevels)) {
+    if(!Logger.isLevelEnabled(LogLevel.severe)) {
       return;
     }
     final logger = logging.Logger.root;
@@ -178,7 +178,7 @@ class ConsoleLogger implements LoggerService {
   @override
   void shout(Object? message,
     [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.shout, logLevels: logLevels)) {
+    if(!Logger.isLevelEnabled(LogLevel.shout)) {
       return;
     }
     final logger = logging.Logger.root;
@@ -188,7 +188,7 @@ class ConsoleLogger implements LoggerService {
   @override
   void verbose(Object? message,
     [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.verbose, logLevels: logLevels)) {
+    if(!Logger.isLevelEnabled(LogLevel.verbose)) {
       return;
     }
     final logger = logging.Logger.root;
@@ -198,15 +198,11 @@ class ConsoleLogger implements LoggerService {
   @override
   void warning(Object? message,
     [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.warning, logLevels: logLevels)) {
+    if(!Logger.isLevelEnabled(LogLevel.warning)) {
       return;
     }
     final logger = logging.Logger.root;
     logger.warning(AugmentedMessage(message, optionalParameters));
-  }
-
-  @override
-  void dispose() {
   }
 
 }

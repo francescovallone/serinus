@@ -39,7 +39,7 @@ abstract class Application {
   Application({
     required this.entrypoint,
     required this.config,
-    List<LogLevel> levels = const [LogLevel.verbose],
+    Set<LogLevel>? levels,
     Router? router,
     ModulesContainer? modulesContainer,
     LoggerService? logger,
@@ -47,6 +47,9 @@ abstract class Application {
         modulesContainer = modulesContainer ?? ModulesContainer(config) {
     if (logger != null) {
       Logger.overrideLogger(logger);
+    }
+    if(levels != null) {
+      Logger.setLogLevels(levels);
     }
   }
 

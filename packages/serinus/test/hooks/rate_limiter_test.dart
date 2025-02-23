@@ -27,7 +27,7 @@ void main() {
   setUpAll(() async {
     app = await serinus.createApplication(
         entrypoint: TestModule(controllers: [controller]),
-        logLevels: [LogLevel.none],
+        logLevels: {LogLevel.none},
         port: 7500);
     app?.use(RateLimiterHook(maxRequests: 5, duration: Duration(seconds: 10)));
     await app?.serve();

@@ -45,7 +45,7 @@ Future<void> main() async {
     setUpAll(() async {
       app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController()]),
-          logLevels: [LogLevel.none],
+          logLevels: {LogLevel.none},
           port: 3006);
       await app?.serve();
     });

@@ -116,7 +116,7 @@ void main() {
           entrypoint:
               TestModule(controllers: [TestController()], middlewares: [r]),
           port: 8888,
-          logLevels: [LogLevel.none]);
+          logLevels: {LogLevel.none});
       await app?.serve();
     });
     tearDownAll(() async {

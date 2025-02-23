@@ -39,7 +39,7 @@ void main() {
       final adapter = _MockAdapter();
       final app = SerinusApplication(
         entrypoint: TestModule(),
-        levels: [LogLevel.none],
+        levels: {LogLevel.none},
         config: ApplicationConfig(
             host: 'localhost',
             poweredByHeader: 'Serinus',

@@ -62,7 +62,7 @@ void main() {
       final app = await serinus.createApplication(
           entrypoint:
               TestModule(imports: [WsModule()], providers: [WsGateway()]),
-          logLevels: [LogLevel.none],
+          logLevels: {LogLevel.none},
           port: 3004);
       await app.serve();
       final ws = await WebSocket.connect('ws://localhost:3004/');
@@ -78,7 +78,7 @@ void main() {
         final app = await serinus.createApplication(
             entrypoint: TestModule(
                 imports: [WsModule()], providers: [WsGateway(path: '/ws')]),
-            logLevels: [LogLevel.none],
+            logLevels: {LogLevel.none},
             port: 3001);
         await app.serve();
         try {
@@ -99,7 +99,7 @@ void main() {
         final gateway = WsGatewayMixins(path: '/ws');
         final app = await serinus.createApplication(
             entrypoint: TestModule(imports: [WsModule()], providers: [gateway]),
-            logLevels: [LogLevel.none],
+            logLevels: {LogLevel.none},
             port: 3002);
         await app.serve();
         final ws = await WebSocket.connect('ws://localhost:3002/ws');

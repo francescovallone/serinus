@@ -24,12 +24,6 @@ abstract interface class LoggerService {
   /// Write a message at log level [LogLevel.severe]. it is used to log severe messages.
   void severe(Object? message, [OptionalParameters? optionalParameters]);
 
-  /// The [setLogLevels] method is used to set the log levels of the logger.
-  void setLogLevels(List<LogLevel> levels) {}
-  
-  /// The [dispose] method is used to dispose of the logger.
-  void dispose();
-
 }
 
 /// The [defaultLogger] is used to create a new instance of the [LoggerService] class.
@@ -134,25 +128,21 @@ class Logger implements LoggerService {
   }
 
   /// The [isLevelEnabled] method is used to check if a log level is enabled.
-  static bool isLevelEnabled(LogLevel level, {List<LogLevel>? logLevels}) {
-    final levels = logLevels?.toSet() ?? Logger.logLevels;
+  static bool isLevelEnabled(LogLevel level, {Set<LogLevel>? logLevels}) {
+    final levels = logLevels ?? Logger.logLevels;
     return LogLevel.isLogLevelEnabled(levels, level);
   }
   
-  @override
-  void setLogLevels(List<LogLevel> levels) {
+  /// The [setLogLevels] method is used to set the log levels of the logger.
+  static void setLogLevels(Set<LogLevel> levels) {
     Logger.logLevels.clear();
     Logger.logLevels.addAll(levels);
   }
 
   /// The [overrideLogger] method is used to override the staticInstanceRef that the logger is keeping.
   static void overrideLogger(LoggerService logger) {
-    Logger._staticInstanceRef.dispose();
     Logger._staticInstanceRef = logger;
   }
-  
-  @override
-  void dispose() {}
 
 }
 
