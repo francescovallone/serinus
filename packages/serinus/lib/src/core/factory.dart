@@ -20,8 +20,8 @@ final class SerinusFactory {
       {required Module entrypoint,
       String host = 'localhost',
       int port = 3000,
-      LogLevel loggingLevel = LogLevel.debug,
-      LoggerService? loggerService,
+      Set<LogLevel> logLevels = const {LogLevel.verbose},
+      LoggerService? logger,
       String poweredByHeader = 'Powered by Serinus',
       SecurityContext? securityContext,
       ModelProvider? modelProvider,
@@ -44,8 +44,8 @@ final class SerinusFactory {
             securityContext: securityContext,
             serverAdapter: server,
             modelProvider: modelProvider),
-        level: loggingLevel,
-        loggerService: loggerService);
+        levels: logLevels,
+        logger: logger);
     return app;
   }
 }

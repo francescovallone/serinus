@@ -308,6 +308,9 @@ class RequestHandler extends Handler {
     Object? result;
     if (isStatic) {
       result = handler;
+      if (handler is SerinusException) {
+        throw handler;
+      }
     }
     if (handler is Function) {
       if (handler is ReqResHandler) {

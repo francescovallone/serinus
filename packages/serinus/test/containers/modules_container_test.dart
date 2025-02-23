@@ -12,6 +12,7 @@ void main() {
     test(
         'registerModules should register a module in the container and store it in the modules list',
         () async {
+      Logger.setLogLevels({LogLevel.none});
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
           port: 3000,
@@ -25,6 +26,7 @@ void main() {
     test(
         'registerModules should throw an $InitializationError when a module is registered multiple times',
         () async {
+          Logger.setLogLevels({LogLevel.none});
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
           port: 3000,

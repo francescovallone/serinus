@@ -99,7 +99,7 @@ void main() {
       final app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController(route: route)]),
           port: 9000,
-          loggingLevel: LogLevel.none);
+          logLevels: {LogLevel.none});
       final hook = HookTest();
       app.use(hook);
       app.use(NoOverrideHook());

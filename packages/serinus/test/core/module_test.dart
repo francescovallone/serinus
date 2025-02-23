@@ -29,6 +29,7 @@ final config = ApplicationConfig(
     ));
 
 void main() async {
+  Logger.setLogLevels({LogLevel.none});
   group('$Module', () {
     test('''registerModules should register all the submodules as well''',
         () async {

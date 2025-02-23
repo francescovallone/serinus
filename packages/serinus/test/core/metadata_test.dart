@@ -56,7 +56,7 @@ void main() async {
               controllers: [controller],
               middlewares: [],
               providers: [TestProvider()]),
-          loggingLevel: LogLevel.none);
+          logLevels: {LogLevel.none});
       await app?.serve();
     });
     tearDownAll(() async {
