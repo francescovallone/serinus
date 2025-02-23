@@ -21,7 +21,7 @@ final class SerinusFactory {
       String host = 'localhost',
       int port = 3000,
       List<LogLevel> logLevels = const [LogLevel.verbose],
-      LoggerService? loggerService,
+      LoggerService? logger,
       String poweredByHeader = 'Powered by Serinus',
       SecurityContext? securityContext,
       ModelProvider? modelProvider,
@@ -45,7 +45,7 @@ final class SerinusFactory {
             serverAdapter: server,
             modelProvider: modelProvider),
         levels: logLevels,
-        loggerService: loggerService);
+        logger: logger);
     return app;
   }
 }

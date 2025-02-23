@@ -1,144 +1,179 @@
 // ignore_for_file: avoid_print
 import 'package:logging/logging.dart' as logging;
 import '../enums/log_level.dart';
-import 'printers/console_printer.dart';
+import 'console_logger_service.dart';
 
-/// The [LoggerService] is used to bootstrap the Loggers in the application, it keeps the default configuration for all the loggers.
-class LoggerService {
-  /// The [_printer] of the logger.
-  Printer _printer = ConsolePrinter();
+/// The [LoggerService] class is used as a blueprint for the loggers.
+abstract interface class LoggerService {
 
-  /// The [printer] of the logger.
-  Printer get printer => _printer;
+  /// Write a message at log level [LogLevel.info]. it is used to log info messages.
+  void info(Object? message, [OptionalParameters? optionalParameters]);
 
-  /// The [level] of the logger.
-  final List<LogLevel> levels;
+  /// Write a message at log level [LogLevel.verbose]. it is used to log verbose messages.
+  void verbose(Object? message, [OptionalParameters? optionalParameters]);
 
-  /// The [prefix] of the logger.
-  String prefix;
+  /// Write a message at log level [LogLevel.shout]. it is used to shout messages.
+  void shout(Object? message, [OptionalParameters? optionalParameters]);
 
-  /// The [LoggerService] constructor is used to create a new instance of the [LoggerService] class.
-  factory LoggerService({
-    Printer? printer,
-    List<LogLevel> levels = const [LogLevel.verbose],
-    String prefix = 'Serinus',
-  }) {
-    return LoggerService._(printer: printer, levels: levels, prefix: prefix);
-  }
+  /// Write a message at log level [LogLevel.warning]. it is used to log warning messages.
+  void warning(Object? message, [OptionalParameters? optionalParameters]);
 
-  logging.Level _getLowestLevel(List<LogLevel> levels) {
-    final sorted = levels.toList()..sort();
-    return switch (sorted.first) {
-      LogLevel.none => logging.Level.OFF,
-      LogLevel.verbose => logging.Level.ALL,
-      LogLevel.debug => logging.Level.FINE,
-      LogLevel.info => logging.Level.INFO,
-      LogLevel.warning => logging.Level.WARNING,
-      LogLevel.severe => logging.Level.SEVERE,
-      LogLevel.shout => logging.Level.SHOUT,
-    };
-  }
+  /// Write a message at log level [LogLevel.debug]. it is used to log config messages.
+  void debug(Object? message, [OptionalParameters? optionalParameters]);
 
-  LoggerService._({
-    Printer? printer,
-    this.levels = const [LogLevel.verbose],
-    this.prefix = 'Serinus',
-  }) {
-    _printer = printer ?? ConsolePrinter();
+  /// Write a message at log level [LogLevel.severe]. it is used to log severe messages.
+  void severe(Object? message, [OptionalParameters? optionalParameters]);
 
-    /// The root level of the logger.
-    logging.Logger.root.level = _getLowestLevel(levels);
+  /// The [setLogLevels] method is used to set the log levels of the logger.
+  void setLogLevels(List<LogLevel> levels) {}
+  
+  /// The [dispose] method is used to dispose of the logger.
+  void dispose();
 
-    /// The listener for the logs.
-    logging.Logger.root.onRecord.listen((record) {
-      if (record.error != null || record.stackTrace != null) {
-        _printer.printErrors(record, prefix);
-      } else {
-        _printer.print(record, prefix);
-      }
-    });
-  }
 }
+
+/// The [defaultLogger] is used to create a new instance of the [LoggerService] class.
+final LoggerService defaultLogger = ConsoleLogger();
 
 /// The [Logger] class is a wrapper around the [logging.Logger] class.
 ///
 /// It is used to log messages in the application.
-class Logger {
-  /// The name of the logger.
-  final String name;
-  late logging.Logger _logger;
+class Logger implements LoggerService {
+
+  /// The [staticInstanceRef] is used to get the static instance of the logger.
+  static LoggerService _staticInstanceRef = defaultLogger;
+
+  /// The [logLevels] of the logger.
+  static final Set<LogLevel> logLevels = {
+    LogLevel.verbose,
+    LogLevel.debug,
+    LogLevel.info,
+    LogLevel.warning,
+    LogLevel.severe,
+    LogLevel.shout,
+  };
+
+  /// The [context] of the logger.
+  final String context;
+
+  LoggerService? _localInstanceRef;
+
+  /// Define a getter to get the local instance of the logger.
+  LoggerService get localInstance {
+    if(Logger._staticInstanceRef == defaultLogger) {
+      return _registerLocalInstanceRef();
+    } else if(Logger._staticInstanceRef is Logger) {
+      return _registerLocalInstanceRef();
+    }
+    return Logger._staticInstanceRef;
+  }
 
   /// The [Logger] constructor is used to create a new instance of the [Logger] class.
-  Logger(this.name) {
-    _logger = logging.Logger(name);
+  Logger(this.context);
+
+  LoggerService _registerLocalInstanceRef() {
+    if(_localInstanceRef != null) {
+      return _localInstanceRef!;
+    }
+    _localInstanceRef = ConsoleLogger();
+    return _localInstanceRef!;
   }
-
-  /// Logs a message at level [logging.Level.INFO]. it is used to log info messages.
-  void info(Object? message,
-      [Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata]) {
-    _logger.info(LogMessage(message, metadata: metadata), error, stackTrace);
-  }
-
-  /// Logs a message at level [logging.Level.VERBOSE]. it is used to log verbose messages.
-  void verbose(Object? message,
-          [Object? error,
-          StackTrace? stackTrace,
-          Map<String, dynamic>? metadata]) =>
-      _logger.log(logging.Level.ALL, LogMessage(message, metadata: metadata),
-          error, stackTrace);
-
-  /// Logs a message at level [logging.Level.SHOUT]. it is used to shout messages.
-  void shout(Object? message,
-          [Object? error,
-          StackTrace? stackTrace,
-          Map<String, dynamic>? metadata]) =>
-      _logger.shout(LogMessage(message, metadata: metadata), error, stackTrace);
-
-  /// Logs a message at level [logging.Level.WARNING]. it is used to log warning messages.
-  void warning(Object? message,
-          [Object? error,
-          StackTrace? stackTrace,
-          Map<String, dynamic>? metadata]) =>
-      _logger.warning(
-          LogMessage(message, metadata: metadata), error, stackTrace);
-
-  /// Logs a message at level [logging.Level.DEBUG]. it is used to log config messages.
-  void debug(Object? message,
-          [Object? error,
-          StackTrace? stackTrace,
-          Map<String, dynamic>? metadata]) =>
-      _logger.fine(LogMessage(message, metadata: metadata), error, stackTrace);
-
-  /// Logs a message at level [logging.Level.SEVERE]. it is used to log severe messages.
-  void severe(Object? message,
-          [Object? error,
-          StackTrace? stackTrace,
-          Map<String, dynamic>? metadata]) =>
-      _logger.severe(
-          LogMessage(message, metadata: metadata), error, stackTrace);
-}
-
-/// The [Printer] class is used as an interface for the different printers.
-abstract class Printer<T> {
-
-  /// The [channel] where the logs will be displayed or saved.
-  T get channel;
   
-  /// The [print] method is used to print a log record.
-  void print(logging.LogRecord record, String prefix);
+  @override
+  void debug(Object? message, [OptionalParameters? optionalParameters]) {
+    optionalParameters ??= OptionalParameters();
+    if(context.isNotEmpty) {
+      optionalParameters.context = context;
+    }
+    localInstance.debug(message, optionalParameters);
+  }
+  
+  @override
+  void info(Object? message, [OptionalParameters? optionalParameters]) {
+    optionalParameters ??= OptionalParameters();
+    if(context.isNotEmpty) {
+      optionalParameters.context = context;
+    }
+    localInstance.info(message, optionalParameters);
+  }
+  
+  @override
+  void severe(Object? message, [OptionalParameters? optionalParameters]) {
+    optionalParameters ??= OptionalParameters();
+    if(context.isNotEmpty) {
+      optionalParameters.context = context;
+    }
+    localInstance.severe(message, optionalParameters);
+  }
+  
+  @override
+  void shout(Object? message, [OptionalParameters? optionalParameters]) {
+    optionalParameters ??= OptionalParameters();
+    if(context.isNotEmpty) {
+      optionalParameters.context = context;
+    }
+    localInstance.shout(message, optionalParameters);
+  }
+  
+  @override
+  void verbose(Object? message, [OptionalParameters? optionalParameters]) {
+    optionalParameters ??= OptionalParameters();
+    if(context.isNotEmpty) {
+      optionalParameters.context = context;
+    }
+    localInstance.verbose(message, optionalParameters);
+  }
+  
+  @override
+  void warning(Object? message, [OptionalParameters? optionalParameters]) {
+    optionalParameters ??= OptionalParameters();
+    if(context.isNotEmpty) {
+      optionalParameters.context = context;
+    }
+    localInstance.warning(message, optionalParameters);
+  }
 
-  /// The [printErrors] method is used to print a log record with errors.
-  void printErrors(logging.LogRecord record, String prefix);
+  /// The [isLevelEnabled] method is used to check if a log level is enabled.
+  static bool isLevelEnabled(LogLevel level, {List<LogLevel>? logLevels}) {
+    final levels = logLevels?.toSet() ?? Logger.logLevels;
+    return LogLevel.isLogLevelEnabled(levels, level);
+  }
+  
+  @override
+  void setLogLevels(List<LogLevel> levels) {
+    Logger.logLevels.clear();
+    Logger.logLevels.addAll(levels);
+  }
+
+  /// The [overrideLogger] method is used to override the staticInstanceRef that the logger is keeping.
+  static void overrideLogger(LoggerService logger) {
+    Logger._staticInstanceRef.dispose();
+    Logger._staticInstanceRef = logger;
+  }
+  
+  @override
+  void dispose() {}
+
 }
 
-/// The [LogMessage] class is used to create a new instance of the [LogMessage] class.
-final class LogMessage {
-  /// The [message] of the log message.
-  final Object? message;
+/// The [OptionalParameters] class is used to define the optional parameters of the logger.
+final class OptionalParameters {
 
-  /// The [metadata] of the log message.
+  /// An [error] occurred during the logging process.
+  final Object? error;
+  /// The [stackTrace] of an event that occurred during the logging process.
+  final StackTrace? stackTrace;
+  /// The [metadata] of an event that occurred during the logging process.
   final Map<String, dynamic>? metadata;
+  
+  /// The [context] of the logger.
+  String? context = '';
 
-  /// The [LogMessage] constructor is used to create a new instance of the [LogMessage] class.
-  LogMessage(this.message, {this.metadata});
+  /// The [OptionalParameters] constructor is used to create a new instance of the [OptionalParameters] class.
+  OptionalParameters({
+    this.error,
+    this.stackTrace,
+    this.metadata,
+  });
+
 }

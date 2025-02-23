@@ -20,14 +20,11 @@ import 'core.dart';
 /// The [Application] class is used to create an application.
 abstract class Application {
   /// The [level] property contains the log level of the application.
-  List<LogLevel> get levels => loggerService?.levels ?? [];
+  Set<LogLevel> get levels => Logger.logLevels;
 
   /// The [entrypoint] property contains the entry point of the application.
   final Module entrypoint;
   bool _enableShutdownHooks = false;
-
-  /// The [loggerService] property contains the logger service of the application.
-  LoggerService? loggerService;
 
   /// The [modulesContainer] property contains the modules container of the application.
   ModulesContainer modulesContainer;
@@ -45,15 +42,14 @@ abstract class Application {
     List<LogLevel> levels = const [LogLevel.verbose],
     Router? router,
     ModulesContainer? modulesContainer,
-    LoggerService? loggerService,
+    LoggerService? logger,
   })  : router = router ?? Router(),
-        loggerService = loggerService ?? LoggerService(levels: levels),
-        modulesContainer = modulesContainer ?? ModulesContainer(config);
-
-  /// The [loggerPrefix] method is used to set the logger prefix of the application.
-  set loggerPrefix(String prefix) {
-    loggerService?.prefix = prefix;
+        modulesContainer = modulesContainer ?? ModulesContainer(config) {
+    if (logger != null) {
+      Logger.overrideLogger(logger);
+    }
   }
+
 
   /// The [url] property contains the URL of the application.
   String get url;
@@ -102,7 +98,7 @@ class SerinusApplication extends Application {
     required super.entrypoint,
     required super.config,
     super.levels,
-    super.loggerService,
+    super.logger,
     super.router,
     super.modulesContainer,
   });
@@ -164,7 +160,7 @@ class SerinusApplication extends Application {
           }
           return handler(request, response);
         },
-        errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
+        errorHandler: (e, stackTrace) => _logger.severe(e, OptionalParameters(stackTrace: stackTrace)),
       );
       final providers = modulesContainer.getAll<OnApplicationReady>();
       for (final provider in providers) {
