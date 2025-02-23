@@ -147,7 +147,7 @@ class ConsoleLogger implements LoggerService {
       return;
     }
     final logger = logging.Logger.root;
-    logger.info(AugmentedMessage(message, optionalParameters));
+    logger.log(logging.Level('DEBUG', 300), AugmentedMessage(message, optionalParameters));
   }
 
   @override
@@ -192,7 +192,7 @@ class ConsoleLogger implements LoggerService {
       return;
     }
     final logger = logging.Logger.root;
-    logger.log(logging.Level.ALL, AugmentedMessage(message, optionalParameters));
+    logger.log(logging.Level('VERBOSE', 0), AugmentedMessage(message, optionalParameters));
   }
 
   @override

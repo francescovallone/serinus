@@ -17,5 +17,6 @@ export 'src/handlers/handlers.dart';
 export 'src/hooks/hooks.dart';
 export 'src/http/http.dart';
 export 'src/mixins/mixins.dart';
+export 'src/services/console_logger_service.dart';
 export 'src/services/logger_service.dart';
 export 'src/versioning.dart';

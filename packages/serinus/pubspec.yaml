@@ -38,3 +38,4 @@ dev_dependencies:
   test: ^1.16.0
   lints: '>=5.0.0 <6.0.0'
   http: ^1.2.2
+  test_process: ^2.1.1

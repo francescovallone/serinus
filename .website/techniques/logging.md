@@ -4,7 +4,8 @@ Serinus comes with a built-in text-based logger which is used during application
 
 ## Usage
 
-The logger as a stand-alone class and will use the properties defined in the `LoggerService`.
+The Logger is an  implementation of the `LoggerService` interface. It is a general-purpose class annd exposes the actual logger hiding its implementation.
+By default the default logger is the `ConsoleLoggerService`.
 
 ```dart
 class TestProvider extends Provider with OnApplicationInit {
@@ -23,63 +24,120 @@ class TestProvider extends Provider with OnApplicationInit {
 This will print (if you have the default logger service):
 
 ```shell
-[Serinus] 26252 20/09/2024 17:20:36     INFO [TestProviderFour] Provider initialized +0ms
+[Serinus] 26252 20/09/2024 17:20:36     INFO [TestProviderFour] Provider initialized
 ```
 
-## Change the logger prefix
+## Override the default logger
 
-You can change the prefix of the logger by using the `loggerPrefix` method from your application.
+You can configure the default logger by providing a custom `LoggerService` implementation to the `Logger` constructor.
 
 ```dart
-void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
-      entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
-  application.enableShutdownHooks();
-  application.loggerPrefix('MyApp');
-  await application.serve();
+void main() {
+  final application = await serinus.createApplication(
+    entrypoint: AppModule(), 
+    host: InternetAddress.anyIPv4.address, 
+    logger: ConsoleLogger(prefix: 'Serinus New Logger')
+  );
 }
 ```
 
-This will print:
+This will change the default logger prefix to `Serinus New Logger`:
 
 ```shell
-[MyApp] 26252 20/09/2024 17:20:36     INFO [TestProviderFour] Provider initialized +0ms
+[Serinus New Logger] 26252 20/09/2024 17:20:36     INFO [TestProviderFour] Provider initialized
 ```
 
-## Configure the logger service
+## Custom Logger
 
-You can configure the logger service by using the `LoggerService` class.
+You can also create a custom logger by implementing the `LoggerService` interface.
 
 ```dart
-void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
+class CustomLogger implements LoggerService {
+  
+  /// Implement all the methods of the LoggerService interface
+
+}
+
+void main() {
+  final application = await serinus.createApplication(
     entrypoint: AppModule(), 
-    host: InternetAddress.anyIPv4.address,
-    loggerService: LoggerService(
-      level: LogLevel.debug,
-      prefix: 'Serinus',
-      onLog: (prefix, record, deltaTime) {
-        print('{"prefix": "$prefix", "record": "${record.message}", "deltaTime": "${deltaTime}ms"}');
-      },
+    host: InternetAddress.anyIPv4.address, 
+    logger: CustomLogger()
+  );
+}
+```
+
+## Logger Levels
+
+The logger has several levels of logging, which are:
+
+- `none`: No logging.
+- `verbose`: Log virtually everything.
+- `debug`: Log debug and higher.
+- `info`: Log info and higher.
+- `warning`: Log warning and higher.
+- `severe`: Log severe and higher.
+- `shout`: Log shout and higher.
+
+You can set the logger level by providing it to the `Logger` constructor.
+
+```dart
+void main() {
+  final application = await serinus.createApplication(
+    entrypoint: AppModule(), 
+    host: InternetAddress.anyIPv4.address, 
+    logger: ConsoleLogger(prefix: 'Serinus New Logger', level: {LoggerLevel.warning})
+  );
+}
+```
+
+This will only log warnings and higher:
+
+```shell
+[Serinus New Logger] 26252 20/09/2024 17:20:36     WARNING [TestProviderFour] Provider initialized
+```
+
+## Console Logger Options
+
+The `ConsoleLogger` class has several options that can be configured:
+
+- `prefix`: The prefix of the logger.
+- `levels`: The levels of the logger.
+- `json`: Whether to log in JSON format.
+- `timestamp`: Whether to log the time difference between the current log and the previous log.
+
+::: info
+If you set the `json` option to `true`, the `timestamp` option will be ignored.
+:::
+
+```dart
+void main() {
+  final application = await serinus.createApplication(
+    entrypoint: AppModule(), 
+    host: InternetAddress.anyIPv4.address, 
+    logger: ConsoleLogger(
+      prefix: 'Serinus New Logger', 
+      levels: {LoggerLevel.warning}, 
+      json: true, 
     )
   );
-  await application.serve();
 }
 ```
 
-Doing this you will change the default behavior of the logger service and it will print:
+This will log in JSON format:
 
 ```shell
-{"prefix": "Serinus", "record": "Provider initialized", "deltaTime": "0ms"}
+{"prefix":"Serinus New Logger","pid":"22340","context":"Test","level":"WARNING","message":"Test","time":"2025-02-23T20:14:26.215734"}
 ```
 
-## Log levels
+## Logging Exceptions
 
-The logger service has the following log levels:
+You can log exceptions by passing the `OptionalParameters` class to the logger.
 
-| Level | Description |
-|-------|-------------|
-| debug | All logs will be printed |
-| info  | All but debug logs will be printed |
-| error | Only severe logs will be printed |
-| none | No logs will be printed |
+```dart
+try {
+  throw Exception('Test');
+} catch (e) {
+  logger.severe('An error occurred', OptionalParameters(error: e));
+}
+```
