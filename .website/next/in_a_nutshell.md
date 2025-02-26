@@ -47,7 +47,7 @@ class AppController extends Controller {
 Serinus is a community-driven project so, if you have any questions, need help, or want to contribute to the project, feel free to join our community on Discord.
 
 <script setup>
-  import BtnLink from './components/btn-link.vue';
+  import BtnLink from '../components/btn-link.vue';
 </script>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

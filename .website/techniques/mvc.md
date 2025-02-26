@@ -71,6 +71,7 @@ void main(List<String> arguments) async {
 Then you can use the `render` and the `renderString` methods in your route handlers when returning the Response.
 
 ::: code-group
+
 ```dart [Render]
 import 'package:serinus/serinus.dart';
 
@@ -96,7 +97,7 @@ class MyController extends Controller {
 }
 ```
 
-```text [index.mustache]
+```txt [index.mustache]
 Hello {{name}}
 ```
 

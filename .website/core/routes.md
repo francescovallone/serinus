@@ -61,6 +61,26 @@ You should use a class when you need to define a route that has some specific be
 
 :::
 
+## Transform the RequestContext
+
+You can transform the `RequestContext` before it reaches the route handler by augment the class with the mixin `OnTransform` and overriding the method `transform`.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class GetRoute extends Route {
+    const GetRoute({
+        required super.path, 
+        super.method = HttpMethod.get,
+    });
+
+    @override
+    Future<void> transform(RequestContext context) async {
+      return;
+    }
+}
+```
+
 ## Validation
 
 You can parse some of the `Request` properties before they reach the route handler by creating a `ParseSchema` and passing it to the route.
