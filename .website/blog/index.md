@@ -25,6 +25,14 @@ head:
 <Blog
 	:posts="[
     {
+      title: 'Serinus VS Dart Frog - A Comparison',
+      src: '/blog/serinus_vs_dartfrog/serinus_vs_dartfrog.webp',
+      alt: 'Serinus VS Dart Frog - A Comparison',
+      date: '23 Feb 2025',
+      href: '/blog/serinux_vs_dartfrog',
+      tags: ['general'],
+    },
+    {
       title: 'How Hooks and Metadata can improve your Serinus application',
       src: '/blog/hooks_and_metadata/hooks_and_metadata.webp',
       alt: 'How Hooks and Metadata can improve your Serinus application',
@@ -38,7 +46,7 @@ head:
       alt: 'Serinus 1.0 - Primavera',
       date: '26 Nov 2024',
       href: '/blog/serinus_1_0',
-      tags: ['release'],
+      tags: ['releases'],
     },
     {
       title: 'The goal of Serinus',
@@ -54,7 +62,7 @@ head:
 			alt: 'Serinus 0.6 - Welcome to the Meta-World',
 			date: '1 Aug 2024',
 			href: '/blog/serinus_0_6',
-      tags: ['release'],
+      tags: ['releases'],
 		},
 	]"
 />
