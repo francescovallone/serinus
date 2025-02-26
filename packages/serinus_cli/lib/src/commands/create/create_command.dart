@@ -29,6 +29,10 @@ class CreateCommand extends Command<int> {
       ..addFlag(
         'plugin',
         help: 'Whether to create a plugin project.',
+      )
+      ..addFlag(
+        'force',
+        help: 'Force project creation even if the directory exists.',
       );
   }
 
@@ -95,11 +99,13 @@ class CreateCommand extends Command<int> {
         defaultValue: '',
       ),
     };
-
+    if(outputDirectory.existsSync() && !force) {
+      _logger?.err('Directory already exists at ${outputDirectory.absolute.path}');
+      return;
+    }
     if (!outputDirectory.existsSync()) {
       outputDirectory.createSync(recursive: true);
     }
-
     _logger?.success('Directory created at ${outputDirectory.absolute.path}');
     progress?.update('Fetching latest version of serinus package...');
     try {
@@ -144,6 +150,10 @@ class CreateCommand extends Command<int> {
         defaultValue: 'A new Serinus application',
       ),
     };
+    if(outputDirectory.existsSync() && !force) {
+      progress?.fail('Directory already exists at ${outputDirectory.absolute.path}');
+      return;
+    }
     if (!outputDirectory.existsSync()) {
       outputDirectory.createSync(recursive: true);
     }
@@ -193,6 +203,8 @@ class CreateCommand extends Command<int> {
     _validateOutputDirectoryArg(rest);
     return Directory(rest.first);
   }
+
+  bool get force => argResults['force'] as bool;
 
   bool get _isPlugin => argResults['plugin'] as bool;
 
