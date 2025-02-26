@@ -47,7 +47,7 @@ You should pick what fits your needs the best.
 
 ## Dart Frog
 
-Dart Frog is a server-side framework for Flutter that allows you to build server-side applications using the Dart programming language. It is a wrapper around Shelf and tries to provide a more simple and easy to use API.
+[Dart Frog](https://dartfrog.vgv.dev/) is a server-side framework for Flutter that allows you to build server-side applications using the Dart programming language. It is a wrapper around Shelf and tries to provide a more simple and easy to use API.
 
 ### Features
 
