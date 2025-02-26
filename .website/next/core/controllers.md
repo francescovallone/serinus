@@ -52,4 +52,4 @@ class MyController extends Controller {
 }
 ```
 
-You can find more information about metadata in the [Metadata](/core/metadata.html) section.
+You can find more information about metadata in the [Metadata](/next/core/metadata.html) section.

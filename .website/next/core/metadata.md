@@ -96,7 +96,7 @@ class GetRoute extends Route {
 
 ## Accessing Metadata
 
-As explained in the [Request Context](/foundations/request_context.html) section, you can access the metadata from the `RequestContext` object.
+As explained in the [Request Context](/next/foundations/request_context.html) section, you can access the metadata from the `RequestContext` object.
 
 ```dart
 import 'package:serinus/serinus.dart';

@@ -89,7 +89,7 @@ class MyController extends Controller {
 ## Typed body handler
 
 ::: tip
-Before using typed body handlers, make sure to read the [Model Provider](/techniques/model_provider) section.
+Before using typed body handlers, make sure to read the [Model Provider](/next/techniques/model_provider) section.
 :::
 
 The handler can also receive a body of a specific type. This is useful when you need to receive a JSON body and convert it to a Dart object.

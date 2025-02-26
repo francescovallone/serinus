@@ -85,7 +85,7 @@ class AppController extends Controller {
 }
 ```
 
-To learn more about the ParseSchema, check the [Schema](/validation/schema) section.
+To learn more about the ParseSchema, check the [Schema](/next/validation/schema) section.
 
 ## Route hooks
 
@@ -112,4 +112,4 @@ class GetRoute extends Route with OnBeforeHandle, OnAfterHandle {
 }
 ```
 
-These two methods are actually local hooks. You can check when they will be executed in the [Request Lifecycle](/foundations/request_lifecycle) section.
+These two methods are actually local hooks. You can check when they will be executed in the [Request Lifecycle](/next/foundations/request_lifecycle) section.
