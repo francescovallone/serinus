@@ -19,7 +19,6 @@ export default defineConfig({
   },
   lastUpdated: true,
   appearance: 'force-dark',
-  cleanUrls: true,
   themeConfig: {
     footer: {
       copyright: 'Copyright © 2024 Francesco Vallone',
