@@ -35,7 +35,7 @@ head:
     src="/blog/serinus_vs_dartfrog/serinus_vs_dartfrog.webp"
     alt="Serinus VS Dart Frog - A Comparison"
     author="Francesco Vallone"
-    date="26 Feb 2025"
+    date="27 Feb 2025"
     shadow
 >
 

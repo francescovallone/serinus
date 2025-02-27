@@ -28,7 +28,7 @@ head:
       title: 'Serinus VS Dart Frog - A Comparison',
       src: '/blog/serinus_vs_dartfrog/serinus_vs_dartfrog.webp',
       alt: 'Serinus VS Dart Frog - A Comparison',
-      date: '26 Feb 2025',
+      date: '27 Feb 2025',
       href: '/blog/serinus_vs_dartfrog',
       tags: ['general'],
     },
