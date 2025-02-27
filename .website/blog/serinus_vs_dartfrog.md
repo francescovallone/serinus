@@ -39,7 +39,7 @@ head:
     shadow
 >
 
-One of the questions I get asked the most is how Serinus compares to other similar projects. Why should you choose Serinus over Dartfrog? In this article, I will try to answer this question by comparing the two projects in terms of features and ease to use.
+One of the most common questions I get is how Serinus compares to other similar projects. Why choose Serinus over Dart Frog? In this article, I'll answer this question by comparing the two frameworks in terms of features and ease of use.
 
 ::: tip
 You should pick what fits your needs the best.
@@ -49,17 +49,17 @@ You should pick what fits your needs the best.
 
 ### Dart Frog
 
-[Dart Frog](https://dartfrog.vgv.dev/) is a server-side framework for Flutter that allows you to build server-side applications using the Dart programming language. It is a wrapper around Shelf and tries to provide a more simple and easy to use API.
+[Dart Frog](https://dartfrog.vgv.dev/) is a server-side framework for Flutter that enables you to build server-side applications using the Dart programming language. It is a wrapper around Shelf and aims to provide a simpler and more user-friendly API.
 
 ### Serinus
 
-Serinus is a minimalistic framework for building efficient and scalable server-side applications powered by Dart. It is designed to be easy to use, flexible and extensible to cover all the needs of a modern server-side application.
+Serinus is a minimalistic framework for building efficient and scalable server-side applications in Dart. It is designed to be easy to use, flexible, and extensible to meet the needs of modern server-side applications.
 
 ## Routing
 
-Dart Frog uses a file-based routing system where you define your routes in a separate file. Although it is a good approach for small applications, it can become hard to maintain as your application grows.
+Dart Frog uses a file-based routing system where routes are defined in separate files. While this works well for small applications, it can become difficult to maintain as your project grows.
 
-Serinus, on the other hand, uses a more logical approach where you define your routes in a controller that groups routes that share the same base path. Also, Serinus uses a trie-based routing system that is way more efficient, especially for large applications.
+Serinus, on the other hand, adopts a more structured approach. Routes are defined within controllers, which group related endpoints under the same base path. Additionally, Serinus uses a trie-based routing system, which is significantly more efficient, especially for large applications.
 
 ::: code-group
 
@@ -88,13 +88,13 @@ class AppController extends Controller {
 
 :::
 
-As you can see in the example above, in Dart Frog you have a `onRequest` function that handles all the requests to that endpoint and it is up to you to decide what to do with it. This can lead to errors or unwanted behaviors if you are not careful.
+As shown above, Dart Frog requires an onRequest function that handles all requests to an endpoint, leaving it up to the developer to implement method handling. This can introduce errors or unexpected behavior if not handled carefully.
 
-In Serinus, you have a more structured approach and thanks to the `Route` factory constructors you can easily define your routes and handlers in a more readable and maintainable way without worrying about the request method.
+Serinus provides a more structured approach, using the `Route` factory constructors to define routes and handlers in a readable and maintainable way. You don’t need to worry about manually checking request methods.
 
-This difference is more visible when you have to define a parametrized route. In Dart Frog you have to create a whole new handler `onRequest`, and a new file called [id].dart. 
+The difference becomes even clearer when defining a parameterized route. In Dart Frog, you need to create a new handler (`onRequest`) and a separate file ([id].dart).
 
-In Serinus well, you just have to define a new route in the controller.
+In Serinus, you simply define a new route in the controller.
 
 ::: code-group
 
@@ -138,9 +138,9 @@ class AppController extends Controller {
 
 ## Dependency Injection
 
-Dart Frog provides a built-in dependency injection system that allows you to inject dependencies into your handlers. The problem with this approach is that the framework uses the middlewares to inject the dependencies and this can lead to a lot of boilerplate code. To access the dependencies you need to use the `context.get` method.
+Dart Frog provides a built-in dependency injection system, but it relies on middleware for injecting dependencies. This approach can lead to excessive boilerplate code. To access dependencies, you need to use the `context.get` method.
 
-Serinus, also provides a built-in dependency injection system but it uses a more flexible approach where you can define your dependencies through the `Provider` class and then inject them into your `Module` without the need of middlewares. This makes the code **more maintainable** and also **easier to test**. Also the `Provider.deferred` class allows you to create a provider that is dependent on other providers. To access the dependencies you can use the `context.read` method.
+Serinus also offers built-in dependency injection, but with a more flexible approach. Dependencies are defined through the `Provider` class and injected into a `Module`, eliminating the need for middlewares. This makes the code **more maintainable** and also **easier to test**. The `Provider.deferred` class further enables dependencies that depend on other providers. To access the dependencies you can use the `context.read` method.
 
 ::: code-group
 
@@ -184,7 +184,7 @@ class AppController extends Controller {
 
 ## Hooks & Metadata
 
-Serinus offers some features that are not available in Dart Frog and that allows you to build more complex applications with ease. For example, Serinus provides an `Hook`s system and a `Metadata` system. The former allows you to manage your request lifecycle in a more structured way and the latter allows you to add metadata to your controllers and routes to specify some behaviors.
+Serinus includes features not available in Dart Frog, making it easier to build more complex applications. Notably, it provides a `Hooks` system and a `Metadata` system. The `Hooks` system enables structured management of the request lifecycle, while the `Metadata` system allows you to add metadata to controllers and routes to define specific behaviors.
 
 ::: code-group
   
@@ -237,9 +237,9 @@ class MyController extends Controller {
 
 ## Interoperability with Shelf
 
-As you might know Dart Frog is built on top of Shelf, a low-level web server framework for Dart. This means that you can use all the Shelf middlewares and plugins with Dart Frog.
+As you may know, Dart Frog is built on top of Shelf, a low-level web server framework for Dart. This means you can leverage the entire ecosystem of Shelf middleware and plugins with Dart Frog.
 
-Serinus is not built on top of Shelf but it provides a way to use Shelf middlewares and plugins with it. This allows you to use the vast ecosystem of Shelf plugins with Serinus reducing the need to reinvent the wheel and also making it easier to migrate from a Shelf or Dart Frog application to a Serinus application.
+Serinus, while not built on Shelf, still provides compatibility with Shelf middleware and plugins. This allows you to take advantage of Shelf’s extensive ecosystem, minimizing the need to reinvent the wheel and simplifying migration from a Shelf or Dart Frog application to Serinus.
 
 ::: code-group
 
@@ -271,9 +271,9 @@ class MyModule extends Module {
 
 ## Built-in Validation
 
-Dart Frog does not provide a validation system out of the box. So you need to use a third-party library like `Acanthis` and to provide your own solution to validate the request properties.
+Dart Frog does not include a built-in validation system, so you’ll need to use a third-party library and implement your own solution to validate request properties.
 
-Serinus provides a validation system out of the box, thanks to Acanthis, that allows you to validate the request properties before they reach the route handler. This can be useful to parse the query parameters, the body or the headers of the request and make sure that they are in the correct format.
+Serinus, on the other hand, offers built-in validation powered by `Acanthis`. This allows you to validate request properties — such as query parameters, the request body, or headers — before they reach the route handler, ensuring they are properly formatted.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -298,9 +298,9 @@ class AppController extends Controller {
 
 ## Typed Responses and Body Parsing
 
-Dart Frog allows you to return a `Response` object from your handler that can also serialize json objects. But it does not provide a way to parse the request body in a structured way.
+Dart Frog allows you to return a `Response` object from your handler, which can serialize JSON objects. However, it does not provide a structured way to parse the request body.
 
-Serinus provides a way to return a typed response from your handler and also provides a way to parse the request body in a structured way. This can be useful to parse the request body and pass it directly to the handler without the need to manually parse it.
+Serinus, on the other hand, allows you to return typed responses from your handlers and provides a structured approach to parsing request bodies. This makes it easier to handle request data without manual parsing.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -332,7 +332,7 @@ This feature requires you to use the `serinus_cli` package to generate the neces
 
 ## Conclusion
 
-Both Dart Frog and Serinus are great frameworks for building server-side applications with Dart. They have their own strengths and weaknesses and it is up to you to decide which one fits your needs the best.
+Both Dart Frog and Serinus are great frameworks for building server-side applications with Dart. Each has its own strengths and weaknesses, and the best choice depends on your specific needs.
 
-But if you are looking for a more structured and efficient framework that is easy to use and flexible, then Serinus is the way to go.
+However, if you're looking for a more structured and efficient framework that is easy to use and flexible, Serinus is the way to go. It provides a more structured approach to routing, a flexible dependency injection system, and additional features like hooks and metadata that make building complex applications easier.
 </BlogPage>
