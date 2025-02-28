@@ -3,7 +3,7 @@ const partners = [
     {
         name: 'Orbyta',
         link: 'https://orbyta.it',
-        logo: 'https://orbyta.it/wp-content/uploads/2020/09/logo-orbyta.svg'
+        logo: 'https://orbyta.it/wp-content/uploads/2024/11/logo_orbyta_nero.svg'
     },
 ]
 </script>
