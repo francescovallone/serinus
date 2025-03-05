@@ -23,3 +23,9 @@ mixin OnAfterHandle on Hookable {
   /// The [afterHandle] method is used to execute code after the request is handled
   Future<void> afterHandle(RequestContext context, dynamic response);
 }
+
+/// The [OnException] mixin is used to execute code when an exception is thrown
+mixin OnException on Hook {
+  /// The [onException] method is used to execute code when an exception is thrown
+  Future<void> onException(RequestContext request, Exception exception) async {}
+}

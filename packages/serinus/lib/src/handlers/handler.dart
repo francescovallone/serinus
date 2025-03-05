@@ -47,6 +47,9 @@ abstract class Handler {
       );
       currentContext.res.statusCode = e.statusCode;
       currentContext.res.contentType = ContentType.json;
+      for(final hook in config.hooks.exceptionHooks) {
+        await hook.onException(currentContext, e);
+      }
       final resHandler =
           ResponseHandler(response, currentContext, config, null);
       await resHandler.handle(error);

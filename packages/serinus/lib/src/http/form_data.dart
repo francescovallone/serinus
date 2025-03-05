@@ -119,6 +119,9 @@ class UploadedFile with JsonObject {
   final String name;
   String _data = '';
 
+  /// The data of the file
+  String get data => _data;
+
   /// The [UploadedFile] constructor is used to create a [UploadedFile] object
   UploadedFile(this.stream, this.contentType, this.name);
 
@@ -133,6 +136,6 @@ class UploadedFile with JsonObject {
 
   @override
   Map<String, dynamic> toJson() {
-    return {'name': name, 'contentType': contentType.toString(), 'data': _data};
+    return {'name': name, 'contentType': contentType.toString(), 'data': data};
   }
 }
