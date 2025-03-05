@@ -126,7 +126,7 @@ void main() {
     });
 
     test(
-      'if a hook or a route are augmented and the methods are called then the data should be populated',
+      'if a hook is augmented with onException and an exception is thrown then the onException method should be called',
       () async {
       final route = HookRoute();
       final app = await serinus.createApplication(
