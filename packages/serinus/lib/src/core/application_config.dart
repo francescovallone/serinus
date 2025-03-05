@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:uuid/v4.dart';
 
 import '../adapters/server_adapter.dart';
+import '../containers/hooks_container.dart';
 import '../containers/model_provider.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
-import '../mixins/mixins.dart';
 import '../services/tracers_service.dart';
 import '../versioning.dart';
 import 'hook.dart';
@@ -133,35 +133,4 @@ final class ApplicationConfig {
     this.modelProvider,
     this.securityContext,
   });
-}
-
-/// The hooks container for the application
-final class HooksContainer {
-  /// The request response hooks for the application
-  final Set<OnRequestResponse> reqResHooks = {};
-
-  /// The before hooks for the application
-  final Set<OnBeforeHandle> beforeHooks = {};
-
-  /// The after hooks for the application
-  final Set<OnAfterHandle> afterHooks = {};
-
-  /// The services exposed by the hooks
-  final Map<Type, Object> services = {};
-
-  /// Add a hook to the application
-  void addHook(Hook hook) {
-    if (hook is OnRequestResponse) {
-      reqResHooks.add(hook);
-    }
-    if (hook is OnBeforeHandle) {
-      beforeHooks.add(hook as OnBeforeHandle);
-    }
-    if (hook is OnAfterHandle) {
-      afterHooks.add(hook as OnAfterHandle);
-    }
-    if (hook.service != null) {
-      services[hook.service!.runtimeType] = hook.service!;
-    }
-  }
 }

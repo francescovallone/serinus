@@ -11,13 +11,14 @@ To create a hook, you first need to create a class that extends the `Hook` class
 | `OnRequestResponse` | Exposes the methods `onRequest` and `onResponse` |
 | `OnBeforeHandle` | Exposes the method `beforeHandle` |
 | `OnAfterHandle` | Exposes the method `afterHandle` |
+| `OnException` | Exposes the method `onException` |
 
-Here is an example of a hook class that extends the `Hook` class and uses the `OnRequestResponse`, `OnBeforeHandle`, and `OnAfterHandle` mixins.
+Here is an example of a hook class that extends the `Hook` class and uses the `OnRequestResponse`, `OnBeforeHandle`, `OnAfterHandle` and `OnException` mixins.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyHook extends Hook with OnRequestResponse, OnBeforeHandle, OnAfterHandle {
+class MyHook extends Hook with OnRequestResponse, OnBeforeHandle, OnAfterHandle, OnException {
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {
     print('Request received');
@@ -37,10 +38,15 @@ class MyHook extends Hook with OnRequestResponse, OnBeforeHandle, OnAfterHandle 
   Future<void> onResponse(Request request, dynamic data, ResponseProperties properties) async {
     print('Response sent');
   }
+
+  @override
+  Future<void> onException(Request request, dynamic error, ResponseProperties properties) async {
+    print('An exception occurred');
+  }
 }
 ```
 
-In the `MyHook` class, the `onRequest`, `beforeHandle`, `afterHandle`, and `onResponse` methods are implemented to log messages at specific points in the request lifecycle.
+In the `MyHook` class, the `onRequest`, `beforeHandle`, `afterHandle`, `onResponse` and `onException` methods are implemented to log messages at specific points in the request lifecycle.
 
 The `onResponse` can also know if the response was successful or not by checking the `statusCode` getter available in the `ResponseProperties` object.
 
