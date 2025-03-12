@@ -1,12 +1,12 @@
 ---
-title: Serinus - Dart backend framework
+title: Serinus - The NestJS for Flutter
 titleTemplate: false
 layout: home
 
 head:
   - - meta
     - property: 'og:title'
-      content: Serinus - Dart backend framework
+      content: Serinus - The NestJS for Flutter
   - - meta
     - name: 'description'
       content: Serinus is an open-source framework for building efficient and scalable backend applications powered by Dart.
