@@ -1,7 +1,8 @@
 ---
 title: Serinus - The NestJS for Flutter
 titleTemplate: false
-layout: home
+layout: page
+sidebar: false
 
 head:
   - - meta

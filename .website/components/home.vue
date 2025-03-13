@@ -1,14 +1,16 @@
 <script setup>
-import Fast from './fast.vue'
 import Modular from './modular.vue'
 import Hero from './hero.vue'
 import Partners from './partners.vue'
+import Highlights from './highlights.vue'
+import Features from './features.vue'
 </script>
 
 <template>
 	<div class="flex flex-col gap-16">
 		<Hero class="h-screen" />
-		<Fast />
+		<Highlights />
+		<Features />
 		<div class="flex flex-col md:flex-row w-full gap-8">
 			<div class="flex flex-col w-full">
 				<section class="flex flex-col gap-6 flex-1">
@@ -29,6 +31,11 @@ import Partners from './partners.vue'
 			</div>
 		</div>
 		<Modular />
-		<Partners />
 	</div>
 </template>
+
+<style scoped>
+.VPNavBar {
+	background-color: transparent !important;
+}
+</style>

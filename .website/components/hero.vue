@@ -2,7 +2,7 @@
 </script>
 
 <template>
-	<div class="container flex w-full h-dvh gap-8 flex-col items-center justify-center">
+	<div class="flex w-full h-dvh gap-8 flex-col items-center justify-center">
         <div class="relative w-72 h-72">
             <div class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 blur-3xl z-[-1]"></div>
             <img src="/serinus-logo.png" alt="Serinus Logo" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72" />
@@ -17,7 +17,7 @@
                 <a href="https://discord.gg/zydgnJ3ksJ" class="px-8 py-4">Join the community</a>
             </div>
         </div>
-        <a href="#features" id="learn-more" class="text-sm">Learn more</a>
+        <a href="#highlights" id="learn-more" class="text-sm">Learn more</a>
   	</div>
 </template>
 
