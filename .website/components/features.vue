@@ -73,39 +73,7 @@
 <template>
 	<div id="features" class="flex w-full gap-8 lg:flex-row flex-col py-16 justify-center items-center">
 		<div class="container flex lg:flex-row justify-center items-center gap-8">
-			<div class="p-4 flex justify-center items-center">
-				<div class="flex flex-col items-center">
-					<img src="/distribute-icon.svg" alt="Serinus Logo" class="w-20 h-20" />
-					<div class="mt-8 mb-4 text-xl text-pretty tracking-wide uppercase text-center font-semibold text-[#FF9800]">
-						Modular
-					</div>
-					<div class="text-md text-pretty text-center w-80">
-						Flexible and modular architecture that allows you to build your application the way you want.
-					</div>
-				</div>
-			</div>
-			<div class="p-4 flex justify-center items-center">
-				<div class="flex flex-col items-center">
-					<img src="/product-launch-release-icon.svg" alt="Serinus Logo" class="w-20 h-20" />
-					<div class="mt-8 mb-4 text-xl text-pretty tracking-wide uppercase text-center font-semibold text-[#FF9800]">
-						Performant
-					</div>
-					<div class="text-md text-pretty text-center w-80">
-						Optimized for performance and scalability, Serinus can handle thousands of requests per second.
-					</div>
-				</div>
-			</div>
-			<div class="p-4 rounded-2xl flex justify-center items-center">
-				<div class="flex flex-col items-center">
-					<img src="/target-icon.svg" alt="Serinus Logo" class="w-20 h-20" />
-					<div class="mt-8 mb-4 text-xl text-pretty tracking-wide uppercase text-center font-semibold text-[#FF9800]">
-						Predictable
-					</div>
-					<div class="text-md text-pretty text-center w-80">
-						With a strong type system and a powerful dependency injection system, Serinus is predictable and reliable.
-					</div>
-				</div>
-			</div>
+			<h1 class="font-semibold text-3xl text-white">Everything you need</h1>
 		</div>
 	</div>
 </template>

@@ -1,14 +1,6 @@
 <script lang="ts" setup>
 import { defineProps, onMounted, onUnmounted, ref } from 'vue'
-
-const authors = {
-    "Francesco Vallone": {
-        src: 'francesco_vallone.webp',
-        twitter: 'francescovll'
-    }
-}
-
-type Authors = typeof authors
+import { authors } from './data/blog'
 
 const props = defineProps<{
     title: string
@@ -66,9 +58,7 @@ function calculateReadingTime(text: string): string {
                 />
                 <div class="flex flex-col justify-start">
                     <h3 class="!text-sm !m-0 opacity-75">{{ props.author }}</h3>
-                    <p
-                        class="flex flex-row items-center gap-2 !text-xs !m-0 opacity-75"
-                    >
+                    <p class="flex flex-row items-center gap-2 !text-xs !m-0 opacity-75">
                         <span>{{ props.date }}</span>
                         <span>ー</span>
                         <a :href="x" target="_blank">@{{ author.twitter }}</a>

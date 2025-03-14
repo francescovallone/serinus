@@ -55,7 +55,6 @@ class ResponseHandler {
     response.status(statusCode);
     response.headers({
       ...context.res.headers,
-      HttpHeaders.transferEncodingHeader: 'chunked'
     });
     Uint8List responseBody = Uint8List(0);
     response.contentType(context.res.contentType ?? ContentType.text);

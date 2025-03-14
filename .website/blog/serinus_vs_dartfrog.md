@@ -36,6 +36,7 @@ head:
     alt="Serinus VS Dart Frog - A Comparison"
     author="Francesco Vallone"
     date="27 Feb 2025"
+    :tags="['general']"
     shadow
 >
 
