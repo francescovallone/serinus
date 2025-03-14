@@ -76,6 +76,9 @@ class ResponseHandler {
     if (data is File) {
       response.contentType(context.res.contentType ??
           ContentType.parse('application/octet-stream'));
+      response.headers({
+        'transfer-encoding': 'chunked',
+      });
       final readPipe = data.openRead();
       return response.sendStream(readPipe);
     }
