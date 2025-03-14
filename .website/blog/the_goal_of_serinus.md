@@ -34,7 +34,7 @@ head:
 	alt="The goal of Serinus"
 	author="Francesco Vallone"
 	date="4 Nov 2024"
-  :tags="['philosophy']"
+  :tags="['general']"
 	shadow
 >
 

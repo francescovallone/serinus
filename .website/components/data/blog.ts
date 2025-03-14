@@ -35,7 +35,7 @@ export const posts: Post[] = [
         author: 'Francesco Vallone',
         date: '28 Jan 2025',
         href: '/blog/hooks_and_metadata',
-        tags: ['techniques'],
+        tags: ['tutorial'],
     },
     {
         title: 'Serinus 1.0 - Primavera',
@@ -53,7 +53,7 @@ export const posts: Post[] = [
         author: 'Francesco Vallone',
         date: '04 Nov 2024',
         href: '/blog/the_goal_of_serinus',
-        tags: ['philosophy'],
+        tags: ['general'],
     },
     {
         title: 'Serinus 0.6 - Welcome to the Meta-World',

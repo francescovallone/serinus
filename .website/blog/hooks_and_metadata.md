@@ -34,7 +34,7 @@ head:
 	alt="How Hooks and Metadata can improve your Serinus application"
 	author="Francesco Vallone"
 	date="28 Jan 2025"
-  :tags="['techniques']"
+  :tags="['tutorial']"
 	shadow
 >
 Serinus makes use of two powerful tools to specialize the behavior of your application: Hooks and Metadata. These two core concepts are perfect to handle different kind of situations in your application, from Authentication to Authorization, from Caching to Rate Limiting.
