@@ -6,7 +6,7 @@ Serinus uses an internal system to allow you to trace the request and response o
 
 To start tracing a request, you need to create a class that extends the `Tracer` class and override the methods that you want to trace.
 
-<<< @/core/snippets/tracer_example.dart
+<<< @/snippets/tracer_example.dart
 
 These are the methods that you can override:
 
@@ -27,7 +27,7 @@ These are the methods that you can override:
 To use a tracer, you need to pass an instance of the tracer to the `trace` method of the `SerinusApplication` instance.
 You can add multiple tracers to the same application.
 
-<<< @/core/snippets/tracer_add.dart
+<<< @/snippets/tracer_add.dart
 
 ## TraceEvent
 

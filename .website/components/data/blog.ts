@@ -5,7 +5,7 @@ export const authors = {
     }
 }
 
-type Authors = typeof authors
+export type Authors = typeof authors
 
 export interface Post {
     title: string

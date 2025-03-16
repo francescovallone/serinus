@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { defineProps, onMounted, onUnmounted, ref } from 'vue'
-import { authors } from './data/blog'
+import { authors, Authors } from './data/blog'
 
 const props = defineProps<{
     title: string
@@ -43,7 +43,7 @@ function calculateReadingTime(text: string): string {
 
 <template>
     <article id="blog" class="flex flex-col max-w-3xl w-full mx-auto mt-8">
-        <p v-for="tag in props.tags" style="margin-bottom: 0; line-height: 1rem;" class="flex gap-2 mb-0 text-xs tracking-wide uppercase max-w-fit bg-orange-500/25 p-1 rounded-lg">
+        <p v-for="tag in props.tags" :key="tag" style="margin-bottom: 0; line-height: 1rem;" class="flex gap-2 mb-0 text-xs tracking-wide uppercase max-w-fit bg-orange-500/25 p-1 rounded-lg">
 			{{ tag }}
 		</p>
         <h1 class="!text-3xl !md:text-4xl font-medium">

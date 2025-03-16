@@ -12,7 +12,7 @@ export default defineConfig({
   markdown: {
     image: {
       lazyLoading: true
-    }
+    },
   },
   sitemap: {
     hostname: 'https://serinus.app'
@@ -31,8 +31,8 @@ export default defineConfig({
     },
     nav: [
       {
-        text: 'Guide',
-        link: '/in_a_nutshell'
+        text: 'Documentation',
+        link: '/introduction'
       },
       {
         text: 'Blog',
@@ -51,11 +51,24 @@ export default defineConfig({
       {
         items: [
           {
-            text: 'Getting Started',
+            text: 'Introduction',
+            link: '/introduction'
+          },
+          {
+            text: 'Overview',
+            base: '/',
             items: [
-              { text: 'In a nutshell', link: '/in_a_nutshell' },
-              { text: 'Quick Start', link: '/quick_start' },
-              { text: 'What\'s next?', link: '/whats_next' }
+              { text: 'Quick Start', link: 'quick_start' },
+              { text: 'Modules', link: 'modules' },
+              { text: 'Controllers', link: 'controllers' },
+              { text: 'Routes', link: 'routes' },
+              { text: 'Providers', link: 'providers' },
+              { text: 'Metadata', link: 'metadata' },
+              { text: 'Middlewares', link: 'middlewares' },
+              // { text: 'WebSockets', link: 'websockets' },
+              { text: 'Hooks', link: 'hooks' },
+              { text: 'Exceptions', link: 'exceptions' },
+              { text: 'Tracer', link: 'tracer' },
             ]
           },
           {
@@ -76,16 +89,7 @@ export default defineConfig({
             base: '/core/',
             collapsed: true,
             items: [
-              { text: 'Modules', link: 'modules' },
-              { text: 'Controllers', link: 'controllers' },
-              { text: 'Routes', link: 'routes' },
-              { text: 'Providers', link: 'providers' },
-              { text: 'Metadata', link: 'metadata' },
-              { text: 'Middlewares', link: 'middlewares' },
-              { text: 'WebSockets', link: 'websockets' },
-              { text: 'Hooks', link: 'hooks' },
-              { text: 'Exceptions', link: 'exceptions' },
-              { text: 'Tracer', link: 'tracer' },
+
             ]
           },
           {

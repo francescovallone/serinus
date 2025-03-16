@@ -1,3 +1,5 @@
+import { posts } from './blog'
+
 export interface Spotlight {
     title: string
     subtitle: string
@@ -13,10 +15,10 @@ export interface Spotlight {
 export const spotlights: Spotlight[] = [
     {
         title: 'Last Post',
-        subtitle: 'Serinus VS Dart Frog - A Comparison',
+        subtitle: posts[0].title,
         color: '#E65100',
         textColor: 'white',
-        href: '/blog/serinus_vs_dartfrog',
+        href: posts[0].href,
         cta: 'Read more'
     },
     {

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineProps, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
     posts: Array
@@ -42,7 +42,7 @@ const topics = computed(() => {
 			<p class="text-white text-md">
 				Updates, tutorials, and more from the Serinus team.
 			</p>
-			<div class="flex gap-4">
+			<div class="flex gap-4 my-2">
 				<button @click="changeTopic('')" class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-full" :class="currentTopic === '' ? '' : 'inactive'">All</button>
 				<button 
 					v-for="topic in topics" 
