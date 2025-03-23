@@ -6,6 +6,7 @@ import Highlights from './highlights.vue'
 import Features from './features.vue'
 import { spotlights } from './data/spotlights'
 import Spotlights from './spotlight.vue'
+import Cli from './cli.vue'
 </script>
 
 <template>
@@ -13,6 +14,7 @@ import Spotlights from './spotlight.vue'
 		<Hero class="h-screen" />
 		<Highlights />
 		<Spotlights :spotlights="spotlights" />
+		<Cli />
 		<Ecosystem />
 	</div>
 </template>

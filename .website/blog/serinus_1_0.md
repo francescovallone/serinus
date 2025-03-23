@@ -182,7 +182,7 @@ class AppController extends Controller {
 }
 ```
 
-If you want to know more about Typed Body, you can read the [documentation](/foundations/handler.html).
+If you want to know more about Typed Body, you can read the [documentation](/controllers.html).
 
 ### Static Routes
 
@@ -204,7 +204,7 @@ class AppController extends Controller {
 }
 ```
 
-If you want to know more about Static Routes, you can read the [documentation](/foundations/handler.html).
+If you want to know more about Static Routes, you can read the [documentation](/controllers.html).
 
 ### Parametrized Handlers
 
@@ -236,7 +236,7 @@ Don't worry, you can still get them from the `RequestContext` if you prefer.
 If you use a Parametrized Handler and a Typed Body, the Typed Body will be the first parameter after the RequestContext.
 :::
 
-If you want to know more about Parametrized Handlers, you can read the [documentation](/foundations/handler.html).
+If you want to know more about Parametrized Handlers, you can read the [documentation](/controllers.html).
 
 ### More lifecycle hooks
 
@@ -264,7 +264,7 @@ class HelloProvider extends Provider with OnApplicationBootstrap, OnApplicationR
 }
 ```
 
-You can read more about Lifecycle Hooks in the [documentation](/core/providers.html).
+You can read more about Lifecycle Hooks in the [documentation](/providers.html).
 
 ### Simplified access to application configuration
 
@@ -432,7 +432,7 @@ class AppController extends Controller {
 }
 ```
 
-You can read more about Hooks in the [documentation](/core/hooks.html).
+You can read more about Hooks in the [documentation](/hooks.html).
 
 ### Next Function in Middlewares
 
@@ -460,7 +460,7 @@ class HelloMiddleware extends Middleware {
 }
 ```
 
-You can read more about Middlewares in the [documentation](/core/middlewares.html).
+You can read more about Middlewares in the [documentation](/middlewares.html).
 
 ### Request Events
 
@@ -544,7 +544,7 @@ class AppModule extends Module {
 
 :::
 
-You can read more about how deferred providers work in the [documentation](/core/providers.html).
+You can read more about how deferred providers work in the [documentation](/providers.html).
 
 ## Conclusion
 
