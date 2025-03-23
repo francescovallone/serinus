@@ -102,6 +102,11 @@
 	--docsearch-primary-color: var(--vp-c-brand) !important;
 }
 
+.vp-doc table {
+	display: table;
+	width: 100%;
+}
+
 .logo {
 	height: 64px !important;
 }

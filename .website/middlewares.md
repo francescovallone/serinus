@@ -1,98 +1,125 @@
 # Middlewares
 
-Middlewares are a way to add functionality to the request-response cycle. They are functions that have access to the `RequestContext`, the `InternalResponse`, and the next middleware function in the application’s request-response cycle. The next middleware function is commonly denoted by a variable named next.
+Middlewares are functions called before the route handler. They have access to the `RequestContext` object and also to the `NextFunction` function, which is used to call the next middleware or the route handler.
 
-## Creating a Middleware
+<img src="/middlewares.png" alt="Middlewares">
 
-In Serinus Middlewares are whatever object extends the `Middleware` class. To create a middleware, you also need to override the `use` method.
+Serinus middlewares, for ease of use, follow the capabilities of the Express.js middlewares so they can perform the same tasks.
+
+::: info
+To pass to the next middleware or route handler, you must call the `next` function.
+:::
+
+To create a middleware, you must extends the `Middleware` class and implement the `use` method.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyMiddleware extends Middleware {
+class LoggerMiddleware extends Middleware {
   @override
   Future<void> use(RequestContext context, NextFunction next) async {
-    print('Middleware executed');
+    print('Request received: ${context.request.method} ${context.request.url}');
     return next();
   }
 }
 ```
 
-::: warning
-The `use` method must return the next function, otherwise the request will be stuck indefinitely.
-:::
+## Dependency Injection
 
-## Using a Middleware
+Serinus middlewares share the same scopoe as the route handlers, so you can inject dependencies into them.
+So if a dependency is availble in the route handler, it will be available in the middleware as well.
 
-To use a middleware, you need to add it to the `middlewares` list in your module.
+## Using Middlewares
 
-::: code-group
+To use a middleware, you must add it to the Module's `middlewares` list.
 
-```dart [my_middleware.dart]
+```dart
 import 'package:serinus/serinus.dart';
 
-class MyMiddleware extends Middleware {
-  @override
-  Future<void> use(RequestContext context, NextFunction next) async {
-    print('Middleware executed');
-    return next();
-  }
-}
-```
-
-```dart [my_module.dart]
-import 'package:serinus/serinus.dart';
-import 'my_middleware.dart';
-
-class MyModule extends Module {
-  MyModule() : super(
-    middlewares: [
-      MyMiddleware(),
-    ],
+class AppModule extends Module {
+  
+  const AppModule() : super(
+    middlewares: [LoggerMiddleware()],
   );
+
 }
 ```
 
-:::
+In the example above the `LoggerMiddleware` will be called before all the route handlers in the module and in the submodules.
 
-Doing this will make the middleware available to all controllers and routes in the module and its submodules.
-
-You can also change the routes that the middleware will be applied to by passing the `routes` parameter to the `Middleware` constructor.
+But you can also use a middleware in a specific route handler.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyMiddleware extends Middleware {
-  MyMiddleware() : super(routes: ['/']);
+class LoggerMiddleware extends Middleware {
+  LoggerMiddleware() : super(routes: ['/']);
   
   @override
   Future<void> use(RequestContext context, NextFunction next) async {
-    print('Middleware executed');
+    print('Request received: ${context.request.method} ${context.request.url}');
     return next();
   }
 }
 ```
 
-This will make the middleware only be applied to the routes that match the pattern `/`.
+In the example above the `LoggerMiddleware` will be called only for the route handler that matches the `/` path.
 
-## Request Blocking Middleware
+## Blocking requests
 
-You can also create a middleware that blocks the request from reaching the controller.
+Middlewares in Serinus can also block requests by three methods:
 
-This can be useful if, for example, you want to block requests from a certain IP address or if you want to block requests that don't have a certain header and return early.
-
-The values passed to the `next` function will be returned as the response body and the execution will stop.
+- Throwing an exception (This will block the execution of the following lifecycle methods)
+- Not calling the `next` function (This will block the whole request)
+- Calling the `next` method witha  result (This will block the whole request)
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyMiddleware extends Middleware {
+class AuthMiddleware extends Middleware {
+  AuthMiddleware() : super(routes: ['/']);
+  
   @override
   Future<void> use(RequestContext context, NextFunction next) async {
-    if (context.request.headers['x-custom-header'] != 'value') {
-      return next('Request blocked');
+    if (context.request.headers['authorization'] != 'Bearer token') {
+      context.response.statusCode = 401;
+      return next('Unauthorized');
     }
     return next();
   }
+}
+```
+
+## Shelf Middlewares
+
+> But what if I want to use a Shelf middleware?
+
+No problem! You can use Shelf middlewares in Serinus as well and by doing so you can use the vast amount of middlewares available in the Shelf ecosystem.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class UserModule extends Module {
+  
+  const UserModule() : super(
+    middlewares: [Middleware.shelf(shelfMiddleware)], // You can also pass Shelf handlers
+  );
+
+}
+```
+
+The `Middleware.shelf` factory constructor will convert the Shelf middleware to a Serinus middleware and will be called before the route handlers in the module and in the submodules but there is a catch!
+
+Shelf Middlewares can block the request without Serinus knowing it, so to prevent this, if you know that the Shelf middleware will block the request, you can set the `ignoreResponse` parameter to `false` to the `Middleware.shelf` factory constructor.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class UserModule extends Module {
+  
+  const UserModule() : super(
+    middlewares: [Middleware.shelf(shelfMiddleware, ignoreResponse: false)], // You can also pass Shelf handlers
+  );
+
 }
 ```

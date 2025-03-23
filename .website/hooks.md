@@ -1,68 +1,58 @@
 # Hooks
 
-Hooks are a way to execute custom code at specific points in the Serinus request lifecycle. They can be used to add custom logic to your application, such as tracing, loggin, or error handling.
+We have already seen how to add some "hooks" to the application using the Route Lifecycle Hooks, but Serinus also provides a way to create custom hooks that can be used to execute code at specific points in the request lifecycle.
 
-## Creating a Hook
+These hooks are similar to middlewares, but way more powerful. They can be used to execute code before and after the request is handled, but also before the request is received and after the response is sent.
+This can be useful to authenticate users, log requests, and responses, and more.
 
-To create a hook, you first need to create a class that extends the `Hook` class then you need to augment the class using the provided mixins.
+Also, hooks can expose services to the application, so you can use them to create global services that can be used in the route handlers.
 
-| Mixin | Description |
-| --- | --- |
-| `OnRequestResponse` | Exposes the methods `onRequest` and `onResponse` |
-| `OnBeforeHandle` | Exposes the method `beforeHandle` |
-| `OnAfterHandle` | Exposes the method `afterHandle` |
+As for the Routes, Hooks are `Hookable` objects, so they can use the lifecycle hooks provided by the mixins and even some specific hooks provided by the `Hook` class.
 
-Here is an example of a hook class that extends the `Hook` class and uses the `OnRequestResponse`, `OnBeforeHandle`, and `OnAfterHandle` mixins.
+| Mixin | Hook | Description |
+|-------|------|-------------|
+| OnBeforeHandle | `beforeHandle` | Executes code before the request is handled. |
+| OnAfterHandle | `afterHandle` | Executes code after the request is handled. |
+| OnRequestResponse | `onRequest` & `onResponse` | Executes code when the request is received and before sending the response back to the client |
+
+In the example below, we create a custom hook that logs the request and response.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyHook extends Hook with OnRequestResponse, OnBeforeHandle, OnAfterHandle {
-  @override
-  Future<void> onRequest(Request request, InternalResponse response) async {
-    print('Request received');
-  }
+class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequestResponse {
 
   @override
   Future<void> beforeHandle(RequestContext context) async {
-    print('Before handle');
+    print('Before handling the request');
   }
 
   @override
-  Future<void> afterHandle(RequestContext context) async {
-    print('After handle');
+  Future<void> afterHandle(RequestContext context, dynamic response) async {
+    print('After handling the request');
+  }
+
+  @override
+  Future<void> onRequest(Request request, InternalResponse response) async {
+    print('Request received: ${request.method} ${request.url}');
   }
 
   @override
   Future<void> onResponse(Request request, dynamic data, ResponseProperties properties) async {
-    print('Response sent');
+    print('Response sent: ${data}');
   }
+
 }
 ```
 
-In the `MyHook` class, the `onRequest`, `beforeHandle`, `afterHandle`, and `onResponse` methods are implemented to log messages at specific points in the request lifecycle.
+## Built-in Hooks
 
-The `onResponse` can also know if the response was successful or not by checking the `statusCode` getter available in the `ResponseProperties` object.
+Serinus provides some built-in hooks that can be used to add some common functionalities to the application.
 
-## Adding a Hook
-
-To add a hook to your application, you can use the `use` method on the `SerinusApplication` object.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
-    entrypoint: AppModule()
-  );
-  application.use(MyHook());
-  await application.serve();
-}
-```
-
-In the example above, the `MyHook` hook is added to the application using the `use` method. This will execute the hook methods at the specified points in the request lifecycle.
-
-Hooks are executed in the order that they are added to the application. If you need to execute a hook before another hook, you can add it before the other hook.
+| Hook | Description |
+|------|-------------|
+| `BodySizeLimit` | Limit the size of the body of the request |
+| `SecureSessionHook` | Allow the usage of a secure session instead of the common one |
 
 ## Expose a Service
 
@@ -71,7 +61,7 @@ Hooks can also expose services to the application. This can be done by overridin
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyHook extends Hook {
+class LogHook extends Hook {
 
   @override
   MyService get service => MyService();
@@ -86,4 +76,4 @@ class MyService {
   
 ```
 
-In the example above, the `MyHook` class exposes a `MyService` object to the application. This service will behave as a global provider and will be accessible using the `use` method on the `RequestContext` object.
+In the example above, the `LogHook` class exposes a `MyService` object to the application. This service will behave as a global provider and will be accessible using the `use` method on the `RequestContext` object.

@@ -43,12 +43,12 @@ const topics = computed(() => {
 				Updates, tutorials, and more from the Serinus team.
 			</p>
 			<div class="flex gap-4 my-2">
-				<button @click="changeTopic('')" class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-full" :class="currentTopic === '' ? '' : 'inactive'">All</button>
+				<button @click="changeTopic('')" class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg" :class="currentTopic === '' ? '' : 'inactive'">All</button>
 				<button 
 					v-for="topic in topics" 
 					@click="changeTopic(topic)" 
 					:key="topic" 
-					class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-full"
+					class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg"
 					:class="currentTopic === topic ? '' : 'inactive'"
 				>
 					{{ topic }}
@@ -65,7 +65,7 @@ const topics = computed(() => {
 						{{ post.title }}
 					</h2>
 					<div class="flex justify-between">
-						<p v-for="tag in post.tags" :key="tag" class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-full">
+						<p v-for="tag in post.tags" :key="tag" class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg">
 							{{ tag }}
 						</p>
 						<h3 class="text-sm text-gray-400"> {{ post.date }}</h3>

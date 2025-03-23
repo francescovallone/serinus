@@ -1,98 +1,83 @@
 # Providers
 
-Providers, as the name suggests, provide services to the application. They are used to encapsulate the logic of a service, such as a database connection, a cache, or a third-party API.
+Providers are a core concept in Serinus. They are used to manage dependencies and share data and logic across your application.
 
-## Creating a Provider
+Providers are registered in a module and can be exported to other modules or injected into other providers. Providers can also be global, meaning they are available to all modules.
 
-To create a provider, you simply need to extends the `Provider` class.
+<img src='/providers.png' alt='Providers' />
+
+When a provider is registered in a module, it is available to all controllers and routes in that module and it can be accessed in the controllers using the `Context` object.
+
+## Services
+
+Let's start with a simple example of a provider, a service.
+
+A service is a class that contains business logic and data that can be shared across your application.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyProvider extends Provider {
-  MyProvider();
+class NotesService extends Provider {
+  NotesService();
+
+  List<String> _notes = [];
+  
+  void add(String note) {
+    _notes.add(note);
+  }
+
+  List<String> getNotes() {
+    return _notes;
+  }
 }
 ```
 
-That's it! You have created a provider.
+::: tip
+To create a provider using the CLI, you can use the `serinus generate provider` command.
+:::
 
-## Injecting a Provider
+Currently our provider is a simple class that contains a list of notes and two methods to add and get notes.
 
-To inject a provider in the application, you need to add it to the `providers` list in your module.
+Before we use it inside our controllers we have to register it in a module.
 
-::: code-group
-
-```dart [my_provider.dart]
+```dart
 import 'package:serinus/serinus.dart';
 
-class MyProvider extends Provider {
-  MyProvider();
-}
-```
-
-```dart [my_module.dart]
-import 'package:serinus/serinus.dart';
-import 'my_provider.dart';
-
-class MyModule extends Module {
-  MyModule() : super(
+class NotesModule extends Module {
+  NotesModule() : super(
     providers: [
-      MyProvider(),
+      NotesService(),
     ],
   );
 }
 ```
 
-:::
+Now we can use the `NotesService` in our controllers.
 
-Doing this will make the provider available to all controllers and routes in the module and its submodules.
-To access the provider, you can use the `context` object when handling the request.
-
-If you want to use a provider from a submodule, you must add the `Type` of the provider in the `exports` list of the submodule.
-
-::: tip
-You can read more about how Serinus handles the dependency injection in the [Dependency Injection](/foundations/dependency_injection.html) section.
-:::
-
-::: code-group
-
-```dart [Simple Usage]
+```dart
 import 'package:serinus/serinus.dart';
 
-class MyController extends Controller {
-  MyController({super.path = '/'}){
-    on(GetRoute(path: '/'), (context) async {
-      return context.use<MyProvider>().myMethod();
-    });
+class NotesController extends Controller {
+  NotesController(): super(path: '/notes') {
+    on(Route.get('/'), getNotes);
+    on(Route.post('/'), body: Map<String, dynamic>, addNote);
   }
 
+  Future<List<String>> getNotes(RequestContext context) async {
+    final notes = context.use<NotesService>().getNotes();
+    return notes;
+  }
+
+  Future<void> addNote(RequestContext context, Map<String, dynamic> body) async {
+    final note = body['note'] as String;
+    context.use<NotesService>().add(note);
+  }
 }
 ```
-
-```dart [Exports Module]
-import 'package:serinus/serinus.dart';
-
-class OtherModule extends Module {
-    OtherModule() : super(
-        providers: [MyProvider()]
-        exports: [MyProvider],
-    );
-}
-
-// MyProvider is now available in MyModule
-class MyModule extends Module {
-  MyModule() : super(
-    imports: [OtherModule()],
-    providers: [],
-  )
-}
-```
-
-:::
 
 ## Global Providers
 
-If you want to make a provider available to all modules, you just have to pass the `isGlobal` parameter as `true` when creating the provider.
+Sometimes you need to share data or logic across your application. In this case, you can create a global provider.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -102,95 +87,85 @@ class MyProvider extends Provider {
 }
 ```
 
-## Deferred Providers
+This is the case if you want to share a configuration object or a service across your application.
 
-By default, all providers are registered when the module is registeredd. However, you can defer the registration of a provider until it can be resolved. This is useful when you need to perform asynchronous operations to create the provider or you want to inject another provider into the provider.
+## Composed Providers
 
-These use cases can be achieved by using the `DeferredProvider` class.
+Composed Providers are a the answer of Serinus to Dependency Injection. They are used to inject dependencies into your providers.
 
-The `DeferredProvider` class has the following properties:
+Let's, for a second, think of a scenario where we have a `UserService` that needs a `DatabaseService` to work. We can inject the `DatabaseService` into the `UserService` that will be initialized by a ComposedProvider.
 
-- `inject`: A list of providers that you want to inject into the provider (Only the types of the provider).
-- `init`: A function that returns the provider, it receives the list of providers that you want to inject.
-- `type`: The type of the provider that you want to create.
-
-::: tip
-You can also use a shorthand to create a DeferredProvider by using the `Provider.deferred` factory constructor.
-This constructor uses the same parameters as the `DeferredProvider` class.
-:::
-
-::: code-group
-
-```dart [Deferred Provider]
+```dart
 import 'package:serinus/serinus.dart';
 
-class MyProvider extends Provider {
-  final TestProvider testProvider;
+class DatabaseService extends Provider {
+  DatabaseService();
 
-  MyProvider(this.testProvider);
+  void connect() {
+    // Connect to the database
+  }
+
+  Map<String, dynamic> getById(String id) {
+    // Get the data from the database
+  }
+
 }
-```
 
-```dart [Module]
-import 'package:serinus/serinus.dart';
+class UserService extends Provider {
 
-class MyModule extends Module {
-  MyModule() : super(
+  final DatabaseService databaseService;
+
+  UserService(this.databaseService);
+
+  User getUser(String id) {
+    // Get the user from the database
+    final data = databaseService.getById(id);
+    return User.fromJson(data);
+  }
+}
+
+class UsersModule extends Module {
+  UsersModule() : super(
     providers: [
-      TestProvider(),
-      DeferredProvider(
-        inject: [TestProvider],
-        init: (TestProvider provider) async {
-          return MyProvider(provider);
-        },
-        type: MyProvider,
-      ),
+      DatabaseService(),
+      Provider.composed(
+        inject: [DatabaseService],
+        create: (databaseService) async => UserService(databaseService),
+        type: UserService,
+      )
     ],
   );
 }
 ```
 
-:::
+These kind of providers will be initialzied asynchrounously and the `create` method will be called only when all the dependencies are resolved.
 
 ## Lifecycle Hooks
 
-Providers can implement 4 lifecycle hooks:
+If you need to run some code when your application is initializing, bootstrapping, ready to serve requests, or shutting down, you can use lifecycle hooks in your providers.
 
-| Hook                | Description                                                                 |
-|---------------------|-----------------------------------------------------------------------------|
-| `onApplicationInit` | Called when the application is initializing itself and the provider is registered   |
-| `onApplicationBootstrap`      | Called when the application is initialized and all the provider (even the deferred) are registered |
-| `onApplicationReady`      | Called when the application is ready to serve requests |
-| `onApplicationShutdown`      | Called when the application is shutting down |
+There are four lifecycle hooks available:
 
-Each hook is a method that returns a `Future<void>`.
+| Mixin | Hook                | Description                                                                 |
+|-------|---------------------|-----------------------------------------------------------------------------|
+| `OnApplicationInit` | `onApplicationInit` | Called when the application is initializing itself and the provider is registered   |
+| `OnApplicationBootstrap` | `onApplicationBootstrap`      | Called when the application is initialized and all the provider (even the deferred) are registered |
+| `OnApplicationReady` | `onApplicationReady`      | Called when the application is ready to serve requests |
+| `OnApplicationShutdown` | `onApplicationShutdown`      | Called when the application is shutting down |
 
-To implement a hook, you just need to use the mixin `OnApplicationInit`, `OnApplicationBootstrap`, `OnApplicationReady`, or `OnApplicationShutdown` and override the method.
+The hooks return a `Future<void>` and can be used to run asynchronous code.
 
-```dart [Lifecycle Hooks]
+```dart
 import 'package:serinus/serinus.dart';
 
-class MyProvider extends Provider with OnApplicationInit, OnApplicationBootstrap, OnApplicationReady, OnApplicationShutdown {
-  MyProvider();
+class NotesProvider with OnApplicationInit {
+
+  final _notes = <String>[];
 
   @override
   Future<void> onApplicationInit() async {
-    // Do something
-  }
-
-  @override
-  Future<void> onApplicationBootstrap() async {
-    // Do something
-  }
-
-  @override
-  Future<void> onApplicationReady() async {
-    // Do something
-  }
-
-  @override
-  Future<void> onApplicationShutdown() async {
-    // Do something
+    _notes.clear();
   }
 }
+
 ```

@@ -34,7 +34,7 @@ head:
 	alt="Serinus 0.6 - Welcome to the Meta-World"
 	author="Francesco Vallone"
 	date="1 Aug 2024"
-  :tags="['release']"
+  :tags="['releases']"
 	shadow
 >
 Serinus 0.6, brings a lot of changes to the code base to improve the developer experience and to stabilize even more the framework. With 5,440 additions and 1,651 deletions. Serinus 0.6 is one of the biggest updates ever occured to the project.

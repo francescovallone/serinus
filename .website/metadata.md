@@ -1,10 +1,16 @@
 # Metadata
 
-To specialize a controller or a route, you can add metadata to it. Metadata is a way to add extra information.
+Metadata are used to add information to a class, a method, a property, or a parameter. In other programming languages they are easily accessible thanks to reflaction. But since they are really useful, Serinus provides his own way to add metadata to your routes and controllers.
+
+<img src="/metadata.png" alt="Metadata" />
+
+::: info
+Dart does not support reflection, so Serinus provides a more static way to add metadata to your classes.
+:::
 
 ## Creating Metadata
 
-Metadata can be created by extending the `Metadata` class.
+To create a metadata, you need to extend the `Metadata` class. As simple as that.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -19,121 +25,75 @@ class IsPublic extends Metadata {
 }
 ```
 
-If the metadata value will be set when a request is received then you can create a ContextualizedMetadata.
+As you can see, the `Metadata` class requires a `name` and a `value` parameter. The `name` is the name of the metadata, and the `value` is the value of the metadata. You can use any type of value you want.
+
+Also, since Serinus uses a `Context` to store the request information, you can access it using a ContextualizedMetadata.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyController extends Controller {
+class IsPublic extends ContextualizedMetadata {
 
-  MyController({super.path = '/'});
-
-  @override
-  List<Metadata> get metadata => [
-    ContextualizedMetadata(
-      name: 'IsPublic',
-      value: (context) async => context.request.headers['authorization'] == null,
-    )
-  ];
-
+  const IsPublic(): super(
+    name: 'IsPublic',
+    value: (context) async => context.query['public'] == 'true'
+  );
+  
 }
 ```
 
-In the example above, the `IsPublic` metadata will be set to `true` if the `authorization` header is not present in the request.
+In this case, the `value` is a function that returns a `Future<bool>`. This is useful when you need to access the `RequestContext` to get some information.
 
-## Add Metadata to a Controller
+## Using Metadata
 
-To add metadata to a controller, you must override the `metadata` getter.
+Now we can use the metadata in our controllers or routes.
 
-```dart
-import 'package:serinus/serinus.dart';
-
-class MyController extends Controller {
-
-  MyController({super.path = '/'});
-
-  @override
-  List<Metadata> get metadata => [IsPublic()];
-
-}
-```
-
-## Add Metadata to a Route
-
-To add metadata to a you can either use the factory constructors and add it to the `metadata` parameters.
+If you add a metadata to a controller, it will be applied to all the routes of the controller. If you add a metadata to a route, it will be applied only to that specific route. Pretty cool, right?
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyController extends Controller {
-
-  MyController({super.path = '/'}) {
-    on(Route.get('/', metadata: [IsPublic()]), (context) async {
-      return 'Hello World!';
-    });
+class UserController extends Controller {
+  UserController(): super(path: '/users') {
+    on(Route.get('/'), getUsers, metadata: [IsPublic()]);
+    on(Route.get('/<id>'), getUser);
   }
 
+  Future<List<User>> getUsers(RequestContext context) async {
+    final users = await context.use<UsersService>().getUsers();
+    return users;
+  }
 }
 ```
 
-Or you can extend the `Route` class and pass the metadata to the super constructor.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-class GetRoute extends Route {
-
-  const GetRoute({
-    required super.path, 
-    super.method = HttpMethod.get,
-  });
-
-  @override
-  List<Metadata> get metadata => [IsPublic()];
-
-}
-```
+In this case, the `IsPublic` metadata will be applied only to the `/users` route. This means that if we have an Hook or a Middleware that checks if the user is authenticated, we can skip it for this route.
 
 ## Accessing Metadata
 
-As explained in the [Request Context](/foundations/request_context.html) section, you can access the metadata from the `RequestContext` object.
+How we can access the metadata? It's really simple.
+
+You can access them using two methods in the `RequestContext` object: `stat` and `canStat`.
+
+The first one will return the metadata if it's present, otherwise it will throw a StateError. The second one will only return if the metadata is present or not.
+They can be used in combination in this way:
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyController extends Controller {
-
-  MyController({super.path = '/'}) {
-    on(Route.get('/', metadata: [IsPublic()]), (context) async {
-      if (context.stat('IsPublic')) {
-        return 'Hello World!';
-      } else {
-        return 'You are not authorized to access this route.';
-      }
-    });
+class UserController extends Controller {
+  UserController(): super(path: '/users') {
+    on(Route.get('/'), getUsers, metadata: [IsPublic()]);
+    on(Route.get('/<id>'), getUser);
   }
 
+  Future<List<User>> getUsers(RequestContext context) async {
+    if (context.canStat('IsPublic')) {
+      // Do something
+    }
+    final users = await context.use<UsersService>().getUsers();
+    return users;
+  }
 }
 ```
 
-In the example above, the `stat` method is used to access the metadata. The `stat` method receives the name of the metadata and returns the value of it. If the metadata is not found, the method will throw a `StateError`.
-
-To prevent the `stat` method from throwing an error, you can use the `canStat` method. The `canStat` method will return `true` if the metadata is found and `false` if it is not.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-class MyController extends Controller {
-
-  MyController({super.path = '/'}) {
-    on(Route.get('/', metadata: [IsPublic()]), (context) async {
-      if (context.canStat('IsPublic') && context.stat('IsPublic')) {
-        return 'Hello World!';
-      } else {
-        return 'You are not authorized to access this route.';
-      }
-    });
-  }
-
-}
-```
+In this case, we check if the `IsPublic` metadata is present in the route. If it is, we can do something special. Otherwise, we can continue with the normal flow.
