@@ -1,15 +1,8 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
 const copied = ref(false);
-const downloads = ref(0);
-
-onMounted(async () => {
-	const res = await fetch('https://pub.dev/api/packages/serinus/score')
-	const body = await res.json()
-	const download = body.downloadCount30Days
-	downloads.value = download
-})
+const downloads = ref(500);
 
 function copyToClipboard(code) {
     navigator.clipboard.writeText(code);
