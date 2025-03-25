@@ -139,9 +139,9 @@ class AppController extends Controller {
 
 ## Dependency Injection
 
-Dart Frog provides a built-in dependency injection system, but it relies on middleware for injecting dependencies. This approach can lead to excessive boilerplate code. To access dependencies, you need to use the `context.get` method.
+Dart Frog provides a built-in dependency injection system, but it relies on middleware for injecting dependencies. This approach can lead to excessive boilerplate code. To access dependencies, you need to use the `context.read` method.
 
-Serinus also offers built-in dependency injection, but with a more flexible approach. Dependencies are defined through the `Provider` class and injected into a `Module`, eliminating the need for middlewares. This makes the code **more maintainable** and also **easier to test**. The `Provider.deferred` class further enables dependencies that depend on other providers. To access the dependencies you can use the `context.read` method.
+Serinus also offers built-in dependency injection, but with a more flexible approach. Dependencies are defined through the `Provider` class and injected into a `Module`, eliminating the need for middlewares. This makes the code **more maintainable** and also **easier to test**. The `Provider.deferred` class further enables dependencies that depend on other providers. To access the dependencies you can use the `context.use` method.
 
 ::: code-group
 
@@ -174,7 +174,7 @@ class MyModule extends Module {
 class AppController extends Controller {
   AppController(): super(path: '/') {
     on(Route.get('/'), (RequestContext context) async {
-      final helloString = context.read<MyProvider>().helloString;
+      final helloString = context.use<MyProvider>().helloString;
       return 'Hello, World! $helloString';
     });
   }
