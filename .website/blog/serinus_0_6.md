@@ -53,7 +53,7 @@ One of the features that should’ve been present in the 0.5 but didn’t make i
 
 ### Generate Command
 
-A new command has been added to the CLI that allows new resources to be generated for the project. The available options are modules, providers, controllers and resources, which will create them all in one go. You can read more of it [here](/techniques/cli/generate.html).
+A new command has been added to the CLI that allows new resources to be generated for the project. The available options are modules, providers, controllers and resources, which will create them all in one go. You can read more of it [here](/cli/generate.html).
 
 ### StreamableResponses
 
@@ -81,7 +81,7 @@ The providers of the parent weren’t available in the RequestContexts of the ch
 
 ### Shelf Interoperability
 
-The Shelf Interoperability unfortunately had some problem when managing more middlewares that could return a response. You can now decide of which middleware you want to accept the response setting the new parameter _ignoreResponse_ to false. You can read more of it [here](/techniques/shelf_interop.html).
+The Shelf Interoperability unfortunately had some problem when managing more middlewares that could return a response. You can now decide of which middleware you want to accept the response setting the new parameter _ignoreResponse_ to false. You can read more of it [here](/middlewares).
 
 ## Revamps
 
