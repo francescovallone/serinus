@@ -102,7 +102,7 @@ class ConsoleLogger implements LoggerService {
         'time': formattedTime,
         if(message.params?.metadata != null) 'metadata': message.params?.metadata,
       }) :
-        '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message} +${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
+        '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message}${timestamp ? ' ${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms' : ''}';
     _previousTime = DateTime.now();
     channel.writeln(formattedMessage);
   }

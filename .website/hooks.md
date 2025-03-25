@@ -14,13 +14,14 @@ As for the Routes, Hooks are `Hookable` objects, so they can use the lifecycle h
 | OnBeforeHandle | `beforeHandle` | Executes code before the request is handled. |
 | OnAfterHandle | `afterHandle` | Executes code after the request is handled. |
 | OnRequestResponse | `onRequest` & `onResponse` | Executes code when the request is received and before sending the response back to the client |
+| OnException | `onException` | Executes code when an exception occurs |
 
 In the example below, we create a custom hook that logs the request and response.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequestResponse {
+class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequestResponse, OnException {
 
   @override
   Future<void> beforeHandle(RequestContext context) async {
@@ -42,6 +43,11 @@ class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequestResponse
     print('Response sent: ${data}');
   }
 
+  @override
+  Future<void> onException(Request request, dynamic error, ResponseProperties properties) async {
+    print('An exception occurred');
+  }
+
 }
 ```
 
@@ -53,6 +59,8 @@ Serinus provides some built-in hooks that can be used to add some common functio
 |------|-------------|
 | `BodySizeLimit` | Limit the size of the body of the request |
 | `SecureSessionHook` | Allow the usage of a secure session instead of the common one |
+| `CorsHook` | Allow the usage of CORS in the application |
+| `RateLimitHook` | Limit the number of requests that can be made to the application |
 
 ## Expose a Service
 

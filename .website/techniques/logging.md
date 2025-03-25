@@ -1,85 +1,107 @@
 # Logger
 
-Serinus comes with a built-in text-based logger which is used during application bootstrapping and several other circumstances such as displaying caught exceptions. This functionality is provided through the `Logger` class.
+Serinus comes with a built-in text-based logger which is used during application bootstrapping and several other circumstances such as displaying caught exceptions. This functionality is provided through the `Logger` class. 
 
-## Usage
+The logging system is fully customizable and can be configured to log in different formats, levels, and destinations, here are some of the features:
 
-The logger as a stand-alone class and will use the properties defined in the `LoggerService`.
+- Disable logging
+- Log in different levels (display only errors, warnings, etc.)
+- Log in various formats (text, json)
+- Override the default logger
+- Customize the default logger extending it
+
+You can also decide to create your own implementation of the `LoggerService` interface to log in a different way.
+
+## Basic Configuration
+
+To disable logging, you can set the logger level to `none`.
 
 ```dart
-class TestProvider extends Provider with OnApplicationInit {
+void main() {
+  final application = await serinus.createApplication(
+    entrypoint: AppModule(), 
+    host: InternetAddress.anyIPv4.address, 
+    logger: ConsoleLogger(level: {LogLevel.none})
+  );
+}
+```
 
-  Logger logger = Logger('TestProviderFour');
+Otherwise you can set specific levels to log.
 
-  TestProvider();
+```dart
+void main() {
+  final application = await serinus.createApplication(
+    entrypoint: AppModule(), 
+    host: InternetAddress.anyIPv4.address, 
+    logger: ConsoleLogger(level: {LogLevel.warning, LogLevel.severe})
+  );
+}
+```
+
+The set of valid levels is:
+
+- `LogLevel.none`
+- `LogLevel.verbose`
+- `LogLevel.debug`
+- `LogLevel.info`
+- `LogLevel.warning`
+- `LogLevel.severe`
+- `LogLevel.shout`
+- `LogLevel.all` (default)
+
+To configure a prefix for the logger, you can use the `prefix` property.
+
+```dart
+void main() {
+  final application = await serinus.createApplication(
+    entrypoint: AppModule(), 
+    host: InternetAddress.anyIPv4.address, 
+    logger: ConsoleLogger(prefix: 'Serinus New Logger')
+  );
+}
+```
+
+This will change the default logger prefix to `Serinus New Logger`
+
+Here is a list of the available options for the `ConsoleLogger`:
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| prefix | The prefix of the logger | Serinus |
+| levels | The levels of the logger | {LogLevel.all} |
+| json | Whether to log in JSON format | false |
+| timestamp | Whether to log the time difference between the current log and the previous log | true |
+
+## Using the Logger
+
+The logger can be accessed through the `Logger` class.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class AwesomeProvider extends Provider with OnApplicationInit {
+  final Logger _logger = Logger('AwesomeProvider');
 
   @override
   Future<void> onApplicationInit() async {
-    logger.info('Provider initialized');
+    _logger.info('Initializing the provider');
   }
 }
 ```
 
-This will print (if you have the default logger service):
+## Extending the built-in Logger
 
-```shell
-[Serinus] 26252 20/09/2024 17:20:36     INFO [TestProviderFour] Provider initialized +0ms
-```
-
-## Change the logger prefix
-
-You can change the prefix of the logger by using the `setLoggerPrefix` method from your application.
+You can also extend the built-in logger to add more functionalities or to customize the default behavior.
 
 ```dart
-void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
-      entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
-  application.enableShutdownHooks();
-  application.setLoggerPrefix('MyApp');
-  await application.serve();
+import 'package:serinus/serinus.dart';
+
+class MyLogger extends ConsoleLogger {
+  MyLogger(String name) : super(name);
+
+  @override
+  void info(Object? message, [OptionalParameters? optionalParameters]) {
+    print('[$name] $level: $message');
+  }
 }
 ```
-
-This will print:
-
-```shell
-[MyApp] 26252 20/09/2024 17:20:36     INFO [TestProviderFour] Provider initialized +0ms
-```
-
-## Configure the logger service
-
-You can configure the logger service by using the `LoggerService` class.
-
-```dart
-void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
-    entrypoint: AppModule(), 
-    host: InternetAddress.anyIPv4.address,
-    loggerService: LoggerService(
-      level: LogLevel.debug,
-      prefix: 'Serinus',
-      onLog: (prefix, record, deltaTime) {
-        print('{"prefix": "$prefix", "record": "${record.message}", "deltaTime": "${deltaTime}ms"}');
-      },
-    )
-  );
-  await application.serve();
-}
-```
-
-Doing this you will change the default behavior of the logger service and it will print:
-
-```shell
-{"prefix": "Serinus", "record": "Provider initialized", "deltaTime": "0ms"}
-```
-
-## Log levels
-
-The logger service has the following log levels:
-
-| Level | Description |
-|-------|-------------|
-| debug | All logs will be printed |
-| info  | All but debug logs will be printed |
-| error | Only severe logs will be printed |
-| none | No logs will be printed |
