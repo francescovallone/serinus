@@ -1,30 +1,27 @@
 # Model Provider
 
-Serinus provides a way to convert JSON objects to Dart objects and vice versa.
+One of the most common part when dealing with APIs is to provide a way to interact with the data. Although a Map is a good way to represent data, it is not the best way to interact with it. But what if you could generate and use classes to interact with the data? That's what the `ModelProvider` does.
 
-This is done by using the `ModelProvider` class. A special class that you can either extend yourself adding the necessary methods or use the `serinus generate models` command to generate a model provider class for your project.
+The `ModelProvider` is a special class that maps Serinus body objects to Dart classes. It is a way to generate classes that represent the data received from the API like a FormData Object or a JSON object.
 
 ::: tip
-While extending the `ModelProvider` class yourself is a good way to have full control over the conversion process, it is recommended to use the `serinus generate models` command to generate a model provider class for your project.
+While extending the ModelProvider class yourself is a good way to have full control over the conversion process, it is recommended to use the serinus generate models command to generate a model provider class for your project.
 :::
 
-## Generate a Model Provider
-
-To generate a model provider class for your project, run the following command:
+To generate a model provider in your project just execute the command below:
 
 ```bash
 serinus generate models
 ```
 
-This command will generate a `ModelProvider` class in the entry point of your project. The generated class will have the necessary methods to convert JSON objects to Dart objects and vice versa.
+## Usage
 
-## Using the Model Provider
-
-To use the newly generated `ModelProvider` class, you just need to pass it to the `SerinusApplication` class when initializing it.
+We have now generated a model provider class in the `models` directory of your project but the Serinus application is not aware of it yet. To make the application aware of the model provider, you need to pass it to the `modelProvider` parameter of the `createApplication` method.
 
 ```dart
 import 'package:serinus/serinus.dart';
-import 'my_model_provider.dart';
+
+import 'models/model_provider.dart';
 
 Future<void> main() async {
   final app = await serinus.createApplication(
@@ -33,6 +30,46 @@ Future<void> main() async {
 }
 ```
 
-## Options while generating a Model Provider
+Now that the application is aware of the model provider, you can use it to convert the body of the request to a Dart class.
 
-To read more about the options available while generating the model provider for your project you can go to the [Configuration](/techniques/configuration) section.
+```dart
+import 'package:serinus/serinus.dart';
+
+class User {
+  final String name;
+  final String email;
+
+  User({required this.name, required this.email});
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(name: json['name'], email: json['email']);
+  }
+}
+
+class UsersController extends Controller {
+  UsersController() {
+    on(Route.post('/users'), body: User, (RequestContext context, User body) async {
+      print(body.name);
+      print(body.email);
+      return 'User created';
+    });
+  }
+}
+
+```
+
+But wait it becomes even better! Even tho during the generation the `ModelProvider` will look up for the `fromJson` method and the `toJson` method, you can also add more methods that the `ModelProvider` will use to convert the data.
+
+To do that you need just to add the configuration to your pubspec.yaml file.
+
+```yaml
+serinus:
+  models:
+    extensions:
+      - test
+    deserialize_keywords:
+      - keyword: fromRequest
+        static_method: true
+    serialize_keywords:
+      - keyword: toResponse
+```

@@ -97,14 +97,23 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Logging', link: 'logging' },
-              { text: 'Request Events', link: 'request_events' },
+              { text: 'Validation', link: 'validation' },
               { text: 'Model Provider', link: 'model_provider' },
               { text: 'Model View Controller', link: 'mvc' },
+              { text: 'Request Events', link: 'request_events' },
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
-              { text: 'Shelf Interoperability', link: 'shelf_interop' },
-              { text: 'Configuration', link: 'configuration' },
-              { text: 'Validation', link: 'validation' },
+              { text: 'Session', link: 'session' },
+            ]
+          },
+          {
+            text: 'Security',
+            base: '/security/',
+            collapsed: true,
+            items: [
+              { text: 'Rate Limiting', link: 'rate_limiting' },
+              { text: 'Body Size', link: 'body_size' },
+              { text: 'CORS', link: 'cors' },
             ]
           },
           { 
@@ -117,15 +126,6 @@ export default defineConfig({
               { text: 'Generate', link: 'generate' },
               { text: 'Run', link: 'run' },
               { text: 'Deploy', link: 'deploy' },
-            ]
-          },
-          {
-            text: 'Built-in Hooks',
-            base: '/hooks/',
-            collapsed: true,
-            items: [
-              { text: 'Body Size Limit', link: 'body_size_limit' },
-              { text: 'Secure Session', link: 'secure_session' },
             ]
           },
           {

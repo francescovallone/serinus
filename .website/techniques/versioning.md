@@ -1,105 +1,110 @@
 # Versioning
 
-The technique of versioning allows to have different versions for controllers or routes within the same application.
+::: info
+This chapter is only relevant to HTTP-based applications.
+:::
 
-Serinus supports 2 types of versioning:
+Versioning is a crucial aspect of API design. It allows you to introduce breaking changes without affecting existing clients.
+Currently Serinus supports two types of versioning: **Uri** and **Header**.
 
 | Type | Description |
-| --- | --- |
-| **URI** | The version will be passed in the URI of the request |
-| **Header** | The version will be passed to the request through a custom header |
+|------|-------------|
+| Uri | The version is specified in the URI. (default) |
+| Header | The version is specified in a custom request header. |
 
-## URI Versioning
+## Uri Versioning
 
-Using the URI versioning, the version will be passed in the URI of the request, such as `/v1/users`.
+URI versioning uses the passed URI to specify the version of the API like `/v1/users` and `/v2/users`.
 
-The following code snippet allows you to enable URI versioning:
+::: warning
+With URI Versioning the version will be automatically added to the URI after the global prefix (if one exists), and before any controller or route paths.
+:::
+
+To enable URI versioning, you can pass a new `VersioningOptions` to the setter `versioning` in your Serinus Application instance.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-void main() {
-    SerinusApplication application = await serinus.createApplication(
-        entrypoint: AppModule()
-    );
-    application.versioning = VersioningOptions(
+Future<void> main() async {
+  final app = await serinus.createApplication(
+      entrypoint: AppModule(), host: InternetAddress.anyIPv4, port: 3000);
+    app.versioning = VersioningOptions(
         type: VersioningType.uri,
-        version: 1
     );
-    await application.serve();
+    await app.serve();
 }
 ```
 
-As can be seen, the `versioning` setter receives a `VersioningOptions` object, which contains the `type` and `version` parameters.
-
-::: warning
-The `version` parameter is required when using the URI versioning.
+::: info
+The version in the URI will be automatically prefixed with v by default.
 :::
 
 ## Header Versioning
 
-Using the header versioning, the version will be passed to the request through a custom header, such as `X-API-Version: 1`.
+Header versioning uses a custom header to specify the version of the API like `X-API-Version: 1`.
 
-The following code snippet allows you to enable header versioning:
+To enable Header versioning, as before, you can pass a new `VersioningOptions` to the setter `versioning` in your Serinus Application instance.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-void main() {
-    SerinusApplication application = await serinus.createApplication(
-        entrypoint: AppModule()
-    );
-    application.versioning = VersioningOptions(
+Future<void> main() async {
+  final app = await serinus.createApplication(
+      entrypoint: AppModule(), host: InternetAddress.anyIPv4, port: 3000);
+    app.versioning = VersioningOptions(
         type: VersioningType.header,
-        version: 1,
-        header: 'X-API-Version'
+        header: 'X-API-Version',
     );
-    await application.serve();
+    await app.serve();
 }
 ```
 
-As can be seen, the `versioning` setter also receives a `header` parameter, which is the name of the custom header that will be used in the application.
+## Versioning in Controllers
 
-::: warning
-The `header` parameter and the `version` parameter are required when using the header versioning.
+Sometimes you may want to have different versions of the same route in different controllers. To achieve this, you can override and set the `version` getter.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class UsersController extends Controller {
+  @override
+  int get version => 2;
+
+  UsersController() {
+    on(Route.get('/users'), (RequestContext context) async {
+      return 'Users';
+    });
+  }
+}
+```
+
+In the example above, the route `/users` will be available only in version 2 of the API. If you try to access it with version 1, you will receive a 404 error.
+
+## Versioning in Routes
+
+You can also set the version of a route directly in the `Route` object.
+
+::: info
+Right now to achive this you need to create your custom route object and pass it to the `on` method.
 :::
 
-## Controller-Specific Versioning
-
-If you want a controller to have a different version from the application, you can override the `version` getter in the controller.
+As before you will only need to override the `version` getter.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class MyController extends Controller {
-
+class CustomRoute extends Route {
     @override
-    int get version => 2;
+  int get version => 2;
 
-    MyController({super.path = '/'}) {
-        on(GetRoute(path: '/'), (context) {
-            return 'Hello, World!';
-        });
-    }
-    
+  CustomRoute(String path) : super(path: path, method: HttpMethod.get);
 }
-```
 
-In this example, the `MyController` controller will have version 2, regardless of the version set in the application.
-
-## Route-Specific Versioning
-
-If you want a route to have a different version from the controller, you can override the `version` getter in the route.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-class MyRoute extends Route {
-
-    @override
-    int get version => 2;
-
-    MyRoute({super.path = '/', super.method = HttpMethod.get});
-
+class UsersController extends Controller {
+  UsersController() {
+    on(CustomRoute('/users'), (RequestContext context) async {
+      return 'Users';
+    });
+  }
 }
 ```

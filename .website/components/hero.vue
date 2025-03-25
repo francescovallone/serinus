@@ -8,7 +8,7 @@
             <img src="/serinus-logo.png" alt="Serinus Logo" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72" />
         </div>
         <div class="flex flex-col items-center">
-            <div class="text-4xl lg:text-6xl md:w-[44rem] text-pretty font-bold text-center">The Flutter modular Backend Framework</div>
+            <div class="text-4xl lg:text-6xl md:w-[44rem] text-pretty font-bold text-center">The modular Backend for your Flutter apps</div>
             <div class="my-4 lg:my-8 text-xl lg:text-2xl md:w-[44rem] text-pretty text-gray-300 text-center">
                 Build robust, powerful, and scalable server-side applications without breaking a sweat.
             </div>
