@@ -1,10 +1,8 @@
 # Request Events
 
-Request events are a way to hook into the request lifecycle and perform actions at specific points in the request. This can be useful for logging, debugging, or modifying the request before it is processed.
+If you don't want to use the full power of the `Hooks` object, Serinus provides a way to listen to specific events of a request. Although not so specific as the `Hooks` object, the `RequestEvent`s are a good way to listen to the most common events of a request and act accordingly.
 
-## Listening Request Events
-
-You can listen to request events by calling the method `on` of the `Request` object. The method takes two arguments: the event name and a callback function.
+To listen to request events, you just need to call the method `on` of the `Request` object. The method takes two arguments: the event name and a callback function. The most common case where the `RequestEvent`s are useful is in Middlewares to log, or handle errors, or even to close resources when the request is closed.
 
 ```dart
 import 'package:serinus/serinus.dart';

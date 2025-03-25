@@ -18,7 +18,6 @@ The `models` sub-command is used to generate a model provider class for your pro
 It also execute build_runner to generate the necessary files. This allows you to use libraries like `json_serializable`, `dart_mappable`, `freezed` to generate your data classes.
 
 This commands can also be tweaked thanks to the configuration in the `pubspec.yaml` file.
-[Here](/techniques/configuration#models-configuration) you can see the available options.
 
 ## Client
 
@@ -34,4 +33,3 @@ Right now the client supports the following languages and libraries:
 The team is also working on adding support for other languages and libraries.
 
 This commands can also be tweaked thanks to the configuration in the `pubspec.yaml` file.
-[Here](/techniques/configuration#client-configuration) you can see the available options.

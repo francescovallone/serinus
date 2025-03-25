@@ -35,7 +35,7 @@ head:
     alt="Serinus 1.0 - Primavera"
     author="Francesco Vallone"
     date="26 Nov 2024"
-    :tags="['release']"
+    :tags="['releases']"
     shadow
 >
 
@@ -147,7 +147,7 @@ Streamline your development process making easier to interact with your API is o
 
 Right now the client generation is available only for Dart and will use the library [Dio](https://pub.dev/packages/dio), but we are working to make it available for other languages and libraries too.
 
-You can find more information about Client Generation in the [documentation](/techniques/cli/generate.html#client).
+You can find more information about Client Generation in the [documentation](/cli/generate.html#client).
 
 ### Typed Body
 
@@ -182,7 +182,7 @@ class AppController extends Controller {
 }
 ```
 
-If you want to know more about Typed Body, you can read the [documentation](/foundations/handler.html).
+If you want to know more about Typed Body, you can read the [documentation](/controllers.html).
 
 ### Static Routes
 
@@ -204,7 +204,7 @@ class AppController extends Controller {
 }
 ```
 
-If you want to know more about Static Routes, you can read the [documentation](/foundations/handler.html).
+If you want to know more about Static Routes, you can read the [documentation](/controllers.html).
 
 ### Parametrized Handlers
 
@@ -236,7 +236,7 @@ Don't worry, you can still get them from the `RequestContext` if you prefer.
 If you use a Parametrized Handler and a Typed Body, the Typed Body will be the first parameter after the RequestContext.
 :::
 
-If you want to know more about Parametrized Handlers, you can read the [documentation](/foundations/handler.html).
+If you want to know more about Parametrized Handlers, you can read the [documentation](/controllers.html).
 
 ### More lifecycle hooks
 
@@ -264,7 +264,7 @@ class HelloProvider extends Provider with OnApplicationBootstrap, OnApplicationR
 }
 ```
 
-You can read more about Lifecycle Hooks in the [documentation](/core/providers.html).
+You can read more about Lifecycle Hooks in the [documentation](/providers.html).
 
 ### Simplified access to application configuration
 
@@ -334,8 +334,6 @@ If you have ever created a Serinus project using the CLI, you may have noticed a
 In the 1.0 we decided to remove it and use the `pubspec.yaml` file to configure your application.
 
 This will make it easier to manage the configuration of your application and will make it easier to share your configuration with others.
-
-You can find more information about the configuration in the [documentation](/techniques/configuration.html).
 
 ### Logger Prefix
 
@@ -432,7 +430,7 @@ class AppController extends Controller {
 }
 ```
 
-You can read more about Hooks in the [documentation](/core/hooks.html).
+You can read more about Hooks in the [documentation](/hooks.html).
 
 ### Next Function in Middlewares
 
@@ -460,7 +458,7 @@ class HelloMiddleware extends Middleware {
 }
 ```
 
-You can read more about Middlewares in the [documentation](/core/middlewares.html).
+You can read more about Middlewares in the [documentation](/middlewares.html).
 
 ### Request Events
 
@@ -544,7 +542,7 @@ class AppModule extends Module {
 
 :::
 
-You can read more about how deferred providers work in the [documentation](/core/providers.html).
+You can read more about how deferred providers work in the [documentation](/providers.html).
 
 ## Conclusion
 

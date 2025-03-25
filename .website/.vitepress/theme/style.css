@@ -24,6 +24,16 @@
 
 }
 
+.VPNavBar:not(.home.top) .divider-line, .VPNavBar:not(.has-sidebar):not(.home.top) .divider {
+	background-color: transparent !important;
+}
+.VPNavBar:not(.has-sidebar):not(.home) {
+	background-color: var(--vp-nav-bg-color) !important;
+}
+.VPNavBar:not(.has-sidebar).top {
+	background-color: transparent !important;
+}
+
 /**
    * Component: Button
    * -------------------------------------------------------------------------- */
@@ -90,6 +100,11 @@
 
 .DocSearch {
 	--docsearch-primary-color: var(--vp-c-brand) !important;
+}
+
+.vp-doc table {
+	display: table;
+	width: 100%;
 }
 
 .logo {

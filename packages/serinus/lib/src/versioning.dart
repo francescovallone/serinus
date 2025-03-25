@@ -33,4 +33,6 @@ final class VersioningOptions {
       throw ArgumentError.notNull('header');
     }
   }
+
+  // TODO: Add Factory Constructors to manage the creation of the VersioningOptions better and make the default constructor private
 }
