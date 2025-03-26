@@ -25,8 +25,8 @@ void main() {
       
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
+      await modulesContainer.registerModules(
+          SimpleMockModule(controllers: [MockController()]));
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
     });
@@ -36,9 +36,8 @@ void main() {
         () async {
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
-          SimpleMockModule);
+      await modulesContainer.registerModules(
+          SimpleMockModule(controllers: [MockControllerWithWrongPath()]),);
       final explorer = Explorer(modulesContainer, router, config);
       expect(() => explorer.resolveRoutes(), throwsException);
     });
@@ -68,8 +67,8 @@ void main() {
           VersioningOptions(type: VersioningType.uri, version: 1);
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
+      await modulesContainer.registerModules(
+          SimpleMockModule(controllers: [MockController()]));
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
       final result = router.getRouteByPathAndMethod('/v1', HttpMethod.get);
@@ -92,8 +91,8 @@ void main() {
       config.globalPrefix = GlobalPrefix(prefix: 'api');
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
+      await modulesContainer.registerModules(
+          SimpleMockModule(controllers: [MockController()]));
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
       final result = router.getRouteByPathAndMethod('/api', HttpMethod.get);
@@ -181,8 +180,8 @@ void main() {
           VersioningOptions(type: VersioningType.uri, version: 1);
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
+      await modulesContainer.registerModules(
+          SimpleMockModule(controllers: [MockController()]));
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
       final result = router.getRouteByPathAndMethod('/api/v1', HttpMethod.get);

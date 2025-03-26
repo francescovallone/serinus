@@ -40,10 +40,8 @@ class WebSocketHandler extends Handler {
         continue;
       }
       final providerModule =
-          modulesContainer.getModuleByProvider(provider.runtimeType);
-      final injectables = modulesContainer.getModuleInjectablesByToken(
-          modulesContainer.moduleToken(providerModule));
-      final scopedProviders = List<Provider>.from(injectables.providers);
+          modulesContainer.getScopeByProvider(provider.runtimeType);
+      final scopedProviders = providerModule.providers;
       scopedProviders.remove(provider);
       final context = WebSocketContext(
           (config.adapters[WsAdapter] as WsAdapter?)!,
