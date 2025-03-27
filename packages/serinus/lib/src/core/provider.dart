@@ -14,6 +14,9 @@ abstract class Provider {
   factory Provider.deferred(Function init,
           {required List<Type> inject, required Type type}) =>
       DeferredProvider(init, inject: inject, type: type);
+
+  @override
+  String toString() => '$runtimeType(isGlobal: $isGlobal)';
 }
 
 /// The [DeferredProvider] class is used to define a provider that is initialized asynchronously.
@@ -31,4 +34,7 @@ class DeferredProvider extends Provider {
 
   /// The [DeferredProvider] constructor is used to create a new instance of the [DeferredProvider] class.
   DeferredProvider(this.init, {required this.inject, required this.type});
+
+  @override
+  String toString() => '$runtimeType(inject: $inject, type: $type)';
 }

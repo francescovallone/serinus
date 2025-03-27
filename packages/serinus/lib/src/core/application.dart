@@ -8,7 +8,6 @@ import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
-import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
 import '../handlers/handler.dart';
 import '../http/http.dart';
@@ -187,14 +186,12 @@ class SerinusApplication extends Application {
   @override
   Future<void> initialize() async {
     if (!modulesContainer.isInitialized) {
-      await modulesContainer.registerModules(
-          entrypoint, entrypoint.runtimeType);
+      await modulesContainer.registerModules(entrypoint);
     }
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
-    final registeredProviders =
-        modulesContainer.getAll<OnApplicationBootstrap>();
+    final registeredProviders = modulesContainer.getAll<OnApplicationBootstrap>();
     for (final provider in registeredProviders) {
       await provider.onApplicationBootstrap();
     }
@@ -203,18 +200,15 @@ class SerinusApplication extends Application {
   @override
   Future<void> shutdown() async {
     _logger.info('Shutting down server');
-    final registeredProviders =
-        modulesContainer.modules.map((e) => e.providers).flatten();
-    for (final provider in registeredProviders) {
-      if (provider is OnApplicationShutdown) {
-        await provider.onApplicationShutdown();
-      }
+    final providers = modulesContainer.getAll<OnApplicationShutdown>();
+    for (final provider in providers) {
+      await provider.onApplicationShutdown();
     }
   }
 
   @override
   Future<void> register() async {
-    await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
+    await modulesContainer.registerModules(entrypoint);
   }
 
   /// The [use] method is used to add a hook to the application.

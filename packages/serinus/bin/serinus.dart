@@ -76,26 +76,41 @@ class CircularDependencyModule extends Module {
 
 class AnotherModule extends Module {
   AnotherModule()
-      : super(imports: [], controllers: [], providers: [
+      : super(imports: [
+        CircularDependencyModule()
+      ], controllers: [], providers: [
+                  Provider.deferred((TestProviderThree tp) => TestProviderTwo(tp),
+              inject: [TestProviderThree], type: TestProviderTwo),
           Provider.deferred(
               (TestProviderTwo tp, TestProviderThree t) =>
                   TestProviderFour(t, tp),
               inject: [TestProviderTwo, TestProviderThree],
               type: TestProviderFour),
-        ], middlewares: []);
+        ], middlewares: [], exports: [
+          TestProviderFour
+        ]);
+}
+
+class WsGateway extends WebSocketGateway {
+  WsGateway({super.path});
+
+  @override
+  Future<void> onMessage(dynamic data, WebSocketContext context) async {
+    context.send(data);
+  }
 }
 
 class AppModule extends Module {
   AppModule()
       : super(imports: [
           AnotherModule(),
+          WsModule(),
           CircularDependencyModule()
         ], controllers: [
           AppController()
         ], providers: [
+          WsGateway(),
           TestProvider(isGlobal: true),
-          Provider.deferred((TestProviderThree tp) => TestProviderTwo(tp),
-              inject: [TestProviderThree], type: TestProviderTwo),
         ], middlewares: [
           LogMiddleware()
         ]);

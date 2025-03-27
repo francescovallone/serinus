@@ -107,7 +107,7 @@ void main() async {
       final provider = TestProvider();
       final container = ModulesContainer(config);
 
-      await container.registerModules(TestModule(providers: [provider]), Type);
+      await container.registerModules(TestModule(providers: [provider]));
       expect(container.get<TestProvider>(), provider);
     });
 
@@ -116,9 +116,7 @@ void main() async {
         ''', () async {
       final container = ModulesContainer(config);
 
-      container
-          .registerModule(
-              TestModule(providers: [TestProvider(), TestProvider()]), Type)
+      await container.registerModules(TestModule(providers: [TestProvider(), TestProvider()]))
           .catchError((e) => expect(e.runtimeType, InitializationError));
     });
 
@@ -127,7 +125,7 @@ void main() async {
       final provider = TestProviderHooks();
       final container = ModulesContainer(config);
       final module = TestModule(providers: [provider]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
       await container.finalize(module);
       expect(provider.isInitialized, true);
     });
@@ -142,10 +140,9 @@ void main() async {
           DeferredProvider(() async => TestProvider(),
               inject: [], type: TestProvider)
         ]);
-        await container.registerModules(module, Type);
+        await container.registerModules(module);
 
         await container.finalize(module);
-
         expect(container.get<TestProvider>(), isNotNull);
       },
     );
@@ -158,7 +155,7 @@ void main() async {
           DeferredProvider(() async => TestProvider(),
               inject: [], type: TestProvider)
         ]);
-        await container.registerModules(module, Type);
+        await container.registerModules(module);
 
         expect(container.get<TestProvider>(), isNull);
       },
@@ -177,7 +174,7 @@ void main() async {
           return TestProviderDependent2(provider);
         }, inject: [TestProvider], type: TestProviderDependent2)
       ]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       await container.finalize(module);
 
@@ -194,7 +191,7 @@ void main() async {
           return TestProviderDependent(provider);
         }, inject: [TestProvider], type: TestProviderDependent)
       ]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       container.finalize(module).catchError(
           (value) => expect(value.runtimeType, InitializationError));
@@ -210,7 +207,7 @@ void main() async {
               inject: [], type: TestProviderDependent);
         }, inject: [TestProvider], type: TestProviderDependent)
       ]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       container.finalize(module).catchError(
           (value) => expect(value.runtimeType, InitializationError));
@@ -226,7 +223,7 @@ void main() async {
           return TestProviderDependent(provider);
         }, inject: [TestProvider], type: int)
       ]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       container.finalize(module).catchError((value) {
         expect(value.runtimeType, InitializationError);
@@ -247,7 +244,7 @@ void main() async {
           return TestProvider();
         }, inject: [], type: TestProvider),
       ]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       container.finalize(module).then(
           (_) => expect(container.get<TestProviderDependent>(), isNotNull));
@@ -265,7 +262,7 @@ void main() async {
           return CircularProvider2(provider);
         }, inject: [CircularProvider], type: CircularProvider2)
       ]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       container.finalize(module).catchError((value) {
         expect(value.runtimeType, InitializationError);
@@ -285,7 +282,7 @@ void main() async {
           return TestProviderDependent(provider);
         }, inject: [TestProvider], type: TestProviderDependent)
       ]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       container.finalize(module).catchError(
           (value) => expect(value.runtimeType, InitializationError));
@@ -300,7 +297,7 @@ void main() async {
           return 'not a provider';
         }, inject: [], type: TestProviderDependent)
       ]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       container.finalize(module).catchError(
           (value) => expect(value.runtimeType, InitializationError));

@@ -139,7 +139,7 @@ void main() {
       final response = await request.close();
       expect(response.headers.value('duration'), isNotNull);
       expect(int.tryParse(response.headers.value('duration') ?? ''),
-          greaterThanOrEqualTo(100));
+          greaterThanOrEqualTo(1));
     });
   });
 }

@@ -63,14 +63,14 @@ class RequestHandler extends Handler {
               'No route found for path ${request.path} and method ${request.method}');
     }
 
-    final injectables =
-        modulesContainer.getModuleInjectablesByToken(routeData.moduleToken);
+    final scope =
+        modulesContainer.getScope(routeData.moduleToken);
     final routeSpec = routeData.spec;
     final route = routeSpec.route;
     final handler = routeSpec.handler;
     final schema = routeSpec.schema;
     final scopedProviders =
-        injectables.providers.addAllIfAbsent(modulesContainer.globalProviders);
+        scope.providers.addAllIfAbsent(modulesContainer.globalProviders);
     RequestContext context =
         buildRequestContext(scopedProviders, wrappedRequest, response);
     context.metadata = await _resolveMetadata(routeData.metadata, context);
@@ -80,7 +80,7 @@ class RequestHandler extends Handler {
       bodyValue = await executeOnParse(context, schema, route, bodyValue);
     }
 
-    final middlewares = injectables.filterMiddlewaresByRoute(
+    final middlewares = scope.filterMiddlewaresByRoute(
         routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
       await handleMiddlewares(request, context, response, middlewares, config);
