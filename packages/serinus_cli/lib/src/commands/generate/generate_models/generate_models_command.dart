@@ -52,9 +52,14 @@ class GenerateModelsCommand extends Command<int> {
     final modelProgress = _logger.progress('Generating models...');
     final process = await Process.start(
       'dart',
-      ['pub', 'run', 'build_runner', 'build', '--delete-conflicting-outputs'],
+      ['pub', 'run', 'build_runner', 'build', '-d'],
     );
     process.stderr.transform(utf8.decoder).listen(
+          (data) => _logger.info(
+            data.replaceAll('\n', ''),
+          ),
+        );
+    process.stdout.transform(utf8.decoder).listen(
           (data) => _logger.info(
             data.replaceAll('\n', ''),
           ),
@@ -149,8 +154,6 @@ class GenerateModelsCommand extends Command<int> {
       '.mapper',
       '.freezed',
       '.g',
-      ...List<String>.from(config['extensions'] as Iterable<dynamic>)
-          .map((e) => '.$e'),
       ...List<String>.from(
               (config['extensions'] ?? <dynamic>[]) as Iterable<dynamic>)
           .map((e) => '.$e'),

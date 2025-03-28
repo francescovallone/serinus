@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- Add `--force` option to the `create` command to force the generation of the files even if they already exist.
+
 ## 1.0.2
 
 - Update dependencies to the latest version.
