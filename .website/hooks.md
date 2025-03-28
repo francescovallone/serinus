@@ -77,3 +77,27 @@ class MyService {
 ```
 
 In the example above, the `LogHook` class exposes a `MyService` object to the application. This service will behave as a global provider and will be accessible using the `use` method on the `RequestContext` object.
+
+## Add a Hook to the Application
+
+Now we have a good understainding of how Hooks work and how to create them, let's see how to add them to the application.
+
+This can be done using the `use` method on the `SerinusApplication` object.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+Future<void> main() async {
+  final app = await serinus.createApplication(
+    entrypoint: AppModule()
+  );
+
+  // Add the hook to the application
+  app.use(LogHook());
+
+  // Start the application
+  await app.serve();
+}
+```
+
+And that's it! Now the `LogHook` is added to the application and will be executed at the specified points in the request lifecycle.
