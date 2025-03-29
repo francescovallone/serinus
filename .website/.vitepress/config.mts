@@ -104,6 +104,7 @@ export default defineConfig({
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
               { text: 'Session', link: 'session' },
+              { text: 'Exceptions', link: 'exceptions' },
             ]
           },
           {
