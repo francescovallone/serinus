@@ -53,7 +53,7 @@ Serinus provides some built-in hooks that can be used to add some common functio
 |------|-------------|
 | `BodySizeLimit` | Limit the size of the body of the request |
 | `SecureSessionHook` | Allow the usage of a secure session instead of the common one |
-| `CorsHook` | Enable Cors headers in the applciation |
+| `CorsHook` | Enable Cors headers in the application |
 
 ## Expose a Service
 
