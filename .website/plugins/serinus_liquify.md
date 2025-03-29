@@ -40,6 +40,38 @@ Future<void> main() async {
 }
 ```
 
+Serinus also exports from the Liquify library the `TagRegistry` and the `FilterRegistry` allowing you to expand even further the capabilities of your templates with custom implementations.
+
+You can use the `TagRegistry` to register your own custom tags and the `FilterRegistry` to register your own custom filters. This allows you to create reusable components and functions that can be used in your templates.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+import 'package:serinus_liquify/serinus_liquify.dart';
+
+Future<void> main() async {
+  final app = await serinus.createApplication(
+	entrypoint: AppModule()
+  );
+  TagRegistry.register('box', (content, filters) => BoxTag(content, filters));
+  FilterRegistry.register('sum', (value, args, namedArgs) {
+    if (value is! List) {
+      return value;
+    }
+    return (value as List<int>).reduce((int a, int b) => a + b);
+  });
+  // Add the Liquify engine to the application
+  app.viewEngine = LiquifyEngine(
+	root: FileSystemRoot(
+	  'assets/templates',
+	),
+  );
+
+  // Start the application
+  await app.serve();
+}
+```
+
 ## Options
 
 The plugin allows you to specify the `Root` that the engine will use to find the templates.
@@ -49,22 +81,28 @@ import 'package:serinus/serinus.dart';
 
 import 'package:serinus_liquify/serinus_liquify.dart';
 
-class AppModule extends Module {
-  AppModule() : super(
-	imports: [
-	  LiquifyModule(
-		options: LiquifyModuleOptions(
-			root: FileSystemRoot('templates', notFoundCallback: () => '404 Not Found')
-		)
-	  )
-	]
+Future<void> main() async {
+  final app = await serinus.createApplication(
+	entrypoint: AppModule()
   );
+
+  // Add the Liquify engine to the application
+  app.viewEngine = LiquifyEngine(
+	root: FileSystemRoot(
+	  'assets/templates',
+	),
+  );
+
+  // Start the application
+  await app.serve();
 }
 ```
 
 ::: warning
 If you do not specify the `root` option, you won't be able to use the `*.liquid` templates and the engine will not be able to find the templates. You can only use the string templates.
 :::
+
+`Root` is a very special class that allows you to load templates from different locations. File System, Memory Maps or even remote servers. Internally they are in charge of loading the templates and saving their content and metadata so that they can be used later.
 
 ## Links
 
