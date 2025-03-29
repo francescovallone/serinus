@@ -136,7 +136,7 @@ export default defineConfig({
             items: [
               { text: 'Configuration', link: 'configuration' },
               { text: 'Serve Static Files', link: 'serve_static' },
-              { text: 'Liquify', link: 'liquify' },
+              { text: 'Liquify', link: 'serinus_liquify' },
               { 
                 text: 'Swagger', 
                 collapsed: true,
