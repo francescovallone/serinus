@@ -9,7 +9,7 @@ import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
 
-	UserController() : super('/users') {
+	UserController() : super(path: '/users') {
 		on(Route.get('/<id>'), getUser);
 	}
   
