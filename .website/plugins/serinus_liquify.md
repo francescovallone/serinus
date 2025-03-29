@@ -72,7 +72,7 @@ If you do not specify the `root` option, you won't be able to use the `*.liquid`
   :buttons="[
     {
       label: 'Pub.dev',
-      url: 'https://pub.dev/packages/serinus_liqufiy',
+      url: 'https://pub.dev/packages/serinus_liquify',
     },
 	{
 	  label: 'Liquify Pub.dev',
