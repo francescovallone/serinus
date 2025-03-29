@@ -1,4 +1,11 @@
+<script setup>
+	import PluginType from '../../components/plugin_type.vue'
+  import PluginButtons from '../../components/plugin_buttons.vue'
+</script>
+
 # Swagger Plugin
+
+<PluginType :types="['Module']" />
 
 A plugin to add OpenAPI Specification in your Serinus applications 🐤.
 
@@ -35,3 +42,14 @@ void main(List<String> args) async {
   await app.serve();
 }
 ```
+
+## Links
+
+<PluginButtons 
+  :buttons="[
+    {
+      label: 'Pub.dev',
+      url: 'https://pub.dev/packages/serinus_swagger',
+    }
+  ]" 
+/>

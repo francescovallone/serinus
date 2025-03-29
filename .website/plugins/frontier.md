@@ -1,4 +1,11 @@
+<script setup>
+	import PluginType from '../components/plugin_type.vue'
+    import PluginButtons from '../components/plugin_buttons.vue'
+</script>
+
 # Frontier
+
+<PluginType :types="['Module', 'Hook']" />
 
 Frontier is a simple strategy-based authentication library for Dart & Flutter. Extremely easy to use and highly customizable to fit your needs. It is designed to be simple and easy to use, yet powerful and flexible.
 
@@ -62,3 +69,18 @@ class MyController extends Controller {
 
 }
 ```
+
+## Links
+
+<PluginButtons 
+  :buttons="[
+    {
+      label: 'Pub.dev',
+      url: 'https://pub.dev/packages/serinus_swagger',
+    },
+    {
+      label: 'Frontier',
+      url: 'frontier.avesbox.com',
+    },
+  ]" 
+/>
