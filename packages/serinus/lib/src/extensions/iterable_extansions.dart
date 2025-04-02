@@ -28,6 +28,18 @@ extension AddIfAbsent<T> on Iterable<T> {
     }
     return currentElements;
   }
+
+  /// This method is used to get the missing elements from a list of elements
+  Iterable<T> getMissingElements(Iterable<T> elements) {
+    final elementsType = map((e) => e.runtimeType);
+    final missingElements = <T>[];
+    for (final element in elements) {
+      if (!elementsType.contains(element.runtimeType)) {
+        missingElements.add(element);
+      }
+    }
+    return missingElements;
+  }
 }
 
 /// This extension is used to split a list into two lists based on the type

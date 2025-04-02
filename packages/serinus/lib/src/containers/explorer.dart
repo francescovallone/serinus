@@ -21,13 +21,10 @@ final class Explorer {
   /// It resolves the routes of the controllers and registers them in the router.
   void resolveRoutes() {
     final Logger logger = Logger('RoutesResolver');
-    final modules = _modulesContainer.modules;
-    Map<Controller, _ControllerSpec> controllers = {};
-    for (Module module in modules) {
-      controllers.addEntries(module.controllers.map((controller) => MapEntry(
-          controller,
-          _ControllerSpec(normalizePath(controller.path), module))));
-    }
+    Map<Controller, _ControllerSpec> controllers = {
+      for(final record in _modulesContainer.controllers)
+        record.controller:  _ControllerSpec(record.controller.path, record.module)
+    };
     for (var controller in controllers.entries) {
       if (controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))) {
         throw Exception('Invalid controller path: ${controller.value.path}');

@@ -8,9 +8,9 @@ class WsModule extends Module {
   final Logger logger = Logger('WebSocket');
 
   @override
-  Future<Module> registerAsync(ApplicationConfig config) async {
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     config.adapters[WsAdapter] ??= WsAdapter();
     logger.info('WebSocket Module initialized.');
-    return super.registerAsync(config);
+    return DynamicModule();
   }
 }

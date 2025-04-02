@@ -35,11 +35,11 @@ void main() async {
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(imports: [TestSubModule()]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       await container.finalize(module);
 
-      expect(container.modules.length, 2);
+      expect(container.scopes.length, 2);
     });
 
     test(
@@ -52,8 +52,7 @@ void main() async {
               TestModule(
                   imports: [TestSubModule()],
                   providers: [TestProviderExported()],
-                  exports: [TestProviderExported]),
-              TestModule)
+                  exports: [TestProviderExported]),)
           .catchError(
               (value) => expect(value.runtimeType, InitializationError));
     });
@@ -67,8 +66,7 @@ void main() async {
           .registerModules(
               TestModule(
                 imports: [TestModule()],
-              ),
-              TestModule)
+              ),)
           .catchError(
               (value) => expect(value.runtimeType, InitializationError));
     });
@@ -82,7 +80,7 @@ void main() async {
           TestSubModule(exports: [TestProviderExported])
         ],
       );
-      await container.registerModules(entrypoint, TestModule);
+      await container.registerModules(entrypoint);
 
       container.finalize(entrypoint).catchError(
           (value) => expect(value.runtimeType, InitializationError));
@@ -115,7 +113,7 @@ void main() async {
       final subModule = TestSubModule();
       final module = TestModule(imports: [subModule]);
 
-      await container.registerModules(module, TestModule);
+      await container.registerModules(module);
 
       await container.finalize(module);
 
