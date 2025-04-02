@@ -100,6 +100,7 @@ export default defineConfig({
               { text: 'Validation', link: 'validation' },
               { text: 'Model Provider', link: 'model_provider' },
               { text: 'Model View Controller', link: 'mvc' },
+              { text: 'Task Scheduling', link: 'task_scheduling' },
               { text: 'Request Events', link: 'request_events' },
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
