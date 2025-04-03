@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import '../core/core.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 
+import '../inspector/graph_inspector.dart';
+import '../inspector/node.dart';
+import '../inspector/serialized_graph.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 
@@ -24,12 +29,17 @@ final class ModulesContainer {
     ...globalProviders,
   };
 
+  late final GraphInspector inspector;
+
   final Map<String, Iterable<DeferredProvider>> _deferredProviders = {};
 
   final List<_ProviderDependencies> _providerDependencies = [];
 
   /// The list of all the global providers registered in the application
   final List<Provider> globalProviders = [];
+
+  /// The list of all the global instances registered in the application
+  final Map<Type, InstanceWrapper> globalInstances = {};
 
   final Map<String, ModuleScope> _scopes = {};
 
@@ -56,7 +66,12 @@ final class ModulesContainer {
   final ApplicationConfig config;
 
   /// The constructor of the [ModulesContainer] class
-  ModulesContainer(this.config);
+  ModulesContainer(this.config) {
+    inspector = GraphInspector(
+      SerializedGraph(),
+      this,
+    );
+  }
 
   /// The [moduleToken] method is used to get the token of a module
   String moduleToken(Module module) =>
@@ -81,9 +96,30 @@ final class ModulesContainer {
       await initIfUnregistered(provider);
       if (provider.isGlobal) {
         globalProviders.add(provider);
+        globalInstances[provider.runtimeType] = InstanceWrapper(
+          name: provider.runtimeType.toString(),
+          metadata: ClassMetadataNode(
+            type: 'provider',
+            sourceModuleName: token,
+            composed: false,
+            global: provider.isGlobal,
+          ),
+          host: token,
+        );
       } else {
         _providers[provider.runtimeType] = provider;
       }
+      currentScope.instanceMetadata[provider.runtimeType] = InstanceWrapper(
+        name: provider.runtimeType.toString(),
+        metadata: ClassMetadataNode(
+          type: 'provider',
+          sourceModuleName: token,
+          exported: currentScope.exports.contains(provider.runtimeType),
+          composed: false,
+          global: provider.isGlobal,
+        ),
+        host: token,
+      );
       _scopedProviders[provider.runtimeType] = currentScope;
     }
     currentScope.extend(
@@ -115,6 +151,7 @@ final class ModulesContainer {
   Future<void> registerModules(Module entrypoint) async {
     if(!isInitialized) {
       entrypointToken = moduleToken(entrypoint);
+      entrypoint.providers.add(inspector);
     }
     final token = moduleToken(entrypoint);
     final currentScope = ModuleScope(
@@ -132,6 +169,26 @@ final class ModulesContainer {
     }
     final dynamicEntry = await entrypoint.registerAsync(config);
     currentScope.extendWithDynamicModule(dynamicEntry);
+    for(final m in entrypoint.middlewares) {
+      currentScope.instanceMetadata[m.runtimeType] = InstanceWrapper(
+        name: m.runtimeType.toString(),
+        metadata: ClassMetadataNode(
+          type: 'middleware',
+          sourceModuleName: token,
+        ),
+        host: token,
+      );
+    }
+    for(final c in entrypoint.controllers) {
+      currentScope.instanceMetadata[c.runtimeType] = InstanceWrapper(
+        name: c.runtimeType.toString(),
+        metadata: ClassMetadataNode(
+          type: 'controller',
+          sourceModuleName: token,
+        ),
+        host: token,
+      );
+    }
     await registerModule(currentScope);
   }
 
@@ -158,6 +215,7 @@ final class ModulesContainer {
       scope.extend(
         providers: globalProviders,
       );
+
     }
     await initializeDeferredProviders(entrypoint);
     await resolveProvidersDependencies();
@@ -170,6 +228,7 @@ final class ModulesContainer {
       final providers = entry.value;
       final parentModule = getModuleByToken(token);
       for (final provider in [...providers]) {
+        Stopwatch stopwatch = Stopwatch()..start();
         final dependencies = canInit(provider.inject);
         if (dependencies.isNotEmpty) {
           checkForCircularDependencies(provider, parentModule, dependencies);
@@ -216,6 +275,29 @@ final class ModulesContainer {
         module.providers.add(result);
         if (result.isGlobal) {
           globalProviders.add(result);
+          globalInstances[result.runtimeType] = InstanceWrapper(
+            name: result.runtimeType.toString(),
+            dependencies: provider.inject.map((e) {
+              final providerScope = getScopeByProvider(e);
+              return InstanceWrapper(
+                metadata: ClassMetadataNode(
+                  type: 'provider',
+                  sourceModuleName: providerScope.token,
+                ),
+                name: e.toString(),
+                host: token,
+              );
+            }).toList(),
+            metadata: ClassMetadataNode(
+              type: 'provider',
+              sourceModuleName: token,
+              composed: false,
+              global: result.isGlobal,
+              initTime: stopwatch.elapsedMicroseconds,
+            ),
+            host: token,
+          );
+          stopwatch.stop();
         } else {
           _providers[result.runtimeType] = result;
           _scopedProviders[result.runtimeType] = currentScope;
@@ -237,6 +319,39 @@ final class ModulesContainer {
         _deferredProviders[token] = _deferredProviders[token]
                 ?.where((e) => e.hashCode != provider.hashCode) ??
             [];
+        currentScope.instanceMetadata[result.runtimeType] = InstanceWrapper(
+          name: provider.runtimeType.toString(),
+          dependencies: provider.inject.map((e) {
+            final providerScope = getScopeByProvider(e);
+            return InstanceWrapper(
+              metadata: ClassMetadataNode(
+                type: 'provider',
+                sourceModuleName: providerScope.token,
+              ),
+              name: e.toString(),
+              host: token,
+            );
+          }).toList(),
+          metadata: ClassMetadataNode(
+            type: 'provider',
+            sourceModuleName: token,
+            exported: currentScope.exports.contains(provider.runtimeType),
+            composed: false,
+            global: provider.isGlobal,
+            initTime: stopwatch.elapsedMicroseconds,
+          ),
+          host: token,
+        );
+        if(stopwatch.isRunning) {
+          stopwatch.stop();
+        }
+        for(final importedBy in currentScope.importedBy) {
+          final parentScope = _scopes[importedBy];
+          if(parentScope == null) {
+            throw InitializationError('Module with token $importedBy not found');
+          }
+          parentScope.instanceMetadata[result.runtimeType] = currentScope.instanceMetadata[result.runtimeType]!;
+        }
       }
     }
   }
@@ -264,6 +379,7 @@ final class ModulesContainer {
       return;
     }
     for (final entry in _providerDependencies) {
+      final stopwatch = Stopwatch()..start();
       if (entry.isInitialized) {
         continue;
       }
@@ -296,11 +412,60 @@ final class ModulesContainer {
       await initIfUnregistered(result);
       if (result.isGlobal) {
         globalProviders.add(result);
+        globalInstances[result.runtimeType] = InstanceWrapper(
+            name: result.runtimeType.toString(),
+            dependencies: provider.inject.map((e) {
+              final providerScope = getScopeByProvider(e);
+              return InstanceWrapper(
+                metadata: ClassMetadataNode(
+                  type: 'provider',
+                  sourceModuleName: providerScope.token,
+                ),
+                name: e.toString(),
+                host: token,
+              );
+            }).toList(),
+            metadata: ClassMetadataNode(
+              type: 'provider',
+              sourceModuleName: token,
+              composed: false,
+              global: result.isGlobal,
+              initTime: stopwatch.elapsedMicroseconds,
+            ),
+            host: token,
+          );
+        stopwatch.stop();
       } else {
         _providers[result.runtimeType] = result;
         _scopedProviders[result.runtimeType] = currentScope;
       }
       currentScope.addToProviders(result);
+      currentScope.instanceMetadata[result.runtimeType] = InstanceWrapper(
+        name: provider.runtimeType.toString(),
+        dependencies: provider.inject.map((e) {
+          final providerScope = getScopeByProvider(e);
+          return InstanceWrapper(
+            metadata: ClassMetadataNode(
+              type: 'provider',
+              sourceModuleName: providerScope.token,
+            ),
+            name: e.toString(),
+            host: token,
+          );
+        }).toList(),
+        metadata: ClassMetadataNode(
+          type: 'provider',
+          sourceModuleName: token,
+          exported: currentScope.exports.contains(provider.runtimeType),
+          composed: false,
+          global: provider.isGlobal,
+          initTime: stopwatch.elapsedMicroseconds,
+        ),
+        host: token,
+      );
+      if(stopwatch.isRunning) {
+        stopwatch.stop();
+      }
       for(final importedBy in currentScope.importedBy) {
         final parentScope = _scopes[importedBy];
         if(parentScope == null) {
@@ -313,6 +478,9 @@ final class ModulesContainer {
                 result
           ],
         );
+        if(currentScope.instanceMetadata.containsKey(result.runtimeType)) {
+          parentScope.instanceMetadata[result.runtimeType] = currentScope.instanceMetadata[result.runtimeType]!;
+        }
       }
       entry.isInitialized = true;
       await resolveProvidersDependencies();
@@ -437,6 +605,8 @@ class ModuleScope {
   /// The [importedBy] property contains the modules that import the current module
   final Set<String> importedBy;
 
+  final Map<Type, InstanceWrapper> instanceMetadata = {};
+
   /// The constructor of the [ModuleScope] class
   ModuleScope({
     required this.token,
@@ -529,4 +699,24 @@ class _ProviderDependencies {
     required this.module,
     required this.dependencies,
   });
+}
+
+
+class InstanceWrapper {
+
+  final ClassMetadataNode metadata;
+
+  final String host;
+
+  final String name;
+
+  final List<InstanceWrapper> dependencies;
+
+  const InstanceWrapper({
+    required this.metadata,
+    required this.host,
+    required this.name,
+    this.dependencies = const [],
+  });
+
 }
