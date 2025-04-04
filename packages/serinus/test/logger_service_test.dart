@@ -31,13 +31,16 @@ void main() {
     test(
       'basic implementation of the $ConsoleLogger',
       () async {
-        final TestProcess process = await TestProcess.start('dart', ['test/basic_console_logger_test.dart']);
+        final TestProcess process = await TestProcess.start(
+            'dart', ['test/basic_console_logger_test.dart']);
         await expectLater(process.stdout, emits(contains('[Test] Test')));
         await expectLater(process.stdout, emits(contains('[Test] Test')));
         await expectLater(process.stdout, emits(contains('[Test] Test')));
         await expectLater(process.stdout, emits(contains('[Test] Test')));
-        await expectLater(process.stdout, emits(contains('[Test] Test - Exception: Exception')));
-        await expectLater(process.stdout, emits(contains('[Test] Test - 400 Bad Request!')));
+        await expectLater(process.stdout,
+            emits(contains('[Test] Test - Exception: Exception')));
+        await expectLater(
+            process.stdout, emits(contains('[Test] Test - 400 Bad Request!')));
         await expectLater(process.stdout, emits(contains('[Test] Test')));
         await process.shouldExit(0);
       },
@@ -46,14 +49,26 @@ void main() {
     test(
       'should allow to format logs in json',
       () async {
-        final TestProcess process = await TestProcess.start('dart', ['test/json_console_logger_test.dart']);
-        await expectLater(process.stdout, emits(contains('"level":"INFO","message":"Test"')));
-        await expectLater(process.stdout, emits(contains('"level":"DEBUG","message":"Test"')));
-        await expectLater(process.stdout, emits(contains('"level":"WARNING","message":"Test"')));
-        await expectLater(process.stdout, emits(contains('"level":"SEVERE","message":"Test"')));
-        await expectLater(process.stdout, emits(contains('"level":"SHOUT","message":"Test - Exception: Exception"')));
-        await expectLater(process.stdout, emits(contains('"level":"SHOUT","message":"Test - 400 Bad Request!"')));
-        await expectLater(process.stdout, emits(contains('"level":"VERBOSE","message":"Test"')));
+        final TestProcess process = await TestProcess.start(
+            'dart', ['test/json_console_logger_test.dart']);
+        await expectLater(
+            process.stdout, emits(contains('"level":"INFO","message":"Test"')));
+        await expectLater(process.stdout,
+            emits(contains('"level":"DEBUG","message":"Test"')));
+        await expectLater(process.stdout,
+            emits(contains('"level":"WARNING","message":"Test"')));
+        await expectLater(process.stdout,
+            emits(contains('"level":"SEVERE","message":"Test"')));
+        await expectLater(
+            process.stdout,
+            emits(contains(
+                '"level":"SHOUT","message":"Test - Exception: Exception"')));
+        await expectLater(
+            process.stdout,
+            emits(contains(
+                '"level":"SHOUT","message":"Test - 400 Bad Request!"')));
+        await expectLater(process.stdout,
+            emits(contains('"level":"VERBOSE","message":"Test"')));
         await process.shouldExit(0);
       },
     );

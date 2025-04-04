@@ -47,11 +47,10 @@ abstract class Application {
     if (logger != null) {
       Logger.overrideLogger(logger);
     }
-    if(levels != null) {
+    if (levels != null) {
       Logger.setLogLevels(levels);
     }
   }
-
 
   /// The [url] property contains the URL of the application.
   String get url;
@@ -162,7 +161,8 @@ class SerinusApplication extends Application {
           }
           return handler(request, response);
         },
-        errorHandler: (e, stackTrace) => _logger.severe(e, OptionalParameters(stackTrace: stackTrace)),
+        errorHandler: (e, stackTrace) =>
+            _logger.severe(e, OptionalParameters(stackTrace: stackTrace)),
       );
       final providers = modulesContainer.getAll<OnApplicationReady>();
       for (final provider in providers) {
@@ -191,7 +191,8 @@ class SerinusApplication extends Application {
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
-    final registeredProviders = modulesContainer.getAll<OnApplicationBootstrap>();
+    final registeredProviders =
+        modulesContainer.getAll<OnApplicationBootstrap>();
     for (final provider in registeredProviders) {
       await provider.onApplicationBootstrap();
     }

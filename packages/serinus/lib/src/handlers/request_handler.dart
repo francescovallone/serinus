@@ -63,8 +63,7 @@ class RequestHandler extends Handler {
               'No route found for path ${request.path} and method ${request.method}');
     }
 
-    final scope =
-        modulesContainer.getScope(routeData.moduleToken);
+    final scope = modulesContainer.getScope(routeData.moduleToken);
     final routeSpec = routeData.spec;
     final route = routeSpec.route;
     final handler = routeSpec.handler;
@@ -80,8 +79,8 @@ class RequestHandler extends Handler {
       bodyValue = await executeOnParse(context, schema, route, bodyValue);
     }
 
-    final middlewares = scope.filterMiddlewaresByRoute(
-        routeData.path, wrappedRequest.params);
+    final middlewares =
+        scope.filterMiddlewaresByRoute(routeData.path, wrappedRequest.params);
     if (middlewares.isNotEmpty) {
       await handleMiddlewares(request, context, response, middlewares, config);
       if (response.isClosed) {

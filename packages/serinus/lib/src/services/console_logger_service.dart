@@ -11,13 +11,13 @@ import 'logger_service.dart';
 
 /// The [ConsoleLogger] class is used to log messages to the console.
 class ConsoleLogger implements LoggerService {
-  
   /// The [prefix] of the logger.
   final String prefix;
-  
+
   IOSink _channel = stdout.nonBlocking;
 
   @visibleForTesting
+
   /// Usable for testing purposes.
   set channel(IOSink value) => _channel = value;
 
@@ -30,15 +30,15 @@ class ConsoleLogger implements LoggerService {
   DateTime? _previousTime;
 
   /// If [timestamp] is true, the logger will the difference between the time of the current message and the time of the previous message.
-  /// 
+  ///
   /// If [json] is true, this option is ignored.
   final bool timestamp;
 
   /// Utility method to get the lowest level from a list of [LogLevel]s.
   logging.Level getLowestLevel(Set<LogLevel> levels) {
     LogLevel lowestLevel = LogLevel.none;
-    for(final level in levels) {
-      if(level.compareTo(lowestLevel) < 0) {
+    for (final level in levels) {
+      if (level.compareTo(lowestLevel) < 0) {
         lowestLevel = level;
       }
     }
@@ -53,28 +53,31 @@ class ConsoleLogger implements LoggerService {
     };
   }
 
-
   /// The [logLevels] of the logger.
   Set<LogLevel> get logLevels => Logger.logLevels;
 
   /// The [ConsoleLogger] constructor.
-  ConsoleLogger({this.json = false, this.prefix = 'Serinus', this.timestamp = false, Set<LogLevel>? levels}) {
-    if(levels != null) {
+  ConsoleLogger(
+      {this.json = false,
+      this.prefix = 'Serinus',
+      this.timestamp = false,
+      Set<LogLevel>? levels}) {
+    if (levels != null) {
       Logger.setLogLevels(levels);
     }
-    if(logging.Logger.attachedLoggers.isNotEmpty) {
+    if (logging.Logger.attachedLoggers.isNotEmpty) {
       return;
     }
     logging.Logger.root.level = getLowestLevel(Logger.logLevels);
     logging.Logger.root.onRecord.listen((logging.LogRecord rec) {
-      final hasError = rec.object is AugmentedMessage && (rec.object as AugmentedMessage).params?.error != null;
+      final hasError = rec.object is AugmentedMessage &&
+          (rec.object as AugmentedMessage).params?.error != null;
       if (hasError) {
         printErrors(rec, prefix);
       } else {
         printMessages(rec, prefix);
       }
     });
-    
   }
 
   String _formatPid(int pid, String prefix) {
@@ -82,33 +85,37 @@ class ConsoleLogger implements LoggerService {
   }
 
   String _formatLogLevel(logging.Level level) {
-    return json ? level.name.toUpperCase() : level.name.toUpperCase().padRight(7);
+    return json
+        ? level.name.toUpperCase()
+        : level.name.toUpperCase().padRight(7);
   }
 
   /// Prints messages.
   void printMessages(logging.LogRecord record, String prefix) {
     final formattedPid = _formatPid(pid, prefix);
     final logLevel = _formatLogLevel(record.level);
-    final formattedTime = json ? record.time.toIso8601String() : DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
+    final formattedTime = json
+        ? record.time.toIso8601String()
+        : DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
     final message = record.object as AugmentedMessage;
     final loggerName = message.params?.context ?? record.loggerName;
-    final formattedMessage = json ?
-      jsonEncode({
-        'prefix': prefix,
-        'pid': formattedPid,
-        'context': loggerName,
-        'level': logLevel,
-        'message': message.message,
-        'time': formattedTime,
-        if(message.params?.metadata != null) 'metadata': message.params?.metadata,
-      }) :
-        '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message} +${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
+    final formattedMessage = json
+        ? jsonEncode({
+            'prefix': prefix,
+            'pid': formattedPid,
+            'context': loggerName,
+            'level': logLevel,
+            'message': message.message,
+            'time': formattedTime,
+            if (message.params?.metadata != null)
+              'metadata': message.params?.metadata,
+          })
+        : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message} +${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
     _previousTime = DateTime.now();
     channel.writeln(formattedMessage);
   }
 
-  String _formatErrorMessage(
-      String message, Object? error) {
+  String _formatErrorMessage(String message, Object? error) {
     if (error != null) {
       final errorString = error is SerinusException
           ? '${error.statusCode} ${error.message}'
@@ -127,37 +134,38 @@ class ConsoleLogger implements LoggerService {
     final formattedTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
     final error = message.params?.error;
     final errorMessage = _formatErrorMessage(message.message.toString(), error);
-    final formattedMessage = json ? 
-      jsonEncode({
-        'prefix': prefix,
-        'pid': pid,
-        'context': loggerName,
-        'level': logLevel,
-        'message': errorMessage,
-        'time': formattedTime,
-        'error': error is String ? error : error.runtimeType.toString(),
-      }) : 
-      '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage ${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
+    final formattedMessage = json
+        ? jsonEncode({
+            'prefix': prefix,
+            'pid': pid,
+            'context': loggerName,
+            'level': logLevel,
+            'message': errorMessage,
+            'time': formattedTime,
+            'error': error is String ? error : error.runtimeType.toString(),
+          })
+        : '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage ${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
     channel.writeln(formattedMessage);
   }
 
   @override
   void debug(Object? message, [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.debug)) {
+    if (!Logger.isLevelEnabled(LogLevel.debug)) {
       return;
     }
     final logger = logging.Logger.root;
-    logger.log(logging.Level('DEBUG', 300), AugmentedMessage(message, optionalParameters));
+    logger.log(logging.Level('DEBUG', 300),
+        AugmentedMessage(message, optionalParameters));
   }
 
   @override
-  void info(Object? message,
-    [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.info)) {
+  void info(Object? message, [OptionalParameters? optionalParameters]) {
+    if (!Logger.isLevelEnabled(LogLevel.info)) {
       return;
     }
     final logger = logging.Logger.root;
-    logger.info(AugmentedMessage(message, optionalParameters), optionalParameters?.error, optionalParameters?.stackTrace);
+    logger.info(AugmentedMessage(message, optionalParameters),
+        optionalParameters?.error, optionalParameters?.stackTrace);
   }
 
   /// Sets the log levels of the logger.
@@ -168,7 +176,7 @@ class ConsoleLogger implements LoggerService {
 
   @override
   void severe(Object? message, [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.severe)) {
+    if (!Logger.isLevelEnabled(LogLevel.severe)) {
       return;
     }
     final logger = logging.Logger.root;
@@ -176,9 +184,8 @@ class ConsoleLogger implements LoggerService {
   }
 
   @override
-  void shout(Object? message,
-    [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.shout)) {
+  void shout(Object? message, [OptionalParameters? optionalParameters]) {
+    if (!Logger.isLevelEnabled(LogLevel.shout)) {
       return;
     }
     final logger = logging.Logger.root;
@@ -186,30 +193,27 @@ class ConsoleLogger implements LoggerService {
   }
 
   @override
-  void verbose(Object? message,
-    [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.verbose)) {
+  void verbose(Object? message, [OptionalParameters? optionalParameters]) {
+    if (!Logger.isLevelEnabled(LogLevel.verbose)) {
       return;
     }
     final logger = logging.Logger.root;
-    logger.log(logging.Level('VERBOSE', 0), AugmentedMessage(message, optionalParameters));
+    logger.log(logging.Level('VERBOSE', 0),
+        AugmentedMessage(message, optionalParameters));
   }
 
   @override
-  void warning(Object? message,
-    [OptionalParameters? optionalParameters]) {
-    if(!Logger.isLevelEnabled(LogLevel.warning)) {
+  void warning(Object? message, [OptionalParameters? optionalParameters]) {
+    if (!Logger.isLevelEnabled(LogLevel.warning)) {
       return;
     }
     final logger = logging.Logger.root;
     logger.warning(AugmentedMessage(message, optionalParameters));
   }
-
 }
 
 /// The [AugmentedMessage] class is used to augment messages with optional parameters.
 final class AugmentedMessage {
-
   /// The [message] of the augmented message.
   final Object? message;
 
@@ -218,6 +222,4 @@ final class AugmentedMessage {
 
   /// The [AugmentedMessage] constructor.
   const AugmentedMessage(this.message, this.params);
-
-
 }
