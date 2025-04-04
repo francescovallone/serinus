@@ -58,7 +58,7 @@ class _ShelfMiddleware extends Middleware {
     } else {
       throw Exception('Handler must be a shelf.Middleware or a shelf.Handler');
     }
-    if(ignoreResponse) {
+    if (ignoreResponse) {
       context.res.headers.addAll(shelfResponse.headers);
       return next();
     }

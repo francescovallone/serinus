@@ -49,10 +49,11 @@ void main() async {
 
       container
           .registerModules(
-              TestModule(
-                  imports: [TestSubModule()],
-                  providers: [TestProviderExported()],
-                  exports: [TestProviderExported]),)
+            TestModule(
+                imports: [TestSubModule()],
+                providers: [TestProviderExported()],
+                exports: [TestProviderExported]),
+          )
           .catchError(
               (value) => expect(value.runtimeType, InitializationError));
     });
@@ -64,9 +65,10 @@ void main() async {
 
       container
           .registerModules(
-              TestModule(
-                imports: [TestModule()],
-              ),)
+            TestModule(
+              imports: [TestModule()],
+            ),
+          )
           .catchError(
               (value) => expect(value.runtimeType, InitializationError));
     });

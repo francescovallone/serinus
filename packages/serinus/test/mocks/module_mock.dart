@@ -2,9 +2,7 @@ import 'package:serinus/serinus.dart';
 
 import 'injectables_mock.dart';
 
-class SimpleMockModuleWithDeferred extends Module {
-  
-}
+class SimpleMockModuleWithDeferred extends Module {}
 
 class SimpleMockModule extends Module {
   SimpleMockModule({super.controllers});
@@ -48,7 +46,6 @@ class TestGlobalProviderWithDeps extends Provider {
   final TestProviderTwo dep;
 
   TestGlobalProviderWithDeps(this.dep, {super.isGlobal = true});
-
 }
 
 class ImportableModuleWithProvider extends Module {
@@ -56,15 +53,18 @@ class ImportableModuleWithProvider extends Module {
       : super(
           imports: [ImportableModuleWithNonExportedProvider()],
           controllers: [],
-          providers: [Provider.deferred(
-            () => TestProviderTwo(),
-            inject: [],
-            type: TestProviderTwo,
-          ), Provider.deferred(
-            (TestProviderTwo p) => TestGlobalProviderWithDeps(p),
-            inject: [TestProviderTwo],
-            type: TestGlobalProviderWithDeps,
-          )],
+          providers: [
+            Provider.deferred(
+              () => TestProviderTwo(),
+              inject: [],
+              type: TestProviderTwo,
+            ),
+            Provider.deferred(
+              (TestProviderTwo p) => TestGlobalProviderWithDeps(p),
+              inject: [TestProviderTwo],
+              type: TestGlobalProviderWithDeps,
+            )
+          ],
           exports: [TestProviderTwo],
           middlewares: [],
         );

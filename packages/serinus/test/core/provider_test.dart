@@ -116,7 +116,9 @@ void main() async {
         ''', () async {
       final container = ModulesContainer(config);
 
-      await container.registerModules(TestModule(providers: [TestProvider(), TestProvider()]))
+      await container
+          .registerModules(
+              TestModule(providers: [TestProvider(), TestProvider()]))
           .catchError((e) => expect(e.runtimeType, InitializationError));
     });
 

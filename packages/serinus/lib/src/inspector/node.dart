@@ -3,8 +3,10 @@ abstract class Node {
   /// The id of this node. This is used to identify the node in the tree.
   /// This id is unique for each node in the tree. It is used to build the tree structure.
   final String id;
+
   /// The label of this node. This is used to display the node in the tree.
   final String label;
+
   /// The parent of this node. This is used to build the tree structure.
   const Node({
     required this.id,
@@ -18,12 +20,10 @@ abstract class Node {
       'label': label,
     };
   }
-
 }
 
 /// A [ClassNode] is a class that represents a provider in the inspector.
 class ClassNode extends Node {
-
   /// The id of the parent node. This is used to build the tree structure.
   final String parent;
 
@@ -47,12 +47,10 @@ class ClassNode extends Node {
       'metadata': metadata.toJson(),
     };
   }
-
 }
 
 /// A [ModuleNode] is a class that represents a module in the inspector.
 class ModuleNode extends Node {
-
   /// The metadata of the module. This is used to display the module in the tree.
   final ModuleMetadataNode metadata;
 
@@ -71,12 +69,10 @@ class ModuleNode extends Node {
       'metadata': metadata.toJson(),
     };
   }
-
 }
 
 /// A [ModuleMetadataNode] is a class that represents the metadata of a module in the inspector.
 class ModuleMetadataNode {
-
   /// The name of the module. This is used to identify the module in the tree.
   final String name = 'module';
 
@@ -99,7 +95,6 @@ class ModuleMetadataNode {
 
 /// A [ClassMetadataNode] is a class that represents the metadata of a class in the inspector.
 class ClassMetadataNode {
-
   /// The type of the class. This is used to identify the class in the tree.
   /// It can be one of the following:
   /// - `provider` - The class is a regular class.
@@ -142,11 +137,10 @@ class ClassMetadataNode {
       'type': type,
       'sourceModuleName': sourceModuleName,
       'initTime': initTime,
-      if(exported != null) 'exported': exported,
-      if(composed != null) 'composed': composed,
+      if (exported != null) 'exported': exported,
+      if (composed != null) 'composed': composed,
       if (global != null) 'global': global,
       if (internal != null) 'internal': internal,
     };
   }
-
 }

@@ -26,7 +26,7 @@ void main() {
     test(
         'registerModules should skip registering a module if it is already registered',
         () async {
-          Logger.setLogLevels({LogLevel.none});
+      Logger.setLogLevels({LogLevel.none});
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
           port: 3000,
@@ -53,11 +53,7 @@ void main() {
       final module = SimpleModuleWithProvider();
       await container.registerModules(module);
       expect(container.scopes.length, 1);
-      expect(
-          container
-              .getScope(container.moduleToken(module))
-              .providers
-              .length,
+      expect(container.getScope(container.moduleToken(module)).providers.length,
           1);
     });
 
@@ -76,8 +72,7 @@ void main() {
       final module = SimpleModuleWithInjectables();
       await container.registerModules(module);
       expect(container.scopes.length, 1);
-      final scope =
-          container.getScope(container.moduleToken(module));
+      final scope = container.getScope(container.moduleToken(module));
       expect(scope.providers.length, 1);
       expect(scope.middlewares.length, 1);
     });
@@ -131,13 +126,11 @@ void main() {
       await container.registerModules(module);
       await container.finalize(module);
       expect(container.scopes.length, 3);
-      final injectables =
-          container.getScope(container.moduleToken(module));
+      final injectables = container.getScope(container.moduleToken(module));
       expect(injectables.middlewares.length, 1);
       expect(injectables.providers.length, 2);
       final t = ImportableModuleWithProvider;
-      final subInjectables =
-          container.getScope(t.toString());
+      final subInjectables = container.getScope(t.toString());
       expect(injectables.middlewares.length, 1);
       expect(subInjectables.providers.length, 2);
       expect(
@@ -145,8 +138,7 @@ void main() {
               e.runtimeType == subInjectables.providers.last.runtimeType),
           isEmpty);
       final t2 = ImportableModuleWithNonExportedProvider;
-      final subInjectablesTwo =
-          container.getScope(t2.toString());
+      final subInjectablesTwo = container.getScope(t2.toString());
       expect(subInjectablesTwo.providers.length, 1);
     });
 
@@ -186,6 +178,4 @@ void main() {
       expect(container.scopes.length, 1);
     });
   });
-  
-  
 }

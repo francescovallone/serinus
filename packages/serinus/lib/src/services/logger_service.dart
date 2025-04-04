@@ -5,7 +5,6 @@ import 'console_logger_service.dart';
 
 /// The [LoggerService] class is used as a blueprint for the loggers.
 abstract interface class LoggerService {
-
   /// Write a message at log level [LogLevel.info]. it is used to log info messages.
   void info(Object? message, [OptionalParameters? optionalParameters]);
 
@@ -23,7 +22,6 @@ abstract interface class LoggerService {
 
   /// Write a message at log level [LogLevel.severe]. it is used to log severe messages.
   void severe(Object? message, [OptionalParameters? optionalParameters]);
-
 }
 
 /// The [defaultLogger] is used to create a new instance of the [LoggerService] class.
@@ -33,7 +31,6 @@ final LoggerService defaultLogger = ConsoleLogger();
 ///
 /// It is used to log messages in the application.
 class Logger implements LoggerService {
-
   /// The [staticInstanceRef] is used to get the static instance of the logger.
   static LoggerService _staticInstanceRef = defaultLogger;
 
@@ -54,9 +51,9 @@ class Logger implements LoggerService {
 
   /// Define a getter to get the local instance of the logger.
   LoggerService get localInstance {
-    if(Logger._staticInstanceRef == defaultLogger) {
+    if (Logger._staticInstanceRef == defaultLogger) {
       return _registerLocalInstanceRef();
-    } else if(Logger._staticInstanceRef is Logger) {
+    } else if (Logger._staticInstanceRef is Logger) {
       return _registerLocalInstanceRef();
     }
     return Logger._staticInstanceRef;
@@ -66,62 +63,62 @@ class Logger implements LoggerService {
   Logger(this.context);
 
   LoggerService _registerLocalInstanceRef() {
-    if(_localInstanceRef != null) {
+    if (_localInstanceRef != null) {
       return _localInstanceRef!;
     }
     _localInstanceRef = ConsoleLogger();
     return _localInstanceRef!;
   }
-  
+
   @override
   void debug(Object? message, [OptionalParameters? optionalParameters]) {
     optionalParameters ??= OptionalParameters();
-    if(context.isNotEmpty) {
+    if (context.isNotEmpty) {
       optionalParameters.context = context;
     }
     localInstance.debug(message, optionalParameters);
   }
-  
+
   @override
   void info(Object? message, [OptionalParameters? optionalParameters]) {
     optionalParameters ??= OptionalParameters();
-    if(context.isNotEmpty) {
+    if (context.isNotEmpty) {
       optionalParameters.context = context;
     }
     localInstance.info(message, optionalParameters);
   }
-  
+
   @override
   void severe(Object? message, [OptionalParameters? optionalParameters]) {
     optionalParameters ??= OptionalParameters();
-    if(context.isNotEmpty) {
+    if (context.isNotEmpty) {
       optionalParameters.context = context;
     }
     localInstance.severe(message, optionalParameters);
   }
-  
+
   @override
   void shout(Object? message, [OptionalParameters? optionalParameters]) {
     optionalParameters ??= OptionalParameters();
-    if(context.isNotEmpty) {
+    if (context.isNotEmpty) {
       optionalParameters.context = context;
     }
     localInstance.shout(message, optionalParameters);
   }
-  
+
   @override
   void verbose(Object? message, [OptionalParameters? optionalParameters]) {
     optionalParameters ??= OptionalParameters();
-    if(context.isNotEmpty) {
+    if (context.isNotEmpty) {
       optionalParameters.context = context;
     }
     localInstance.verbose(message, optionalParameters);
   }
-  
+
   @override
   void warning(Object? message, [OptionalParameters? optionalParameters]) {
     optionalParameters ??= OptionalParameters();
-    if(context.isNotEmpty) {
+    if (context.isNotEmpty) {
       optionalParameters.context = context;
     }
     localInstance.warning(message, optionalParameters);
@@ -132,7 +129,7 @@ class Logger implements LoggerService {
     final levels = logLevels ?? Logger.logLevels;
     return LogLevel.isLogLevelEnabled(levels, level);
   }
-  
+
   /// The [setLogLevels] method is used to set the log levels of the logger.
   static void setLogLevels(Set<LogLevel> levels) {
     Logger.logLevels.clear();
@@ -143,19 +140,19 @@ class Logger implements LoggerService {
   static void overrideLogger(LoggerService logger) {
     Logger._staticInstanceRef = logger;
   }
-
 }
 
 /// The [OptionalParameters] class is used to define the optional parameters of the logger.
 final class OptionalParameters {
-
   /// An [error] occurred during the logging process.
   final Object? error;
+
   /// The [stackTrace] of an event that occurred during the logging process.
   final StackTrace? stackTrace;
+
   /// The [metadata] of an event that occurred during the logging process.
   final Map<String, dynamic>? metadata;
-  
+
   /// The [context] of the logger.
   String? context = '';
 
@@ -165,5 +162,4 @@ final class OptionalParameters {
     this.stackTrace,
     this.metadata,
   });
-
 }

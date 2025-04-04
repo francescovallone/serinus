@@ -1,6 +1,5 @@
 /// The [Edge] class is an abstract class that represents an edge in the inspector.
 class Edge {
-
   /// The id of this edge. This is used to identify the edge in the tree.
   final String id;
 
@@ -30,12 +29,10 @@ class Edge {
       'metadata': metadata.toJson(),
     };
   }
-
 }
 
 /// A [EdgeMetadata] is a class that represents the metadata of an edge in the inspector.
 abstract class EdgeMetadata {
-
   /// The name of the module that this edge points from. This is used to identify the module in the tree.
   final String sourceModuleName;
 
@@ -60,12 +57,10 @@ abstract class EdgeMetadata {
       'type': type,
     };
   }
-
 }
 
 /// A [ClassToClassEdgeMetadata] is a class that represents the metadata of an edge between two classes in the inspector.
 class ClassToClassEdgeMetadata extends EdgeMetadata {
-
   /// The name of the class that this edge points from. This is used to identify the class in the tree.
   final String sourceClassName;
 
@@ -87,20 +82,17 @@ class ClassToClassEdgeMetadata extends EdgeMetadata {
     this.key,
     this.internal,
   }) : super(
-    type: 'class_to_class',
-  );
-
+          type: 'class_to_class',
+        );
 }
 
 /// A [ModuleToModuleEdgeMetadata] is a class that represents the metadata of a module to module edge in the inspector.
 class ModuleToModuleEdgeMetadata extends EdgeMetadata {
-
   /// Creates a new instance of [ModuleToModuleEdgeMetadata].
   const ModuleToModuleEdgeMetadata({
     required super.sourceModuleName,
     required super.targetModuleName,
   }) : super(
-    type: 'module_to_module',
-  );
-
+          type: 'module_to_module',
+        );
 }

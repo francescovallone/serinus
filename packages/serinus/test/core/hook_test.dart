@@ -126,8 +126,8 @@ void main() {
     });
 
     test(
-      'if a hook is augmented with onException and an exception is thrown then the onException method should be called',
-      () async {
+        'if a hook is augmented with onException and an exception is thrown then the onException method should be called',
+        () async {
       final route = HookRoute();
       final app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController(route: route)]),

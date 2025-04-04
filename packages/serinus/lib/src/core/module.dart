@@ -48,7 +48,6 @@ abstract class Module {
 
 /// The [DynamicModule] class is used to define a dynamic module.
 class DynamicModule {
-
   /// The [imports] property contains the modules that are imported in the module.
   final List<Provider> providers;
 
@@ -72,5 +71,4 @@ class DynamicModule {
     this.exports = const [],
     this.middlewares = const [],
   });
-
 }

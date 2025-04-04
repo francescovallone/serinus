@@ -6,8 +6,7 @@ import 'serialized_graph.dart';
 
 /// The [GraphInspector] class is used to inspect the modules and their dependencies in the application.
 /// It creates a graph representation of the modules and their dependencies.
-class GraphInspector extends Provider{
-
+class GraphInspector extends Provider {
   @override
   bool get isGlobal => true;
 
@@ -24,20 +23,20 @@ class GraphInspector extends Provider{
     final appModules = modules ?? _container.scopes;
     for (final module in appModules) {
       final moduleNode = ModuleNode(
-        id: module.token,
-        label: module.token,
-        metadata: ModuleMetadataNode()
-      );
+          id: module.token,
+          label: module.token,
+          metadata: ModuleMetadataNode());
       graph.insertNode(moduleNode);
       _inspectModule(module);
       _insertEdges(module);
     }
-
   }
 
   /// Get the token of the module.
   String moduleToken(Module module) {
-    return module.token.isNotEmpty ? module.token : module.runtimeType.toString();
+    return module.token.isNotEmpty
+        ? module.token
+        : module.runtimeType.toString();
   }
 
   void _insertEdges(ModuleScope module) {
@@ -55,10 +54,10 @@ class GraphInspector extends Provider{
       graph.insertEdge(edge);
     }
 
-    for(final provider in module.providers) {
+    for (final provider in module.providers) {
       final instanceWrapper = module.instanceMetadata[provider.runtimeType];
-      if(instanceWrapper?.dependencies.isNotEmpty ?? false) {
-        for(final dependency in instanceWrapper!.dependencies.indexed) {
+      if (instanceWrapper?.dependencies.isNotEmpty ?? false) {
+        for (final dependency in instanceWrapper!.dependencies.indexed) {
           final edge = Edge(
             id: '${provider.runtimeType.toString()}-${dependency.$2.name}',
             source: provider.runtimeType.toString(),
@@ -79,13 +78,13 @@ class GraphInspector extends Provider{
 
   void _inspectModule(ModuleScope module) {
     for (final provider in module.providers) {
-
       final String providerToken = provider.runtimeType.toString();
       final providerNode = ClassNode(
         id: providerToken,
         label: providerToken,
         parent: module.token,
-        metadata: module.instanceMetadata[provider.runtimeType]?.metadata ?? _container.globalInstances[provider.runtimeType]!.metadata,
+        metadata: module.instanceMetadata[provider.runtimeType]?.metadata ??
+            _container.globalInstances[provider.runtimeType]!.metadata,
       );
       graph.insertNode(providerNode);
     }
@@ -118,5 +117,4 @@ class GraphInspector extends Provider{
   Map<String, dynamic> toJson() {
     return graph.toJson();
   }
-  
 }

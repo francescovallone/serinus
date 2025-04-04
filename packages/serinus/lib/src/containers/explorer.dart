@@ -22,8 +22,9 @@ final class Explorer {
   void resolveRoutes() {
     final Logger logger = Logger('RoutesResolver');
     Map<Controller, _ControllerSpec> controllers = {
-      for(final record in _modulesContainer.controllers)
-        record.controller:  _ControllerSpec(record.controller.path, record.module)
+      for (final record in _modulesContainer.controllers)
+        record.controller:
+            _ControllerSpec(record.controller.path, record.module)
     };
     for (var controller in controllers.entries) {
       if (controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))) {
