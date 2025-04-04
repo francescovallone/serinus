@@ -167,6 +167,25 @@ void main() {
       await container.finalize(module);
       expect(container.scopes.length, 3);
     });
+
+    test('''
+        if the module has a $Provider set as global, then the provider should be registered in the container and the module should be marked as finalized,
+      ''', () async {
+      final container = ModulesContainer(ApplicationConfig(
+          host: 'localhost',
+          port: 3000,
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Serinus',
+          ),
+          poweredByHeader: 'Serinus'));
+      final module = SimpleModuleWithGlobal();
+      await container.registerModules(module);
+      await container.finalize(module);
+      expect(container.scopes.length, 1);
+    });
   });
+  
   
 }
