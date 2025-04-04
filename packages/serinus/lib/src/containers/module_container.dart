@@ -29,6 +29,7 @@ final class ModulesContainer {
     ...globalProviders,
   };
 
+  /// The [inspector] property contains the graph inspector of the application
   late final GraphInspector inspector;
 
   final Map<String, Iterable<DeferredProvider>> _deferredProviders = {};
@@ -82,7 +83,6 @@ final class ModulesContainer {
   /// The [currentScope] is the scope of the current module that is being registered in the Container
   Future<void> registerModule(ModuleScope currentScope) async {
     final token = currentScope.token;
-
     if (_scopes.containsKey(token)) {
       return;
     }
@@ -151,7 +151,6 @@ final class ModulesContainer {
   Future<void> registerModules(Module entrypoint) async {
     if(!isInitialized) {
       entrypointToken = moduleToken(entrypoint);
-      entrypoint.providers.add(inspector);
     }
     final token = moduleToken(entrypoint);
     final currentScope = ModuleScope(
@@ -605,6 +604,7 @@ class ModuleScope {
   /// The [importedBy] property contains the modules that import the current module
   final Set<String> importedBy;
 
+  /// The [instanceMetadata] property contains the metadata of the instances of the module
   final Map<Type, InstanceWrapper> instanceMetadata = {};
 
   /// The constructor of the [ModuleScope] class
@@ -701,17 +701,22 @@ class _ProviderDependencies {
   });
 }
 
-
+/// The [InstanceWrapper] class is used to wrap the instance of a provider and its metadata
 class InstanceWrapper {
 
+  /// The [metadata] property contains the metadata of the instance
   final ClassMetadataNode metadata;
 
+  /// The [host] property contains the host of the instance
   final String host;
 
+  /// The [name] property contains the name of the instance
   final String name;
 
+  /// The [dependencies] property contains the dependencies of the instance
   final List<InstanceWrapper> dependencies;
 
+  /// The constructor of the [InstanceWrapper] class
   const InstanceWrapper({
     required this.metadata,
     required this.host,

@@ -4,6 +4,8 @@ import 'edge.dart';
 import 'node.dart';
 import 'serialized_graph.dart';
 
+/// The [GraphInspector] class is used to inspect the modules and their dependencies in the application.
+/// It creates a graph representation of the modules and their dependencies.
 class GraphInspector extends Provider{
 
   @override
@@ -114,10 +116,7 @@ class GraphInspector extends Provider{
   /// Converts the [GraphInspector] to a JSON object.
   /// This is used to display the graph in the inspector.
   Map<String, dynamic> toJson() {
-    return {
-      'nodes': graph.nodes.values.map((e) => e.toJson()).toList(),
-      'edges': graph.edges.values.map((e) => e.toJson()).toList(),
-    };
+    return graph.toJson();
   }
   
 }

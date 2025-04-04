@@ -195,7 +195,6 @@ class SerinusApplication extends Application {
     for (final provider in registeredProviders) {
       await provider.onApplicationBootstrap();
     }
-    modulesContainer.inspector.inspectModules();
   }
 
   @override
