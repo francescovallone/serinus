@@ -139,15 +139,34 @@ void main() {
       final subInjectables =
           container.getScope(t.toString());
       expect(injectables.middlewares.length, 1);
-      expect(subInjectables.providers.length, 1);
+      expect(subInjectables.providers.length, 2);
       expect(
           injectables.providers.where((e) =>
               e.runtimeType == subInjectables.providers.last.runtimeType),
-          isNotEmpty);
+          isEmpty);
       final t2 = ImportableModuleWithNonExportedProvider;
       final subInjectablesTwo =
           container.getScope(t2.toString());
       expect(subInjectablesTwo.providers.length, 1);
     });
+
+    test('''
+        if the module has a $DeferredProvider, then the provider should be registered in the container and the module should be marked as finalized,
+      ''', () async {
+      final container = ModulesContainer(ApplicationConfig(
+          host: 'localhost',
+          port: 3000,
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Serinus',
+          ),
+          poweredByHeader: 'Serinus'));
+      final module = SimpleModuleWithImportsAndInjects();
+      await container.registerModules(module);
+      await container.finalize(module);
+      expect(container.scopes.length, 3);
+    });
   });
+  
 }
