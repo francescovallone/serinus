@@ -128,9 +128,9 @@ class UsersModule extends Module {
   UsersModule() : super(
     providers: [
       DatabaseService(),
-      Provider.composed(
+      Provider.deferred(
+        (DatabaseService databaseService) async => UserService(databaseService)
         inject: [DatabaseService],
-        create: (databaseService) async => UserService(databaseService),
         type: UserService,
       )
     ],
