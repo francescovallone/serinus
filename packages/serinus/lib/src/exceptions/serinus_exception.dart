@@ -25,13 +25,13 @@ class SerinusException with JsonObject implements HttpException {
   @override
   final String message;
   @override
-  final Uri? uri;
+  Uri? uri;
 
   /// The [statusCode] parameter is used to define the status code of the exception
   final int statusCode;
 
   /// The [SerinusException] constructor is used to create a new instance of the [SerinusException] class.
-  const SerinusException(
+  SerinusException(
       {required this.message, required this.statusCode, this.uri});
 
   @override

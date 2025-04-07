@@ -31,6 +31,7 @@ abstract class Handler {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
+      e.uri ??= request.uri;
       final error = utf8.encode(jsonEncode(e.toJson()));
       final currentContext = buildRequestContext(
         [],
