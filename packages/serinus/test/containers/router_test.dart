@@ -3,7 +3,7 @@ import 'package:spanner/spanner.dart';
 import 'package:test/test.dart';
 
 class TestController extends Controller {
-  TestController([super.path= '/']);
+  TestController([super.path = '/']);
 }
 
 void main() async {

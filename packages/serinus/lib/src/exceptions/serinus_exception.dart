@@ -31,8 +31,7 @@ class SerinusException with JsonObject implements HttpException {
   final int statusCode;
 
   /// The [SerinusException] constructor is used to create a new instance of the [SerinusException] class.
-  SerinusException(
-      {required this.message, required this.statusCode, this.uri});
+  SerinusException({required this.message, required this.statusCode, this.uri});
 
   @override
   Map<String, dynamic> toJson() {

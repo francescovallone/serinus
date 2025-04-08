@@ -105,8 +105,7 @@ class GatewayTimeoutException extends SerinusException {
 /// The [statusCode] is 410
 class GoneException extends SerinusException {
   /// The [GoneException] constructor is used to throw a gone exception
-  GoneException({super.message = 'Gone!', super.uri})
-      : super(statusCode: 410);
+  GoneException({super.message = 'Gone!', super.uri}) : super(statusCode: 410);
 }
 
 /// The class HttpVersionNotSupportedException is used to throw an http version notsupported exception
@@ -161,8 +160,7 @@ class InternalServerErrorException extends SerinusException {
 /// The [statusCode] is 405
 class MethodNotAllowedException extends SerinusException {
   /// The [MethodNotAllowedException] constructor is used to throw a method not allowed exception
-  MethodNotAllowedException(
-      {super.message = 'Method not allowed!', super.uri})
+  MethodNotAllowedException({super.message = 'Method not allowed!', super.uri})
       : super(statusCode: 405);
 }
 
@@ -234,8 +232,7 @@ class NotImplementedException extends SerinusException {
 /// The [statusCode] is 413
 class PayloadTooLargeException extends SerinusException {
   /// The [PayloadTooLargeException] constructor is used to throw a payload too large exception
-  PayloadTooLargeException(
-      {super.message = 'Payload too large!', super.uri})
+  PayloadTooLargeException({super.message = 'Payload too large!', super.uri})
       : super(statusCode: 413);
 }
 
