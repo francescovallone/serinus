@@ -70,7 +70,7 @@ class TestJsonObject with JsonObject {
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(Route.get('/'), (context) async {
       final r = trace(
         () => countTo(100),

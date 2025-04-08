@@ -137,7 +137,7 @@ class LogMiddleware extends Middleware {
 class AppController extends Controller {
   final logger = Logger('AppController');
 
-  AppController({super.path = '/'}) {
+  AppController([super.path = '/']) {
     on(Route.get('/'), (RequestContext context) {
       logger.info('Hello world');
       throw NotFoundException();

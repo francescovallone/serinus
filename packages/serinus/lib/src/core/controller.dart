@@ -26,9 +26,7 @@ abstract class Controller {
   final String path;
 
   /// The [Controller] constructor is used to create a new instance of the [Controller] class.
-  Controller({
-    required this.path,
-  });
+  Controller(this.path);
 
   final Map<String, RouteHandler> _routes = {};
 

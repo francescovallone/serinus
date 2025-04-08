@@ -19,7 +19,7 @@ class TestJsonObject with JsonObject {
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(TestRoute(path: '/', method: HttpMethod.post), (context) async => 'ok!');
   }
 }

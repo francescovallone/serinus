@@ -31,7 +31,7 @@ class TestJsonObject with JsonObject {
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(TestRoute(path: '/text'), (context) async => 'ok!');
     on(TestRoute(path: '/json'), (context) async => {'message': 'ok!'});
     on(TestRoute(path: '/json-obj'), (context) async => TestJsonObject());

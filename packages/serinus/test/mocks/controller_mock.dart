@@ -2,14 +2,14 @@ import 'package:serinus/serinus.dart';
 
 class MockController extends Controller {
   @override
-  MockController({super.path = '/'}) {
+  MockController([super.path = '/']) {
     on(MockRoute(), (context) => Future.value('Hello world'));
   }
 }
 
 class MockControllerWithWrongPath extends Controller {
   @override
-  MockControllerWithWrongPath({super.path = '/:id'}) {
+  MockControllerWithWrongPath([super.path = '/:id']) {
     on(MockRoute(), (context) => Future.value('Hello world'));
   }
 }

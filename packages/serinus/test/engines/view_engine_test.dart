@@ -5,7 +5,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(Route.get('/view'),
         (context) async => View('test', {'name': 'John Doe'}));
     on(Route.get('/viewString'),

@@ -2,7 +2,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestController extends Controller {
-  TestController({super.path = '/'});
+  TestController([super.path = '/']);
 }
 
 class GetRoute extends Route {
@@ -13,7 +13,7 @@ class GetRoute extends Route {
 }
 
 class LeadingSlashController extends Controller {
-  LeadingSlashController() : super(path: '/leading/');
+  LeadingSlashController() : super('/leading/');
 }
 
 void main() async {

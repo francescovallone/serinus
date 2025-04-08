@@ -53,7 +53,7 @@ class TestJsonObject with JsonObject {
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(TestRoute(path: '/middleware'), (RequestContext context) async {
       context.res.headers['x-middleware'] =
           context.request.headers['x-middleware'] ?? '';

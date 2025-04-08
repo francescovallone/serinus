@@ -12,7 +12,7 @@ class TestRoute extends Route {
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController(super.path) {
     on(TestRoute(path: '/form', method: HttpMethod.post), (context) async {
       return context.request.body?.formData?.values ?? {};
     });
@@ -50,7 +50,7 @@ void main() async {
       SerinusApplication? app;
       setUpAll(() async {
         app = await serinus.createApplication(
-            entrypoint: TestModule(controllers: [TestController()]),
+            entrypoint: TestModule(controllers: [TestController('/')]),
             logLevels: {LogLevel.none});
         await app?.serve();
       });

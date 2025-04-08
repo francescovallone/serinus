@@ -68,7 +68,7 @@ class HookRoute extends Route with OnBeforeHandle, OnAfterHandle {
 }
 
 class TestController extends Controller {
-  TestController({required Route route, super.path = '/'}) {
+  TestController(Route route, [super.path = '/']) {
     on(route, (context) async => 'ok!');
     on(Route.get('/error'), (context) async {
       throw NotFoundException(message: 'Not found');
@@ -105,7 +105,7 @@ void main() {
         () async {
       final route = HookRoute();
       final app = await serinus.createApplication(
-          entrypoint: TestModule(controllers: [TestController(route: route)]),
+          entrypoint: TestModule(controllers: [TestController(route)]),
           port: 9000,
           logLevels: {LogLevel.none});
       final hook = HookTest();
@@ -130,7 +130,7 @@ void main() {
         () async {
       final route = HookRoute();
       final app = await serinus.createApplication(
-          entrypoint: TestModule(controllers: [TestController(route: route)]),
+          entrypoint: TestModule(controllers: [TestController(route)]),
           port: 9101,
           logLevels: {LogLevel.none});
       final hook = HookTest();
