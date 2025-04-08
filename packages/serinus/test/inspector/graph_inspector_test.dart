@@ -90,7 +90,7 @@ void main() {
           ], controllers: [
             MockController()
           ], providers: [
-            Provider.deferred(
+            Provider.composed(
               (TestProvider provider) => TestProviderTwo(provider),
               inject: [TestProvider],
               type: TestProviderTwo,

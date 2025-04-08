@@ -54,12 +54,12 @@ class ImportableModuleWithProvider extends Module {
           imports: [ImportableModuleWithNonExportedProvider()],
           controllers: [],
           providers: [
-            Provider.deferred(
+            Provider.composed(
               () => TestProviderTwo(),
               inject: [],
               type: TestProviderTwo,
             ),
-            Provider.deferred(
+            Provider.composed(
               (TestProviderTwo p) => TestGlobalProviderWithDeps(p),
               inject: [TestProviderTwo],
               type: TestGlobalProviderWithDeps,

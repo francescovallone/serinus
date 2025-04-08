@@ -143,7 +143,7 @@ void main() {
     });
 
     test('''
-        if the module has a $DeferredProvider, then the provider should be registered in the container and the module should be marked as finalized,
+        if the module has a $ComposedProvider, then the provider should be registered in the container and the module should be marked as finalized,
       ''', () async {
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',

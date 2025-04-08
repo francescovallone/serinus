@@ -30,7 +30,7 @@ final class ModulesContainer {
   /// The [inspector] property contains the graph inspector of the application
   late final GraphInspector inspector;
 
-  final Map<String, Iterable<DeferredProvider>> _deferredProviders = {};
+  final Map<String, Iterable<ComposedProvider>> _deferredProviders = {};
 
   final List<_ProviderDependencies> _providerDependencies = [];
 
@@ -91,7 +91,7 @@ final class ModulesContainer {
       currentScope.controllers.map((controller) =>
           (module: currentScope.module, controller: controller)),
     );
-    final split = currentScope.module.providers.splitBy<DeferredProvider>();
+    final split = currentScope.module.providers.splitBy<ComposedProvider>();
     for (final provider in split.notOfType) {
       await initIfUnregistered(provider);
       if (provider.isGlobal) {
@@ -216,12 +216,12 @@ final class ModulesContainer {
         providers: globalProviders,
       );
     }
-    await initializeDeferredProviders(entrypoint);
+    await initializeComposedProviders(entrypoint);
     await resolveProvidersDependencies();
   }
 
   /// Initializes the deferred providers
-  Future<void> initializeDeferredProviders(Module module) async {
+  Future<void> initializeComposedProviders(Module module) async {
     for (final entry in _deferredProviders.entries) {
       final token = entry.key;
       final providers = entry.value;
@@ -368,10 +368,10 @@ final class ModulesContainer {
 
   /// Checks the result type of the deferred provider
   void checkResultType(
-      DeferredProvider provider, dynamic result, Module module) {
-    if (result is DeferredProvider) {
+      ComposedProvider provider, dynamic result, Module module) {
+    if (result is ComposedProvider) {
       throw InitializationError(
-          '[${module.runtimeType}] A DeferredProvider cannot return another DeferredProvider');
+          '[${module.runtimeType}] A ComposedProvider cannot return another ComposedProvider');
     }
     if (result is! Provider) {
       throw InitializationError(
@@ -405,7 +405,7 @@ final class ModulesContainer {
       checkForCircularDependencies(provider, module, dependencies.toList());
       if (initializedProviders.isEmpty && dependencies.isNotEmpty) {
         throw InitializationError(
-          '[${module.runtimeType}] Cannot resolve dependencies for a DeferredProvider! Do the following to fix this error: \n'
+          '[${module.runtimeType}] Cannot resolve dependencies for a ComposedProvider! Do the following to fix this error: \n'
           '1. Make sure all the dependencies are correctly imported in the module. \n'
           '2. Make sure the dependencies are correctly exported by their module. \n'
           'If the error persists, please check the logs for more information and open an issue on the repository.',
@@ -495,7 +495,7 @@ final class ModulesContainer {
     }
   }
 
-  /// Checks if a DeferredProvider can be initialized instantly
+  /// Checks if a ComposedProvider can be initialized instantly
   List<Type> canInit(List<Type> providersToInject) {
     final dependenciesToInit = <Type>[];
     final globalTypes = globalProviders.map((e) => e.runtimeType);
@@ -567,13 +567,13 @@ final class ModulesContainer {
 
   /// Checks for circular dependencies
   void checkForCircularDependencies(
-      DeferredProvider provider, Module parentModule, List<Type> dependencies) {
+      ComposedProvider provider, Module parentModule, List<Type> dependencies) {
     final branchProviders = [
       ...parentModule.imports.map((e) => e.providers).flatten(),
       ...parentModule.providers,
     ];
     for (final p in branchProviders) {
-      if (p is DeferredProvider &&
+      if (p is ComposedProvider &&
           dependencies.contains(p.type) &&
           p.inject.contains(provider.type)) {
         throw InitializationError(
@@ -709,7 +709,7 @@ class ModuleScope {
 }
 
 class _ProviderDependencies {
-  final DeferredProvider provider;
+  final ComposedProvider provider;
   final Module module;
   final Iterable<Type> dependencies;
   bool isInitialized = false;

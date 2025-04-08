@@ -133,13 +133,13 @@ void main() async {
     });
   });
 
-  group('$DeferredProvider', () {
+  group('$ComposedProvider', () {
     test(
-      'all the $DeferredProvider should be accessible after the finalize method is called',
+      'all the $ComposedProvider should be accessible after the finalize method is called',
       () async {
         final container = ModulesContainer(config);
         final module = TestModule(providers: [
-          DeferredProvider(() async => TestProvider(),
+          ComposedProvider(() async => TestProvider(),
               inject: [], type: TestProvider)
         ]);
         await container.registerModules(module);
@@ -150,11 +150,11 @@ void main() async {
     );
 
     test(
-      'No $DeferredProvider should be accessible before the finalize method is called',
+      'No $ComposedProvider should be accessible before the finalize method is called',
       () async {
         final container = ModulesContainer(config);
         final module = TestModule(providers: [
-          DeferredProvider(() async => TestProvider(),
+          ComposedProvider(() async => TestProvider(),
               inject: [], type: TestProvider)
         ]);
         await container.registerModules(module);
@@ -164,15 +164,15 @@ void main() async {
     );
 
     test(
-        'A $DeferredProvider with the dependencies satisifed can be initialized',
+        'A $ComposedProvider with the dependencies satisifed can be initialized',
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [
         TestProvider(),
-        DeferredProvider((TestProvider provider) async {
+        ComposedProvider((TestProvider provider) async {
           return TestProviderDependent(provider);
         }, inject: [TestProvider], type: TestProviderDependent),
-        Provider.deferred((TestProvider provider) async {
+        Provider.composed((TestProvider provider) async {
           return TestProviderDependent2(provider);
         }, inject: [TestProvider], type: TestProviderDependent2)
       ]);
@@ -185,11 +185,11 @@ void main() async {
     });
 
     test(
-        '''A $DeferredProvider with the dependencies not satisfied cannot be initialized and a $InitializationError should be thrown''',
+        '''A $ComposedProvider with the dependencies not satisfied cannot be initialized and a $InitializationError should be thrown''',
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [
-        DeferredProvider((TestProvider provider) async {
+        ComposedProvider((TestProvider provider) async {
           return TestProviderDependent(provider);
         }, inject: [TestProvider], type: TestProviderDependent)
       ]);
@@ -199,13 +199,13 @@ void main() async {
           (value) => expect(value.runtimeType, InitializationError));
     });
 
-    test('''A $DeferredProvider cannot return another $DeferredProvider''',
+    test('''A $ComposedProvider cannot return another $ComposedProvider''',
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [
         TestProvider(),
-        DeferredProvider((TestProvider provider) async {
-          return DeferredProvider(() => TestProviderDependent(provider),
+        ComposedProvider((TestProvider provider) async {
+          return ComposedProvider(() => TestProviderDependent(provider),
               inject: [], type: TestProviderDependent);
         }, inject: [TestProvider], type: TestProviderDependent)
       ]);
@@ -221,7 +221,7 @@ void main() async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [
         TestProvider(),
-        DeferredProvider((TestProvider provider) async {
+        ComposedProvider((TestProvider provider) async {
           return TestProviderDependent(provider);
         }, inject: [TestProvider], type: int)
       ]);
@@ -235,14 +235,14 @@ void main() async {
     });
 
     test(
-        '''If a the dependency of a $DeferredProvider is a $DeferredProvider that will be initialized after it then they should be resolved''',
+        '''If a the dependency of a $ComposedProvider is a $ComposedProvider that will be initialized after it then they should be resolved''',
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [
-        DeferredProvider((TestProvider provider) async {
+        ComposedProvider((TestProvider provider) async {
           return TestProviderDependent(provider);
         }, inject: [TestProvider], type: TestProviderDependent),
-        DeferredProvider(() async {
+        ComposedProvider(() async {
           return TestProvider();
         }, inject: [], type: TestProvider),
       ]);
@@ -253,14 +253,14 @@ void main() async {
     });
 
     test(
-        '''when two DeferredProviders have a circular dependency a $InitializationError must be thrown''',
+        '''when two ComposedProviders have a circular dependency a $InitializationError must be thrown''',
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [
-        DeferredProvider((CircularProvider2 provider) async {
+        ComposedProvider((CircularProvider2 provider) async {
           return CircularProvider(provider);
         }, inject: [CircularProvider2], type: CircularProvider),
-        DeferredProvider((CircularProvider provider) async {
+        ComposedProvider((CircularProvider provider) async {
           return CircularProvider2(provider);
         }, inject: [CircularProvider], type: CircularProvider2)
       ]);
@@ -274,13 +274,13 @@ void main() async {
     });
 
     test(
-        '''when a $DeferredProvider uses a dependency that is not available in the module scope an $InitializationError should be thrown''',
+        '''when a $ComposedProvider uses a dependency that is not available in the module scope an $InitializationError should be thrown''',
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(imports: [
         NoExportModule(providers: [TestProvider()])
       ], providers: [
-        DeferredProvider((TestProvider provider) async {
+        ComposedProvider((TestProvider provider) async {
           return TestProviderDependent(provider);
         }, inject: [TestProvider], type: TestProviderDependent)
       ]);
@@ -291,11 +291,11 @@ void main() async {
     });
 
     test(
-        '''when a $DeferredProvider does not return a $Provider an $InitializationError should be thrown''',
+        '''when a $ComposedProvider does not return a $Provider an $InitializationError should be thrown''',
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(providers: [
-        DeferredProvider(() async {
+        ComposedProvider(() async {
           return 'not a provider';
         }, inject: [], type: TestProviderDependent)
       ]);
