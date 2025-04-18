@@ -1,5 +1,6 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/injection_token.dart';
 import 'package:test/test.dart';
 
 import '../mocks/injectables_mock.dart';
@@ -53,7 +54,7 @@ void main() {
       final module = SimpleModuleWithProvider();
       await container.registerModules(module);
       expect(container.scopes.length, 1);
-      expect(container.getScope(container.moduleToken(module)).providers.length,
+      expect(container.getScope(InjectionToken.fromModule(module)).providers.length,
           1);
     });
 
@@ -72,7 +73,7 @@ void main() {
       final module = SimpleModuleWithInjectables();
       await container.registerModules(module);
       expect(container.scopes.length, 1);
-      final scope = container.getScope(container.moduleToken(module));
+      final scope = container.getScope(InjectionToken.fromModule(module));
       expect(scope.providers.length, 1);
       expect(scope.middlewares.length, 1);
     });
@@ -89,7 +90,7 @@ void main() {
             poweredByHeader: 'Serinus',
           ),
           poweredByHeader: 'Serinus'));
-      expect(() => container.getScope('NotRegisteredModule'),
+      expect(() => container.getScope(InjectionToken('NotRegisteredModule')),
           throwsA(isA<ArgumentError>()));
     });
 
@@ -126,11 +127,11 @@ void main() {
       await container.registerModules(module);
       await container.finalize(module);
       expect(container.scopes.length, 3);
-      final injectables = container.getScope(container.moduleToken(module));
+      final injectables = container.getScope(InjectionToken.fromModule(module));
       expect(injectables.middlewares.length, 1);
       expect(injectables.providers.length, 2);
       final t = ImportableModuleWithProvider;
-      final subInjectables = container.getScope(t.toString());
+      final subInjectables = container.getScope(InjectionToken.fromType(t));
       expect(injectables.middlewares.length, 1);
       expect(subInjectables.providers.length, 2);
       expect(
@@ -138,7 +139,7 @@ void main() {
               e.runtimeType == subInjectables.providers.last.runtimeType),
           isEmpty);
       final t2 = ImportableModuleWithNonExportedProvider;
-      final subInjectablesTwo = container.getScope(t2.toString());
+      final subInjectablesTwo = container.getScope(InjectionToken.fromType(t2));
       expect(subInjectablesTwo.providers.length, 1);
     });
 

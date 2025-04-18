@@ -1,8 +1,10 @@
+import '../containers/injection_token.dart';
+
 /// A [Node] is a class that represents a node in the tree structure of the inspector.
 abstract class Node {
   /// The id of this node. This is used to identify the node in the tree.
   /// This id is unique for each node in the tree. It is used to build the tree structure.
-  final String id;
+  final InjectionToken id;
 
   /// The label of this node. This is used to display the node in the tree.
   final String label;
@@ -16,7 +18,7 @@ abstract class Node {
   /// Converts the [Node] to a JSON object.
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
+      'id': id.name,
       'label': label,
     };
   }
@@ -25,7 +27,7 @@ abstract class Node {
 /// A [ClassNode] is a class that represents a provider in the inspector.
 class ClassNode extends Node {
   /// The id of the parent node. This is used to build the tree structure.
-  final String parent;
+  final InjectionToken parent;
 
   /// The metadata of the class. This is used to display the class in the tree.
   final ClassMetadataNode metadata;
@@ -100,10 +102,10 @@ class ClassMetadataNode {
   /// - `provider` - The class is a regular class.
   /// - `controller` - The class is a factory class.
   /// - `middleware` - The class is a service class.
-  final String type;
+  final InjectableType type;
 
   /// The name of the module where the class is defined.
-  final String sourceModuleName;
+  final InjectionToken sourceModuleName;
 
   /// Indicates if the provider is exported.
   final bool? exported;
@@ -134,8 +136,8 @@ class ClassMetadataNode {
   /// Converts the [ClassMetadataNode] to a JSON object.
   Map<String, dynamic> toJson() {
     return {
-      'type': type,
-      'sourceModuleName': sourceModuleName,
+      'type': type.name,
+      'sourceModuleName': sourceModuleName.name,
       'initTime': initTime,
       if (exported != null) 'exported': exported,
       if (composed != null) 'composed': composed,
@@ -143,4 +145,23 @@ class ClassMetadataNode {
       if (internal != null) 'internal': internal,
     };
   }
+}
+
+
+/// An enum that represents the type of a class in the inspector.
+enum InjectableType {
+  /// The class is a regular class.
+  provider('provider'),
+
+  /// The class is a factory class.
+  controller('controller'),
+
+  /// The class is a service class.
+  middleware('middleware'),;
+  
+  const InjectableType(this.name);
+
+  /// The name of the class type.
+  final String name;
+
 }

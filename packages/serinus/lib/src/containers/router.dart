@@ -4,6 +4,7 @@ import '../core/controller.dart';
 import '../core/metadata.dart';
 import '../enums/http_method.dart';
 import '../versioning.dart';
+import 'injection_token.dart';
 
 /// The [Router] class is used to create the router in the application.
 final class Router {
@@ -73,7 +74,7 @@ class RouteData {
   final Type routeCls;
 
   /// The [moduleToken] property contains the module token of the route.
-  final String moduleToken;
+  final InjectionToken moduleToken;
 
   /// The [queryParameters] property contains the query parameters of the route.
   final Map<String, Type> queryParameters;

@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/injection_token.dart';
 import 'package:test/test.dart';
 
 class TestProvider extends Provider {
@@ -93,7 +94,7 @@ void main() async {
         ''', () async {
       final container = ModulesContainer(config);
 
-      expect(() => container.getModuleByToken('test'),
+      expect(() => container.getModuleByToken(InjectionToken('test')),
           throwsA(isA<ArgumentError>()));
     });
 

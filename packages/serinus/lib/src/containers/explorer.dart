@@ -1,6 +1,7 @@
 import '../core/core.dart';
 import '../enums/versioning_type.dart';
 import '../services/logger_service.dart';
+import 'injection_token.dart';
 import 'module_container.dart';
 import 'router.dart';
 
@@ -63,8 +64,7 @@ final class Explorer {
         controller: controller,
         routeCls: spec.route.runtimeType,
         method: routeMethod,
-        moduleToken:
-            module.token.isEmpty ? module.runtimeType.toString() : module.token,
+        moduleToken: InjectionToken.fromModule(module),
         isStatic: spec.handler is! Function,
         spec: spec,
       ));

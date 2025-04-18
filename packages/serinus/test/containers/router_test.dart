@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/injection_token.dart';
 import 'package:spanner/spanner.dart';
 import 'package:test/test.dart';
 
@@ -31,7 +32,7 @@ void main() async {
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken',
+          moduleToken: InjectionToken('moduleToken'),
           spec: (
             body: null,
             schema: null,
@@ -52,7 +53,7 @@ void main() async {
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken',
+          moduleToken: InjectionToken('moduleToken'),
           spec: (
             body: null,
             schema: null,
@@ -75,7 +76,7 @@ void main() async {
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken',
+          moduleToken: InjectionToken('moduleToken'),
           spec: (
             body: null,
             schema: null,

@@ -1,3 +1,4 @@
+import '../containers/injection_token.dart';
 import 'edge.dart';
 import 'node.dart';
 
@@ -5,7 +6,7 @@ import 'node.dart';
 /// It contains the nodes and edges of the graph.
 class SerializedGraph {
   /// The Map of nodes in the graph.
-  final Map<String, Node> nodes = {};
+  final Map<InjectionToken, Node> nodes = {};
 
   /// The Map of edges in the graph.
   final Map<String, Edge> edges = {};

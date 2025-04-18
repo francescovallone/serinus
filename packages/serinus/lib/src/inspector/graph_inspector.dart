@@ -1,3 +1,4 @@
+import '../containers/injection_token.dart';
 import '../containers/module_container.dart';
 import '../core/core.dart';
 import 'edge.dart';
@@ -20,50 +21,44 @@ class GraphInspector extends Provider {
 
   /// Inspects the modules in the application and adds them to the graph.
   void inspectModules([Iterable<ModuleScope>? modules]) {
-    final appModules = modules ?? _container.scopes;
-    for (final module in appModules) {
+    final appModulesScopes = modules ?? _container.scopes;
+    for (final moduleScope in appModulesScopes) {
       final moduleNode = ModuleNode(
-          id: module.token,
-          label: module.token,
+          id: moduleScope.token,
+          label: moduleScope.token.name,
           metadata: ModuleMetadataNode());
       graph.insertNode(moduleNode);
-      _inspectModule(module);
-      _insertEdges(module);
+      _inspectModule(moduleScope);
+      _insertEdges(moduleScope);
     }
-  }
-
-  /// Get the token of the module.
-  String moduleToken(Module module) {
-    return module.token.isNotEmpty
-        ? module.token
-        : module.runtimeType.toString();
   }
 
   void _insertEdges(ModuleScope module) {
     for (final importedModule in module.imports) {
-      final token = moduleToken(importedModule);
+      final importedToken = InjectionToken.fromModule(importedModule);
       final edge = Edge(
-        id: '${module.token}-$token',
+        id: '${module.token}-${importedToken.name}',
         source: module.token,
-        target: token,
+        target: importedToken,
         metadata: ModuleToModuleEdgeMetadata(
           sourceModuleName: module.token,
-          targetModuleName: token,
+          targetModuleName: importedToken,
         ),
       );
       graph.insertEdge(edge);
     }
 
     for (final provider in module.providers) {
-      final instanceWrapper = module.instanceMetadata[provider.runtimeType];
+      final providerToken = InjectionToken.fromType(provider.runtimeType);
+      final instanceWrapper = module.instanceMetadata[providerToken];
       if (instanceWrapper?.dependencies.isNotEmpty ?? false) {
         for (final dependency in instanceWrapper!.dependencies.indexed) {
           final edge = Edge(
-            id: '${provider.runtimeType.toString()}-${dependency.$2.name}',
-            source: provider.runtimeType.toString(),
-            target: dependency.runtimeType.toString(),
+            id: '${providerToken.name}-${dependency.$2.name}',
+            source: providerToken,
+            target: providerToken,
             metadata: ClassToClassEdgeMetadata(
-              sourceClassName: provider.runtimeType.toString(),
+              sourceClassName: providerToken,
               targetClassName: dependency.$2.name,
               sourceModuleName: module.token,
               targetModuleName: dependency.$2.host,
@@ -78,35 +73,35 @@ class GraphInspector extends Provider {
 
   void _inspectModule(ModuleScope module) {
     for (final provider in module.providers) {
-      final String providerToken = provider.runtimeType.toString();
+      final providerToken = InjectionToken.fromType(provider.runtimeType);
       final providerNode = ClassNode(
         id: providerToken,
-        label: providerToken,
+        label: providerToken.name,
         parent: module.token,
-        metadata: module.instanceMetadata[provider.runtimeType]?.metadata ??
-            _container.globalInstances[provider.runtimeType]!.metadata,
+        metadata: module.instanceMetadata[providerToken]?.metadata ??
+            _container.globalInstances[providerToken]!.metadata,
       );
       graph.insertNode(providerNode);
     }
 
     for (final middleware in module.middlewares) {
-      final String middlewareToken = middleware.runtimeType.toString();
+      final middlewareToken = InjectionToken.fromType(middleware.runtimeType);
       final middlewareNode = ClassNode(
         id: middlewareToken,
-        label: middlewareToken,
+        label: middlewareToken.name,
         parent: module.token,
-        metadata: module.instanceMetadata[middleware.runtimeType]!.metadata,
+        metadata: module.instanceMetadata[middlewareToken]!.metadata,
       );
       graph.insertNode(middlewareNode);
     }
 
     for (final controller in module.controllers) {
-      final String controllerToken = controller.runtimeType.toString();
+      final controllerToken = InjectionToken.fromType(controller.runtimeType);
       final controllerNode = ClassNode(
         id: controllerToken,
-        label: controllerToken,
+        label: controllerToken.name,
         parent: module.token,
-        metadata: module.instanceMetadata[controller.runtimeType]!.metadata,
+        metadata: module.instanceMetadata[controllerToken]!.metadata,
       );
       graph.insertNode(controllerNode);
     }
