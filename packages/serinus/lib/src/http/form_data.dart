@@ -57,7 +57,6 @@ class FormData {
             !contentDisposition.startsWith('form-data;')) {
           continue;
         }
-
         final values = regex
             .allMatches(contentDisposition)
             .fold(<String, String>{}, (map, match) {
@@ -73,7 +72,7 @@ class FormData {
             ContentType.parse(part.headers['content-type'] ?? 'text/plain'),
             fileName,
           );
-          await files[name]!.readAsString();
+          await files[name]!.read();
         } else {
           final bytes =
               (await part.toList()).fold(<int>[], (p, e) => p..addAll(e));
@@ -117,22 +116,27 @@ class UploadedFile with JsonObject {
 
   /// The name of the file
   final String name;
-  String _data = '';
+
+  final List<int> _data = [];
+
+  /// The [buffer] property is used to get the bytes buffer of the file
+  List<int> get buffer => _data;
+
+  /// The [data] property is used to get the strigified data of the file
+  String get data => utf8.decode(_data);
 
   /// The [UploadedFile] constructor is used to create a [UploadedFile] object
   UploadedFile(this.stream, this.contentType, this.name);
 
   /// This method is used to read the file as a string
-  Future<void> readAsString() async {
-    List<String> data = [];
+  Future<void> read() async {
     await for (final part in stream) {
-      data.add(String.fromCharCodes(part));
+      _data.addAll(part);
     }
-    _data = data.join('');
   }
 
   @override
   Map<String, dynamic> toJson() {
-    return {'name': name, 'contentType': contentType.toString(), 'data': _data};
+    return {'name': name, 'contentType': contentType.toString(), 'buffer': buffer, 'data': data};
   }
 }

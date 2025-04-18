@@ -75,7 +75,8 @@ void main() async {
           'file': {
             'name': 'file.txt',
             'contentType': 'text/plain; charset=utf-8',
-            'data': 'file.txt'
+            'data': 'file.txt',
+            'buffer': [102, 105, 108, 101, 46, 116, 120, 116],
           }
         });
       });
