@@ -8,6 +8,7 @@ import 'package:http_parser/http_parser.dart';
 
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
+import 'headers.dart';
 import 'internal_response.dart';
 import 'session.dart';
 
@@ -36,7 +37,7 @@ class InternalRequest {
   final HttpRequest original;
 
   /// The [headers] property contains the headers of the request
-  final Map<String, dynamic> headers;
+  final SerinusHeaders headers;
 
   /// The [port] property contains the port of the request
   final int port;
@@ -63,15 +64,11 @@ class InternalRequest {
 
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
   factory InternalRequest.from(HttpRequest request, int port, String host) {
-    Map<String, String> headers = {};
-    request.headers.forEach((name, values) {
-      if (name == HttpHeaders.transferEncodingHeader) {
-        return;
-      }
-      headers[name] = values.join(',');
-    });
     return InternalRequest(
-        headers: headers, original: request, port: port, host: host);
+        headers: SerinusHeaders(request),
+        original: request,
+        port: port,
+        host: host);
   }
 
   /// The [cookies] property contains the cookies of the request

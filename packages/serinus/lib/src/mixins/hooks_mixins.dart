@@ -24,8 +24,8 @@ mixin OnAfterHandle on Hookable {
   Future<void> afterHandle(RequestContext context, dynamic response);
 }
 
-/// The [OnTransform] mixin is used to execute code before the request is handled
-mixin OnTransform on Route {
-  /// The [transform] method is used to execute code before the request is handled
-  Future<void> transform(RequestContext context);
+/// The [OnException] mixin is used to execute code when an exception is thrown
+mixin OnException on Hook {
+  /// The [onException] method is used to execute code when an exception is thrown
+  Future<void> onException(RequestContext request, Exception exception) async {}
 }

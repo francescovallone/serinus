@@ -1,6 +1,7 @@
 import 'package:spanner/spanner.dart';
 
 import '../core/controller.dart';
+import '../core/metadata.dart';
 import '../enums/http_method.dart';
 import '../versioning.dart';
 
@@ -82,6 +83,12 @@ class RouteData {
 
   /// The [spec] property contains the specification of the route.
   final RouteHandler spec;
+
+  /// The [metadata] property contains the metadata that directly or indirectly affects the route.
+  List<Metadata> get metadata => [
+        ...controller.metadata,
+        ...spec.route.metadata,
+      ];
 
   /// The [RouteData] constructor is used to create a new instance of the [RouteData] class.
   const RouteData({

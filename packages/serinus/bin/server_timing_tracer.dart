@@ -7,25 +7,25 @@ class ServerTimingTracer extends Tracer {
 
   @override
   Future<void> onRequestReceived(TraceEvent event, Duration delta) async {
-    _timings['${event.name.name}-${event.traced}'] = delta.inMilliseconds;
+    _timings['${event.name}-${event.traced}'] = delta.inMilliseconds;
     return;
   }
 
   @override
   Future<void> onHandle(TraceEvent event, Duration delta) async {
-    _timings['${event.name.name}-${event.traced}'] = delta.inMilliseconds;
+    _timings['${event.name}-${event.traced}'] = delta.inMilliseconds;
     return;
   }
 
   @override
   Future<void> onAfterHandle(TraceEvent event, Duration delta) async {
-    _timings['${event.name.name}-${event.traced}'] = delta.inMilliseconds;
+    _timings['${event.name}-${event.traced}'] = delta.inMilliseconds;
     return;
   }
 
   @override
   Future<void> onResponse(TraceEvent event, Duration delta) async {
-    _timings['${event.name.name}-${event.traced}'] = delta.inMilliseconds;
+    _timings['${event.name}-${event.traced}'] = delta.inMilliseconds;
     String label = '';
     for (String event in _timings.keys) {
       label +=

@@ -29,16 +29,17 @@ final config = ApplicationConfig(
     ));
 
 void main() async {
+  Logger.setLogLevels({LogLevel.none});
   group('$Module', () {
     test('''registerModules should register all the submodules as well''',
         () async {
       final container = ModulesContainer(config);
       final module = TestModule(imports: [TestSubModule()]);
-      await container.registerModules(module, Type);
+      await container.registerModules(module);
 
       await container.finalize(module);
 
-      expect(container.modules.length, 2);
+      expect(container.scopes.length, 2);
     });
 
     test(
@@ -48,11 +49,11 @@ void main() async {
 
       container
           .registerModules(
-              TestModule(
-                  imports: [TestSubModule()],
-                  providers: [TestProviderExported()],
-                  exports: [TestProviderExported]),
-              TestModule)
+            TestModule(
+                imports: [TestSubModule()],
+                providers: [TestProviderExported()],
+                exports: [TestProviderExported]),
+          )
           .catchError(
               (value) => expect(value.runtimeType, InitializationError));
     });
@@ -64,10 +65,10 @@ void main() async {
 
       container
           .registerModules(
-              TestModule(
-                imports: [TestModule()],
-              ),
-              TestModule)
+            TestModule(
+              imports: [TestModule()],
+            ),
+          )
           .catchError(
               (value) => expect(value.runtimeType, InitializationError));
     });
@@ -81,7 +82,7 @@ void main() async {
           TestSubModule(exports: [TestProviderExported])
         ],
       );
-      await container.registerModules(entrypoint, TestModule);
+      await container.registerModules(entrypoint);
 
       container.finalize(entrypoint).catchError(
           (value) => expect(value.runtimeType, InitializationError));
@@ -114,7 +115,7 @@ void main() async {
       final subModule = TestSubModule();
       final module = TestModule(imports: [subModule]);
 
-      await container.registerModules(module, TestModule);
+      await container.registerModules(module);
 
       await container.finalize(module);
 

@@ -17,18 +17,19 @@ Future<Map<String, dynamic>> getProjectConfiguration(Logger logger,
   final pubspecContent = await pubspec.readAsString();
   final pubspecYaml = loadYaml(pubspecContent) as YamlMap;
   final pubspecMap = Map<String, dynamic>.from(
-      Map<dynamic, dynamic>.fromEntries(pubspecYaml.entries)['serinus'] as Map);
-  if (pubspecMap.isEmpty && !configFile.existsSync()) {
-    logger.err('No serinus configuration found in pubspec.yaml');
-    return {
-      'error': ExitCode.config.code,
-    };
+    Map<dynamic, dynamic>.fromEntries(pubspecYaml.entries)['serinus'] as Map? ??
+        {},
+  );
+  if (pubspecMap.isEmpty) {
+    logger.warn('No serinus configuration found in pubspec.yaml');
+    pubspecMap['entrypoint'] =
+        'bin/${pubspecYaml['name'] as String? ?? 'serinus_app'}.dart';
   }
   if (configFile.existsSync()) {
     logger
       ..warn('The file config.yaml is deprecated.')
       ..warn(
-        'Go to https://serinus.app/foundations/configuration to learn more about the new configuration approach.',
+        'Go to https://serinus.app/ to learn more about the new configuration approaches.',
       );
     final configContent = await configFile.readAsString();
     final result = {

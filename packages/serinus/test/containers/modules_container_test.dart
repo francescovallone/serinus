@@ -12,32 +12,34 @@ void main() {
     test(
         'registerModules should register a module in the container and store it in the modules list',
         () async {
+      Logger.setLogLevels({LogLevel.none});
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
           port: 3000,
           serverAdapter: _MockAdapter(),
           poweredByHeader: 'Serinus'));
       final module = SimpleModule();
-      await container.registerModules(module, module.runtimeType);
-      expect(container.modules.length, 1);
+      await container.registerModules(module);
+      expect(container.scopes.length, 1);
     });
 
     test(
-        'registerModules should throw an $InitializationError when a module is registered multiple times',
+        'registerModules should skip registering a module if it is already registered',
         () async {
+      Logger.setLogLevels({LogLevel.none});
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
           port: 3000,
           serverAdapter: _MockAdapter(),
           poweredByHeader: 'Serinus'));
       final module = SimpleModule();
-      await container.registerModules(module, module.runtimeType);
-      expect(() => container.registerModules(module, module.runtimeType),
-          throwsA(isA<InitializationError>()));
+      await container.registerModules(module);
+      await container.registerModules(module);
+      expect(container.scopes.length, 1);
     });
 
     test(
-        'registerModules should register a module and create a ModuleInjectables with the providers',
+        'registerModules should register a module and create a [ModuleScope] with the providers',
         () async {
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
@@ -49,18 +51,14 @@ void main() {
           ),
           poweredByHeader: 'Serinus'));
       final module = SimpleModuleWithProvider();
-      await container.registerModules(module, module.runtimeType);
-      expect(container.modules.length, 1);
-      expect(
-          container
-              .getModuleInjectablesByToken(module.runtimeType.toString())
-              .providers
-              .length,
+      await container.registerModules(module);
+      expect(container.scopes.length, 1);
+      expect(container.getScope(container.moduleToken(module)).providers.length,
           1);
     });
 
     test(
-        'registerModule should register a module with injectables and create a ModuleInjectables with all the injectables',
+        'registerModule should register a module with injectables and create a [ModuleScope] with all the injectables',
         () async {
       final container = ModulesContainer(ApplicationConfig(
           host: 'localhost',
@@ -72,12 +70,11 @@ void main() {
           ),
           poweredByHeader: 'Serinus'));
       final module = SimpleModuleWithInjectables();
-      await container.registerModules(module, module.runtimeType);
-      expect(container.modules.length, 1);
-      final injectables =
-          container.getModuleInjectablesByToken(module.runtimeType.toString());
-      expect(injectables.providers.length, 1);
-      expect(injectables.middlewares.length, 1);
+      await container.registerModules(module);
+      expect(container.scopes.length, 1);
+      final scope = container.getScope(container.moduleToken(module));
+      expect(scope.providers.length, 1);
+      expect(scope.middlewares.length, 1);
     });
 
     test(
@@ -92,7 +89,7 @@ void main() {
             poweredByHeader: 'Serinus',
           ),
           poweredByHeader: 'Serinus'));
-      expect(() => container.getModuleInjectablesByToken('NotRegisteredModule'),
+      expect(() => container.getScope('NotRegisteredModule'),
           throwsA(isA<ArgumentError>()));
     });
 
@@ -126,26 +123,59 @@ void main() {
           ),
           poweredByHeader: 'Serinus'));
       final module = SimpleModuleWithImportsAndInjects();
-      await container.registerModules(module, module.runtimeType);
+      await container.registerModules(module);
       await container.finalize(module);
-      expect(container.modules.length, 3);
-      final injectables =
-          container.getModuleInjectablesByToken(module.runtimeType.toString());
+      expect(container.scopes.length, 3);
+      final injectables = container.getScope(container.moduleToken(module));
       expect(injectables.middlewares.length, 1);
       expect(injectables.providers.length, 2);
       final t = ImportableModuleWithProvider;
-      final subInjectables =
-          container.getModuleInjectablesByToken(t.toString());
+      final subInjectables = container.getScope(t.toString());
       expect(injectables.middlewares.length, 1);
       expect(subInjectables.providers.length, 2);
       expect(
           injectables.providers.where((e) =>
               e.runtimeType == subInjectables.providers.last.runtimeType),
-          isNotEmpty);
+          isEmpty);
       final t2 = ImportableModuleWithNonExportedProvider;
-      final subInjectablesTwo =
-          container.getModuleInjectablesByToken(t2.toString());
-      expect(subInjectablesTwo.providers.length, 3);
+      final subInjectablesTwo = container.getScope(t2.toString());
+      expect(subInjectablesTwo.providers.length, 1);
+    });
+
+    test('''
+        if the module has a $DeferredProvider, then the provider should be registered in the container and the module should be marked as finalized,
+      ''', () async {
+      final container = ModulesContainer(ApplicationConfig(
+          host: 'localhost',
+          port: 3000,
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Serinus',
+          ),
+          poweredByHeader: 'Serinus'));
+      final module = SimpleModuleWithImportsAndInjects();
+      await container.registerModules(module);
+      await container.finalize(module);
+      expect(container.scopes.length, 3);
+    });
+
+    test('''
+        if the module has a $Provider set as global, then the provider should be registered in the container and the module should be marked as finalized,
+      ''', () async {
+      final container = ModulesContainer(ApplicationConfig(
+          host: 'localhost',
+          port: 3000,
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Serinus',
+          ),
+          poweredByHeader: 'Serinus'));
+      final module = SimpleModuleWithGlobal();
+      await container.registerModules(module);
+      await container.finalize(module);
+      expect(container.scopes.length, 1);
     });
   });
 }

@@ -1,11 +1,10 @@
 # Model View Controller
 
-Serinus can also be used with the Model View Controller (MVC) pattern. The library provides a `ViewEngine` class that can be extended to create custom view engines. The view engine is responsible for rendering the views and returning the HTML content to the client.
+In some cases can be useful to leverage the power of server-side rendered applications, to reduce the load on the client-side, or to improve the SEO of your application. Serinus provides a way to render views using the `ViewEngine`.
 
-## Creating a View Engine
+To create a view engine, you first need to create a class that extends the `ViewEngine` class and implement the `render` and `renderString` methods and also a template engine to render the views.
 
-To create a view engine, you need to create a class that extends the `ViewEngine` class and override the `render` method.
-In this example we will use the [MustacheX](https://pub.dev/packages/mustachex) package.
+In this guide we will use the [MustacheX](https://pub.dev/packages/mustachex) package to render the views.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -54,50 +53,62 @@ In the `MustacheViewEngine` class, you can pass the following parameters to the 
 
 - `viewFolder`: The folder where the views are stored. By default it is the `views` folder.
 
-## Using a View Engine
-
-To use a View Engine first you need to call the `viewEngine` setter in your application.
+We can now use the `MustacheViewEngine` in our application.
 
 ```dart
-void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
-    entrypoint: AppModule()
-  );
-  application.viewEngine = MustacheViewEngine();
-  await application.serve();
+import 'package:serinus/serinus.dart';
+
+Future<void> main() async {
+  final app = await serinus.createApplication(
+      entrypoint: AppModule(), host: InternetAddress.anyIPv4, port: 3000);
+  app.viewEngine = MustacheViewEngine();
+  await app.serve();
 }
 ```
 
-Then you can use the `render` and the `renderString` methods in your route handlers when returning the Response.
+## Templates
 
-::: code-group
-```dart [Render]
+Now let's create the view that will be rendered. Create a folder called `views` in the root of your project and create a file called `home.mustache` inside the `views` folder.
+
+```html
+<!-- views/home.mustache -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Home</title>
+</head>
+<body>
+  <h1>Welcome to Serinus {{name}}</h1>
+</body>
+</html>
+```
+
+Now we can add the Route to render the view.
+
+```dart
 import 'package:serinus/serinus.dart';
 
-class MyController extends Controller {
-  MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context) {
-      // This refers to the view file `views/index.mustache`
-      return View(view: 'index', variables: {'name': 'Serinus'});
+class HomeController extends Controller {
+  HomeController() {
+    on(Route.get('/'), (RequestContext context) async {
+      return View('home', variables: {'name': 'Dear User'});
     });
   }
 }
 ```
 
-```dart [RenderString]
+We can also render directly a string.
+
+```dart
 import 'package:serinus/serinus.dart';
 
-class MyController extends Controller {
-  MyController({super.path = '/'}) {
-    on(GetRoute(path: '/'), (context) {
-      return ViewString(viewData: 'Hello {{name}}', variables: {'name': 'Serinus'});
+class HomeController extends Controller {
+  HomeController() {
+    on(Route.get('/'), (RequestContext context) async {
+      return ViewString('Hello {{name}}', variables: {'name': 'Dear User'});
     });
   }
 }
 ```
 
-```mustache [index.mustache]
-Hello {{name}}
-```
-
-:::
+Now if you access the route `/` you will see the view rendered.

@@ -3,15 +3,14 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/adapters.dart';
+import '../containers/explorer.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
-import '../extensions/iterable_extansions.dart';
 import '../global_prefix.dart';
 import '../handlers/handler.dart';
 import '../http/http.dart';
-import '../injector/explorer.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
@@ -20,14 +19,11 @@ import 'core.dart';
 /// The [Application] class is used to create an application.
 abstract class Application {
   /// The [level] property contains the log level of the application.
-  final LogLevel level;
+  Set<LogLevel> get levels => Logger.logLevels;
 
   /// The [entrypoint] property contains the entry point of the application.
   final Module entrypoint;
   bool _enableShutdownHooks = false;
-
-  /// The [loggerService] property contains the logger service of the application.
-  LoggerService? loggerService;
 
   /// The [modulesContainer] property contains the modules container of the application.
   ModulesContainer modulesContainer;
@@ -42,17 +38,18 @@ abstract class Application {
   Application({
     required this.entrypoint,
     required this.config,
-    this.level = LogLevel.debug,
+    Set<LogLevel>? levels,
     Router? router,
     ModulesContainer? modulesContainer,
-    LoggerService? loggerService,
+    LoggerService? logger,
   })  : router = router ?? Router(),
-        loggerService = loggerService ?? LoggerService(level: level),
-        modulesContainer = modulesContainer ?? ModulesContainer(config);
-
-  /// The [setLoggerPrefix] method is used to set the logger prefix of the application.
-  set loggerPrefix(String prefix) {
-    loggerService?.prefix = prefix;
+        modulesContainer = modulesContainer ?? ModulesContainer(config) {
+    if (logger != null) {
+      Logger.overrideLogger(logger);
+    }
+    if (levels != null) {
+      Logger.setLogLevels(levels);
+    }
   }
 
   /// The [url] property contains the URL of the application.
@@ -101,8 +98,8 @@ class SerinusApplication extends Application {
   SerinusApplication({
     required super.entrypoint,
     required super.config,
-    super.level,
-    super.loggerService,
+    super.levels,
+    super.logger,
     super.router,
     super.modulesContainer,
   });
@@ -154,15 +151,18 @@ class SerinusApplication extends Application {
       adapter.listen(
         (request, response) {
           handler = requestHandler.handle;
-          for (final adapter in config.adapters.values) {
-            if (adapter.canHandle(request)) {
-              handler = handlers[adapter.runtimeType]!.handle;
-              break;
+          if (config.adapters.isNotEmpty) {
+            for (final adapter in config.adapters.values) {
+              if (adapter.canHandle(request)) {
+                handler = handlers[adapter.runtimeType]!.handle;
+                break;
+              }
             }
           }
           return handler(request, response);
         },
-        errorHandler: (e, stackTrace) => _logger.severe(e, stackTrace),
+        errorHandler: (e, stackTrace) =>
+            _logger.severe(e, OptionalParameters(stackTrace: stackTrace)),
       );
       final providers = modulesContainer.getAll<OnApplicationReady>();
       for (final provider in providers) {
@@ -186,8 +186,7 @@ class SerinusApplication extends Application {
   @override
   Future<void> initialize() async {
     if (!modulesContainer.isInitialized) {
-      await modulesContainer.registerModules(
-          entrypoint, entrypoint.runtimeType);
+      await modulesContainer.registerModules(entrypoint);
     }
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
@@ -202,18 +201,15 @@ class SerinusApplication extends Application {
   @override
   Future<void> shutdown() async {
     _logger.info('Shutting down server');
-    final registeredProviders =
-        modulesContainer.modules.map((e) => e.providers).flatten();
-    for (final provider in registeredProviders) {
-      if (provider is OnApplicationShutdown) {
-        await provider.onApplicationShutdown();
-      }
+    final providers = modulesContainer.getAll<OnApplicationShutdown>();
+    for (final provider in providers) {
+      await provider.onApplicationShutdown();
     }
   }
 
   @override
   Future<void> register() async {
-    await modulesContainer.registerModules(entrypoint, entrypoint.runtimeType);
+    await modulesContainer.registerModules(entrypoint);
   }
 
   /// The [use] method is used to add a hook to the application.

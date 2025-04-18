@@ -1,6 +1,5 @@
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/router.dart';
-import 'package:serinus/src/injector/explorer.dart';
+import 'package:serinus/src/containers/explorer.dart';
 import 'package:test/test.dart';
 
 import '../mocks/controller_mock.dart';
@@ -18,14 +17,15 @@ final config = ApplicationConfig(
     ));
 
 void main() {
+  Logger.setLogLevels({LogLevel.none});
   group('$Explorer', () {
     test(
         'when the application startup, then the controller can be walked through to register all the routes',
         () async {
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
+      await modulesContainer
+          .registerModules(SimpleMockModule(controllers: [MockController()]));
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
     });
@@ -35,9 +35,9 @@ void main() {
         () async {
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
-          SimpleMockModule);
+      await modulesContainer.registerModules(
+        SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
+      );
       final explorer = Explorer(modulesContainer, router, config);
       expect(() => explorer.resolveRoutes(), throwsException);
     });
@@ -67,8 +67,8 @@ void main() {
           VersioningOptions(type: VersioningType.uri, version: 1);
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
+      await modulesContainer
+          .registerModules(SimpleMockModule(controllers: [MockController()]));
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
       final result = router.getRouteByPathAndMethod('/v1', HttpMethod.get);
@@ -91,8 +91,8 @@ void main() {
       config.globalPrefix = GlobalPrefix(prefix: 'api');
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
+      await modulesContainer
+          .registerModules(SimpleMockModule(controllers: [MockController()]));
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
       final result = router.getRouteByPathAndMethod('/api', HttpMethod.get);
@@ -115,7 +115,7 @@ void main() {
       final app = SerinusApplication(
           entrypoint: SimpleMockModule(controllers: [MockController()]),
           config: config,
-          level: LogLevel.none);
+          levels: {LogLevel.none});
       app.globalPrefix = '/';
       expect(app.config.globalPrefix, isNull);
     });
@@ -136,7 +136,7 @@ void main() {
       final app = SerinusApplication(
           entrypoint: SimpleMockModule(controllers: [MockController()]),
           config: config,
-          level: LogLevel.none);
+          levels: {LogLevel.none});
       app.globalPrefix = 'api';
       expect(app.config.globalPrefix!.prefix, '/api');
     });
@@ -157,7 +157,7 @@ void main() {
       final app = SerinusApplication(
           entrypoint: SimpleMockModule(controllers: [MockController()]),
           config: config,
-          level: LogLevel.none);
+          levels: {LogLevel.none});
       app.globalPrefix = '/api/';
       expect(app.config.globalPrefix!.prefix, '/api');
     });
@@ -180,8 +180,8 @@ void main() {
           VersioningOptions(type: VersioningType.uri, version: 1);
       final router = Router();
       final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModule(
-          SimpleMockModule(controllers: [MockController()]), SimpleMockModule);
+      await modulesContainer
+          .registerModules(SimpleMockModule(controllers: [MockController()]));
       final explorer = Explorer(modulesContainer, router, config);
       explorer.resolveRoutes();
       final result = router.getRouteByPathAndMethod('/api/v1', HttpMethod.get);

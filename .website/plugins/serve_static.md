@@ -1,4 +1,11 @@
+<script setup>
+	import PluginType from '../components/plugin_type.vue'
+  import PluginButtons from '../components/plugin_buttons.vue'
+</script>
+
 # Serve Static Files
+
+<PluginType :types="['Module']" />
 
 The `serve_static` plugin allows you to serve static files from a directory on your server. This is useful for serving images, CSS, JavaScript, and other files that do not need to be processed by Serinus.
 
@@ -67,3 +74,14 @@ class AppModule extends Module {
 
 }
 ```
+
+## Links
+
+<PluginButtons 
+  :buttons="[
+    {
+      label: 'Pub.dev',
+      url: 'https://pub.dev/packages/serinus_swagger',
+    },
+  ]" 
+/>

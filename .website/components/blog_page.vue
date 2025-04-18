@@ -1,14 +1,6 @@
 <script lang="ts" setup>
 import { defineProps, onMounted, onUnmounted, ref } from 'vue'
-
-const authors = {
-    "Francesco Vallone": {
-        src: 'francesco_vallone.webp',
-        twitter: 'francescovll'
-    }
-}
-
-type Authors = typeof authors
+import { authors, Authors } from './data/blog'
 
 const props = defineProps<{
     title: string
@@ -17,6 +9,7 @@ const props = defineProps<{
     author: keyof Authors
     date: string
     shadow?: boolean
+    tags: string[]
 }>()
 
 const author = authors[props.author]
@@ -32,7 +25,7 @@ onMounted(() => {
         document.querySelector(selector)?.classList.add('blog')
     })
     readingTime.value = calculateReadingTime(document.querySelector('#blog-content')?.textContent || '')
-    
+    console.log(props.tags)
 })
 
 onUnmounted(() => {
@@ -50,6 +43,9 @@ function calculateReadingTime(text: string): string {
 
 <template>
     <article id="blog" class="flex flex-col max-w-3xl w-full mx-auto mt-8">
+        <p v-for="tag in props.tags" :key="tag" style="margin-bottom: 0; line-height: 1rem;" class="tag flex gap-2 mb-0 text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg">
+			{{ tag }}
+		</p>
         <h1 class="!text-3xl !md:text-4xl font-medium">
             {{ props.title }}
         </h1>
@@ -62,9 +58,7 @@ function calculateReadingTime(text: string): string {
                 />
                 <div class="flex flex-col justify-start">
                     <h3 class="!text-sm !m-0 opacity-75">{{ props.author }}</h3>
-                    <p
-                        class="flex flex-row items-center gap-2 !text-xs !m-0 opacity-75"
-                    >
+                    <p class="flex flex-row items-center gap-2 !text-xs !m-0 opacity-75">
                         <span>{{ props.date }}</span>
                         <span>ー</span>
                         <a :href="x" target="_blank">@{{ author.twitter }}</a>
@@ -81,6 +75,12 @@ function calculateReadingTime(text: string): string {
         </main>
     </article>
 </template>
+
+<style lang="css" scoped>
+.tag {
+	background-color: var(--vp-c-brand-darker);
+}
+</style>
 
 <style>
 .blog.aside {

@@ -1,0 +1,12 @@
+name: serinus_frontier_example
+description: ''
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  serinus: ^1.0.0
+  serinus_frontier:
+    path: ../
+  

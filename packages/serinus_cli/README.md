@@ -1,4 +1,4 @@
-[![Serinus Logo][logo_white]][repo_link]
+![Serinus Banner](https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/github-header.png)
 
 [![codecov](https://codecov.io/gh/francescovallone/serinus/branch/main/graph/badge.svg?token=A2337C1XGG)](https://codecov.io/gh/francescovallone/serinus)
 [![melos](https://img.shields.io/badge/maintained%20with-melos-f700ff.svg?style=flat-square)](https://github.com/invertase/melos)
@@ -9,6 +9,16 @@
 Serinus is a framework written in Dart for building efficient and scalable server-side applications.
 
 # Getting Started
+
+## Packages
+
+| Package | Version |
+| ------- | ------- |
+| [serinus](https://pub.dev/packages/serinus) | [![Pub Version](https://img.shields.io/pub/v/serinus?color=green&logo=dart)](https://pub.dev/packages/serinus) |
+| [serinus_cli](https://pub.dev/packages/serinus_cli) | [![Pub Version](https://img.shields.io/pub/v/serinus_cli?color=green&logo=dart)](https://pub.dev/packages/serinus_cli) |
+| [serinus_config](https://pub.dev/packages/serinus_config) | [![Pub Version](https://img.shields.io/pub/v/serinus_config?color=green&logo=dart)](https://pub.dev/packages/serinus_config) |
+| [serinus_swagger](https://pub.dev/packages/serinus_swagger) | [![Pub Version](https://img.shields.io/pub/v/serinus_swagger?color=green&logo=dart)](https://pub.dev/packages/serinus_swagger) |
+| [serinus_serve_static](https://pub.dev/packages/serinus_serve_static) | [![Pub Version](https://img.shields.io/pub/v/serinus_serve_static?color=green&logo=dart)](https://pub.dev/packages/serinus_serve_static) |
 
 ## Installation
 
@@ -59,4 +69,3 @@ If you want to contribute to Serinus, please read the [CONTRIBUTING](CONTRIBUTIN
 
 [repo_link]: https://github.com/francescovallone/serinus
 [documentation_link]: https://docs.serinus.app
-[logo_white]: https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/serinus-logo-long.png

@@ -25,7 +25,7 @@ void main() {
   setUpAll(() async {
     app = await serinus.createApplication(
         entrypoint: TestModule(controllers: [controller]),
-        loggingLevel: LogLevel.none,
+        logLevels: {LogLevel.none},
         port: 7501);
     app?.use(CorsHook());
     await app?.serve();

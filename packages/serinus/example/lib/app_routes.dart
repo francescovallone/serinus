@@ -5,7 +5,7 @@ class HelloWorldRoute extends Route {
   /// The constructor of the [HelloWorldRoute] class.
   HelloWorldRoute()
       : super(
-            path: '/',
-            method: HttpMethod.get,
-            queryParameters: {'hello': String});
+          path: '/',
+          method: HttpMethod.get,
+        );
 }

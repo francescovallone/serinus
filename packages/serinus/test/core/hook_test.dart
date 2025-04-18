@@ -5,7 +5,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class HookTest extends Hook
-    with OnRequestResponse, OnBeforeHandle, OnAfterHandle {
+    with OnRequestResponse, OnBeforeHandle, OnAfterHandle, OnException {
   final Map<String, dynamic> data = {};
 
   @override
@@ -28,6 +28,11 @@ class HookTest extends Hook
       Request request, dynamic data, ResponseProperties properties) async {
     this.data['onResponse'] = true;
   }
+
+  @override
+  Future<void> onException(RequestContext request, Exception exception) async {
+    data['onException'] = true;
+  }
 }
 
 class NoOverrideHook extends Hook with OnRequestResponse {}
@@ -46,15 +51,10 @@ class MockResponse extends Mock implements InternalResponse {}
 
 class MockStreamableResponse extends Mock implements StreamableResponse {}
 
-class HookRoute extends Route with OnTransform, OnBeforeHandle, OnAfterHandle {
+class HookRoute extends Route with OnBeforeHandle, OnAfterHandle {
   final Map<String, dynamic> data = {};
 
   HookRoute({super.path = '/', super.method = HttpMethod.get});
-
-  @override
-  Future<void> transform(RequestContext context) async {
-    data['transform'] = true;
-  }
 
   @override
   Future<void> beforeHandle(RequestContext context) async {
@@ -70,6 +70,9 @@ class HookRoute extends Route with OnTransform, OnBeforeHandle, OnAfterHandle {
 class TestController extends Controller {
   TestController({required Route route, super.path = '/'}) {
     on(route, (context) async => 'ok!');
+    on(Route.get('/error'), (context) async {
+      throw NotFoundException(message: 'Not found');
+    });
   }
 }
 
@@ -104,7 +107,7 @@ void main() {
       final app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController(route: route)]),
           port: 9000,
-          loggingLevel: LogLevel.none);
+          logLevels: {LogLevel.none});
       final hook = HookTest();
       app.use(hook);
       app.use(NoOverrideHook());
@@ -114,12 +117,32 @@ void main() {
       final response = await request.close();
       expect(response.statusCode, 200);
       await app.close();
-      expect(route.data['transform'], true);
       expect(route.data['beforeHandle-route'], true);
       expect(route.data['afterHandle-route'], true);
       expect(hook.data['onRequest'], true);
       expect(hook.data['beforeHandle'], true);
       expect(hook.data['afterHandle'], true);
+      expect(hook.data['onResponse'], true);
+    });
+
+    test(
+        'if a hook is augmented with onException and an exception is thrown then the onException method should be called',
+        () async {
+      final route = HookRoute();
+      final app = await serinus.createApplication(
+          entrypoint: TestModule(controllers: [TestController(route: route)]),
+          port: 9101,
+          logLevels: {LogLevel.none});
+      final hook = HookTest();
+      app.use(hook);
+      app.use(NoOverrideHook());
+      await app.serve();
+      final request =
+          await HttpClient().getUrl(Uri.parse('http://localhost:9101/error'));
+      final response = await request.close();
+      expect(response.statusCode, 404);
+      await app.close();
+      expect(hook.data['onException'], true);
       expect(hook.data['onResponse'], true);
     });
   });

@@ -54,13 +54,11 @@ class TestJsonObject with JsonObject {
 
 class TestController extends Controller {
   TestController({super.path = '/'}) {
-    on(
-        TestRoute(path: '/middleware'),
-        (context) async => {
-              context.res.headers['x-middleware'] =
-                  context.request.headers['x-middleware'],
-              'ok!'
-            });
+    on(TestRoute(path: '/middleware'), (RequestContext context) async {
+      context.res.headers['x-middleware'] =
+          context.request.headers['x-middleware'] ?? '';
+      return 'ok!';
+    });
     on(Route.get('/value/<v>'), (context) async => 'Hello, World!');
     on(Route.get('/request-event'), (context) async => 'Hello, World!');
   }
@@ -111,12 +109,11 @@ void main() {
   group('$Middleware', () {
     SerinusApplication? app;
     TestRequestEvent r = TestRequestEvent();
+    final module =
+        TestModule(controllers: [TestController()], middlewares: [r]);
     setUpAll(() async {
       app = await serinus.createApplication(
-          entrypoint:
-              TestModule(controllers: [TestController()], middlewares: [r]),
-          port: 8888,
-          loggingLevel: LogLevel.none);
+          entrypoint: module, port: 8888, logLevels: {LogLevel.none});
       await app?.serve();
     });
     tearDownAll(() async {

@@ -104,9 +104,9 @@ abstract class JsonBody<T> {
   String toString() => jsonEncode(value);
 }
 
-/// The class [JsonObject] is used to create a json object body for the request.
+/// The class [JsonBodyObject] is used to create a json object body for the request.
 class JsonBodyObject extends JsonBody<Map<String, dynamic>> {
-  /// The [JsonObject] constructor is used to create a new instance of the [JsonObject] class.
+  /// The [JsonBodyObject] constructor is used to create a new instance of the [JsonObject] class.
   JsonBodyObject(super.value);
 }
 

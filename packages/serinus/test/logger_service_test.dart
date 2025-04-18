@@ -1,17 +1,13 @@
-import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
-
-class AppModule extends Mock implements Module {}
-
-class _AdapterMock extends Mock implements Adapter {}
+import 'package:test_process/test_process.dart';
 
 void main() {
   group('$LoggerService', () {
     test(
       'should create a new instance of the LoggerService class',
       () {
-        final loggerService = LoggerService();
+        final loggerService = Logger('Test');
         expect(loggerService, isA<LoggerService>());
       },
     );
@@ -19,7 +15,7 @@ void main() {
     test(
       'should create a new instance of the LoggerService class with a custom prefix',
       () {
-        final loggerService = LoggerService(prefix: 'Custom');
+        final loggerService = ConsoleLogger(prefix: 'Custom');
         expect(loggerService.prefix, 'Custom');
       },
     );
@@ -27,46 +23,53 @@ void main() {
     test(
       'should create a new instance of the LoggerService class with a custom log level',
       () {
-        final loggerService = LoggerService(level: LogLevel.errors);
-        expect(loggerService.level, LogLevel.errors);
+        final loggerService = ConsoleLogger(levels: {LogLevel.severe});
+        expect(loggerService.logLevels.contains(LogLevel.severe), isTrue);
       },
     );
 
     test(
-      'should create a new instance of the LoggerService class with a custom log callback',
-      () {
-        final loggerService = LoggerService(onLog: (prefix, record, delta) {});
-        expect(loggerService.onLog, isNotNull);
+      'basic implementation of the $ConsoleLogger',
+      () async {
+        final TestProcess process = await TestProcess.start(
+            'dart', ['test/basic_console_logger_test.dart']);
+        await expectLater(process.stdout, emits(contains('[Test] Test')));
+        await expectLater(process.stdout, emits(contains('[Test] Test')));
+        await expectLater(process.stdout, emits(contains('[Test] Test')));
+        await expectLater(process.stdout, emits(contains('[Test] Test')));
+        await expectLater(process.stdout,
+            emits(contains('[Test] Test - Exception: Exception')));
+        await expectLater(
+            process.stdout, emits(contains('[Test] Test - 400 Bad Request!')));
+        await expectLater(process.stdout, emits(contains('[Test] Test')));
+        await process.shouldExit(0);
       },
     );
 
     test(
-      'should allow to change the prefix of the logger',
-      () {
-        final loggerService = LoggerService();
-        loggerService.prefix = 'Custom';
-        expect(loggerService.prefix, 'Custom');
-      },
-    );
-
-    test(
-      'should allow to change the prefix of the logger',
-      () {
-        final loggerService = LoggerService();
-        loggerService.prefix = 'Custom';
-        expect(loggerService.prefix, 'Custom');
-
-        SerinusApplication app = SerinusApplication(
-          entrypoint: AppModule(),
-          config: ApplicationConfig(
-            port: 3000,
-            host: 'localhost',
-            poweredByHeader: 'Serinus',
-            serverAdapter: _AdapterMock(),
-          ),
-        );
-        app.loggerPrefix = 'Custom App';
-        expect(app.loggerService!.prefix, 'Custom App');
+      'should allow to format logs in json',
+      () async {
+        final TestProcess process = await TestProcess.start(
+            'dart', ['test/json_console_logger_test.dart']);
+        await expectLater(
+            process.stdout, emits(contains('"level":"INFO","message":"Test"')));
+        await expectLater(process.stdout,
+            emits(contains('"level":"DEBUG","message":"Test"')));
+        await expectLater(process.stdout,
+            emits(contains('"level":"WARNING","message":"Test"')));
+        await expectLater(process.stdout,
+            emits(contains('"level":"SEVERE","message":"Test"')));
+        await expectLater(
+            process.stdout,
+            emits(contains(
+                '"level":"SHOUT","message":"Test - Exception: Exception"')));
+        await expectLater(
+            process.stdout,
+            emits(contains(
+                '"level":"SHOUT","message":"Test - 400 Bad Request!"')));
+        await expectLater(process.stdout,
+            emits(contains('"level":"VERBOSE","message":"Test"')));
+        await process.shouldExit(0);
       },
     );
   });

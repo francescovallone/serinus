@@ -1,8 +1,10 @@
 export 'package:secure_session/secure_session.dart';
 
 export 'src/adapters/adapters.dart';
+export 'src/constants.dart';
 export 'src/containers/model_provider.dart';
 export 'src/containers/module_container.dart';
+export 'src/containers/router.dart';
 export 'src/contexts/contexts.dart';
 export 'src/core/core.dart';
 export 'src/engines/view_engine.dart';
@@ -15,6 +17,8 @@ export 'src/global_prefix.dart';
 export 'src/handlers/handlers.dart';
 export 'src/hooks/hooks.dart';
 export 'src/http/http.dart';
+export 'src/inspector/inspector.dart';
 export 'src/mixins/mixins.dart';
+export 'src/services/console_logger_service.dart';
 export 'src/services/logger_service.dart';
 export 'src/versioning.dart';

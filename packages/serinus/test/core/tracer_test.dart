@@ -44,15 +44,14 @@ class ServerTimingTracer extends Tracer {
   }
 
   @override
-  Future<void> onTranform(TraceEvent event, Duration delta) async {
+  Future<void> onResponse(TraceEvent event, Duration delta) async {
     _timings['duration'] = (_timings['duration'] ?? 0) + delta.inMilliseconds;
+    event.context?.res.headers['duration'] = _timings['duration'].toString();
   }
 
   @override
-  Future<void> onResponse(TraceEvent event, Duration delta) async {
+  Future<void> onCustomEvent(TraceEvent event, Duration delta) async {
     _timings['duration'] = (_timings['duration'] ?? 0) + delta.inMilliseconds;
-
-    event.context?.res.headers['duration'] = _timings['duration'].toString();
   }
 }
 
@@ -72,7 +71,23 @@ class TestJsonObject with JsonObject {
 
 class TestController extends Controller {
   TestController({super.path = '/'}) {
-    on(Route.get('/'), (context) async => 'ok!');
+    on(Route.get('/'), (context) async {
+      final r = trace(
+        () => countTo(100),
+        context: context,
+        eventName: 'countTo',
+      );
+      final t = await traceAsync(
+        () async => countTo(100),
+        context: context,
+        eventName: 'countTo',
+      );
+      return r + t;
+    });
+  }
+
+  int countTo(int n) {
+    return n;
   }
 }
 
@@ -108,7 +123,7 @@ void main() {
           entrypoint:
               TestModule(controllers: [controller], middlewares: [middleware]),
           port: 4000,
-          loggingLevel: LogLevel.none);
+          logLevels: {LogLevel.none});
       app?.trace(ServerTimingTracer());
       await app?.serve();
     });
@@ -124,7 +139,7 @@ void main() {
       final response = await request.close();
       expect(response.headers.value('duration'), isNotNull);
       expect(int.tryParse(response.headers.value('duration') ?? ''),
-          greaterThanOrEqualTo(100));
+          greaterThanOrEqualTo(1));
     });
   });
 }

@@ -1,4 +1,11 @@
+<script setup>
+	import PluginType from '../components/plugin_type.vue'
+  import PluginButtons from '../components/plugin_buttons.vue'
+</script>
+
 # Config
+
+<PluginType :types="['Module']" />
 
 Serinus Config is a plugin that allows to load .env files in your Serinus application.
 
@@ -43,3 +50,14 @@ class AppModule extends Module {
 
 }
 ```
+
+## Links
+
+<PluginButtons 
+  :buttons="[
+    {
+      label: 'Pub.dev',
+      url: 'https://pub.dev/packages/serinus_swagger',
+    },
+  ]" 
+/>

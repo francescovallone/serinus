@@ -1,4 +1,4 @@
-[![Serinus Logo][logo_white]][repo_link]
+![Serinus Banner](https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/github-header.png)
 
 [![codecov](https://codecov.io/gh/francescovallone/serinus/branch/main/graph/badge.svg?token=A2337C1XGG)](https://codecov.io/gh/francescovallone/serinus)
 [![melos](https://img.shields.io/badge/maintained%20with-melos-f700ff.svg?style=flat-square)](https://github.com/invertase/melos)
@@ -59,4 +59,3 @@ If you want to contribute to Serinus, please read the [CONTRIBUTING](CONTRIBUTIN
 
 [repo_link]: https://github.com/francescovallone/serinus
 [documentation_link]: https://docs.serinus.app
-[logo_white]: https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/serinus-logo-long.png

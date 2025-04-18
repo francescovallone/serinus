@@ -1,4 +1,4 @@
-import '../contexts/request_context.dart';
+import '../contexts/contexts.dart';
 
 /// The [Metadata] class is used to define metadata.
 class Metadata<T> {
@@ -22,7 +22,7 @@ class Metadata<T> {
 ///
 /// It doesn't have a constant value, but a function that returns a value based on the [RequestContext].
 class ContextualizedMetadata<T>
-    extends Metadata<Future<T> Function(RequestContext)> {
+    extends Metadata<Future<T> Function(BaseContext)> {
   /// The [ContextualizedMetadata] constructor is used to create a new instance of the [ContextualizedMetadata] class.
   const ContextualizedMetadata({
     required super.value,
@@ -30,7 +30,7 @@ class ContextualizedMetadata<T>
   });
 
   /// The [resolve] method is used to resolve the metadata.
-  Future<Metadata<T>> resolve(RequestContext context) async {
+  Future<Metadata<T>> resolve(BaseContext context) async {
     return Metadata<T>(
       name: name,
       value: await value(context),

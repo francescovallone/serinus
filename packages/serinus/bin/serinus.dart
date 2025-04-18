@@ -76,38 +76,80 @@ class CircularDependencyModule extends Module {
 
 class AnotherModule extends Module {
   AnotherModule()
-      : super(imports: [], controllers: [], providers: [
+      : super(imports: [
+          CircularDependencyModule()
+        ], controllers: [], providers: [
+          Provider.deferred((TestProviderThree tp) => TestProviderTwo(tp),
+              inject: [TestProviderThree], type: TestProviderTwo),
           Provider.deferred(
               (TestProviderTwo tp, TestProviderThree t) =>
                   TestProviderFour(t, tp),
               inject: [TestProviderTwo, TestProviderThree],
               type: TestProviderFour),
-        ], middlewares: []);
+        ], middlewares: [], exports: [
+          TestProviderFour
+        ]);
+}
+
+class WsGateway extends WebSocketGateway {
+  WsGateway({super.path});
+
+  @override
+  Future<void> onMessage(dynamic data, WebSocketContext context) async {
+    context.send(data);
+  }
 }
 
 class AppModule extends Module {
   AppModule()
       : super(imports: [
           AnotherModule(),
+          WsModule(),
           CircularDependencyModule()
         ], controllers: [
           AppController()
         ], providers: [
+          WsGateway(),
           TestProvider(isGlobal: true),
-          Provider.deferred((TestProviderThree tp) => TestProviderTwo(tp),
-              inject: [TestProviderThree], type: TestProviderTwo),
-        ], middlewares: []);
+        ], middlewares: [
+          LogMiddleware()
+        ]);
+}
+
+class LogMiddleware extends Middleware {
+  @override
+  List<String> get routes => ['*'];
+
+  final logger = Logger('LogMiddleware');
+
+  @override
+  Future<void> use(RequestContext context, NextFunction next) {
+    context.request.on(RequestEvent.error, (event, data) async {
+      logger.severe(
+          'Error occurred',
+          OptionalParameters(
+              error: data.exception, stackTrace: StackTrace.current));
+    });
+    return next();
+  }
 }
 
 class AppController extends Controller {
+  final logger = Logger('AppController');
+
   AppController({super.path = '/'}) {
-    onStatic(Route.get('/'), 'ok!');
+    on(Route.get('/'), (RequestContext context) {
+      logger.info('Hello world');
+      throw NotFoundException();
+    });
   }
 }
 
 void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
-      entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
+  final application = await serinus.createApplication(
+      entrypoint: AppModule(),
+      host: InternetAddress.anyIPv4.address,
+      logger: ConsoleLogger(prefix: 'Serinus New Logger'));
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());
   await application.serve();

@@ -71,7 +71,11 @@ class Generator {
             "\nimport '${sameFolder ? fileName : filePath}';\n",
           );
         }
-        entrypointFile!.writeAsStringSync(DartFormatter().format(replaced));
+        entrypointFile!.writeAsStringSync(
+          DartFormatter(
+            languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+          ).format(replaced),
+        );
       }
     }
   }
@@ -118,7 +122,9 @@ class Generator {
     File('${outputDirectory.absolute.path}/$filePath')
       ..createSync(recursive: true)
       ..writeAsStringSync(
-        DartFormatter().format(
+        DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+        ).format(
           newController.accept(emitter).toString(),
         ),
       );
@@ -157,7 +163,9 @@ class Generator {
     File('${outputDirectory.absolute.path}/$filePath')
       ..createSync(recursive: true)
       ..writeAsStringSync(
-        DartFormatter().format(
+        DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+        ).format(
           newModule.accept(emitter).toString(),
         ),
       );
@@ -189,7 +197,9 @@ class Generator {
     File('${outputDirectory.absolute.path}/$filePath')
       ..createSync(recursive: true)
       ..writeAsStringSync(
-        DartFormatter().format(
+        DartFormatter(
+          languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+        ).format(
           newProvider.accept(emitter).toString(),
         ),
       );

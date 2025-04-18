@@ -58,6 +58,10 @@ class _ShelfMiddleware extends Middleware {
     } else {
       throw Exception('Handler must be a shelf.Middleware or a shelf.Handler');
     }
+    if (ignoreResponse) {
+      context.res.headers.addAll(shelfResponse.headers);
+      return next();
+    }
     final response = await _responseFromShelf(context, shelfResponse);
     return next(response);
   }
@@ -72,7 +76,7 @@ class _ShelfMiddleware extends Middleware {
     context.res.statusCode = response.statusCode;
     context.res.headers.addAll(headers);
     final responseBody = await response.readAsString();
-    if (responseBody.isNotEmpty && !ignoreResponse) {
+    if (responseBody.isNotEmpty) {
       return utf8.encode(responseBody);
     }
   }
@@ -82,7 +86,7 @@ class _ShelfMiddleware extends Middleware {
       context.request.method,
       context.request.uri,
       body: context.request.body.toString(),
-      headers: Map<String, Object>.from(context.request.headers),
+      headers: Map<String, Object>.from(context.request.headers.values),
       context: {'shelf.io.connection_info': context.request.clientInfo!},
     );
   }
