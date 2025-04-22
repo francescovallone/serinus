@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- fix(#172): fix the issue with the `UploadFile` method to correctly handle the file upload in the request body. [#173](https://github.com/francescovallone/serinus/pulls/173)
+
 ## 1.0.3
 
 - chore: format the codebase with the latest version of dartfmt
