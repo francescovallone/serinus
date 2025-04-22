@@ -58,16 +58,12 @@ class ResponseHandler {
     });
     Uint8List responseBody = Uint8List(0);
     response.contentType(context.res.contentType ?? ContentType.text);
-    final isView = data is View || data is ViewString;
+    final isView = data is View;
     if (isView && config.viewEngine == null) {
       throw StateError('ViewEngine is required to render views');
     }
     if (isView) {
-      if (data is View) {
-        data = await config.viewEngine!.render(data);
-      } else if (data is ViewString) {
-        data = await config.viewEngine!.renderString(data);
-      }
+      data = await config.viewEngine!.render(data);
       response.contentType(context.res.contentType ?? ContentType.html);
       response.headers({
         HttpHeaders.contentLengthHeader: responseBody.length.toString(),

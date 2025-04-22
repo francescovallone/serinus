@@ -135,6 +135,16 @@ class UploadedFile with JsonObject {
     }
   }
 
+  /// Generates a [File] from the [UploadedFile] object provided the path.
+  File toFile(String path) {
+    final file = File(path);
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
+    file.writeAsBytesSync(_data, mode: FileMode.write);
+    return file;
+  }
+
   @override
   Map<String, dynamic> toJson() {
     return {

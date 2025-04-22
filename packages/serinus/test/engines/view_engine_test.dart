@@ -7,9 +7,9 @@ import 'package:test/test.dart';
 class TestController extends Controller {
   TestController([super.path = '/']) {
     on(Route.get('/view'),
-        (context) async => View('test', {'name': 'John Doe'}));
+        (context) async => View.template('test', {'name': 'John Doe'}));
     on(Route.get('/viewString'),
-        (context) async => ViewString('test <name>', {'name': 'John Doe'}));
+        (context) async => View.string('test <name>', {'name': 'John Doe'}));
   }
 }
 
@@ -26,15 +26,12 @@ class TestModule extends Module {
 class ViewEngineTest extends ViewEngine {
   @override
   Future<String> render(View view) async {
-    return '${view.view} - ${view.variables.entries.map((entry) => '${entry.key}: ${entry.value}').join(', ')}';
+    if(view.fromFile) {
+      return '${view.template} - ${view.variables.entries.map((entry) => '${entry.key}: ${entry.value}').join(', ')}';
+    }
+    return view.template.replaceAll('<name>', view.variables['name']);
   }
 
-  @override
-  Future<String> renderString(ViewString viewString) async {
-    final view =
-        viewString.viewData.replaceAll('<name>', viewString.variables['name']);
-    return view;
-  }
 }
 
 void main() async {

@@ -9,31 +9,31 @@ abstract class ViewEngine {
   /// This method is used to render a view.
   Future<String> render(View view);
 
-  /// This method is used to render a view from a [String].
-  Future<String> renderString(ViewString viewString);
 }
 
-/// The class [View] is used to store the view data and the variables that will be used in the view.
+/// The [View] class contains all the information needed to render a view by a view engine.
 class View {
+
   /// The view data.
-  final String view;
+  final String template;
 
   /// The variables that will be used in the view.
   final Map<String, dynamic> variables;
+
+  /// Boolean value to indicate if the view is a template.
+  final bool fromFile;
 
   /// Constructor for the [View] class.
-  View(this.view, this.variables);
-}
+  const View._(this.template, this.variables, this.fromFile);
 
-/// The class [ViewString] is used to store the view data and the variables that will be used in the view.
-/// It contains the data to be shown as a [String].
-class ViewString {
-  /// The view data.
-  final String viewData;
+  /// Constructor for the [View] class with a template file.
+  factory View.template(String template, Map<String, dynamic> variables) {
+    return View._(template, variables, true);
+  }
 
-  /// The variables that will be used in the view.
-  final Map<String, dynamic> variables;
+  /// Constructor for the [View] class with a template string.
+  factory View.string(String template, Map<String, dynamic> variables) {
+    return View._(template, variables, false);
+  }
 
-  /// Constructor for the [ViewString] class.
-  ViewString(this.viewData, this.variables);
 }
