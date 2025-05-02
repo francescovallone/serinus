@@ -10,9 +10,9 @@ class SseModule extends Module {
   SseModule({this.fallback});
 
   @override
-  Future<Module> registerAsync(ApplicationConfig config) async {
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     config.adapters[SseAdapter] ??=
         SseAdapter(fallback: fallback);
-    return this;
+    return DynamicModule();
   }
 }

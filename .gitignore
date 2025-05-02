@@ -18,4 +18,5 @@ build/
 **/old/**
 
 **/node_modules/
-**/.vitepress/cache
+**/**/.vitepress/cache
+**/pubspec.lock

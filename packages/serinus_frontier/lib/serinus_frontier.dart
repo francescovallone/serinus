@@ -17,9 +17,9 @@ class FrontierModule extends Module {
   FrontierModule(this.strategies, {this.onError});
 
   @override
-  Future<Module> registerAsync(ApplicationConfig config) async {
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     config.addHook(FrontierHook(strategies, onError: onError));
-    return this;
+    return DynamicModule();
   }
 }
 
@@ -50,7 +50,7 @@ class FrontierHook extends Hook with OnBeforeHandle {
       return;
     }
     final stringHeaders = Map<String, String>.fromEntries(context
-        .headers.entries
+        .headers.values.entries
         .map((e) => MapEntry(e.key, e.value.toString())));
     final stringQuery = Map<String, String>.fromEntries(
         context.query.entries.map((e) => MapEntry(e.key, e.value.join(','))));

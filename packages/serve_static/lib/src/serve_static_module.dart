@@ -36,7 +36,7 @@ class ServeStaticModule extends Module {
   });
 
   @override
-  Future<Module> registerAsync(ApplicationConfig config) async {
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     final serveStaticController =
         ServeStaticController(
           path: rootPath,
@@ -47,6 +47,8 @@ class ServeStaticModule extends Module {
           index: index,
         );
     controllers = [serveStaticController];
-    return this;
+    return DynamicModule(
+      controllers: controllers,
+    );
   }
 }

@@ -21,7 +21,7 @@ class SwaggerModule {
   SwaggerYamlSpec? _swaggerYamlSpec;
 
   /// The [swaggerUiModule] property contains the Swagger UI module.
-  SwaggerUiModule? _swaggerUiModule;
+  late SwaggerUiModule _swaggerUiModule;
 
   /// The [swaggerUrl] property contains the Swagger URL.
   String? _swaggerUrl;
@@ -50,7 +50,7 @@ class SwaggerModule {
     final globalPrefix = app.config.globalPrefix;
     final versioning = app.config.versioningOptions;
     final controllers = <Controller>[];
-    for (final module in app.modulesContainer.modules) {
+    for (final module in app.modulesContainer.scopes) {
       controllers.addAll(module.controllers);
     }
     for (final controller in controllers) {
@@ -181,7 +181,7 @@ class SwaggerModule {
             .replaceAll('{{endpoint}}', endpoint.replaceAll('/', '')));
     _swaggerUiModule = SwaggerUiModule(endpoint, swaggerHtml());
     await app.modulesContainer.registerModules(
-        _swaggerUiModule!, app.modulesContainer.modules.last.runtimeType);
+        _swaggerUiModule);
   }
 
   /// The [normalizePath] method is used to normalize the path.

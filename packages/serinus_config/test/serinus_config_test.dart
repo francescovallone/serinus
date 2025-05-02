@@ -34,7 +34,7 @@ void main() {
 
   setUpAll(() async {
     app = await serinus.createApplication(
-        entrypoint: MainModule(), loggingLevel: LogLevel.none);
+        entrypoint: MainModule(), logLevels: {LogLevel.none});
     await app?.serve();
   });
 

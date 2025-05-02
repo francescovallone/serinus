@@ -71,7 +71,7 @@ class SseHandler extends Handler {
       final providerModule =
           modulesContainer.getModuleByProvider(provider.runtimeType);
       final injectables = modulesContainer
-          .getModuleInjectablesByToken(modulesContainer.moduleToken(providerModule));
+          .getScope(modulesContainer.moduleToken(providerModule));
       final scopedProviders = List<Provider>.from(
           injectables.providers.addAllIfAbsent(modulesContainer.globalProviders));
       scopedProviders.remove(provider);
