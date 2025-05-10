@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: serinus
+dependency_overrides:
+  serinus:
+    path: ..\\serinus

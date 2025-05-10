@@ -19,9 +19,11 @@ class ConfigModule extends Module {
   /// This method will load the environment variables from the `.env` file and register the [ConfigService] provider.
   ///
   /// Optionally, you can pass a [ConfigModuleOptions] object to configure the module.
-  Future<Module> registerAsync(ApplicationConfig config) async {
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     final dotEnv = DotEnv(includePlatformEnvironment: true)..load([dotEnvPath]);
     providers = [ConfigService(dotEnv)];
-    return this;
+    return DynamicModule(
+      providers: providers,
+    );
   }
 }

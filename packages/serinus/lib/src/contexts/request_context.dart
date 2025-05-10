@@ -68,7 +68,7 @@ class RequestContext extends BaseContext {
   /// - [redirect]
   ///
   /// The [redirect] property uses a [Redirect] class to create the redirect response.
-  final ResponseProperties res = ResponseProperties();
+  ResponseProperties res = ResponseProperties();
 
   /// The [stream] method is used to stream data to the response.
   StreamableResponse stream() {
@@ -120,9 +120,34 @@ final class ResponseProperties {
   /// The [redirect] property contains the redirect of the response.
   Redirect? redirect;
 
-  /// The [cookies] property contains the cookies of the response.
-  List<Cookie> cookies = [];
+  /// The [cookies] property contains the cookies that should be sent back to the client.
+  List<Cookie> cookies;
 
   /// The [ResponseProperties] constructor.
-  ResponseProperties();
+  ResponseProperties({
+    this.contentType,
+    this.contentLength,
+    this.redirect,
+    this.cookies = const [],
+  }) {
+    headers.addAll({
+      HttpHeaders.contentTypeHeader: contentType?.toString() ?? ContentType.text.toString(),
+      HttpHeaders.contentLengthHeader: contentLength?.toString() ?? '0',
+    });
+  }
+
+  /// The [change] method is used to force change the response properties.
+  ResponseProperties change({
+    ContentType? contentType,
+    int? contentLength,
+    Redirect? redirect,
+    List<Cookie>? cookies,
+  }) {
+    return ResponseProperties(
+      contentType: contentType ?? this.contentType,
+      contentLength: contentLength ?? this.contentLength,
+      redirect: redirect ?? this.redirect,
+      cookies: cookies ?? this.cookies,
+    );
+  }
 }

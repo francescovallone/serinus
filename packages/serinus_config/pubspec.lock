@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: acanthis
-      sha256: "027bd866392748368ff992c58a7d17143a6f4257425fc03d113252c04786ba5d"
+      sha256: "805ef97c12c35c3923a44153333a97d0332c51c5e53749a04caab37965e51d24"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.3"
+    version: "1.2.1"
   analyzer:
     dependency: transitive
     description:
@@ -109,10 +109,10 @@ packages:
     dependency: transitive
     description:
       name: email_validator
-      sha256: e9a90f27ab2b915a27d7f9c2a7ddda5dd752d6942616ee83529b686fc086221b
+      sha256: b19aa5d92fdd76fbc65112060c94d45ba855105a28bb6e462de7ff03b12fa1fb
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.17"
+    version: "3.0.0"
   encrypt:
     dependency: transitive
     description:
@@ -233,6 +233,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  nanoid2:
+    dependency: transitive
+    description:
+      name: nanoid2
+      sha256: "35b5048f836652a1d711db0d716bdee59fcaaa4c37792db8b3568da4f7feb2f9"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   node_preamble:
     dependency: transitive
     description:
@@ -292,11 +300,10 @@ packages:
   serinus:
     dependency: "direct main"
     description:
-      name: serinus
-      sha256: "400141b320b53f63f747b7d893dc68ff08aa47de7285c0094ab01cebecf9cc89"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.1"
+      path: "../serinus"
+      relative: true
+    source: path
+    version: "1.0.4"
   shelf:
     dependency: transitive
     description:
@@ -357,10 +364,10 @@ packages:
     dependency: transitive
     description:
       name: spanner
-      sha256: "1eee0f4fcb606f09db52b8f5ecd1036f8b6270363c052f98605bc5d964b13ee0"
+      sha256: "10aa269fc21a09033c255620bae2ee75d22870f7a1eb9b477fe0fc3444f1105d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "1.0.5"
   sprintf:
     dependency: transitive
     description:
@@ -498,4 +505,4 @@ packages:
     source: hosted
     version: "3.1.2"
 sdks:
-  dart: ">=3.4.0 <4.0.0"
+  dart: ">=3.6.0 <4.0.0"

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../adapters/adapters.dart';
 import '../containers/module_container.dart';
 import '../containers/router.dart';
 import '../contexts/request_context.dart';
@@ -8,7 +9,6 @@ import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
-import 'response_handler.dart';
 
 /// The base class for all handlers in the application
 abstract class Handler {
@@ -51,9 +51,12 @@ abstract class Handler {
       for (final hook in config.hooks.exceptionHooks) {
         await hook.onException(currentContext, e);
       }
-      final resHandler =
-          ResponseHandler(response, currentContext, config, null);
-      await resHandler.handle(error);
+      config.adapters.get<HttpAdapter>('http').reply(
+        response,
+        error,
+        currentContext,
+        config,
+      );
       return;
     }
   }

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-
+import '../adapters/adapters.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
@@ -13,7 +13,6 @@ import '../http/http.dart';
 import '../mixins/mixins.dart';
 import '../services/json_utils.dart';
 import 'handler.dart';
-import 'response_handler.dart';
 
 /// The [RequestHandler] class is used to handle the HTTP requests.
 class RequestHandler extends Handler {
@@ -104,9 +103,12 @@ class RequestHandler extends Handler {
       );
     }
 
-    final resHandler =
-        ResponseHandler(response, context, config, 'r-${route.runtimeType}');
-    await resHandler.handle(result ?? 'null');
+    await config.adapters.get<HttpAdapter>('http').reply(
+      response,
+      result,
+      context,
+      config,
+    );
 
     request.emit(
       RequestEvent.close,
@@ -180,9 +182,12 @@ class RequestHandler extends Handler {
             RequestEvent.data,
             EventData(data: data, properties: context.res),
           );
-          final resHandler = ResponseHandler(response, context, config,
-              'm-${middlewares.elementAt(i).runtimeType}');
-          await resHandler.handle(data!);
+          await config.adapters.get<HttpAdapter>('http').reply(
+            response, 
+            data, 
+            context, 
+            config
+          );
           request.emit(
             RequestEvent.close,
             EventData(

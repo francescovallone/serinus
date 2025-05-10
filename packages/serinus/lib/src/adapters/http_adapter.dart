@@ -1,6 +1,8 @@
 import '../containers/module_container.dart';
+import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../http/internal_request.dart';
+import '../http/internal_response.dart';
 import 'server_adapter.dart';
 
 /// The [HttpAdapter] class is used to create an HTTP server adapter.
@@ -36,4 +38,14 @@ abstract class HttpAdapter<TServer> extends Adapter<TServer> {
   @override
   Future<void> listen(RequestCallback requestCallback,
       {InternalRequest? request, ErrorHandler? errorHandler});
+  
+  /// The [reply] method is used to send a response to the client.
+  /// It takes the [response], [body], [context], and [config] as parameters.
+  Future<void> reply(
+    InternalResponse response,
+    dynamic body,
+    RequestContext context,
+    ApplicationConfig config,
+  );
+
 }

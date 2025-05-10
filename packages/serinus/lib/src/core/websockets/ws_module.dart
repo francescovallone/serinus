@@ -9,7 +9,7 @@ class WsModule extends Module {
 
   @override
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
-    config.adapters[WsAdapter] ??= WsAdapter();
+    config.adapters.add(WsAdapter());
     logger.info('WebSocket Module initialized.');
     return DynamicModule();
   }

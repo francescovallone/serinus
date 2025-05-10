@@ -1,0 +1,6 @@
+# melos_managed_dependency_overrides: serinus,serinus_serve_static
+dependency_overrides:
+  serinus:
+    path: ../../serinus
+  serinus_serve_static:
+    path: ../

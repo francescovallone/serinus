@@ -26,6 +26,9 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   bool _isOpen = false;
   final Map<String, WebSocketContext> _contexts = {};
 
+  @override
+  String get name => 'ws';
+
   /// The [addContext] method is used to add a context to the adapter
   ///
   /// It takes a [key] and a [WebSocketContext] and returns [void]

@@ -18,8 +18,7 @@ class WebSocketHandler extends Handler {
   Future<void> handleRequest(
       InternalRequest request, InternalResponse response) async {
     final (:handlers, :onDoneHandlers) = await upgradeRequest(request);
-    (config.adapters[WsAdapter] as WsAdapter?)
-        ?.listen(handlers, onDone: onDoneHandlers, request: request);
+    config.adapters.get<WsAdapter>('ws').listen(handlers, onDone: onDoneHandlers, request: request);
   }
 
   /// The [upgradeRequest] method is used to upgrade the request when a WebSocket request is received.
@@ -33,6 +32,7 @@ class WebSocketHandler extends Handler {
         List<DisconnectHandler> onDoneHandlers,
       })> upgradeRequest(InternalRequest request) async {
     final providers = modulesContainer.getAll<WebSocketGateway>();
+    final adapter = config.adapters.get<WsAdapter>('ws');
     final onDoneHandlers = <DisconnectHandler>[];
     final onMessageHandlers = <WsRequestHandler>[];
     for (final provider in providers) {
@@ -44,7 +44,7 @@ class WebSocketHandler extends Handler {
       final scopedProviders = providerModule.providers;
       scopedProviders.remove(provider);
       final context = WebSocketContext(
-          (config.adapters[WsAdapter] as WsAdapter?)!,
+          adapter,
           request.webSocketKey,
           {
             for (final provider in scopedProviders)
@@ -53,12 +53,12 @@ class WebSocketHandler extends Handler {
           config.hooks.services,
           Request(request),
           provider.serializer);
-      (config.adapters[WsAdapter] as WsAdapter?)
-          ?.addContext(request.webSocketKey, context);
+      adapter
+          .addContext(request.webSocketKey, context);
       if (provider is OnClientConnect) {
         provider.onClientConnect(request.webSocketKey);
       }
-      provider.server = (config.adapters[WsAdapter] as WsAdapter?);
+      provider.server = adapter;
       var onDone =
           provider is OnClientDisconnect ? provider.onClientDisconnect : null;
       if (onDone != null) {
@@ -75,7 +75,7 @@ class WebSocketHandler extends Handler {
       throw NotFoundException(
           message: 'No WebSocketGateway found for this request');
     }
-    await (config.adapters[WsAdapter] as WsAdapter?)?.upgrade(request);
+    await adapter.upgrade(request);
     return (
       handlers: onMessageHandlers,
       onDoneHandlers: onDoneHandlers,

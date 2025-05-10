@@ -16,6 +16,11 @@ typedef ErrorHandler = void Function(dynamic e, StackTrace stackTrace);
 
 /// The [Adapter] class is used to create a new adapter.
 abstract class Adapter<TServer> {
+
+  /// The [name] property contains the name of the adapter.
+  /// The name is used to identify the adapter in the application and also to understand the type of request that is being handled.
+  String get name;
+
   /// The [Adapter] constructor is used to create a new instance of the [Adapter] class.
   Adapter();
 
