@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Remove useless print
+
 ## 1.0.3
 
 - Add `--force` option to the `create` command to force the generation of the files even if they already exist.
