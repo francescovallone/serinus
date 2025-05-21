@@ -16,8 +16,8 @@ class BodySizeLimitHook extends Hook with OnRequestResponse {
     await request.parseBody();
     if (request.contentLength > maxSize) {
       throw PayloadTooLargeException(
-        message: 'Request body size is too large',
-        uri: Uri(path: request.path),
+        'Request body size is too large',
+        Uri(path: request.path),
       );
     }
   }

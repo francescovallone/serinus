@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:typed_data';
@@ -35,6 +34,9 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
 
   @override
   bool get isOpen => isRunning;
+
+  @override
+  String get name => 'http';
 
   /// The [SerinusHttpAdapter] constructor is used to create a new instance of the [SerinusHttpAdapter] class.
   SerinusHttpAdapter(
@@ -100,7 +102,6 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       });
       return response.redirect(redirect.location, redirect.statusCode);
     }
-    response.status(context.res.statusCode);
     response.cookies.addAll(context.res.cookies);
     response.headers(context.res.headers);
     config.tracerService.addEvent(
@@ -145,10 +146,14 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
     response.headers({
       io.HttpHeaders.contentLengthHeader: responseBody.length.toString()
     });
+    response.status(context.res.statusCode);
     return response.send(responseBody);
   }
 
-  Uint8List _convertData(Object data, Uint8List responseBody, InternalResponse response, RequestContext context) {
+  Uint8List _convertData(Object? data, Uint8List responseBody, InternalResponse response, RequestContext context) {
+    if (data == null) {
+      return Uint8List(0);
+    }
     if (data is! Uint8List) {
       if (data.runtimeType.isPrimitive()) {
         responseBody = data.toBytes();

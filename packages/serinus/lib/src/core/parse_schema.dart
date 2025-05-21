@@ -73,13 +73,13 @@ class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
       AcanthisParseResult result = _schema.tryParse(value);
       if (!result.success) {
         throw error?.call(result.errors) ??
-            BadRequestException(message: jsonEncode(result.errors));
+            BadRequestException(jsonEncode(result.errors));
       }
       return result.value;
     } on SerinusException catch (_) {
       rethrow;
     } catch (_) {
-      throw PreconditionFailedException(message: 'Wrong data format');
+      throw PreconditionFailedException('Wrong data format');
     }
   }
 }

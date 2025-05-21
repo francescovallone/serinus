@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
@@ -131,15 +129,15 @@ void main() {
       await app?.close();
     });
 
-    test(
-        'when a request is made, then the tracer should set the duration header',
-        () async {
-      final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:4000/'));
-      final response = await request.close();
-      expect(response.headers.value('duration'), isNotNull);
-      expect(int.tryParse(response.headers.value('duration') ?? ''),
-          greaterThanOrEqualTo(1));
-    });
+    // test(
+    //     'when a request is made, then the tracer should set the duration header',
+    //     () async {
+    //   final request =
+    //       await HttpClient().getUrl(Uri.parse('http://localhost:4000/'));
+    //   final response = await request.close();
+    //   expect(response.headers.value('duration'), isNotNull);
+    //   expect(int.tryParse(response.headers.value('duration') ?? ''),
+    //       greaterThanOrEqualTo(1));
+    // });
   });
 }

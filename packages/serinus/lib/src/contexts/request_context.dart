@@ -121,19 +121,20 @@ final class ResponseProperties {
   Redirect? redirect;
 
   /// The [cookies] property contains the cookies that should be sent back to the client.
-  List<Cookie> cookies;
+  List<Cookie> cookies = [];
 
   /// The [ResponseProperties] constructor.
   ResponseProperties({
     this.contentType,
     this.contentLength,
     this.redirect,
-    this.cookies = const [],
+    List<Cookie> cookies = const [],
   }) {
     headers.addAll({
       HttpHeaders.contentTypeHeader: contentType?.toString() ?? ContentType.text.toString(),
       HttpHeaders.contentLengthHeader: contentLength?.toString() ?? '0',
     });
+    this.cookies.addAll(cookies);
   }
 
   /// The [change] method is used to force change the response properties.

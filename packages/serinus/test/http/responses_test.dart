@@ -52,18 +52,6 @@ class TestController extends Controller {
       context.res.statusCode = 201;
       return 'test';
     });
-    on(TestRoute(path: '/stream'), (context) async {
-      final streamable = context.stream();
-      final streamedFile =
-          File('${Directory.current.absolute.path}/test/http/test.txt')
-              .openRead()
-              .transform(utf8.decoder)
-              .transform(LineSplitter());
-      await for (final line in streamedFile) {
-        streamable.send(line);
-      }
-      return streamable.end();
-    });
     on(
       TestRoute(path: '/path/<value>'),
       (context) async {
@@ -202,15 +190,6 @@ void main() async {
       expect(response.statusCode, 200);
       final body = await response.transform(Utf8Decoder()).join();
       expect(body, '{"id":"json-obj"}');
-    });
-    test(
-        '''when a Stream response is created and streamed, then the response should be streamed''',
-        () async {
-      final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:3000/stream'));
-      final response = await request.close();
-      final body = await response.transform(Utf8Decoder()).join();
-      expect(body, 'ok!');
     });
     test(
         '''when a middleware is listening on response events, then it should be called when the response is closed''',

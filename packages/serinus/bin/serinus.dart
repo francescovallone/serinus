@@ -140,7 +140,7 @@ class AppController extends Controller {
   AppController([super.path = '/']) {
     on(Route.get('/'), (RequestContext context) {
       logger.info('Hello world');
-      throw NotFoundException();
+      context.headers['X-Serinus'] = 'Hello world';
     });
   }
 }

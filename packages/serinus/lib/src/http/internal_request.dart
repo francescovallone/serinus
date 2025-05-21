@@ -161,7 +161,7 @@ class InternalRequest {
       try {
         return (await _utf8JsonDecoder.bind(original).firstOrNull) ?? {};
       } catch (e) {
-        throw BadRequestException(message: 'The json body is malformed');
+        throw BadRequestException('The json body is malformed');
       }
     }
     final data = await body();
@@ -172,7 +172,7 @@ class InternalRequest {
       dynamic jsonData = jsonDecode(data);
       return jsonData;
     } catch (e) {
-      throw BadRequestException(message: 'The json body is malformed');
+      throw BadRequestException('The json body is malformed');
     }
   }
 
@@ -219,21 +219,19 @@ class InternalRequest {
 
     final version = original.headers.value('Sec-WebSocket-Version');
     if (version == null) {
-      throw BadRequestException(
-          message: 'missing Sec-WebSocket-Version header.');
+      throw BadRequestException('missing Sec-WebSocket-Version header.');
     } else if (version != '13') {
       return false;
     }
 
     if (original.protocolVersion != '1.1') {
-      throw BadRequestException(
-          message: 'unexpected HTTP version "${original.protocolVersion}".');
+      throw BadRequestException('unexpected HTTP version "${original.protocolVersion}".');
     }
 
     final key = original.headers.value('Sec-WebSocket-Key');
 
     if (key == null) {
-      throw BadRequestException(message: 'missing Sec-WebSocket-Key header.');
+      throw BadRequestException('missing Sec-WebSocket-Key header.');
     }
 
     webSocketKey = key;

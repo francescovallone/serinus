@@ -71,7 +71,7 @@ class TestController extends Controller {
   TestController(Route route, [super.path = '/']) {
     on(route, (context) async => 'ok!');
     on(Route.get('/error'), (context) async {
-      throw NotFoundException(message: 'Not found');
+      throw NotFoundException('Not found');
     });
   }
 }

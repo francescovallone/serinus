@@ -57,9 +57,7 @@ class RequestHandler extends Handler {
       wrappedRequest.params = routeLookup.params;
     }
     if (routeData == null) {
-      throw NotFoundException(
-          message:
-              'No route found for path ${request.path} and method ${request.method}');
+      throw NotFoundException('No route found for path ${request.path} and method ${request.method}');
     }
 
     final scope = modulesContainer.getScope(routeData.moduleToken);
@@ -377,7 +375,7 @@ class RequestHandler extends Handler {
     }
     if (body == String) {
       if (context.body.text == null) {
-        throw PreconditionFailedException(message: 'The body is not a string');
+        throw PreconditionFailedException('The body is not a string');
       }
       return context.body.text;
     }
@@ -385,20 +383,19 @@ class RequestHandler extends Handler {
             '$body'.endsWith('>')) ||
         '$body' == 'Map') {
       if (context.body.json == null) {
-        throw PreconditionFailedException(message: 'The body is not a json');
+        throw PreconditionFailedException('The body is not a json');
       }
       return context.body.json!.value;
     }
     if (body == Uint8List) {
       if (context.body.bytes == null) {
-        throw PreconditionFailedException(message: 'The body is not a binary');
+        throw PreconditionFailedException('The body is not a binary');
       }
       return context.body.bytes;
     }
     if (body == FormData) {
       if (context.body.formData == null) {
-        throw PreconditionFailedException(
-            message: 'The body is not a form data');
+        throw PreconditionFailedException('The body is not a form data');
       }
       return context.body.formData;
     }
@@ -422,8 +419,7 @@ class RequestHandler extends Handler {
           }
         }
       } catch (e) {
-        throw PreconditionFailedException(
-            message: 'The body cannot be converted to a valid model');
+        throw PreconditionFailedException('The body cannot be converted to a valid model');
       }
     }
   }

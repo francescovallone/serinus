@@ -6,7 +6,11 @@ import 'package:test/test.dart';
 import '../mocks/injectables_mock.dart';
 import '../mocks/module_mock.dart';
 
-class _MockAdapter extends Mock implements Adapter {}
+class _MockAdapter extends Mock implements Adapter {
+
+  @override
+  String get name => 'http';
+}
 
 void main() {
   group('$ModulesContainer', () {

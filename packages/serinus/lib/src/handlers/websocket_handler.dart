@@ -72,8 +72,7 @@ class WebSocketHandler extends Handler {
       });
     }
     if (onMessageHandlers.isEmpty) {
-      throw NotFoundException(
-          message: 'No WebSocketGateway found for this request');
+      throw NotFoundException('No WebSocketGateway found for this request');
     }
     await adapter.upgrade(request);
     return (

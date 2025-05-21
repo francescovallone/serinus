@@ -133,5 +133,7 @@ final class ApplicationConfig {
     required this.serverAdapter,
     this.modelProvider,
     this.securityContext,
-  });
+  }) {
+    adapters.add(serverAdapter);
+  }
 }

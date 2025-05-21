@@ -153,7 +153,7 @@ class SerinusApplication extends Application {
           handler = requestHandler.handle;
           if (config.adapters.isNotEmpty) {
             for (final adapter in config.adapters.values) {
-              if (adapter.canHandle(request)) {
+              if (adapter.canHandle(request) && adapter.name != 'http') {
                 handler = handlers[adapter.runtimeType]!.handle;
                 break;
               }

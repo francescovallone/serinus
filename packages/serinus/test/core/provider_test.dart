@@ -6,6 +6,9 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class _MockAdapter extends Mock implements SerinusHttpAdapter {
+
+  @override
+  String get name => 'http';
   @override
   Future<void> listen(covariant RequestCallback requestCallback,
       {InternalRequest? request, ErrorHandler? errorHandler}) {
@@ -22,6 +25,9 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
   Future<void> close() {
     return Future.value();
   }
+
+  @override
+  bool get shouldBeInitilized => false;
 }
 
 class TestProvider extends Provider {

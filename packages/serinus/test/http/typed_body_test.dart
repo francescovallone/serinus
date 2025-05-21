@@ -5,7 +5,10 @@ import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
-class _MockAdapter extends Mock implements SerinusHttpAdapter {}
+class _MockAdapter extends Mock implements SerinusHttpAdapter {
+  @override
+  String get name => 'http';
+}
 
 class _MockContext extends Mock implements RequestContext {
   final Body _body;

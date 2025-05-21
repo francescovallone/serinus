@@ -9,6 +9,12 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
   bool gentlyClose = false;
 
   @override
+  String get name => 'http';
+
+  @override
+  bool get shouldBeInitilized => false;
+
+  @override
   Future<void> listen(covariant RequestCallback requestCallback,
       {InternalRequest? request, ErrorHandler? errorHandler}) {
     throw SocketException('Failed to start server on');

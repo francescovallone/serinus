@@ -26,7 +26,7 @@ class TestController extends Controller {
               'test': string().contains('a'),
             }),
             error: (errors) {
-              return BadRequestException(message: 'Invalid query parameters');
+              return BadRequestException('Invalid query parameters');
             }));
     on(Route.get('/<id>'), (context) async => 'ok!',
         schema: AcanthisParseSchema(
@@ -37,8 +37,7 @@ class TestController extends Controller {
                   name: 'id'),
             }),
             error: (errors) {
-              return PreconditionFailedException(
-                  message: 'Invalid query parameters');
+              return PreconditionFailedException('Invalid query parameters');
             }));
     on(Route.post('/<id>'), (context) async => 'ok!',
         schema: AcanthisParseSchema(
@@ -52,8 +51,7 @@ class TestController extends Controller {
               'test': string().contains('a'),
             }),
             error: (errors) {
-              return PreconditionFailedException(
-                  message: 'Invalid query parameters');
+              return PreconditionFailedException('Invalid query parameters');
             }));
     on(Route.get('/<id>/sub'), (context) async => 'ok!',
         schema: AcanthisParseSchema(
@@ -70,8 +68,7 @@ class TestController extends Controller {
               'test': string().contains('b'),
             }),
             error: (errors) {
-              return PreconditionFailedException(
-                  message: 'Invalid query parameters');
+              return PreconditionFailedException('Invalid query parameters');
             }));
   }
 }
