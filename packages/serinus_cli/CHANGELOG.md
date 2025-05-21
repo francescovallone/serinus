@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- fix(#177): Fix the Dockerfile generation to create the dist folder in the correct location.
+
 ## 1.0.4
 
 - Remove useless print

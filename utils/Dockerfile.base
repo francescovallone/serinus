@@ -1,6 +1,5 @@
 FROM dart:latest AS build
 
-
 WORKDIR /app
 
 COPY . ./
@@ -10,12 +9,11 @@ COPY . .
 
 RUN dart pub get --offline
 RUN mkdir -p dist
-RUN dart compile exe bin/serinus.dart -o bin/serinus
+RUN dart compile exe {{$entrypoint}} -o dist/{{$output}}
 
 FROM scratch
-EXPOSE 3000
+EXPOSE {{$port}}
 COPY --from=build /runtime/ /
-COPY --from=build /app/bin/serinus /app/bin/
+COPY --from=build /app/dist/{{$output}} /app/bin/
 
-CMD ["/app/bin/serinus"]
-
+CMD ["/app/bin/{{$output}}"]
