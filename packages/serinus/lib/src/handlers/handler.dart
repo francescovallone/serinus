@@ -31,8 +31,11 @@ abstract class Handler {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
-      e.uri ??= request.uri;
-      final error = utf8.encode(jsonEncode(e.toJson()));
+      final exception = e.copyWith(
+        uri: e.uri ?? request.uri,
+        statusCode: e.statusCode,
+      );
+      final error = utf8.encode(jsonEncode(exception.toJson()));
       final currentContext = buildRequestContext(
         [],
         Request(request),
@@ -41,15 +44,15 @@ abstract class Handler {
       request.emit(
         RequestEvent.error,
         EventData(
-          data: e.toJson(),
+          data: exception.toJson(),
           properties: currentContext.res,
-          exception: e,
+          exception: exception,
         ),
       );
-      currentContext.res.statusCode = e.statusCode;
+      currentContext.res.statusCode = exception.statusCode;
       currentContext.res.contentType = ContentType.json;
       for (final hook in config.hooks.exceptionHooks) {
-        await hook.onException(currentContext, e);
+        await hook.onException(currentContext, exception);
       }
       config.adapters.get<HttpAdapter>('http').reply(
         response,

@@ -25,13 +25,13 @@ class SerinusException with JsonObject implements HttpException {
   @override
   final String message;
   @override
-  Uri? uri;
+  final Uri? uri;
 
   /// The [statusCode] parameter is used to define the status code of the exception
   final int statusCode;
 
   /// The [SerinusException] constructor is used to create a new instance of the [SerinusException] class.
-  SerinusException({required this.message, required this.statusCode, this.uri});
+  const SerinusException({required this.message, required this.statusCode, this.uri});
 
   @override
   Map<String, dynamic> toJson() {
@@ -41,4 +41,18 @@ class SerinusException with JsonObject implements HttpException {
       'uri': uri != null ? uri!.path : 'No Uri'
     };
   }
+
+  /// Creates a copy of the current SerinusException with the given parameters.
+  SerinusException copyWith({
+    String? message,
+    Uri? uri,
+    int? statusCode,
+  }) {
+    return SerinusException(
+      message: message ?? this.message,
+      uri: uri ?? this.uri,
+      statusCode: statusCode ?? this.statusCode,
+    );
+  }
+
 }
