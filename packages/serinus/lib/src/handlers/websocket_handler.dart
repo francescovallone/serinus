@@ -32,7 +32,7 @@ class WebSocketHandler extends Handler {
         List<WsRequestHandler> handlers,
         List<DisconnectHandler> onDoneHandlers,
       })> upgradeRequest(InternalRequest request) async {
-    final providers = modulesContainer.getAll<WebSocketGateway>();
+    final providers = modulesContainer.getAll<TypedWebSocketGateway>();
     final onDoneHandlers = <DisconnectHandler>[];
     final onMessageHandlers = <WsRequestHandler>[];
     for (final provider in providers) {
@@ -65,10 +65,10 @@ class WebSocketHandler extends Handler {
         onDoneHandlers.add((onDone: onDone, clientId: request.webSocketKey));
       }
       onMessageHandlers.add((dynamic message, WebSocketContext context) {
-        if (provider.deserializer != null) {
-          message = provider.deserializer?.deserialize(message);
-        }
-        return provider.onMessage(message, context);
+        return provider.onMessage(
+          provider.deserializer.deserialize(message),
+          context
+        );
       });
     }
     if (onMessageHandlers.isEmpty) {
