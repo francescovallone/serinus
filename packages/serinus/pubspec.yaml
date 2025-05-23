@@ -27,11 +27,11 @@ dependencies:
   spanner: ^1.0.5
   stream_channel: ^2.1.2
   uuid: ^4.5.1
-  web_socket_channel: ^3.0.1
   collection: ^1.19.1
   shelf: ^1.4.2
   acanthis: ^1.0.0
   secure_session: ^1.0.5
+  crypto: ^3.0.6
 
 dev_dependencies:
   mocktail: ^1.0.4
