@@ -64,7 +64,7 @@ class DeployCommand extends Command<int> {
       final content = Map<String, dynamic>.from(loadYaml(configContent) as Map);
       entrypoint = content['entrypoint'] as String;
     }
-    final dockerFileContent = dockerFileFromRepository(entrypoint, output, port);
+    // final dockerFileContent = dockerFileFromRepository(entrypoint, output, port);
     File(path.join(Directory.current.path, 'Dockerfile'))
         .writeAsStringSync(dockerFile(entrypoint, output, port));
     progress.complete('Dockerfile created');
