@@ -80,7 +80,7 @@ class Generator {
     }
   }
 
-  Future<String> generateController(GeneratedElement element) async {
+  Future<({String elementName, bool generated})> generateController(GeneratedElement element, {bool overwrite = false,}) async {
     final newController = Library((b) {
       b.directives.add(Directive.import('package:serinus/serinus.dart'));
       b.body.add(
@@ -115,8 +115,11 @@ class Generator {
     });
     final fileName = '${itemName.getSnakeCase()}_controller.dart';
     final filePath = '${fileName.split('_').first}/$fileName';
-    if (File(filePath).existsSync()) {
-      return element.name;
+    if (File('${outputDirectory.absolute.path}/$filePath').existsSync() && !overwrite) {
+      return (
+        elementName: element.name,
+        generated: false,
+      );
     }
     await replaceGetters(filePath, fileName, element);
     File('${outputDirectory.absolute.path}/$filePath')
@@ -128,10 +131,13 @@ class Generator {
           newController.accept(emitter).toString(),
         ),
       );
-    return element.name;
+    return (
+      elementName: element.name,
+      generated: true,
+    );
   }
 
-  Future<void> generateModule(GeneratedElement element) async {
+  Future<bool> generateModule(GeneratedElement element, {bool overwrite = false,}) async {
     final emitter = DartEmitter(
       allocator: Allocator(),
       orderDirectives: true,
@@ -156,8 +162,9 @@ class Generator {
     });
     final fileName = '${itemName.getSnakeCase()}_module.dart';
     final filePath = '${fileName.split('_').first}/$fileName';
-    if (File(filePath).existsSync()) {
-      return;
+    if (File('${outputDirectory.absolute.path}/$filePath').existsSync() &&
+        !overwrite) {
+      return false;
     }
     await replaceGetters(filePath, fileName, element);
     File('${outputDirectory.absolute.path}/$filePath')
@@ -169,9 +176,10 @@ class Generator {
           newModule.accept(emitter).toString(),
         ),
       );
+    return true;
   }
 
-  Future<String> generateProvider(GeneratedElement element) async {
+  Future<({String elementName, bool generated})> generateProvider(GeneratedElement element, {bool overwrite = false}) async {
     final emitter = DartEmitter(
       allocator: Allocator(),
       orderDirectives: true,
@@ -190,8 +198,12 @@ class Generator {
     });
     final fileName = '${itemName.getSnakeCase()}_provider.dart';
     final filePath = '${fileName.split('_').first}/$fileName';
-    if (File(filePath).existsSync()) {
-      return element.name;
+    if (File('${outputDirectory.absolute.path}/$filePath').existsSync() &&
+        !overwrite) {
+      return (
+        elementName: element.name,
+        generated: false,
+      );
     }
     await replaceGetters(filePath, fileName, element);
     File('${outputDirectory.absolute.path}/$filePath')
@@ -203,6 +215,9 @@ class Generator {
           newProvider.accept(emitter).toString(),
         ),
       );
-    return element.name;
+    return (
+      elementName: element.name,
+      generated: true,
+    );
   }
 }

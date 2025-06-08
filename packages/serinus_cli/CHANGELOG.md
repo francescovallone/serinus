@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+
+- fix(#180): Prevent the cli from overwriting already existing files when running the `generate` command.
+
 ## 1.0.5
 
 - fix(#177): Fix the Dockerfile generation to create the dist folder in the correct location.

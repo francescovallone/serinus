@@ -145,11 +145,17 @@ class _GenerateController extends GenerateItemCommand {
       valueHelp: 'name',
       mandatory: true,
     );
+    argParser.addFlag(
+      'force',
+      abbr: 'f',
+      help: 'Force the generation of the $name even if it already exists.',
+    );
   }
 
   @override
   Future<int> run() async {
-    await generateItem(itemName, _item, logger, analyzer);
+    await generateItem(itemName, _item, logger, analyzer, 
+        overwrite: argResults['force'] as bool,);
     return ExitCode.success.code;
   }
 }
@@ -165,11 +171,17 @@ class _GenerateModule extends GenerateItemCommand {
       valueHelp: 'name',
       mandatory: true,
     );
+    argParser.addFlag(
+      'force',
+      abbr: 'f',
+      help: 'Force the generation of the $name even if it already exists.',
+    );
   }
 
   @override
   Future<int> run() async {
-    await generateItem(itemName, _item, logger, analyzer);
+    await generateItem(itemName, _item, logger, analyzer, 
+        overwrite: argResults['force'] as bool,);
     return ExitCode.success.code;
   }
 }
@@ -185,13 +197,21 @@ class _GenerateResource extends GenerateItemCommand {
       valueHelp: 'name',
       mandatory: true,
     );
+    argParser.addFlag(
+      'force',
+      abbr: 'f',
+      help: 'Force the generation of the $name even if it already exists.',
+    );
   }
 
   @override
   Future<int> run() async {
-    await generateItem('module', _item, logger, analyzer);
-    await generateItem('provider', _item, logger, analyzer);
-    await generateItem('controller', _item, logger, analyzer);
+    await generateItem('module', _item, logger, analyzer, 
+        overwrite: argResults['force'] as bool,);
+    await generateItem('provider', _item, logger, analyzer, 
+        overwrite: argResults['force'] as bool,);
+    await generateItem('controller', _item, logger, analyzer, 
+        overwrite: argResults['force'] as bool,);
     return ExitCode.success.code;
   }
 }
@@ -207,11 +227,17 @@ class _GenerateProvider extends GenerateItemCommand {
       valueHelp: 'name',
       mandatory: true,
     );
+    argParser.addFlag(
+      'force',
+      abbr: 'f',
+      help: 'Force the generation of the $name even if it already exists.',
+    );
   }
 
   @override
   Future<int> run() async {
-    await generateItem(itemName, _item, logger, analyzer);
+    await generateItem(itemName, _item, logger, analyzer, 
+        overwrite: argResults['force'] as bool,);
     return ExitCode.success.code;
   }
 }
@@ -221,6 +247,7 @@ Future<void> generateItem(
   ReCase name,
   Logger? logger,
   SerinusAnalyzer analyzer,
+  {bool overwrite = false,}
 ) async {
   final outputDirectory = Directory(
     path.join(Directory.current.path, 'lib'),
@@ -282,28 +309,43 @@ Future<void> generateItem(
     itemName: name,
     analyzer: analyzer,
   );
+  var result = true;
   switch (type) {
     case 'module':
-      await generator.generateModule(
+      final moduleResult = await generator.generateModule(
         GeneratedElement(
           type: ElementType.module,
           name: '${name.getSentenceCase(separator: '')}Module()',
         ),
+        overwrite: overwrite,
       );
+      result = moduleResult;
     case 'controller':
-      await generator.generateController(
+      final controllerResult = await generator.generateController(
         GeneratedElement(
           type: ElementType.controller,
           name: '${name.getSentenceCase(separator: '')}Controller()',
         ),
+        overwrite: overwrite,
       );
+      result = controllerResult.generated;
     case 'provider':
-      await generator.generateProvider(
+      final providerResult = await generator.generateProvider(
         GeneratedElement(
           type: ElementType.provider,
           name: '${name.getSentenceCase(separator: '')}Provider()',
         ),
+        overwrite: overwrite,
       );
+      result = providerResult.generated;
   }
-  progress?.complete('$name $type generated');
+  if (result) {
+    progress?.complete(
+      '${name.getSentenceCase(separator: '')} $type generated successfully',
+    );
+  } else {
+    progress?.fail(
+      '${name.getSentenceCase(separator: '')} $type already exists. Use --force to overwrite.',
+    );
+  }
 }
