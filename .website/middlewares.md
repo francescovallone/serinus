@@ -82,7 +82,7 @@ class AuthMiddleware extends Middleware {
   @override
   Future<void> use(RequestContext context, NextFunction next) async {
     if (context.request.headers['authorization'] != 'Bearer token') {
-      context.response.statusCode = 401;
+      context.res.statusCode = 401;
       return next('Unauthorized');
     }
     return next();
