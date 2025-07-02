@@ -44,7 +44,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       server = await io.HttpServer.bindSecure(host, port, securityContext!,
           shared: true);
     }
-    server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
+    //server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
     server?.autoCompress = enableCompression;
   }
 
