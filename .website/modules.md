@@ -36,11 +36,12 @@ For example if you need to initialize the `database` connection before registeri
 import 'package:serinus/serinus.dart';
 
 class AppModule extends Module {
-  AppModule();
+  AppModule() : super(providers: [yourProvider]);
 
   @override
-  Future<Module> registerAsync(ApplicationConfig config) async {
-    // Register controllers, providers, and other modules asynchronously
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
+    // Register controllers, providers, and other modules asynchronously based on the current module's controllers, providers and so on.
+    return DynamicModule(providers: [...providers, yourAnotherProvider],);
   }
 }
 ```
