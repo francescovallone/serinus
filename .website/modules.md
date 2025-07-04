@@ -40,7 +40,7 @@ class AppModule extends Module {
 
   @override
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
-    // Register controllers, providers, and other modules asynchronously based on the current module's ontrollers, providers and so on.
+    // Register controllers, providers, and other modules asynchronously based on the current module's controllers, providers and so on.
     return DynamicModule(providers: [...providers, yourAnotherProvider],);
   }
 }
