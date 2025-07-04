@@ -38,12 +38,9 @@ final class SerinusFactory {
     final app = SerinusApplication(
         entrypoint: entrypoint,
         config: ApplicationConfig(
-            host: serverHost,
-            port: serverPort,
-            poweredByHeader: poweredByHeader,
-            securityContext: securityContext,
-            serverAdapter: server,
-            modelProvider: modelProvider),
+          serverAdapter: server,
+          modelProvider: modelProvider
+        ),
         levels: logLevels,
         logger: logger);
     return app;

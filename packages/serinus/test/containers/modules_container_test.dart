@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 import '../mocks/injectables_mock.dart';
 import '../mocks/module_mock.dart';
 
-class _MockAdapter extends Mock implements Adapter {
+class _MockAdapter extends Mock implements HttpAdapter {
 
   @override
   String get name => 'http';
@@ -19,10 +19,7 @@ void main() {
         () async {
       Logger.setLogLevels({LogLevel.none});
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
-          serverAdapter: _MockAdapter(),
-          poweredByHeader: 'Serinus'));
+          serverAdapter: _MockAdapter(),));
       final module = SimpleModule();
       await container.registerModules(module);
       expect(container.scopes.length, 1);
@@ -33,10 +30,7 @@ void main() {
         () async {
       Logger.setLogLevels({LogLevel.none});
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
-          serverAdapter: _MockAdapter(),
-          poweredByHeader: 'Serinus'));
+          serverAdapter: _MockAdapter(),));
       final module = SimpleModule();
       await container.registerModules(module);
       await container.registerModules(module);
@@ -47,14 +41,11 @@ void main() {
         'registerModules should register a module and create a [ModuleScope] with the providers',
         () async {
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
             poweredByHeader: 'Serinus',
-          ),
-          poweredByHeader: 'Serinus'));
+          ),));
       final module = SimpleModuleWithProvider();
       await container.registerModules(module);
       expect(container.scopes.length, 1);
@@ -66,14 +57,11 @@ void main() {
         'registerModule should register a module with injectables and create a [ModuleScope] with all the injectables',
         () async {
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
             poweredByHeader: 'Serinus',
-          ),
-          poweredByHeader: 'Serinus'));
+          ),));
       final module = SimpleModuleWithInjectables();
       await container.registerModules(module);
       expect(container.scopes.length, 1);
@@ -86,14 +74,11 @@ void main() {
         'if getModuleInjectablesByToken is called with a module that is not registered, it should throw an $ArgumentError',
         () async {
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
             poweredByHeader: 'Serinus',
-          ),
-          poweredByHeader: 'Serinus'));
+          ),));
       expect(() => container.getScope(InjectionToken('NotRegisteredModule')),
           throwsA(isA<ArgumentError>()));
     });
@@ -102,14 +87,11 @@ void main() {
         'if getModuleByProvider is called with a provider with an unregistered Module, it should throw an $ArgumentError',
         () async {
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
             poweredByHeader: 'Serinus',
-          ),
-          poweredByHeader: 'Serinus'));
+          ),));
       expect(() => container.getModuleByProvider(TestProvider),
           throwsA(isA<ArgumentError>()));
     });
@@ -119,14 +101,11 @@ void main() {
         then the ModulesContainer should create two ModuleInjectables which for the main module contains all its own injectables and the providers from the imported module,
       ''', () async {
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
             poweredByHeader: 'Serinus',
-          ),
-          poweredByHeader: 'Serinus'));
+          ),));
       final module = SimpleModuleWithImportsAndInjects();
       await container.registerModules(module);
       await container.finalize(module);
@@ -151,14 +130,11 @@ void main() {
         if the module has a $ComposedProvider, then the provider should be registered in the container and the module should be marked as finalized,
       ''', () async {
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
             poweredByHeader: 'Serinus',
-          ),
-          poweredByHeader: 'Serinus'));
+          ),));
       final module = SimpleModuleWithImportsAndInjects();
       await container.registerModules(module);
       await container.finalize(module);
@@ -169,14 +145,11 @@ void main() {
         if the module has a $Provider set as global, then the provider should be registered in the container and the module should be marked as finalized,
       ''', () async {
       final container = ModulesContainer(ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
             poweredByHeader: 'Serinus',
-          ),
-          poweredByHeader: 'Serinus'));
+          ),));
       final module = SimpleModuleWithGlobal();
       await container.registerModules(module);
       await container.finalize(module);

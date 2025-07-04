@@ -63,18 +63,18 @@ class InternalResponse {
   }
 
   /// This method is used to set the content type of the response.
-  void contentType(ContentType contentType) {
+  void contentType(ContentType contentType, {bool preserveHeaderCase = true}) {
     headers({
       HttpHeaders.contentTypeHeader: contentType.toString(),
-    });
+    }, preserveHeaderCase: preserveHeaderCase);
   }
 
   /// This method is used to set the headers of the response.
-  void headers(Map<String, String> headers) {
+  void headers(Map<String, String> headers, {bool preserveHeaderCase = true}) {
     for (final key in headers.keys) {
       final currentValue = _original.headers.value(key);
       if (currentValue == null || currentValue != headers[key]) {
-        _original.headers.set(key, headers[key]!);
+        _original.headers.set(key, headers[key]!, preserveHeaderCase: preserveHeaderCase);
       }
     }
   }

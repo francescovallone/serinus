@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
@@ -47,9 +46,6 @@ void main() {
         entrypoint: TestModule(),
         levels: {LogLevel.none},
         config: ApplicationConfig(
-            host: 'localhost',
-            poweredByHeader: 'Serinus',
-            port: Random().nextInt(1000) + 1000,
             serverAdapter: adapter),
       );
       await app.serve();

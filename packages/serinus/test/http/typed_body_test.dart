@@ -44,9 +44,6 @@ class TestObject {
 }
 
 final config = ApplicationConfig(
-    host: 'host',
-    port: 10000,
-    poweredByHeader: '',
     serverAdapter: _MockAdapter());
 
 void main() {
@@ -102,9 +99,6 @@ void main() {
         'if the body type is in the [ModelProvider] then the body should be converted to the model',
         () {
       final modelProviderConfig = ApplicationConfig(
-          host: 'host',
-          port: 10000,
-          poweredByHeader: '',
           serverAdapter: _MockAdapter(),
           modelProvider: _MockModelProvider());
       final RequestHandler requestHandler = RequestHandler(
@@ -120,9 +114,6 @@ void main() {
         'if the body type is not in the [ModelProvider] then a [PreconditionFailedException] should be thrown',
         () {
       final modelProviderConfig = ApplicationConfig(
-          host: 'host',
-          port: 10000,
-          poweredByHeader: '',
           serverAdapter: _MockAdapter(),
           modelProvider: _MockModelProvider());
       final RequestHandler requestHandler = RequestHandler(
@@ -139,9 +130,6 @@ void main() {
         'if the body type is in the [ModelProvider] and the raw body is a FormData then the body should be converted to the model',
         () {
       final modelProviderConfig = ApplicationConfig(
-          host: 'host',
-          port: 10000,
-          poweredByHeader: '',
           serverAdapter: _MockAdapter(),
           modelProvider: _MockModelProvider());
       final RequestHandler requestHandler = RequestHandler(

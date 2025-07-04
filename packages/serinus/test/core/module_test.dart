@@ -19,10 +19,6 @@ class TestProviderExported extends Provider {
 }
 
 final config = ApplicationConfig(
-    host: 'localhost',
-    port: 3000,
-    poweredByHeader: 'Powered by Serinus',
-    securityContext: null,
     serverAdapter: SerinusHttpAdapter(
       host: 'localhost',
       port: 3000,

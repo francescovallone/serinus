@@ -6,10 +6,6 @@ import '../mocks/controller_mock.dart';
 import '../mocks/module_mock.dart';
 
 final config = ApplicationConfig(
-    host: 'localhost',
-    port: 3000,
-    poweredByHeader: 'Powered by Serinus',
-    securityContext: null,
     serverAdapter: SerinusHttpAdapter(
       host: 'localhost',
       port: 3000,
@@ -79,10 +75,6 @@ void main() {
         'when the $GlobalPrefix is set, then the route path will be prefixed with the global prefix',
         () async {
       final config = ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
-          poweredByHeader: 'Powered by Serinus',
-          securityContext: null,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
@@ -103,10 +95,6 @@ void main() {
         'when the $GlobalPrefix is set to a simple slash, then the global prefix will be ignored',
         () async {
       final config = ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
-          poweredByHeader: 'Powered by Serinus',
-          securityContext: null,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
@@ -124,10 +112,6 @@ void main() {
         'when the $GlobalPrefix is set to a prefix without a leading slash, then the global prefix will be normalized',
         () async {
       final config = ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
-          poweredByHeader: 'Powered by Serinus',
-          securityContext: null,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
@@ -145,10 +129,6 @@ void main() {
         'when the $GlobalPrefix is set to a prefix with a trailing slash, then the global prefix will be normalized',
         () async {
       final config = ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
-          poweredByHeader: 'Powered by Serinus',
-          securityContext: null,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,
@@ -166,10 +146,6 @@ void main() {
         'when the $GlobalPrefix and $VersioningOptions are set, then the route path will be prefixed with the global prefix and the version',
         () async {
       final config = ApplicationConfig(
-          host: 'localhost',
-          port: 3000,
-          poweredByHeader: 'Powered by Serinus',
-          securityContext: null,
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
             port: 3000,

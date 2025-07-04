@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 
 import '../containers/module_container.dart';
 import '../containers/router.dart';
+import '../containers/serinus_container.dart';
 import '../contexts/request_context.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
@@ -20,8 +21,6 @@ import 'server_adapter.dart';
 /// The [SerinusHttpAdapter] class is used to create an HTTP server adapter.
 /// It extends the [HttpAdapter] class.
 class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
-  /// The [io.SecurityContext] property contains the security context of the server.
-  final io.SecurityContext? securityContext;
 
   /// The [enableCompression] property is used to enable compression.
   final bool enableCompression;
@@ -43,7 +42,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       {required super.host,
       required super.port,
       required super.poweredByHeader,
-      this.securityContext,
+      super.securityContext,
       this.enableCompression = true});
 
   @override
@@ -85,6 +84,16 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
   }
 
   @override
+  Future<({
+    RequestContext context,
+    dynamic body
+  })> process(InternalRequest request, InternalResponse response,{
+    ErrorHandler? errorHandler,
+  }) async {
+    RequestContext context = RequestContext(providers, services, request, _streamable)
+  }
+
+  @override
   Future<void> reply(
     InternalResponse response, 
     dynamic body, 
@@ -96,14 +105,20 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
     }
     final redirect = context.res.redirect;
     if (redirect != null) {
-      response.headers({
-        io.HttpHeaders.locationHeader: redirect.location,
-        ...context.res.headers
-      });
+      response.headers(
+        {
+          io.HttpHeaders.locationHeader: redirect.location,
+          ...context.res.headers
+        }, 
+        preserveHeaderCase: preserveHeaderCase
+      );
       return response.redirect(redirect.location, redirect.statusCode);
     }
     response.cookies.addAll(context.res.cookies);
-    response.headers(context.res.headers);
+    response.headers(
+      context.res.headers, 
+      preserveHeaderCase: preserveHeaderCase
+    );
     config.tracerService.addEvent(
       name: TraceEvents.onResponse,
       request: context.request,
@@ -111,7 +126,10 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       traced: context.request.id,
     );
     Uint8List responseBody = Uint8List(0);
-    response.contentType(context.res.contentType ?? io.ContentType.text);
+    response.contentType(
+      context.res.contentType ?? io.ContentType.text, 
+      preserveHeaderCase: preserveHeaderCase
+    );
     final isView = body is View;
     if (isView && config.viewEngine == null) {
       throw StateError('ViewEngine is required to render views');
@@ -119,16 +137,24 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
     if (isView) {
       body = await config.viewEngine!.render(body);
       response.contentType(context.res.contentType ?? io.ContentType.html);
-      response.headers({
-        io.HttpHeaders.contentLengthHeader: responseBody.length.toString(),
-      });
+      response.headers(
+        {
+          io.HttpHeaders.contentLengthHeader: responseBody.length.toString(),
+        }, 
+        preserveHeaderCase: preserveHeaderCase
+      );
     }
     if (body is io.File) {
-      response.contentType(context.res.contentType ??
-          io.ContentType.parse('application/octet-stream'));
-      response.headers({
-        'transfer-encoding': 'chunked',
-      });
+      response.contentType(
+        context.res.contentType ??  io.ContentType.parse('application/octet-stream'),
+        preserveHeaderCase: preserveHeaderCase
+      );
+      response.headers(
+        {
+          'transfer-encoding': 'chunked',
+        }, 
+        preserveHeaderCase: preserveHeaderCase
+      );
       final readPipe = body.openRead();
       return response.sendStream(readPipe);
     }
@@ -143,9 +169,12 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
       traced: context.request.id,
     );
     await config.tracerService.endTrace(context.request);
-    response.headers({
-      io.HttpHeaders.contentLengthHeader: responseBody.length.toString()
-    });
+    response.headers(
+      {
+        io.HttpHeaders.contentLengthHeader: responseBody.length.toString()
+      }, 
+      preserveHeaderCase: preserveHeaderCase
+    );
     response.status(context.res.statusCode);
     return response.send(responseBody);
   }
@@ -170,7 +199,10 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
             context.res.statusCode != 304 &&
             context.res.contentLength == null &&
             context.res.contentType?.mimeType != 'multipart/byteranges')) {
-      response.headers({io.HttpHeaders.transferEncodingHeader: 'chunked'});
+      response.headers(
+        {io.HttpHeaders.transferEncodingHeader: 'chunked'}, 
+        preserveHeaderCase: preserveHeaderCase
+      );
     }
     return responseBody;
   }

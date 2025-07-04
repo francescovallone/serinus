@@ -4,9 +4,7 @@ import '../core/core.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 
-import '../inspector/graph_inspector.dart';
 import '../inspector/node.dart';
-import '../inspector/serialized_graph.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 import 'injection_token.dart';
@@ -27,9 +25,6 @@ final class ModulesContainer {
         ..._providers.values,
         ...globalProviders,
       };
-
-  /// The [inspector] property contains the graph inspector of the application
-  late final GraphInspector inspector;
 
   final Map<InjectionToken, Iterable<ComposedProvider>> _deferredProviders = {};
 
@@ -67,12 +62,7 @@ final class ModulesContainer {
   final ApplicationConfig config;
 
   /// The constructor of the [ModulesContainer] class
-  ModulesContainer(this.config) {
-    inspector = GraphInspector(
-      SerializedGraph(),
-      this,
-    );
-  }
+  ModulesContainer(this.config);
 
   /// The [registerModule] method is used to register a module in the application
   ///

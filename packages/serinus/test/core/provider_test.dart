@@ -1,6 +1,3 @@
-import 'dart:io';
-import 'dart:math';
-
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
@@ -93,10 +90,6 @@ class TestProviderHooks extends Provider
 }
 
 final config = ApplicationConfig(
-    host: 'localhost',
-    port: 3000,
-    poweredByHeader: 'Powered by Serinus',
-    securityContext: null,
     serverAdapter: SerinusHttpAdapter(
       host: 'localhost',
       port: 3000,
@@ -322,9 +315,6 @@ void main() async {
         entrypoint: module,
         modulesContainer: container,
         config: ApplicationConfig(
-            host: InternetAddress.anyIPv4.address,
-            port: 3000,
-            poweredByHeader: '',
             serverAdapter: _MockAdapter()),
       );
 
@@ -344,9 +334,6 @@ void main() async {
         entrypoint: module,
         modulesContainer: container,
         config: ApplicationConfig(
-            host: InternetAddress.anyIPv4.address,
-            port: Random().nextInt(9999),
-            poweredByHeader: '',
             serverAdapter: _MockAdapter()),
       );
 

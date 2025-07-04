@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/serinus_container.dart';
 import 'package:test/test.dart';
 
 import '../core/module_test.dart';
@@ -50,10 +51,10 @@ void main() {
         'should return a single node when a module with no dependencies is registered',
         () async {
           final module = TestModule();
-          final container = ModulesContainer(config);
+          final container = SerinusContainer(config);
           final inspector = container.inspector;
           final graph = inspector.graph;
-          await container.registerModules(module);
+          await container.modulesContainer.registerModules(module);
           inspector.inspectModules();
           expect(graph, isNotNull);
           expect(graph.nodes.length, 1);
@@ -66,10 +67,10 @@ void main() {
         () async {
           final module = TestModule(
               controllers: [MockController()], providers: [TestProvider()]);
-          final container = ModulesContainer(config);
+          final container = SerinusContainer(config);
           final inspector = container.inspector;
           final graph = inspector.graph;
-          await container.registerModules(module);
+          await container.modulesContainer.registerModules(module);
           inspector.inspectModules();
           expect(graph, isNotNull);
           expect(graph.nodes.length, 3);
@@ -98,11 +99,11 @@ void main() {
           ], middlewares: [
             TestMiddleware()
           ]);
-          final container = ModulesContainer(config);
+          final container = SerinusContainer(config);
           final inspector = container.inspector;
           final graph = inspector.graph;
-          await container.registerModules(moduleB);
-          await container.finalize(moduleB);
+          await container.modulesContainer.registerModules(moduleB);
+          await container.modulesContainer.finalize(moduleB);
           inspector.inspectModules();
           expect(graph, isNotNull);
           expect(graph.nodes.length, 6);
@@ -121,10 +122,10 @@ void main() {
               controllers: [MockController()],
               providers: [TestProvider()],
               middlewares: []);
-          final container = ModulesContainer(config);
+          final container = SerinusContainer(config);
           final inspector = container.inspector;
           final graph = inspector.graph;
-          await container.registerModules(moduleB);
+          await container.modulesContainer.registerModules(moduleB);
           inspector.inspectModules();
           expect(graph, isNotNull);
           expect(jsonEncode(inspector.toJson()),
@@ -146,10 +147,10 @@ void main() {
               controllers: [MockController()],
               providers: [TestProvider()],
               middlewares: []);
-          final container = ModulesContainer(config);
+          final container = SerinusContainer(config);
           final inspector = container.inspector;
           final graph = inspector.graph;
-          await container.registerModules(moduleB);
+          await container.modulesContainer.registerModules(moduleB);
           inspector.inspectModules();
           expect(graph, isNotNull);
           expect(jsonEncode(inspector.toJson()),

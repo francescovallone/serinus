@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:uuid/v4.dart';
 
-import '../adapters/server_adapter.dart';
+import '../adapters/adapters.dart';
 import '../containers/adapter_container.dart';
 import '../containers/hooks_container.dart';
 import '../containers/model_provider.dart';
@@ -20,23 +20,23 @@ final class ApplicationConfig {
   /// Default is 'localhost'
   ///
   /// This can be changed to any value
-  final String host;
+  String get host => serverAdapter.host;
 
   /// The port to be used by the application
   /// Default is 3000
   ///
   /// This can be changed to any value
-  final int port;
+  int get port => serverAdapter.port;
 
   /// The header to be sent with the response
   /// Default is 'Powered by Serinus'
   /// This can be changed to any value
-  final String poweredByHeader;
+  String get poweredByHeader => serverAdapter.poweredByHeader;
 
   /// The security context for the application if any
   /// If not provided, the application will be created as a normal http server
   /// If provided, the application will be created as a secure https server
-  final SecurityContext? securityContext;
+  SecurityContext? get securityContext => serverAdapter.securityContext;
 
   /// The applicationId, every application has a unique id
   final String applicationId = UuidV4().generate();
@@ -97,8 +97,8 @@ final class ApplicationConfig {
     _viewEngine = value;
   }
 
-  /// The server adapter for the application
-  final Adapter serverAdapter;
+  /// The http adapter for the application
+  final HttpAdapter serverAdapter;
 
   /// The adapters used by the application
   ///
@@ -127,12 +127,8 @@ final class ApplicationConfig {
 
   /// The application config constructor
   ApplicationConfig({
-    required this.host,
-    required this.port,
-    required this.poweredByHeader,
     required this.serverAdapter,
     this.modelProvider,
-    this.securityContext,
   }) {
     adapters.add(serverAdapter);
   }

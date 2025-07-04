@@ -159,14 +159,14 @@ class Request {
   /// This method is used to add data to the request.
   ///
   /// Helper function to pass information between [Hook]s and [Route]s.
-  void addData(String key, dynamic value) {
+  void addData(String key, Object? value) {
     _data[key] = value;
   }
 
   /// This method is used to get data from the request.
   ///
   /// Helper function to pass information between [Hook]s and [Route]s.
-  dynamic getData(String key) {
+  Object? getData(String key) {
     return _data[key];
   }
 }
