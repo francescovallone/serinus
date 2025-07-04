@@ -31,28 +31,33 @@ abstract class Handler {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
-      final error = utf8.encode(jsonEncode(e.toJson()));
       final currentContext = buildRequestContext(
         [],
         Request(request),
         response,
       );
+      SerinusException? editedException;
+      for (final hook in config.hooks.exceptionHooks) {
+        editedException = await hook.onException(currentContext, e);
+      }
+      final error = editedException ?? e;
+      final encodedError =  utf8.encode(jsonEncode(e.toJson()));
       request.emit(
         RequestEvent.error,
         EventData(
-          data: e.toJson(),
+          data: error.toJson(),
           properties: currentContext.res,
-          exception: e,
+          exception: error,
         ),
       );
-      currentContext.res.statusCode = e.statusCode;
+      currentContext.res.statusCode = error.statusCode;
       currentContext.res.contentType = ContentType.json;
       for (final hook in config.hooks.exceptionHooks) {
-        await hook.onException(currentContext, e);
+        await hook.onException(currentContext, error);
       }
       final resHandler =
           ResponseHandler(response, currentContext, config, null);
-      await resHandler.handle(error);
+      await resHandler.handle(encodedError);
       return;
     }
   }
