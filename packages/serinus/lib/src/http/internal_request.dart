@@ -8,58 +8,158 @@ import 'package:http_parser/http_parser.dart';
 
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/content_type_extensions.dart';
+import 'form_data.dart';
 import 'headers.dart';
 import 'internal_response.dart';
 import 'session.dart';
 
 final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
+/// The [ParsableRequest] interface defines the methods and properties that a request must implement.
+/// It is used to parse the request and provide access to its properties.
+abstract class ParsableRequest {
+    /// The id of the request.
+  String get id;
+  /// The path of the request.
+  String get path;
+  /// The uri of the request.
+  Uri get uri;
+  /// The method of the request.
+  String get method;
+  /// The headers of the request.
+  SerinusHeaders get headers;
+  /// The query parameters of the request.
+  Map<String, String> get queryParameters;
+  /// The port of the request.
+  Session get session;
+  /// The client info of the request.
+  HttpConnectionInfo? get clientInfo;
+  /// The content type of the request.
+  ContentType get contentType;
+  /// The host of the request.
+  String get host;
+  /// The hostname of the request.
+  String get hostname;
+  /// The cookies of the request.
+  List<Cookie> get cookies;
+  /// The port of the request.
+  int get port;
+  /// The segments of the request path splitted by slashes.
+  List<String> get segments;
+  
+
+  /// This method is used to get the body of the request as a [String]
+  Future<String> body();
+
+  /// This method is used to get the body of the request as a [dynamic] json object
+  Future<dynamic> json();
+
+  /// This method is used to get the body of the request as a [Uint8List]
+  Uint8List bytes();
+
+  /// This method is used to get the body of the request as a [Stream<List<int>>]
+  Future<Stream<List<int>>> stream();
+
+  /// This method is used to get the body of the request as a [FormData]
+  Future<FormData> formData();
+
+  /// The [events] property contains the events of the request
+  StreamController<(RequestEvent, EventData)> events =
+      StreamController.broadcast(sync: true);
+
+  /// This method is used to listen to a request event.
+  /// 
+  /// It provides a [RequestEvent] and a listener function that takes the event and event data.
+  void on(RequestEvent event,
+      Future<void> Function(RequestEvent, EventData) listener) {
+    events.stream.listen((e) {
+      if (e.$1 == event || e.$1 == RequestEvent.all) {
+        listener(e.$1, e.$2);
+      }
+    });
+  }
+
+  /// This method is used to emit a request event.
+  /// 
+  /// It add the event and data to the events stream and can be listened whenever the request is processed.
+  void emit(RequestEvent event, EventData data) {
+    events.sink.add((event, data));
+  }
+
+  /// The [ifModifiedSince] getter is used to get the if-modified-since header of the request
+  DateTime? get ifModifiedSince;
+
+  /// The [ifModifiedSinceCache] is used to cache the if-modified-since header value it shouldn't be overridden.
+  DateTime? ifModifiedSinceCache;
+
+  /// The [contentLength] getter is used to get the content length of the request
+  int get contentLength;
+
+  /// The [encoding] property contains the encoding of the request
+  Encoding? get encoding {
+    var contentType = this.contentType;
+    if (!contentType.parameters.containsKey('charset')) {
+      return null;
+    }
+    return Encoding.getByName(contentType.parameters['charset']);
+  }
+
+  /// This getter is used to check if the request is a web socket request
+  bool get isWebSocket;
+
+  /// The [webSocketKey] property contains the key of the web socket
+  /// It is used to upgrade the request to a web socket request.
+  String get webSocketKey;
+
+}
+
 /// The class Request is used to handle the request
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
 
-class InternalRequest {
-  /// The id of the request.
+class InternalRequest extends ParsableRequest {
+
+  @override
   final String id;
 
-  /// The [path] property contains the path of the request
+  @override
   String get path => uri.path;
 
-  /// The [uri] property contains the uri of the request
+  @override
   Uri get uri => original.requestedUri;
 
-  /// The [method] property contains the method of the request
+  @override
   String get method => original.method;
 
-  /// The [segments] property contains the segments of the request
+  @override
   List<String> get segments => original.requestedUri.pathSegments;
 
   /// The [original] property contains the [HttpRequest] object from dart:io
   final HttpRequest original;
 
-  /// The [headers] property contains the headers of the request
+  @override
   final SerinusHeaders headers;
 
-  /// The [port] property contains the port of the request
+  @override
   final int port;
 
-  /// The [host] property contains the host of the request
+  @override
   final String host;
 
-  /// The [bytes] property contains the bytes of the request body
   Uint8List? _bytes;
 
-  /// The [queryParameters] property contains the query parameters of the request
+  @override
   Map<String, String> get queryParameters =>
       original.requestedUri.queryParameters;
 
-  /// The [contentType] property contains the content type of the request
+  @override
   ContentType get contentType =>
       original.headers.contentType ?? ContentType('text', 'plain');
 
-  /// The [webSocketKey] property contains the key of the web socket
+  @override
   String webSocketKey = '';
 
-  /// The [clientInfo] property contains the connection info of the request
+  @override
   HttpConnectionInfo? get clientInfo => original.connectionInfo;
 
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
@@ -71,56 +171,26 @@ class InternalRequest {
         host: host);
   }
 
-  /// The [cookies] property contains the cookies of the request
+  @override
   List<Cookie> get cookies => original.cookies;
 
-  /// The [events] property contains the events of the request
-  final StreamController<(RequestEvent, EventData)> _events =
-      StreamController.broadcast(sync: true);
-
-  /// This method is used to listen to a request event.
-  void on(RequestEvent event,
-      Future<void> Function(RequestEvent, EventData) listener) {
-    _events.stream.listen((e) {
-      if (e.$1 == event || e.$1 == RequestEvent.all) {
-        listener(e.$1, e.$2);
-      }
-    });
-  }
-
-  /// This method is used to emit a request event.
-  void emit(RequestEvent event, EventData data) {
-    _events.sink.add((event, data));
-  }
-
-  /// The [session] getter is used to get the session of the request
+  @override
   Session get session => Session(original.session);
 
-  /// The [ifModifiedSince] getter is used to get the if-modified-since header of the request
+  @override
   DateTime? get ifModifiedSince {
-    if (_ifModifiedSinceCache != null) {
-      return _ifModifiedSinceCache;
+    if (ifModifiedSinceCache != null) {
+      return ifModifiedSinceCache;
     }
     if (!headers.containsKey('if-modified-since')) {
       return null;
     }
-    _ifModifiedSinceCache = parseHttpDate(headers['if-modified-since']!);
-    return _ifModifiedSinceCache;
+    ifModifiedSinceCache = parseHttpDate(headers['if-modified-since']!);
+    return ifModifiedSinceCache;
   }
 
-  DateTime? _ifModifiedSinceCache;
-
-  /// The [contentLength] getter is used to get the content length of the request
+  @override
   int get contentLength => original.contentLength;
-
-  /// The [encoding] property contains the encoding of the request
-  Encoding? get encoding {
-    var contentType = this.contentType;
-    if (!contentType.parameters.containsKey('charset')) {
-      return null;
-    }
-    return Encoding.getByName(contentType.parameters['charset']);
-  }
 
   /// The [Request] constructor is used to create a new instance of the [Request] class
   InternalRequest({
@@ -141,6 +211,7 @@ class InternalRequest {
   /// ``` dart
   /// String body = await request.body();
   /// ```
+  @override
   Future<String> body() async {
     List<int> data = [];
     await for (var part in original) {
@@ -156,6 +227,7 @@ class InternalRequest {
   /// ``` dart
   /// dynamic json = await request.json();
   /// ```
+  @override
   Future<dynamic> json() async {
     if (encoding == null || (encoding != null && encoding!.name == 'utf-8')) {
       try {
@@ -178,6 +250,7 @@ class InternalRequest {
 
   /// This method is used to get the body of the request as a [Uint8List]
   /// it is used internally by the [body], the [json] and the [stream] methods
+  @override
   Uint8List bytes() {
     try {
       return _bytes!;
@@ -187,6 +260,7 @@ class InternalRequest {
   }
 
   /// This method is used to get the body of the request as a [Stream<List<int>>]
+  @override
   Future<Stream<List<int>>> stream() async {
     try {
       return Stream.value(List<int>.from(_bytes!));
@@ -195,7 +269,19 @@ class InternalRequest {
     }
   }
 
+  Future<FormData> formData() async {
+    if (contentType.isMultipart) {
+      return FormData.parseMultipart(request: original);
+    } else if (contentType.isUrlEncoded) {
+      final body = await this.body();
+      return FormData.parseUrlEncoded(body);
+    } else {
+      throw BadRequestException('The content type is not supported for form data');
+    }
+  }
+
   /// This getter is used to check if the request is a web socket request
+  @override
   bool get isWebSocket {
     if (method != 'GET') {
       return false;
@@ -237,4 +323,8 @@ class InternalRequest {
     webSocketKey = key;
     return true;
   }
+  
+  @override
+  String get hostname => original.headers.value('Host')?.split(':').first ?? '';
+  
 }

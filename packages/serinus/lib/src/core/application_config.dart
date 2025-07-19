@@ -4,13 +4,11 @@ import 'package:uuid/v4.dart';
 
 import '../adapters/adapters.dart';
 import '../containers/adapter_container.dart';
-import '../containers/hooks_container.dart';
 import '../containers/model_provider.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../services/tracers_service.dart';
 import '../versioning.dart';
-import 'hook.dart';
 import 'tracer.dart';
 
 /// The configuration for the application
@@ -106,19 +104,11 @@ final class ApplicationConfig {
   /// E.g. [SseAdapter], [WsAdapter], etc.
   final AdapterContainer adapters = AdapterContainer();
 
-  /// The hooks container for the application
-  final HooksContainer hooks = HooksContainer();
-
   /// The model provider for the application
   final ModelProvider? modelProvider;
 
   /// The tracer for the application
   final TracersService tracerService = TracersService();
-
-  /// Add a hook to the application
-  void addHook(Hook hook) {
-    hooks.addHook(hook);
-  }
 
   /// Register a tracer to the application
   void registerTracer(Tracer tracer) {

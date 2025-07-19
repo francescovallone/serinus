@@ -7,21 +7,23 @@ import 'http.dart';
 
 /// The class [Request] is used to create a request object.
 ///
-/// It is a wrapper around the [InternalRequest] object.
+/// It is a wrapper around the [ParsableRequest] object.
 class Request {
-  /// The original [InternalRequest] object.
-  final InternalRequest _original;
+  /// The original [ParsableRequest] object.
+  final ParsableRequest _original;
 
   /// The [Request] constructor is used to create a new instance of the [Request] class.
   ///
-  /// It accepts an [InternalRequest] object and an optional [params] parameter.
+  /// It accepts an [ParsableRequest] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
-  Request(this._original);
+  Request(this._original, [Map<String, dynamic> params = const {}]) {
+    this.params = params;
+  }
 
   /// This method is used to set the parameters of the request.
   set params(Map<String, dynamic> params) {
-    this.params.addAll(params);
+    _params.addAll(params);
   }
 
   /// The id of the request.
@@ -115,8 +117,7 @@ class Request {
 
     /// If the content type is multipart, it will parse the body as a multipart form data.
     if (contentType.isMultipart) {
-      final formData =
-          await FormData.parseMultipart(request: _original.original);
+      final formData = await _original.formData();
       body = Body(contentType, formData: formData);
       return;
     }

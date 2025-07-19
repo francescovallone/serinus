@@ -1,3 +1,4 @@
+import '../containers/hooks_container.dart';
 import '../enums/http_method.dart';
 import 'core.dart';
 
@@ -13,7 +14,7 @@ class Route implements Hookable {
   int? get version => null;
 
   /// The [Route] constructor is used to create a new instance of the [Route] class.
-  const Route({
+  Route({
     required this.path,
     required this.method,
     this.metadata = const [],
@@ -21,6 +22,9 @@ class Route implements Hookable {
 
   /// The [metadata] getter is used to get the List of [Metadata] of the route.
   final List<Metadata> metadata;
+
+  /// The [hooksServices] getter is used to get the Map of hooks services.
+  final HooksContainer hooksContainer = HooksContainer();
 
   /// The [Route.get] factory constructor is used to create a new instance of the [Route] class with the GET method.
   factory Route.get(String path, {List<Metadata> metadata = const []}) {

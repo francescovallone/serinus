@@ -1,21 +1,30 @@
+import '../containers/injection_token.dart';
+import '../containers/serinus_container.dart';
+import '../contexts/route_context.dart';
 import '../core/core.dart';
+import '../enums/http_method.dart';
 import '../enums/versioning_type.dart';
+import '../global_prefix.dart';
 import '../services/logger_service.dart';
-import 'injection_token.dart';
-import 'module_container.dart';
+import '../versioning.dart';
 import 'router.dart';
 
-/// The [Explorer] class is used to explore the routes of the application.
-final class Explorer {
-  final ModulesContainer _modulesContainer;
+/// The [RoutesExplorer] class is used to explore the routes of the application.
+final class RoutesExplorer {
+
+  final SerinusContainer _container;
+
   final Router _router;
+
+  final VersioningOptions? _versioningOptions;
+
+  final GlobalPrefix? _globalPrefix;
 
   /// The [ApplicationConfig] object.
   /// It is used to get the global prefix and the versioning options.
-  final ApplicationConfig config;
 
-  /// The [Explorer] constructor is used to create a new instance of the [Explorer] class.
-  const Explorer(this._modulesContainer, this._router, this.config);
+  /// The [RoutesExplorer] constructor is used to create a new instance of the [RoutesExplorer] class.
+  const RoutesExplorer(this._container, this._router, [this._versioningOptions, this._globalPrefix]);
 
   /// The [resolveRoutes] method is used to resolve the routes of the application.
   ///
@@ -23,7 +32,7 @@ final class Explorer {
   void resolveRoutes() {
     final Logger logger = Logger('RoutesResolver');
     Map<Controller, _ControllerSpec> controllers = {
-      for (final record in _modulesContainer.controllers)
+      for (final record in _container.modulesContainer.controllers)
         record.controller:
             _ControllerSpec(record.controller.path, record.module)
     };
@@ -32,42 +41,47 @@ final class Explorer {
         throw Exception('Invalid controller path: ${controller.value.path}');
       }
       logger.info('${controller.key.runtimeType} {${controller.value.path}}');
-      exploreRoutes(
+      explore(
           controller.key, controller.value.module, controller.value.path);
     }
   }
 
-  /// The [exploreRoutes] method is used to explore the routes of the controller.
+  /// The [explore] method is used to explore the routes of the controller.
   ///
   /// It registers the routes in the router.
   /// It also logs the mapped routes.
-  void exploreRoutes(
+  void explore(
       Controller controller, Module module, String controllerPath) {
     final logger = Logger('RoutesExplorer');
     final routes = controller.routes;
-    final maybeUriVers = config.versioningOptions?.type == VersioningType.uri;
+    final versioningEnabled = _versioningOptions?.type == VersioningType.uri;
     for (var entry in routes.entries) {
       final spec = entry.value;
       String routePath = '$controllerPath${spec.route.path}';
-      if (maybeUriVers) {
-        routePath =
-            'v${spec.route.version ?? config.versioningOptions?.version}/$routePath';
+      if (versioningEnabled) {
+        routePath ='v${spec.route.version ?? _versioningOptions?.version}/$routePath';
       }
-      if (config.globalPrefix != null) {
-        routePath = '${config.globalPrefix?.prefix}/$routePath';
+      if (_globalPrefix != null) {
+        routePath = '${_globalPrefix.prefix}/$routePath';
       }
       routePath = normalizePath(routePath);
+      final moduleToken = InjectionToken.fromModule(module);
+      final moduleScope = _container.modulesContainer.getScope(moduleToken);
       final routeMethod = spec.route.method;
-      _router.registerRoute(RouteData(
-        id: entry.key,
-        path: routePath,
-        controller: controller,
-        routeCls: spec.route.runtimeType,
-        method: routeMethod,
-        moduleToken: InjectionToken.fromModule(module),
-        isStatic: spec.handler is! Function,
-        spec: spec,
-      ));
+      _router.registerRoute(
+        RouteContext(
+          id: entry.key,
+          path: routePath,
+          controller: controller,
+          routeCls: spec.route.runtimeType,
+          method: routeMethod,
+          moduleToken: moduleToken,
+          isStatic: spec.handler is! Function,
+          spec: spec,
+          moduleScope: moduleScope,
+          hooksServices: _container.globalHooks.services,
+        )
+      );
       logger.info('Mapped {$routePath, $routeMethod} route');
     }
   }
@@ -88,6 +102,10 @@ final class Explorer {
     }
     return path;
   }
+
+  dynamic prepareRequestRespons
+
+
 }
 
 class _ControllerSpec {

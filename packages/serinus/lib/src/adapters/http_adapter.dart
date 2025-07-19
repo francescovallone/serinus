@@ -3,7 +3,6 @@ import 'dart:io';
 import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
-import '../http/internal_request.dart';
 import '../http/internal_response.dart';
 import 'server_adapter.dart';
 
@@ -45,18 +44,12 @@ abstract class HttpAdapter<TServer> extends Adapter<TServer> {
   Future<void> close();
 
   @override
-  Future<void> listen(RequestCallback requestCallback,
-      {InternalRequest? request, ErrorHandler? errorHandler});
-
-  /// The [process] method is used to process the request and response.
-  /// It takes the [config] as a parameter and will generate the [RequestContext].
-  Future<({
-    RequestContext context,
-    dynamic body
-  })> process({
-    InternalRequest? request,
-    ErrorHandler? errorHandler,
-  });
+  Future<void> listen(
+    {
+      required RequestCallback onRequest,
+      ErrorHandler? onError,
+    }
+  );
   
   /// The [reply] method is used to send a response to the client.
   /// It takes the [response], [body], [context], and [config] as parameters.

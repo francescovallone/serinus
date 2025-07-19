@@ -1,10 +1,13 @@
 import 'package:spanner/spanner.dart';
 
+import '../containers/injection_token.dart';
+import '../contexts/route_context.dart';
 import '../core/controller.dart';
 import '../core/metadata.dart';
 import '../enums/http_method.dart';
 import '../versioning.dart';
-import 'injection_token.dart';
+
+typedef RouteInformation = ({RouteContext? route, Map<String, dynamic> params});
 
 /// The [Router] class is used to create the router in the application.
 final class Router {
@@ -12,15 +15,15 @@ final class Router {
   final VersioningOptions? versioningOptions;
 
   /// The [Router] constructor is used to create a new instance of the [Router] class.
-  Router({this.versioningOptions});
+  Router([this.versioningOptions]);
 
   final Spanner _routeTree = Spanner();
 
   /// The [registerRoute] method is used to register a route in the router.
-  void registerRoute(RouteData routeData) {
+  void registerRoute(RouteContext context) {
     String path =
-        !routeData.path.startsWith('/') ? '/${routeData.path}' : routeData.path;
-    _routeTree.addRoute(getHttpMethod(routeData.method), path, routeData);
+        !context.path.startsWith('/') ? '/${context.path}' : context.path;
+    _routeTree.addRoute(getHttpMethod(context.method), path, context);
   }
 
   /// The [getRouteByPathAndMethod] method is used to get the route by path and method.
@@ -29,7 +32,7 @@ final class Router {
   /// The [method] parameter is the method of the route.
   ///
   /// The method will return the route data and the parameters of the route.
-  ({RouteData? route, Map<String, dynamic> params}) getRouteByPathAndMethod(
+  ({RouteContext? route, Map<String, dynamic> params}) checkRouteByPathAndMethod(
       String path, HttpMethod method) {
     final result = _routeTree.lookup(getHttpMethod(method), Uri.parse(path));
     return (route: result?.values.firstOrNull, params: result?.params ?? {});

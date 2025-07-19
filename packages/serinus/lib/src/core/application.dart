@@ -3,15 +3,12 @@ import 'dart:io';
 import 'package:meta/meta.dart';
 
 import '../adapters/adapters.dart';
-import '../containers/explorer.dart';
-import '../containers/module_container.dart';
-import '../containers/router.dart';
+import '../containers/serinus_container.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../global_prefix.dart';
-import '../handlers/handler.dart';
-import '../http/http.dart';
 import '../mixins/mixins.dart';
+import '../routes/routes_resolver.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
 import 'core.dart';
@@ -25,11 +22,12 @@ abstract class Application {
   final Module entrypoint;
   bool _enableShutdownHooks = false;
 
-  /// The [modulesContainer] property contains the modules container of the application.
-  ModulesContainer modulesContainer;
+  /// The [container] property contains the Serinus container of the application.
+  /// It is used to access the modules and their dependencies and also the adapters.
+  final SerinusContainer container;
 
-  /// The [router] property contains the router of the application.
-  Router router;
+  /// The [RoutesResolver] property contains the resolver of the application.
+  late final RoutesResolver routesResolver;
 
   /// The [config] property contains the application configuration.
   final ApplicationConfig config;
@@ -39,11 +37,9 @@ abstract class Application {
     required this.entrypoint,
     required this.config,
     Set<LogLevel>? levels,
-    Router? router,
-    ModulesContainer? modulesContainer,
     LoggerService? logger,
-  })  : router = router ?? Router(),
-        modulesContainer = modulesContainer ?? ModulesContainer(config) {
+  })  : container = SerinusContainer(config, config.serverAdapter) {
+    routesResolver = RoutesResolver(container);
     if (logger != null) {
       Logger.overrideLogger(logger);
     }
@@ -56,10 +52,7 @@ abstract class Application {
   String get url;
 
   /// The [server] property contains the server of the application.
-  HttpServer get server => config.serverAdapter.server;
-
-  /// The [adapter] property contains the adapter of the application.
-  SerinusHttpAdapter get adapter => config.serverAdapter as SerinusHttpAdapter;
+  HttpAdapter get server => config.serverAdapter;
 
   /// The [enableShutdownHooks] method is used to enable the shutdown hooks.
   void enableShutdownHooks() {
@@ -100,8 +93,6 @@ class SerinusApplication extends Application {
     required super.config,
     super.levels,
     super.logger,
-    super.router,
-    super.modulesContainer,
   });
 
   @override
@@ -135,39 +126,24 @@ class SerinusApplication extends Application {
   Future<void> serve() async {
     await initialize();
     _logger.info('Starting server on $url');
-    final requestHandler = adapter.getHandler(modulesContainer, config, router);
-    final handlers = <Type, Handler>{};
-    for (final adapter in config.adapters.values) {
-      final handler = adapter.getHandler(modulesContainer, config, router);
-      handlers[adapter.runtimeType] = handler;
-    }
-    Future<void> Function(InternalRequest, InternalResponse) handler;
     try {
-      for (final adapter in config.adapters.values) {
-        if (adapter.shouldBeInitilized) {
-          await adapter.init(modulesContainer, config);
-        }
-      }
-      adapter.listen(
-        (request, response) {
-          handler = requestHandler.handle;
-          if (config.adapters.isNotEmpty) {
-            for (final adapter in config.adapters.values) {
-              if (adapter.canHandle(request) && adapter.name != 'http') {
-                handler = handlers[adapter.runtimeType]!.handle;
-                break;
-              }
-            }
-          }
-          return handler(request, response);
+      server.listen(
+        onRequest: (request, response) => routesResolver.handle(
+          request,
+          response,
+        ),
+        onError: (e, stackTrace) {
+          _logger.severe(
+            'Error occurred while handling request', 
+            OptionalParameters(
+              error: e,
+              stackTrace: stackTrace,
+            ),
+          );
+          return null; // Handle error as needed
         },
-        errorHandler: (e, stackTrace) =>
-            _logger.severe(e, OptionalParameters(stackTrace: stackTrace)),
       );
-      final providers = modulesContainer.getAll<OnApplicationReady>();
-      for (final provider in providers) {
-        await provider.onApplicationReady();
-      }
+      await container.emitHook<OnApplicationReady>();
     } on SocketException catch (e) {
       _logger.severe('Failed to start server on ${e.address}:${e.port}');
       await close();
@@ -185,36 +161,29 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> initialize() async {
+    final modulesContainer = container.modulesContainer;
     if (!modulesContainer.isInitialized) {
       await modulesContainer.registerModules(entrypoint);
     }
-    final explorer = Explorer(modulesContainer, router, config);
-    explorer.resolveRoutes();
+    routesResolver.resolve();
     await modulesContainer.finalize(entrypoint);
-    final registeredProviders =
-        modulesContainer.getAll<OnApplicationBootstrap>();
-    for (final provider in registeredProviders) {
-      await provider.onApplicationBootstrap();
-    }
+    await container.emitHook<OnApplicationBootstrap>();
   }
 
   @override
   Future<void> shutdown() async {
     _logger.info('Shutting down server');
-    final providers = modulesContainer.getAll<OnApplicationShutdown>();
-    for (final provider in providers) {
-      await provider.onApplicationShutdown();
-    }
+    await container.emitHook<OnApplicationShutdown>();
   }
 
   @override
   Future<void> register() async {
-    await modulesContainer.registerModules(entrypoint);
+    container.modulesContainer.registerModules(entrypoint);
   }
 
   /// The [use] method is used to add a hook to the application.
   void use(Hook hook) {
-    config.addHook(hook);
+    container.globalHooks.addHook(hook);
     _logger.info('Hook ${hook.runtimeType} added to application');
   }
 

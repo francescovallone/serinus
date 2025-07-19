@@ -1,18 +1,16 @@
 import 'dart:async';
 
-import '../containers/module_container.dart';
-import '../containers/router.dart';
-import '../core/core.dart';
-import '../handlers/handler.dart';
-import '../http/internal_request.dart';
-import '../http/internal_response.dart';
+import '../../serinus.dart';
 
 /// The [RequestCallback] type is used to define the request callback.
 typedef RequestCallback = Future<void> Function(
-    InternalRequest request, InternalResponse response);
+    Request request, InternalResponse response);
 
 /// The [ErrorHandler] type is used to define the error handler.
-typedef ErrorHandler = void Function(dynamic e, StackTrace stackTrace);
+typedef ErrorHandler = Object? Function(dynamic e, StackTrace stackTrace);
+
+/// The [NotFoundHandler] type is used to define the not found handler.
+typedef NotFoundHandler = SerinusException? Function();
 
 /// The [Adapter] class is used to create a new adapter.
 abstract class Adapter<TServer> {
@@ -33,9 +31,6 @@ abstract class Adapter<TServer> {
   /// If true the application will also initialize the adapter.
   bool get shouldBeInitilized;
 
-  /// The [canHandle] method is used to determine if the adapter can handle the request.
-  bool canHandle(InternalRequest request) => true;
-
   /// The [init] method is used to initialize the server.
   Future<void> init(ModulesContainer container, ApplicationConfig config);
 
@@ -44,12 +39,10 @@ abstract class Adapter<TServer> {
 
   /// The [listen] method is used to listen for requests.
   Future<void> listen(
-    covariant dynamic requestCallback, {
-    InternalRequest request,
-    ErrorHandler? errorHandler,
-  });
+    {
+      required RequestCallback onRequest,
+      ErrorHandler? onError,
+    }
+  );
 
-  /// The [getHandler] method is used to get the handler for the adapter.
-  Handler getHandler(
-      ModulesContainer container, ApplicationConfig config, Router router);
 }

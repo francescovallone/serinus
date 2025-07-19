@@ -87,16 +87,16 @@ class CorsHook extends Hook
   }
 
   @override
-  Future<void> onRequest(Request request, InternalResponse response) async {
+  Future<void> onRequest(Request request, ResponseProperties properties) async {
     if (request.method == 'OPTIONS') {
-      response.headers({
+      properties.headers.addAll({
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age': '86400',
       });
-      response.status(200);
-      response.send();
+      properties.statusCode = 200;
+      properties.close();
       return;
     }
     return;

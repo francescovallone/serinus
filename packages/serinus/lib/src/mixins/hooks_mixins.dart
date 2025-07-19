@@ -5,7 +5,7 @@ import '../http/http.dart';
 /// The [OnRequestResponse] mixin is used to execute code before and after the request is handled
 mixin OnRequestResponse on Hook {
   /// The [onRequest] method is used to execute code before the request is handled
-  Future<void> onRequest(Request request, InternalResponse response) async {}
+  Future<void> onRequest(Request request, ResponseProperties properties) async {}
 
   /// The [onResponse] method is used to execute code before the response is sent
   Future<void> onResponse(

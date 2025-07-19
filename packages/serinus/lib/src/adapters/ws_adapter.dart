@@ -6,7 +6,6 @@ import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../containers/module_container.dart';
-import '../containers/router.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../handlers/handler.dart';
@@ -35,36 +34,9 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   void addContext(String key, WebSocketContext context) {
     _contexts[key] = context;
   }
-
-  @override
-  bool canHandle(InternalRequest request) {
-    return request.isWebSocket;
-  }
-
+  
   @override
   bool get isOpen => _isOpen;
-
-  @override
-  Future<void> listen(List<WsRequestHandler> requestCallback,
-      {InternalRequest? request,
-      List<DisconnectHandler>? onDone,
-      ErrorHandler? errorHandler}) async {
-    final wsClient = server?[request?.webSocketKey];
-    wsClient?.listen((data) {
-      for (var handler in requestCallback) {
-        handler(data, _contexts[request?.webSocketKey]!);
-      }
-    }, onDone: () {
-      if (onDone != null) {
-        for (var done in onDone) {
-          if (done.onDone == null) {
-            return;
-          }
-          done.onDone?.call(done.clientId);
-        }
-      }
-    }, onError: errorHandler);
-  }
 
   @override
   Future<void> close() async {
@@ -123,10 +95,10 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
 
   @override
   bool get shouldBeInitilized => false;
-
+  
   @override
-  Handler getHandler(
-      ModulesContainer container, ApplicationConfig config, Router router) {
-    return WebSocketHandler(router, container, config);
+  Future<void> listen({required RequestCallback onRequest, ErrorHandler? onError}) {
+    
   }
+
 }

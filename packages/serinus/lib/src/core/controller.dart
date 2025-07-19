@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:uuid/v4.dart';
 
+import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import 'metadata.dart';
 import 'parse_schema.dart';
@@ -37,6 +38,8 @@ abstract class Controller {
   RouteHandler? get(String routeId) {
     return _routes[routeId];
   }
+
+  HooksContainer get hooksContainer => HooksContainer();
 
   /// The [metadata] property contains the metadata of the controller.
   List<Metadata> get metadata => [];

@@ -1,8 +1,11 @@
 
+import '../../serinus.dart';
+import '../adapters/http_adapter.dart';
 import '../core/application_config.dart';
 import '../inspector/inspector.dart';
+import '../mixins/provider_mixins.dart';
+import 'hooks_container.dart';
 import 'module_container.dart';
-import 'router.dart';
 
 /// The [SerinusContainer] is the main container of the Serinus Framework.
 class SerinusContainer {
@@ -20,16 +23,37 @@ class SerinusContainer {
   /// It contains the application settings and it is used to configure the application.
   final ApplicationConfig config;
 
-  /// The [router] is the router of the application.
-  /// It is used to define the routes of the application and to handle the requests.
-  final Router router = Router();
-
   /// The [SerinusContainer] constructor is used to create a new instance of the [SerinusContainer] class.
   /// It initializes the [modulesContainer] and the [inspector].
-  SerinusContainer(this.config) {
+  SerinusContainer(this.config, this.applicationRef) {
     modulesContainer = ModulesContainer(config);
     inspector = GraphInspector(SerializedGraph(), modulesContainer);
   }
-  
+
+  final HooksContainer globalHooks = HooksContainer();
+
+  final HttpAdapter applicationRef;
+
+  Future<void> emitHook<T extends Provider>() async {
+    final providers = modulesContainer.getAll<T>();
+    for (final provider in providers) {
+      switch (provider) {
+        case OnApplicationReady():
+          await provider.onApplicationReady();
+          break;
+        case OnApplicationShutdown():
+          await provider.onApplicationShutdown();
+          break;
+        case OnApplicationBootstrap():
+          await provider.onApplicationBootstrap();
+          break;
+        case OnApplicationInit():
+          await provider.onApplicationInit();
+          break;
+        default:
+          break;
+      }
+    }
+  }
 
 }

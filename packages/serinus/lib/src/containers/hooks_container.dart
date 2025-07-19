@@ -36,4 +36,16 @@ final class HooksContainer {
       services[hook.service!.runtimeType] = hook.service!;
     }
   }
+
+  HooksContainer merge(List<HooksContainer> containers) {
+    final merged = HooksContainer();
+    for (final container in containers) {
+      merged.reqResHooks.addAll(container.reqResHooks);
+      merged.beforeHooks.addAll(container.beforeHooks);
+      merged.afterHooks.addAll(container.afterHooks);
+      merged.exceptionHooks.addAll(container.exceptionHooks);
+      merged.services.addAll(container.services);
+    }
+    return merged;
+  }
 }

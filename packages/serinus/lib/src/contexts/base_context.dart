@@ -8,14 +8,14 @@ abstract class BaseContext {
   final Map<Type, Provider> providers;
 
   /// The [services] property contains the services provided by the hooks to the context.
-  final Map<Type, Object> services;
+  final Map<Type, Object> hooksServices;
 
   /// The constructor of the [BaseContext] class.
-  const BaseContext(this.providers, this.services);
+  const BaseContext(this.providers, this.hooksServices);
 
   /// The [canUse] method is used to check if a provider exists in the context.
   bool canUse<T>() {
-    return providers.containsKey(T) || services.containsKey(T);
+    return providers.containsKey(T) || hooksServices.containsKey(T);
   }
 
   /// This method is used to retrieve a provider from the context.
@@ -23,6 +23,6 @@ abstract class BaseContext {
     if (!canUse<T>()) {
       throw StateError('Provider or service not found in request context');
     }
-    return (providers[T] ?? services[T]) as T;
+    return (providers[T] ?? hooksServices[T]) as T;
   }
 }

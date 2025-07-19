@@ -4,7 +4,6 @@ export 'src/adapters/adapters.dart';
 export 'src/constants.dart';
 export 'src/containers/model_provider.dart';
 export 'src/containers/module_container.dart';
-export 'src/containers/router.dart';
 export 'src/contexts/contexts.dart';
 export 'src/core/core.dart';
 export 'src/engines/view_engine.dart';

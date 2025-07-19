@@ -3,6 +3,7 @@ import 'dart:io';
 import '../core/core.dart';
 import '../http/http.dart';
 import 'base_context.dart';
+import 'route_context.dart';
 
 /// The [RequestContext] class is used to create the request context.
 class RequestContext extends BaseContext {
@@ -34,10 +35,23 @@ class RequestContext extends BaseContext {
 
   /// The constructor of the [RequestContext] class.
   RequestContext(
-      super.providers, super.services, this.request, this._streamable);
+    this.request,
+    super.providers,
+    super.hooksServices,
+  );
 
-  /// The [streamable] property contains the streamable response of the request.
-  final StreamableResponse _streamable;
+  /// The [RequestContext.fromRouteContext] constructor is used to create a new instance of the [RequestContext] class
+  /// from a [RouteContext].
+  RequestContext.fromRouteContext(
+    this.request,
+    RouteContext routeContext,
+  ) : super(
+    {
+      for (var provider in routeContext.moduleScope.providers)
+        provider.runtimeType: provider,
+    },
+    routeContext.hooksServices,
+  );
 
   /// The [metadata] property contains the metadata of the request context.
   ///
@@ -70,10 +84,6 @@ class RequestContext extends BaseContext {
   /// The [redirect] property uses a [Redirect] class to create the redirect response.
   ResponseProperties res = ResponseProperties();
 
-  /// The [stream] method is used to stream data to the response.
-  StreamableResponse stream() {
-    return _streamable;
-  }
 }
 
 /// The [Redirect] class is used to create the redirect response.
@@ -109,46 +119,119 @@ final class ResponseProperties {
   }
 
   /// The [contentType] property contains the content type of the response.
-  ContentType? contentType;
+  ContentType? _contentType;
 
   /// The [contentLength] property contains the content length of the response.
-  int? contentLength;
+  int? _contentLength;
 
   /// The [headers] property contains the headers of the response.
-  final Map<String, String> headers = {};
+  final Map<String, String> _headers = {};
 
-  /// The [redirect] property contains the redirect of the response.
-  Redirect? redirect;
+  Map<String, String> get headers => _headers;
 
   /// The [cookies] property contains the cookies that should be sent back to the client.
-  List<Cookie> cookies = [];
+  final List<Cookie> _cookies = [];
+
+  List<Cookie> get cookies => _cookies;
+
+  void addCookie(Cookie cookie) {
+    if (_closed) {
+      throw StateError('Response properties have been closed and cannot be modified.');
+    }
+    _cookies.add(cookie);
+  }
+  
+  void addCookies(List<Cookie> cookies) {
+    if (_closed) {
+      throw StateError('Response properties have been closed and cannot be modified.');
+    }
+    _cookies.addAll(cookies);
+  }
+
+  void addHeader(String name, String value) {
+    if (_closed) {
+      throw StateError('Response properties have been closed and cannot be modified.');
+    }
+    _headers[name] = value;
+  }
+
+  void addHeaders(Map<String, String> headers) {
+    if (_closed) {
+      throw StateError('Response properties have been closed and cannot be modified.');
+    }
+    _headers.addAll(headers);
+  }
+
+  set contentType(ContentType? contentType) {
+    if (_closed) {
+      throw StateError('Response properties have been closed and cannot be modified.');
+    }
+    _contentType = contentType;
+    if (contentType != null) {
+      _headers[HttpHeaders.contentTypeHeader] = contentType.toString();
+    } else {
+      _headers.remove(HttpHeaders.contentTypeHeader);
+    }
+  }
+
+  ContentType? get contentType => _contentType;
+
+  set contentLength(int? contentLength) {
+    if (_closed) {
+      throw StateError('Response properties have been closed and cannot be modified.');
+    }
+    _contentLength = contentLength;
+    if (contentLength != null) {
+      _headers[HttpHeaders.contentLengthHeader] = contentLength.toString();
+    } else {
+      _headers.remove(HttpHeaders.contentLengthHeader);
+    }
+  }
+
+  int? get contentLength => _contentLength;
 
   /// The [ResponseProperties] constructor.
   ResponseProperties({
-    this.contentType,
-    this.contentLength,
-    this.redirect,
+    ContentType? contentType,
+    int? contentLength,
     List<Cookie> cookies = const [],
   }) {
-    headers.addAll({
+    _contentType = contentType;
+    _contentLength = contentLength;
+    _headers.addAll({
       HttpHeaders.contentTypeHeader: contentType?.toString() ?? ContentType.text.toString(),
       HttpHeaders.contentLengthHeader: contentLength?.toString() ?? '0',
     });
-    this.cookies.addAll(cookies);
+    _cookies.addAll(cookies);
   }
 
   /// The [change] method is used to force change the response properties.
   ResponseProperties change({
     ContentType? contentType,
     int? contentLength,
-    Redirect? redirect,
     List<Cookie>? cookies,
   }) {
+    if (_closed) {
+      throw StateError('Response properties have been closed and cannot be modified.');
+    }
     return ResponseProperties(
       contentType: contentType ?? this.contentType,
       contentLength: contentLength ?? this.contentLength,
-      redirect: redirect ?? this.redirect,
       cookies: cookies ?? this.cookies,
     );
+  }
+
+  bool _closed = false;
+
+  /// The [closed] property indicates if the response properties have been closed.
+  bool get closed => _closed;
+
+  /// The [close] method is used to close the response properties.
+  /// This method should be called when the response will be sent back to the client forcefully without completing the request.
+  /// It prevents further modifications to the response properties.
+  void close() {
+    if (!_closed) {
+      _closed = true;
+    }
   }
 }
