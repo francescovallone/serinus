@@ -100,7 +100,7 @@ class SerinusApplication extends Application {
 
   /// The [viewEngine] method is used to set the view engine of the application.
   set viewEngine(ViewEngine viewEngine) {
-    config.viewEngine = viewEngine;
+    container.applicationRef.viewEngine = viewEngine;
   }
 
   /// The [versioning] setter is used to enable versioning.

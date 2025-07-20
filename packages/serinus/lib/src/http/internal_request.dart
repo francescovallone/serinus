@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 
+import '../../serinus.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/content_type_extensions.dart';
@@ -16,38 +17,51 @@ import 'session.dart';
 
 final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
-/// The [ParsableRequest] interface defines the methods and properties that a request must implement.
+/// The [IncomingMessage] interface defines the methods and properties that a request must implement.
 /// It is used to parse the request and provide access to its properties.
-abstract class ParsableRequest {
-    /// The id of the request.
+abstract class IncomingMessage {
+
+  /// The id of the request.
   String get id;
+  
   /// The path of the request.
   String get path;
+
   /// The uri of the request.
   Uri get uri;
+
   /// The method of the request.
   String get method;
+
   /// The headers of the request.
   SerinusHeaders get headers;
+
   /// The query parameters of the request.
   Map<String, String> get queryParameters;
+
   /// The port of the request.
   Session get session;
+
   /// The client info of the request.
   HttpConnectionInfo? get clientInfo;
+
   /// The content type of the request.
   ContentType get contentType;
+
   /// The host of the request.
   String get host;
+
   /// The hostname of the request.
   String get hostname;
+
   /// The cookies of the request.
   List<Cookie> get cookies;
+
   /// The port of the request.
   int get port;
+
   /// The segments of the request path splitted by slashes.
   List<String> get segments;
-  
 
   /// This method is used to get the body of the request as a [String]
   Future<String> body();
@@ -117,7 +131,7 @@ abstract class ParsableRequest {
 /// The class Request is used to handle the request
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
 
-class InternalRequest extends ParsableRequest {
+class InternalRequest extends IncomingMessage {
 
   @override
   final String id;
@@ -165,7 +179,7 @@ class InternalRequest extends ParsableRequest {
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
   factory InternalRequest.from(HttpRequest request, int port, String host) {
     return InternalRequest(
-        headers: SerinusHeaders(request),
+        headers: SerinusHeaders(request.headers.toMap()),
         original: request,
         port: port,
         host: host);
@@ -269,6 +283,7 @@ class InternalRequest extends ParsableRequest {
     }
   }
 
+  @override
   Future<FormData> formData() async {
     if (contentType.isMultipart) {
       return FormData.parseMultipart(request: original);

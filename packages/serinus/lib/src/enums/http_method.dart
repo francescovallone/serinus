@@ -28,6 +28,32 @@ enum HttpMethod {
   String toString() {
     return name.toUpperCase();
   }
+
+  /// Parses a string to return the corresponding [HttpMethod]
+  static HttpMethod parse(String method) {
+    switch (method.toUpperCase()) {
+      case 'POST':
+      case 'post':
+        return HttpMethod.post;
+      case 'PUT':
+      case 'put':
+        return HttpMethod.put;
+      case 'DELETE':
+      case 'delete':
+        return HttpMethod.delete;
+      case 'PATCH':
+      case 'patch':
+        return HttpMethod.patch;
+      case 'HEAD':
+      case 'head':
+        return HttpMethod.head;
+      case 'OPTIONS':
+      case 'options':
+        return HttpMethod.options;
+      default:
+        return HttpMethod.get;
+    }
+  }
 }
 
 /// Extension method to convert a string to a [Method]

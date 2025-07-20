@@ -2,7 +2,6 @@ import '../containers/injection_token.dart';
 import '../containers/serinus_container.dart';
 import '../contexts/route_context.dart';
 import '../core/core.dart';
-import '../enums/http_method.dart';
 import '../enums/versioning_type.dart';
 import '../global_prefix.dart';
 import '../services/logger_service.dart';
@@ -103,7 +102,7 @@ final class RoutesExplorer {
     return path;
   }
 
-  dynamic prepareRequestRespons
+  
 
 
 }

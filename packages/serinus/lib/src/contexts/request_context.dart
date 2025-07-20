@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../core/core.dart';
+import '../enums/enums.dart';
 import '../http/http.dart';
 import 'base_context.dart';
 import 'route_context.dart';
@@ -38,7 +39,9 @@ class RequestContext extends BaseContext {
     this.request,
     super.providers,
     super.hooksServices,
-  );
+  ) {
+    res.statusCode = request.method == HttpMethod.post ? HttpStatus.created : HttpStatus.ok;
+  }
 
   /// The [RequestContext.fromRouteContext] constructor is used to create a new instance of the [RequestContext] class
   /// from a [RouteContext].
@@ -125,15 +128,18 @@ final class ResponseProperties {
   int? _contentLength;
 
   /// The [headers] property contains the headers of the response.
-  final Map<String, String> _headers = {};
+  final SerinusHeaders _headers = SerinusHeaders({});
 
-  Map<String, String> get headers => _headers;
+  /// The [headers] getter is used to get the headers of the response.
+  SerinusHeaders get headers => _headers;
 
   /// The [cookies] property contains the cookies that should be sent back to the client.
   final List<Cookie> _cookies = [];
 
+  /// The [cookies] getter is used to get the cookies of the response.
   List<Cookie> get cookies => _cookies;
 
+  /// The [addCookie] method is used to add a cookie to the response.
   void addCookie(Cookie cookie) {
     if (_closed) {
       throw StateError('Response properties have been closed and cannot be modified.');
@@ -141,6 +147,7 @@ final class ResponseProperties {
     _cookies.add(cookie);
   }
   
+  /// The [addCookies] method is used to add multiple cookies to the response.
   void addCookies(List<Cookie> cookies) {
     if (_closed) {
       throw StateError('Response properties have been closed and cannot be modified.');
@@ -148,6 +155,7 @@ final class ResponseProperties {
     _cookies.addAll(cookies);
   }
 
+  /// The [addHeader] method is used to add a header to the response.
   void addHeader(String name, String value) {
     if (_closed) {
       throw StateError('Response properties have been closed and cannot be modified.');
@@ -155,6 +163,7 @@ final class ResponseProperties {
     _headers[name] = value;
   }
 
+  /// The [addHeaders] method is used to add multiple headers to the response.
   void addHeaders(Map<String, String> headers) {
     if (_closed) {
       throw StateError('Response properties have been closed and cannot be modified.');
@@ -174,6 +183,7 @@ final class ResponseProperties {
     }
   }
 
+  /// The [contentType] getter is used to get the content type of the response.
   ContentType? get contentType => _contentType;
 
   set contentLength(int? contentLength) {
@@ -188,6 +198,7 @@ final class ResponseProperties {
     }
   }
 
+  /// The [contentLength] getter is used to get the content length of the response.
   int? get contentLength => _contentLength;
 
   /// The [ResponseProperties] constructor.

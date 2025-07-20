@@ -3,8 +3,8 @@ import 'dart:async';
 import '../../serinus.dart';
 
 /// The [RequestCallback] type is used to define the request callback.
-typedef RequestCallback = Future<void> Function(
-    Request request, InternalResponse response);
+typedef RequestCallback<TRequest, TResponse> = Future<void> Function(
+    TRequest request, TResponse response);
 
 /// The [ErrorHandler] type is used to define the error handler.
 typedef ErrorHandler = Object? Function(dynamic e, StackTrace stackTrace);

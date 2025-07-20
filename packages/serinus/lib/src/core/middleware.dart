@@ -83,7 +83,7 @@ class _ShelfMiddleware extends Middleware {
 
   shelf.Request _createShelfRequest(RequestContext context) {
     return shelf.Request(
-      context.request.method,
+      context.request.method.toString(),
       context.request.uri,
       body: context.request.body.toString(),
       headers: Map<String, Object>.from(context.request.headers.values),

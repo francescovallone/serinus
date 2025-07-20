@@ -9,12 +9,12 @@ import 'http.dart';
 ///
 /// It is a wrapper around the [ParsableRequest] object.
 class Request {
-  /// The original [ParsableRequest] object.
-  final ParsableRequest _original;
+  /// The original [IncomingMessage] object.
+  final IncomingMessage _original;
 
   /// The [Request] constructor is used to create a new instance of the [Request] class.
   ///
-  /// It accepts an [ParsableRequest] object and an optional [params] parameter.
+  /// It accepts an [IncomingMessage] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
   Request(this._original, [Map<String, dynamic> params = const {}]) {
@@ -36,7 +36,7 @@ class Request {
   Uri get uri => _original.uri;
 
   /// The method of the request.
-  String get method => _original.method;
+  HttpMethod get method => HttpMethod.parse(_original.method);
 
   /// The headers of the request.
   SerinusHeaders get headers => _original.headers;
