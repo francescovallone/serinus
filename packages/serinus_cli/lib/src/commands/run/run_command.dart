@@ -84,13 +84,15 @@ class RunCommand extends Command<int> {
     final mainFile = File(
       path.join(Directory.current.path, entrypoint),
     );
+    final port = argResults?['port'] as String?;
+    final host = argResults?['host'] as String?;
     final process = await Process.start(
       'dart',
       ['--enable-vm-service', mainFile.absolute.path],
       runInShell: true,
       environment: {
-        'PORT': argResults?['port'] as String? ?? '3000',
-        'HOST': argResults?['host'] as String? ?? 'localhost',
+        if(port != null) 'PORT': port,
+        if(host != null) 'HOST': host,
       },
     );
     progress?.complete();
