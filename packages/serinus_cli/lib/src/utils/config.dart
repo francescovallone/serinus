@@ -5,7 +5,7 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 Future<Map<String, dynamic>> getProjectConfiguration(Logger logger,
-    {bool deps = false}) async {
+    {bool deps = false,}) async {
   final pubspec = File(path.join(Directory.current.path, 'pubspec.yaml'));
   if (!pubspec.existsSync()) {
     logger.err('No pubspec.yaml file found');
@@ -20,8 +20,7 @@ Future<Map<String, dynamic>> getProjectConfiguration(Logger logger,
     Map<dynamic, dynamic>.fromEntries(pubspecYaml.entries)['serinus'] as Map? ??
         {},
   );
-  if (pubspecMap.isEmpty) {
-    logger.warn('No serinus configuration found in pubspec.yaml');
+  if (pubspecMap.isEmpty || !pubspecMap.containsKey('entrypoint')) {
     pubspecMap['entrypoint'] =
         'bin/${pubspecYaml['name'] as String? ?? 'serinus_app'}.dart';
   }

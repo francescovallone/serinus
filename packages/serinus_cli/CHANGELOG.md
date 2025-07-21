@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.7
+
+- fix
+
 ## 1.0.6
 
 - fix(#180): Prevent the cli from overwriting already existing files when running the `generate` command.
