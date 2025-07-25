@@ -1,27 +1,33 @@
 import '../core/hook.dart';
 import '../mixins/hooks_mixins.dart';
 
-/// The hooks container for the application
+/// The [HooksContainer] class is used to manage hooks in the application.
 final class HooksContainer {
-  /// The request response hooks for the application
-  final Set<OnRequestResponse> reqResHooks = {};
 
-  /// The before hooks for the application
+  /// The set of hooks registered in the container
+  final Set<Type> hooks = {};
+  /// The request response hooks for the container
+  final Set<OnRequest> reqHooks = {};
+
+  /// The request response hooks for the container
+  final Set<OnResponse> resHooks = {};
+
+  /// The before hooks for the container
   final Set<OnBeforeHandle> beforeHooks = {};
 
-  /// The after hooks for the application
+  /// The after hooks for the container
   final Set<OnAfterHandle> afterHooks = {};
 
-  /// The exception hooks for the application
+  /// The exception hooks for the container
   final Set<OnException> exceptionHooks = {};
 
   /// The services exposed by the hooks
   final Map<Type, Object> services = {};
 
-  /// Add a hook to the application
+  /// Add a hook to the container
   void addHook(Hook hook) {
-    if (hook is OnRequestResponse) {
-      reqResHooks.add(hook);
+    if (hook is OnRequest) {
+      reqHooks.add(hook);
     }
     if (hook is OnBeforeHandle) {
       beforeHooks.add(hook as OnBeforeHandle);
@@ -32,19 +38,29 @@ final class HooksContainer {
     if (hook is OnException) {
       exceptionHooks.add(hook);
     }
+    if (hook is OnResponse) {
+      resHooks.add(hook);
+    }
     if (hook.service != null) {
       services[hook.service!.runtimeType] = hook.service!;
     }
+    hooks.add(hook.runtimeType);
   }
 
+  /// Merge multiple hooks containers into one
   HooksContainer merge(List<HooksContainer> containers) {
     final merged = HooksContainer();
     for (final container in containers) {
-      merged.reqResHooks.addAll(container.reqResHooks);
-      merged.beforeHooks.addAll(container.beforeHooks);
-      merged.afterHooks.addAll(container.afterHooks);
-      merged.exceptionHooks.addAll(container.exceptionHooks);
-      merged.services.addAll(container.services);
+      merged.reqHooks.addAll(container.reqHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
+      merged.resHooks.addAll(container.resHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
+      merged.beforeHooks.addAll(container.beforeHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
+      merged.afterHooks.addAll(container.afterHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
+      merged.exceptionHooks.addAll(container.exceptionHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
+      for (final service in container.services.entries) {
+        if (!merged.services.containsKey(service.key)) {
+          merged.services[service.key] = service.value;
+        }
+      }
     }
     return merged;
   }

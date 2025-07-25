@@ -7,7 +7,7 @@ import '../http/http.dart';
 import '../mixins/mixins.dart';
 
 /// The [RateLimiterHook] class is a hook that limits the number of requests a client can make.
-class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
+class RateLimiterHook extends Hook with OnRequest, OnBeforeHandle, OnResponse {
   /// Maximum number of requests.
   int maxRequests;
 

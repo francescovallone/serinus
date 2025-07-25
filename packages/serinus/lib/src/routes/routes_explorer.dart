@@ -1,3 +1,4 @@
+import '../containers/hooks_container.dart';
 import '../containers/injection_token.dart';
 import '../containers/serinus_container.dart';
 import '../contexts/route_context.dart';
@@ -79,6 +80,12 @@ final class RoutesExplorer {
           spec: spec,
           moduleScope: moduleScope,
           hooksServices: _container.globalHooks.services,
+          hooksContainer: HooksContainer()
+            .merge([
+              _container.globalHooks,
+              controller.hooksContainer,
+              spec.route.hooksContainer
+            ])
         )
       );
       logger.info('Mapped {$routePath, $routeMethod} route');

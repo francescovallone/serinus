@@ -14,6 +14,10 @@ class RequestContext extends BaseContext {
   /// The [body] property contains the body of the context.
   Body get body => request.body ?? Body.empty();
 
+  set body(Body value) {
+    request.body = value;
+  }
+
   /// The [path] property contains the path of the request.
   String get path => request.path;
 

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
@@ -11,13 +10,13 @@ import '../engines/view_engine.dart';
 import '../extensions/object_extensions.dart';
 import '../http/internal_request.dart';
 import '../http/internal_response.dart';
-import '../http/request.dart';
+import '../utils/wrapped_response.dart';
 import 'http_adapter.dart';
 import 'server_adapter.dart';
 
 /// The [SerinusHttpAdapter] class is used to create an HTTP server adapter.
 /// It extends the [HttpAdapter] class.
-class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, Request, InternalResponse> {
+class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, InternalResponse> {
 
   /// The [enableCompression] property is used to enable compression.
   final bool enableCompression;
@@ -62,7 +61,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, Request, InternalRes
 
   @override
   Future<void> listen({
-    required RequestCallback<Request, InternalResponse> onRequest,
+    required RequestCallback<InternalRequest, InternalResponse> onRequest,
     ErrorHandler? onError,
   }) async {
     try {
@@ -72,7 +71,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, Request, InternalRes
       await for (final req in server!) {
         final request = InternalRequest.from(req, port, host);
         final response = InternalResponse(req.response);
-        onRequest(Request(request), response);
+        onRequest(request, response);
       }
     } catch (e) {
       if (onError == null) {
@@ -180,7 +179,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, Request, InternalRes
       final readPipe = body.openRead();
       return response.addStream(readPipe);
     }
-    responseBody = _convertData(body, responseBody, response, properties);
+    responseBody = _convertData(body, response, properties);
     if (responseBody.isEmpty) {
       responseBody = Uint8List(0);
     }
@@ -201,19 +200,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, Request, InternalRes
     return response.send(responseBody);
   }
 
-  Uint8List _convertData(Object? data, Uint8List responseBody, InternalResponse response, ResponseProperties properties) {
-    if (data == null) {
-      return Uint8List(0);
-    }
-    if (data is! Uint8List) {
-      if (data.runtimeType.isPrimitive()) {
-        responseBody = data.toBytes();
-      } else {
-        responseBody = jsonEncode(data).toBytes();
-      }
-    } else {
-      responseBody = data;
-    }
+  Uint8List _convertData(WrappedResponse data, InternalResponse response, ResponseProperties properties) {
     final coding = response.currentHeaders['transfer-encoding']?.join(';');
     if ((coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) ||
         (properties.statusCode >= 200 &&
@@ -226,7 +213,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, Request, InternalRes
         preserveHeaderCase: preserveHeaderCase
       );
     }
-    return responseBody;
+    return data.toBytes();
   }
 
   @override

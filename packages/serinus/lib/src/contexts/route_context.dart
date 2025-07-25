@@ -1,4 +1,5 @@
 import '../../serinus.dart';
+import '../containers/hooks_container.dart';
 import '../containers/injection_token.dart';
 
 class RouteContext {
@@ -23,6 +24,8 @@ class RouteContext {
 
   final ModuleScope moduleScope;
 
+  ParseSchema? get schema => spec.schema;
+
   List<Metadata> get metadata => [
     ...controller.metadata,
     ...spec.route.metadata,
@@ -30,6 +33,8 @@ class RouteContext {
 
 
   final Map<Type, Object> hooksServices;
+
+  final HooksContainer hooksContainer;
 
   RouteContext({
     required this.id,
@@ -40,6 +45,7 @@ class RouteContext {
     required this.moduleToken,
     required this.spec,
     required this.moduleScope,
+    required this.hooksContainer,
     this.isStatic = false,
     this.queryParameters = const {},
     this.hooksServices = const {},
@@ -56,6 +62,10 @@ class RouteContext {
       }
     }
     return result;
+  }
+
+  Set<Middleware> getMiddlewares(Map<String, dynamic> params) {
+    return moduleScope.filterMiddlewaresByRoute(path, params);
   }
 
 }

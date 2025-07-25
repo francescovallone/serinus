@@ -5,7 +5,7 @@ import '../http/http.dart';
 import '../mixins/mixins.dart';
 
 /// The [BodySizeLimitHook] class is used to define a body size limit hook.
-class BodySizeLimitHook extends Hook with OnRequestResponse {
+class BodySizeLimitHook extends Hook with OnRequest {
   /// The maximum size of the body in bytes.
   final int maxSize;
 

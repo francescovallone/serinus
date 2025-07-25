@@ -9,7 +9,7 @@ import '../http/request.dart';
 import '../mixins/mixins.dart';
 
 /// The [SecureSessionHook] class is used to create a hook that can be used to secure the session of the request.
-class SecureSessionHook extends Hook with OnRequestResponse {
+class SecureSessionHook extends Hook with OnRequest, OnResponse {
   @override
   SecureSession get service => _secureSession;
 
