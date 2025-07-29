@@ -7,7 +7,7 @@ import '../core.dart';
 /// The [WebSocketContext] class is used to define the context of the WebSocket.
 abstract class MessageSerializer<TInput> {
   /// The [serialize] method is used to serialize the data.
-  String serialize(TInput data);
+  dynamic serialize(TInput data);
 }
 
 /// The [MessageDeserializer] class is used to define a message deserializer.
@@ -17,7 +17,17 @@ abstract class MessageDeserializer<TOutput> {
 }
 
 /// The [WebSocketGateway] class is used to define a WebSocketGateway.
-abstract class WebSocketGateway extends Provider {
+@Deprecated('Use [TypedWebSocketGateway] instead')
+abstract class WebSocketGateway extends TypedWebSocketGateway<dynamic, dynamic> {
+  /// The [WebSocketGateway] constructor is used to create a new instance of the [WebSocketGateway] class.
+  WebSocketGateway({MessageSerializer? serializer, MessageDeserializer? deserializer, super.path}) : super(
+    serializer: serializer ?? const _DynamicSerializer(),
+    deserializer: deserializer ?? const _DynamicDeserializer(),
+  );
+}
+
+/// The [TypedWebSocketGateway] class is used to define a WebSocketGateway.
+abstract class TypedWebSocketGateway<TInput, TOutput> extends Provider {
   /// The [path] property contains the path of the WebSocketGateway.
   ///
   /// If the path is not provided, the WebSocketGateway will be available at the root path.
@@ -26,18 +36,18 @@ abstract class WebSocketGateway extends Provider {
   /// The [serializer] property contains the serializer of the WebSocketGateway.
   ///
   /// It is used to serialize the data before sending it to the client.
-  final MessageSerializer? serializer;
+  final MessageSerializer<TInput> serializer;
 
   /// The [deserializer] property contains the deserializer of the WebSocketGateway.
   ///
   /// It is used to deserialize the data received from the client.
-  final MessageDeserializer? deserializer;
+  final MessageDeserializer<TOutput> deserializer;
 
   /// The [server] property contains the server of the WebSocketGateway.
   WsAdapter? server;
 
-  /// The [WebSocketGateway] constructor is used to create a new instance of the [WebSocketGateway] class.
-  WebSocketGateway({this.path, this.serializer, this.deserializer});
+  /// The [TypedWebSocketGateway] constructor is used to create a new instance of the [TypedWebSocketGateway] class.
+  TypedWebSocketGateway({required this.serializer, required this.deserializer, this.path});
 
   /// The [onMessage] method will be called when a message from the client is received.
   ///
@@ -51,10 +61,26 @@ abstract class WebSocketGateway extends Provider {
   /// A [clientId] can be provided to send the data to a specific client.
   /// If not provided the data will be broadcasted to all clients.
   @nonVirtual
-  void send(dynamic data, [String? clientId]) {
-    if (serializer != null) {
-      data = serializer!.serialize(data);
-    }
-    server?.send(data, key: clientId);
+  void send(TInput data, [String? clientId]) {
+    final serializedData = serializer.serialize(data);
+    server?.send(serializedData, key: clientId);
+  }
+}
+
+class _DynamicSerializer implements MessageSerializer<dynamic> {
+  const _DynamicSerializer();
+
+  @override
+  dynamic serialize(dynamic data) {
+    return data;
+  }
+}
+
+class _DynamicDeserializer implements MessageDeserializer<dynamic> {
+  const _DynamicDeserializer();
+  
+  @override
+  dynamic deserialize(String data) {
+    return data;
   }
 }
