@@ -78,10 +78,11 @@ class DeployCommand extends Command<int> {
   ) async {
     final client = HttpClient();
     final request = await client.getUrl(
-      Uri.parse('https://raw.githubusercontent.com/francescovallone/serinus/refs/heads/main/utils/Dockerfile.base'),
+      Uri.parse(
+          'https://raw.githubusercontent.com/francescovallone/serinus/refs/heads/main/utils/Dockerfile.base'),
     );
     final response = await request.close();
-    if(response.statusCode != 200) {
+    if (response.statusCode != 200) {
       _logger.err(
         'Failed to fetch Dockerfile from repository fallback to cli version',
       );
@@ -93,7 +94,7 @@ class DeployCommand extends Command<int> {
         .replaceAll('{{$output}}', output)
         .replaceAll('{{$port}}', port);
 
-    return dockerFileContent;    
+    return dockerFileContent;
   }
 
   String dockerFile(

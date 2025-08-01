@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -62,13 +63,30 @@ class RunCommand extends Command<int> {
         _killProcess(process);
       });
     }
+    var restarting = false;
+    final restartQueue = Queue<WatchEvent>();
     final subscription =
         _watcher.events.where((_) => _developmentMode).listen((event) async {
       if (event.type == ChangeType.MODIFY) {
+        if (restarting) {
+          restartQueue.add(event);
+          return;
+        }
+        restarting = true;
         await _killProcess(process, restarting: true);
         // ignore: avoid_print
         print('\x1B[2J\x1B[0;0H');
         process = await serve(entrypoint, restarting: true);
+        restarting = false;
+        if (restartQueue.isNotEmpty) {
+          final nextEvent = restartQueue.removeLast();
+          if (nextEvent.type == ChangeType.MODIFY) {
+            await _killProcess(process, restarting: true);
+            // ignore: avoid_print
+            print('\x1B[2J\x1B[0;0H');
+            process = await serve(entrypoint, restarting: true);
+          }
+        }
       }
     });
 
@@ -91,8 +109,8 @@ class RunCommand extends Command<int> {
       ['--enable-vm-service', mainFile.absolute.path],
       runInShell: true,
       environment: {
-        if(port != null) 'PORT': port,
-        if(host != null) 'HOST': host,
+        if (port != null) 'PORT': port,
+        if (host != null) 'HOST': host,
       },
     );
     progress?.complete();

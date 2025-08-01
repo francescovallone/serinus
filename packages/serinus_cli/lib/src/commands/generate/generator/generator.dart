@@ -80,7 +80,10 @@ class Generator {
     }
   }
 
-  Future<({String elementName, bool generated})> generateController(GeneratedElement element, {bool overwrite = false,}) async {
+  Future<({String elementName, bool generated})> generateController(
+    GeneratedElement element, {
+    bool overwrite = false,
+  }) async {
     final newController = Library((b) {
       b.directives.add(Directive.import('package:serinus/serinus.dart'));
       b.body.add(
@@ -115,7 +118,8 @@ class Generator {
     });
     final fileName = '${itemName.getSnakeCase()}_controller.dart';
     final filePath = '${fileName.split('_').first}/$fileName';
-    if (File('${outputDirectory.absolute.path}/$filePath').existsSync() && !overwrite) {
+    if (File('${outputDirectory.absolute.path}/$filePath').existsSync() &&
+        !overwrite) {
       return (
         elementName: element.name,
         generated: false,
@@ -137,7 +141,10 @@ class Generator {
     );
   }
 
-  Future<bool> generateModule(GeneratedElement element, {bool overwrite = false,}) async {
+  Future<bool> generateModule(
+    GeneratedElement element, {
+    bool overwrite = false,
+  }) async {
     final emitter = DartEmitter(
       allocator: Allocator(),
       orderDirectives: true,
@@ -179,7 +186,9 @@ class Generator {
     return true;
   }
 
-  Future<({String elementName, bool generated})> generateProvider(GeneratedElement element, {bool overwrite = false}) async {
+  Future<({String elementName, bool generated})> generateProvider(
+      GeneratedElement element,
+      {bool overwrite = false}) async {
     final emitter = DartEmitter(
       allocator: Allocator(),
       orderDirectives: true,

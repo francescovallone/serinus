@@ -1,8 +1,12 @@
 # Changelog
 
+## 1.0.8 
+
+- fix(#187): debounce the events executing only the last one.
+
 ## 1.0.7
 
-- fix
+- fix(cli_warning_port): remove default value from port when using cli, remove warnings regarding missing config.
 
 ## 1.0.6
 

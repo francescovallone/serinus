@@ -154,8 +154,13 @@ class _GenerateController extends GenerateItemCommand {
 
   @override
   Future<int> run() async {
-    await generateItem(itemName, _item, logger, analyzer, 
-        overwrite: argResults['force'] as bool,);
+    await generateItem(
+      itemName,
+      _item,
+      logger,
+      analyzer,
+      overwrite: argResults['force'] as bool,
+    );
     return ExitCode.success.code;
   }
 }
@@ -180,8 +185,13 @@ class _GenerateModule extends GenerateItemCommand {
 
   @override
   Future<int> run() async {
-    await generateItem(itemName, _item, logger, analyzer, 
-        overwrite: argResults['force'] as bool,);
+    await generateItem(
+      itemName,
+      _item,
+      logger,
+      analyzer,
+      overwrite: argResults['force'] as bool,
+    );
     return ExitCode.success.code;
   }
 }
@@ -206,12 +216,27 @@ class _GenerateResource extends GenerateItemCommand {
 
   @override
   Future<int> run() async {
-    await generateItem('module', _item, logger, analyzer, 
-        overwrite: argResults['force'] as bool,);
-    await generateItem('provider', _item, logger, analyzer, 
-        overwrite: argResults['force'] as bool,);
-    await generateItem('controller', _item, logger, analyzer, 
-        overwrite: argResults['force'] as bool,);
+    await generateItem(
+      'module',
+      _item,
+      logger,
+      analyzer,
+      overwrite: argResults['force'] as bool,
+    );
+    await generateItem(
+      'provider',
+      _item,
+      logger,
+      analyzer,
+      overwrite: argResults['force'] as bool,
+    );
+    await generateItem(
+      'controller',
+      _item,
+      logger,
+      analyzer,
+      overwrite: argResults['force'] as bool,
+    );
     return ExitCode.success.code;
   }
 }
@@ -236,8 +261,13 @@ class _GenerateProvider extends GenerateItemCommand {
 
   @override
   Future<int> run() async {
-    await generateItem(itemName, _item, logger, analyzer, 
-        overwrite: argResults['force'] as bool,);
+    await generateItem(
+      itemName,
+      _item,
+      logger,
+      analyzer,
+      overwrite: argResults['force'] as bool,
+    );
     return ExitCode.success.code;
   }
 }
@@ -246,9 +276,9 @@ Future<void> generateItem(
   String type,
   ReCase name,
   Logger? logger,
-  SerinusAnalyzer analyzer,
-  {bool overwrite = false,}
-) async {
+  SerinusAnalyzer analyzer, {
+  bool overwrite = false,
+}) async {
   final outputDirectory = Directory(
     path.join(Directory.current.path, 'lib'),
   );
