@@ -7,6 +7,7 @@ import '../core/metadata.dart';
 import '../enums/http_method.dart';
 import '../versioning.dart';
 
+/// [RouteInformation] is a utility type that contains the route context and the parameters of the route.
 typedef RouteInformation = ({RouteContext? route, Map<String, dynamic> params});
 
 /// The [Router] class is used to create the router in the application.
@@ -20,10 +21,13 @@ final class Router {
   final Spanner _routeTree = Spanner();
 
   /// The [registerRoute] method is used to register a route in the router.
-  void registerRoute(RouteContext context) {
+  void registerRoute({
+    required RouteContext context,
+    required HandlerFunction handler,
+  }) {
     String path =
         !context.path.startsWith('/') ? '/${context.path}' : context.path;
-    _routeTree.addRoute(getHttpMethod(context.method), path, context);
+    _routeTree.addRoute(getHttpMethod(context.method), path, (context, handler));
   }
 
   /// The [getRouteByPathAndMethod] method is used to get the route by path and method.
@@ -32,10 +36,11 @@ final class Router {
   /// The [method] parameter is the method of the route.
   ///
   /// The method will return the route data and the parameters of the route.
-  ({RouteContext? route, Map<String, dynamic> params}) checkRouteByPathAndMethod(
+  ({({RouteContext route, HandlerFunction handler})? spec, Map<String, dynamic> params}) checkRouteByPathAndMethod(
       String path, HttpMethod method) {
     final result = _routeTree.lookup(getHttpMethod(method), Uri.parse(path));
-    return (route: result?.values.firstOrNull, params: result?.params ?? {});
+    final route = result?.values.firstOrNull;
+    return (spec: (route: route.$1, handler: route.$2), params: result?.params ?? {});
   }
 
   /// The [getHttpMethod] method is used to get the HTTP method.

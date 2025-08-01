@@ -109,19 +109,23 @@ class Request {
   /// This method is used to parse the body of the request.
   ///
   /// It will try to parse the body of the request to the correct type.
-  Future<void> parseBody() async {
+  Future<void> parseBody([bool rawBody = false]) async {
     /// If the body is already parsed, it will return.
     if (body != null) {
       return;
     }
-
     /// If the content type is multipart, it will parse the body as a multipart form data.
-    if (contentType.isMultipart) {
-      final formData = await _original.formData();
-      body = Body(contentType, formData: formData);
+    // if (contentType.isMultipart) {
+    //   final formData = await _original.formData();
+    //   body = FormDataBody(
+    //     formData,
+    //   );
+    //   return;
+    // }
+    if (rawBody) {
+      body = RawBody(_original.bytes());
       return;
     }
-
     /// If the body is empty, it will return an empty body.
     final parsedBody = await _original.body();
     if (parsedBody.isEmpty) {
@@ -132,7 +136,7 @@ class Request {
     /// If the content type is url encoded, it will parse the body as a url encoded form data.
     if (contentType.isUrlEncoded) {
       final formData = FormData.parseUrlEncoded(parsedBody);
-      body = Body(contentType, formData: formData);
+      body = FormDataBody(formData);
       return;
     }
 
@@ -140,21 +144,18 @@ class Request {
     final parsedJson = _original.bytes().tryParse();
     if ((parsedJson != null && contentType == ContentType.json) ||
         parsedJson != null) {
-      body = Body(contentType, json: JsonBody.fromJson(parsedJson));
+      body = JsonBody.fromJson(parsedJson);
       return;
     }
 
     /// If the content type is binary, it will parse the body as a binary data.
     if (contentType == ContentType.binary) {
-      body = Body(contentType, bytes: _original.bytes());
+      body = RawBody(_original.bytes());
       return;
     }
 
     /// If the content type is text, it will parse the body as a text data.
-    body = Body(
-      contentType,
-      text: parsedBody,
-    );
+    body = StringBody(parsedBody);
   }
 
   /// This method is used to add data to the request.

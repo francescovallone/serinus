@@ -9,14 +9,14 @@ class TestModule extends Module {
 }
 
 class TestRoute extends Route {
-  const TestRoute({
+  TestRoute({
     super.path = '/',
     super.method = HttpMethod.get,
   });
 }
 
 class TestController extends Controller {
-  TestController() : super(path: '/') {
+  TestController() : super('/') {
     on(TestRoute(), (context) async => 'echo!');
   }
 }
@@ -29,7 +29,7 @@ class SerinusAppBenchmark extends SerinusBenchmark {
   @override
   Future<void> setup() async {
     app = await serinus.createApplication(
-        entrypoint: TestModule(), loggingLevel: LogLevel.none, enableCompression: false);
+        entrypoint: TestModule(), logLevels: {LogLevel.none}, enableCompression: false);
     await app!.serve();
   }
 

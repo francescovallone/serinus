@@ -12,9 +12,12 @@ class FormData {
   final Map<String, dynamic> _fields;
   final Map<String, UploadedFile> _files;
 
+  final ContentType contentType;
+
   /// The [FormData] constructor is used to create a [FormData] object
   const FormData(
-      {Map<String, dynamic> fields = const {},
+      {required this.contentType, 
+      Map<String, dynamic> fields = const {},
       Map<String, UploadedFile> files = const {}})
       : _fields = fields,
         _files = files;
@@ -79,7 +82,7 @@ class FormData {
           fields[name] = utf8.decode(bytes);
         }
       }
-      return FormData(fields: fields, files: files);
+      return FormData(fields: fields, files: files, contentType: ContentType('multipart', 'form-data'));
     } catch (_) {
       throw NotAcceptableException();
     }
@@ -87,7 +90,7 @@ class FormData {
 
   /// This method is used to parse the request body as a [FormData] if the content type is application/x-www-form-urlencoded
   factory FormData.parseUrlEncoded(String body) {
-    return FormData(fields: Uri.splitQueryString(body), files: {});
+    return FormData(fields: Uri.splitQueryString(body), files: {}, contentType: ContentType('application', 'x-www-form-urlencoded'));
   }
 
   static Stream<MimeMultipart> _getMultiparts(
@@ -95,7 +98,6 @@ class FormData {
     if (boundary == null) {
       throw StateError('Not a multipart request.');
     }
-
     return MimeMultipartTransformer(boundary).bind(request);
   }
 }

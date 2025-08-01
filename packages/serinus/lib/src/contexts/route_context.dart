@@ -2,6 +2,12 @@ import '../../serinus.dart';
 import '../containers/hooks_container.dart';
 import '../containers/injection_token.dart';
 
+typedef HandlerFunction = Future<void> Function(
+  IncomingMessage request,
+  OutcomingMessage response,
+  Map<String, dynamic> params,
+);
+
 class RouteContext {
 
   final String id;
@@ -67,19 +73,5 @@ class RouteContext {
   Set<Middleware> getMiddlewares(Map<String, dynamic> params) {
     return moduleScope.filterMiddlewaresByRoute(path, params);
   }
-
-}
-
-
-class RouteExecutionContext {
-
-  final Function resolver;
-
-  final RouteContext routeContext;
-
-  RouteExecutionContext({
-    required this.resolver,
-    required this.routeContext,
-  });
 
 }

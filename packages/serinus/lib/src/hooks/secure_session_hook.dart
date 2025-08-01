@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:secure_session/secure_session.dart';
 
-import '../contexts/request_context.dart';
+import '../contexts/contexts.dart';
 import '../core/hook.dart';
 import '../http/request.dart';
 import '../mixins/mixins.dart';
@@ -23,14 +23,14 @@ class SecureSessionHook extends Hook with OnRequest, OnResponse {
   }
 
   @override
-  Future<void> onRequest(Request request, ResponseProperties properties) async {
+  Future<void> onRequest(Request request, ResponseContext properties) async {
     _secureSession.clear();
     _secureSession.init(request.cookies);
   }
 
   @override
   Future<void> onResponse(
-      Request request, dynamic data, ResponseProperties properties) async {
+      Request request, dynamic data, ResponseContext properties) async {
     for (final option in _secureSession.options) {
       final name = option.cookieName ?? option.defaultSessionName;
       final session = _secureSession.get(name);

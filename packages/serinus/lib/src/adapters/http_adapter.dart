@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../serinus.dart';
 import '../containers/module_container.dart';
 import '../contexts/request_context.dart';
 import '../core/core.dart';
@@ -36,9 +37,17 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
   /// The [viewEngine] property contains the view engine of the server.
   ViewEngine? viewEngine;
 
+  /// The [notFoundHandler] property contains the handler for not found routes.
+  /// It is used to handle requests that do not match any defined route.
+  NotFoundHandler? notFoundHandler;
+
+  /// The [rawBody] property determines if the body will be treated as raw data or if the framework should try to parse it.
+  /// By default, it is set to false, meaning the framework will try to parse the body.
+  bool rawBody;
+
   /// The [HttpAdapter] constructor is used to create a new instance of the [HttpAdapter] class.
   HttpAdapter(
-      {required this.host, required this.port, required this.poweredByHeader, this.securityContext, this.preserveHeaderCase = true, this.viewEngine});
+      {required this.host, required this.port, required this.poweredByHeader, this.securityContext, this.preserveHeaderCase = true, this.viewEngine, this.notFoundHandler, this.rawBody = false});
 
   @override
   Future<void> init(ModulesContainer container, ApplicationConfig config);
@@ -59,7 +68,7 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
   Future<void> reply(
     TResponse response,
     dynamic body,
-    ResponseProperties properties,
+    ResponseContext properties,
   );
 
   /// The [redirect] method is used to redirect the client to a different URL.
@@ -67,11 +76,11 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
   Future<void> redirect(
     TResponse response,
     Redirect redirect,
-    ResponseProperties properties,
+    ResponseContext properties,
   );
 
   /// The [render] method is used to render a view and send it as a response.
   /// It takes the [response], [view], and [properties] as parameters.
-  Future<void> render(TResponse response, View view, ResponseProperties properties);
+  Future<void> render(TResponse response, View view, ResponseContext properties);
 
 }

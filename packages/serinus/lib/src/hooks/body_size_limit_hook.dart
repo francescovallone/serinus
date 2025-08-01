@@ -1,4 +1,4 @@
-import '../contexts/request_context.dart';
+import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
@@ -13,7 +13,7 @@ class BodySizeLimitHook extends Hook with OnRequest {
   const BodySizeLimitHook({this.maxSize = 1024 * 1024});
 
   @override
-  Future<void> onRequest(Request request, ResponseProperties properties) async {
+  Future<void> onRequest(Request request, ResponseContext properties) async {
     await request.parseBody();
     if (request.contentLength > maxSize) {
       throw PayloadTooLargeException(

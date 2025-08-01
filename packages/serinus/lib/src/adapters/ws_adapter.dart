@@ -8,8 +8,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
-import '../handlers/handler.dart';
-import '../handlers/websocket_handler.dart';
 import '../http/internal_request.dart';
 import '../services/logger_service.dart';
 import 'server_adapter.dart';
@@ -97,8 +95,8 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   bool get shouldBeInitilized => false;
   
   @override
-  Future<void> listen({required RequestCallback onRequest, ErrorHandler? onError}) {
-    
+  Future<void> listen({required RequestCallback onRequest, ErrorHandler? onError}) async {
+    return;
   }
 
 }

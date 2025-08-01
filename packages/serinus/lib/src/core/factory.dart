@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../serinus.dart';
 import '../adapters/serinus_http_server.dart';
 import '../containers/model_provider.dart';
 import '../enums/log_level.dart';
@@ -25,7 +26,9 @@ final class SerinusFactory {
       String poweredByHeader = 'Powered by Serinus',
       SecurityContext? securityContext,
       ModelProvider? modelProvider,
-      bool enableCompression = true}) async {
+      bool enableCompression = true,
+      bool rawBody = false,
+      NotFoundHandler? notFoundHandler}) async {
     final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
     final serverHost = Platform.environment['HOST'] ?? host;
     final server = SerinusHttpAdapter(
@@ -33,7 +36,9 @@ final class SerinusFactory {
         port: serverPort,
         poweredByHeader: poweredByHeader,
         securityContext: securityContext,
-        enableCompression: enableCompression);
+        enableCompression: enableCompression,
+        rawBody: rawBody,
+        notFoundHandler: notFoundHandler);
     await server.init();
     final app = SerinusApplication(
         entrypoint: entrypoint,

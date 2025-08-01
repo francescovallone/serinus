@@ -311,7 +311,7 @@ packages:
       path: "../packages/serinus"
       relative: true
     source: path
-    version: "1.0.3"
+    version: "1.0.4"
   shelf:
     dependency: "direct main"
     description:

@@ -71,6 +71,10 @@ final class ApplicationConfig {
   String get baseUrl =>
       '${securityContext != null ? 'https' : 'http'}://$host:$port';
 
+  /// The error handler for the application
+  /// This is used to handle errors that occur during the execution of the application
+  ErrorHandler? errorHandler;
+
   /// The versioning options for the application
   set versioningOptions(VersioningOptions? value) {
     if (_versioningOptions != null) {

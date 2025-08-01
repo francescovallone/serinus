@@ -26,7 +26,7 @@ class RateLimiterHook extends Hook with OnRequest, OnBeforeHandle, OnResponse {
       : maxRequests = maxRequests ?? double.infinity.toInt();
 
   @override
-  Future<void> onRequest(Request request, ResponseProperties properties) async {
+  Future<void> onRequest(Request request, ResponseContext properties) async {
     return;
   }
 
@@ -65,7 +65,7 @@ class RateLimiterHook extends Hook with OnRequest, OnBeforeHandle, OnResponse {
 
   @override
   Future<void> onResponse(
-      Request request, dynamic data, ResponseProperties properties) async {
+      Request request, dynamic data, ResponseContext properties) async {
     if (properties.statusCode < 400 && rateLimiter != null) {
       properties.headers.addAll({
         'X-RateLimit-Limit': '$maxRequests',

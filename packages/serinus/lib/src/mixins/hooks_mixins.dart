@@ -6,7 +6,7 @@ import '../utils/wrapped_response.dart';
 /// The [OnRequest] mixin is used to execute code before and after the request is handled
 mixin OnRequest on Hook {
   /// The [onRequest] method is used to execute code before the request is handled
-  Future<void> onRequest(Request request, ResponseProperties properties) async {}
+  Future<void> onRequest(Request request, ResponseContext properties) async {}
 
 }
 
@@ -14,7 +14,7 @@ mixin OnRequest on Hook {
 mixin OnResponse on Hook {
   /// The [onResponse] method is used to execute code before the response is sent
   Future<void> onResponse(
-      Request request, WrappedResponse data, ResponseProperties properties) async {}
+      Request request, WrappedResponse data, ResponseContext properties) async {}
 
 }
 
@@ -32,6 +32,9 @@ mixin OnAfterHandle on Hookable {
 
 /// The [OnException] mixin is used to execute code when an exception is thrown
 mixin OnException on Hook {
+  /// The [exceptionTypes] property contains the types of exceptions that this hook can handle
+  /// This is used to filter the exceptions that this hook will handle.
+  List<Type> get exceptionTypes;
   /// The [onException] method is used to execute code when an exception is thrown
   Future<void> onException(RequestContext request, Exception exception) async {}
 }

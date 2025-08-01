@@ -3,7 +3,7 @@ import '../enums/http_method.dart';
 import 'core.dart';
 
 /// The [Route] class is used to define the routes of the application.
-class Route implements Hookable {
+class Route {
   /// The path of the route.
   final String path;
 

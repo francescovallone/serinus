@@ -7,7 +7,7 @@ typedef RequestCallback<TRequest, TResponse> = Future<void> Function(
     TRequest request, TResponse response);
 
 /// The [ErrorHandler] type is used to define the error handler.
-typedef ErrorHandler = Object? Function(dynamic e, StackTrace stackTrace);
+typedef ErrorHandler = Object? Function(SerinusException e, StackTrace stackTrace);
 
 /// The [NotFoundHandler] type is used to define the not found handler.
 typedef NotFoundHandler = SerinusException? Function();

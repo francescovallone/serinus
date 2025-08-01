@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 
 import '../containers/module_container.dart';
+import '../contexts/contexts.dart';
 import '../contexts/request_context.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
@@ -39,7 +40,10 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
       required super.port,
       required super.poweredByHeader,
       super.securityContext,
-      this.enableCompression = true});
+      this.enableCompression = true,
+      super.notFoundHandler,
+      super.rawBody
+      });
 
   @override
   Future<void> init(
@@ -74,10 +78,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
         onRequest(request, response);
       }
     } catch (e) {
-      if (onError == null) {
-        rethrow;
-      }
-      onError.call(e, StackTrace.current);
+      rethrow;
     }
   }
 
@@ -85,7 +86,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
   Future<void> redirect(
     InternalResponse response,
     Redirect redirect,
-    ResponseProperties properties,
+    ResponseContext properties,
   ) async {
     response.headers(
       {
@@ -147,19 +148,13 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
   Future<void> reply(
     InternalResponse response, 
     dynamic body, 
-    ResponseProperties properties,
+    ResponseContext properties,
   ) async {
     response.cookies.addAll(properties.cookies);
     response.headers(
       properties.headers.asMap(), 
       preserveHeaderCase: preserveHeaderCase
     );
-    // config.tracerService.addEvent(
-    //   name: TraceEvents.onResponse,
-    //   request: context.request,
-    //   context: context,
-    //   traced: context.request.id,
-    // );
     Uint8List responseBody = Uint8List(0);
     response.contentType(
       properties.contentType ?? io.ContentType.text, 
@@ -183,13 +178,6 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
     if (responseBody.isEmpty) {
       responseBody = Uint8List(0);
     }
-    // config.tracerService.addEvent(
-    //   name: TraceEvents.onResponse,
-    //   request: context.request,
-    //   context: context,
-    //   traced: context.request.id,
-    // );
-    // await config.tracerService.endTrace(context.request);
     response.headers(
       {
         io.HttpHeaders.contentLengthHeader: responseBody.length.toString()
@@ -200,7 +188,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
     return response.send(responseBody);
   }
 
-  Uint8List _convertData(WrappedResponse data, InternalResponse response, ResponseProperties properties) {
+  Uint8List _convertData(WrappedResponse data, InternalResponse response, ResponseContext properties) {
     final coding = response.currentHeaders['transfer-encoding']?.join(';');
     if ((coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) ||
         (properties.statusCode >= 200 &&
@@ -220,7 +208,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
   bool get shouldBeInitilized => true;
   
   @override
-  Future<void> render(InternalResponse response, View view, ResponseProperties properties) async {
+  Future<void> render(InternalResponse response, View view, ResponseContext properties) async {
     if (viewEngine == null) {
       throw StateError('ViewEngine is required to render views');
     }

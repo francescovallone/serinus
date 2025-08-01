@@ -4,6 +4,7 @@ import '../core/core.dart';
 import '../enums/enums.dart';
 import '../http/http.dart';
 import 'base_context.dart';
+import 'response_context.dart';
 import 'route_context.dart';
 
 /// The [RequestContext] class is used to create the request context.
@@ -44,21 +45,28 @@ class RequestContext extends BaseContext {
     super.providers,
     super.hooksServices,
   ) {
+    res = ResponseContext(
+      providers,
+      hooksServices,
+    );
     res.statusCode = request.method == HttpMethod.post ? HttpStatus.created : HttpStatus.ok;
   }
 
   /// The [RequestContext.fromRouteContext] constructor is used to create a new instance of the [RequestContext] class
   /// from a [RouteContext].
-  RequestContext.fromRouteContext(
-    this.request,
+  factory RequestContext.fromRouteContext(
+    Request request,
     RouteContext routeContext,
-  ) : super(
-    {
-      for (var provider in routeContext.moduleScope.providers)
-        provider.runtimeType: provider,
-    },
-    routeContext.hooksServices,
-  );
+  ) {
+    return RequestContext(
+      request,
+      {
+        for (var provider in routeContext.moduleScope.providers)
+          provider.runtimeType: provider,
+      },
+      routeContext.hooksServices,
+    );
+  }
 
   /// The [metadata] property contains the metadata of the request context.
   ///
@@ -89,7 +97,7 @@ class RequestContext extends BaseContext {
   /// - [redirect]
   ///
   /// The [redirect] property uses a [Redirect] class to create the redirect response.
-  ResponseProperties res = ResponseProperties();
+  late ResponseContext res;
 
 }
 
@@ -104,149 +112,4 @@ final class Redirect {
   /// The [Redirect] constructor.
   const Redirect(this.location,
       {this.statusCode = HttpStatus.movedTemporarily});
-}
-
-/// The [ResponseProperties] class is used to create the response properties.
-///
-/// It contains the status code, headers, and redirect properties.
-final class ResponseProperties {
-  /// The [statusCode] property contains the status code of the response.
-  int _statusCode = HttpStatus.ok;
-
-  /// The [statusCode] getter is used to get the status code of the response.
-  int get statusCode => _statusCode;
-
-  /// The [statusCode] setter is used to set the status code of the response.
-  set statusCode(int value) {
-    if (value < 100 || value > 999) {
-      throw ArgumentError(
-          'The status code must be between 100 and 999. $value is not a valid status code.');
-    }
-    _statusCode = value;
-  }
-
-  /// The [contentType] property contains the content type of the response.
-  ContentType? _contentType;
-
-  /// The [contentLength] property contains the content length of the response.
-  int? _contentLength;
-
-  /// The [headers] property contains the headers of the response.
-  final SerinusHeaders _headers = SerinusHeaders({});
-
-  /// The [headers] getter is used to get the headers of the response.
-  SerinusHeaders get headers => _headers;
-
-  /// The [cookies] property contains the cookies that should be sent back to the client.
-  final List<Cookie> _cookies = [];
-
-  /// The [cookies] getter is used to get the cookies of the response.
-  List<Cookie> get cookies => _cookies;
-
-  /// The [addCookie] method is used to add a cookie to the response.
-  void addCookie(Cookie cookie) {
-    if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
-    }
-    _cookies.add(cookie);
-  }
-  
-  /// The [addCookies] method is used to add multiple cookies to the response.
-  void addCookies(List<Cookie> cookies) {
-    if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
-    }
-    _cookies.addAll(cookies);
-  }
-
-  /// The [addHeader] method is used to add a header to the response.
-  void addHeader(String name, String value) {
-    if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
-    }
-    _headers[name] = value;
-  }
-
-  /// The [addHeaders] method is used to add multiple headers to the response.
-  void addHeaders(Map<String, String> headers) {
-    if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
-    }
-    _headers.addAll(headers);
-  }
-
-  set contentType(ContentType? contentType) {
-    if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
-    }
-    _contentType = contentType;
-    if (contentType != null) {
-      _headers[HttpHeaders.contentTypeHeader] = contentType.toString();
-    } else {
-      _headers.remove(HttpHeaders.contentTypeHeader);
-    }
-  }
-
-  /// The [contentType] getter is used to get the content type of the response.
-  ContentType? get contentType => _contentType;
-
-  set contentLength(int? contentLength) {
-    if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
-    }
-    _contentLength = contentLength;
-    if (contentLength != null) {
-      _headers[HttpHeaders.contentLengthHeader] = contentLength.toString();
-    } else {
-      _headers.remove(HttpHeaders.contentLengthHeader);
-    }
-  }
-
-  /// The [contentLength] getter is used to get the content length of the response.
-  int? get contentLength => _contentLength;
-
-  /// The [ResponseProperties] constructor.
-  ResponseProperties({
-    ContentType? contentType,
-    int? contentLength,
-    List<Cookie> cookies = const [],
-  }) {
-    _contentType = contentType;
-    _contentLength = contentLength;
-    _headers.addAll({
-      HttpHeaders.contentTypeHeader: contentType?.toString() ?? ContentType.text.toString(),
-      HttpHeaders.contentLengthHeader: contentLength?.toString() ?? '0',
-    });
-    _cookies.addAll(cookies);
-  }
-
-  /// The [change] method is used to force change the response properties.
-  ResponseProperties change({
-    ContentType? contentType,
-    int? contentLength,
-    List<Cookie>? cookies,
-  }) {
-    if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
-    }
-    return ResponseProperties(
-      contentType: contentType ?? this.contentType,
-      contentLength: contentLength ?? this.contentLength,
-      cookies: cookies ?? this.cookies,
-    );
-  }
-
-  bool _closed = false;
-
-  /// The [closed] property indicates if the response properties have been closed.
-  bool get closed => _closed;
-
-  /// The [close] method is used to close the response properties.
-  /// This method should be called when the response will be sent back to the client forcefully without completing the request.
-  /// It prevents further modifications to the response properties.
-  void close() {
-    if (!_closed) {
-      _closed = true;
-    }
-  }
 }

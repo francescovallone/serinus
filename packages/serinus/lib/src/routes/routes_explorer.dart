@@ -3,10 +3,11 @@ import '../containers/injection_token.dart';
 import '../containers/serinus_container.dart';
 import '../contexts/route_context.dart';
 import '../core/core.dart';
-import '../enums/versioning_type.dart';
+import '../enums/enums.dart';
 import '../global_prefix.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
+import 'route_execution_context.dart';
 import 'router.dart';
 
 /// The [RoutesExplorer] class is used to explore the routes of the application.
@@ -20,11 +21,13 @@ final class RoutesExplorer {
 
   final GlobalPrefix? _globalPrefix;
 
+  final RouteExecutionContext _routeExecutionContext;
+
   /// The [ApplicationConfig] object.
   /// It is used to get the global prefix and the versioning options.
 
   /// The [RoutesExplorer] constructor is used to create a new instance of the [RoutesExplorer] class.
-  const RoutesExplorer(this._container, this._router, [this._versioningOptions, this._globalPrefix]);
+  const RoutesExplorer(this._container, this._router, this._routeExecutionContext, [this._versioningOptions, this._globalPrefix]);
 
   /// The [resolveRoutes] method is used to resolve the routes of the application.
   ///
@@ -51,7 +54,10 @@ final class RoutesExplorer {
   /// It registers the routes in the router.
   /// It also logs the mapped routes.
   void explore(
-      Controller controller, Module module, String controllerPath) {
+    Controller controller,
+    Module module,
+    String controllerPath,
+  ) {
     final logger = Logger('RoutesExplorer');
     final routes = controller.routes;
     final versioningEnabled = _versioningOptions?.type == VersioningType.uri;
@@ -68,25 +74,27 @@ final class RoutesExplorer {
       final moduleToken = InjectionToken.fromModule(module);
       final moduleScope = _container.modulesContainer.getScope(moduleToken);
       final routeMethod = spec.route.method;
+      final context = RouteContext(
+        id: entry.key,
+        path: routePath,
+        controller: controller,
+        routeCls: spec.route.runtimeType,
+        method: routeMethod,
+        moduleToken: moduleToken,
+        isStatic: spec.handler is! Function,
+        spec: spec,
+        moduleScope: moduleScope,
+        hooksServices: _container.globalHooks.services,
+        hooksContainer: HooksContainer()
+          .merge([
+            _container.globalHooks,
+            controller.hooksContainer,
+            spec.route.hooksContainer
+          ])
+      );
       _router.registerRoute(
-        RouteContext(
-          id: entry.key,
-          path: routePath,
-          controller: controller,
-          routeCls: spec.route.runtimeType,
-          method: routeMethod,
-          moduleToken: moduleToken,
-          isStatic: spec.handler is! Function,
-          spec: spec,
-          moduleScope: moduleScope,
-          hooksServices: _container.globalHooks.services,
-          hooksContainer: HooksContainer()
-            .merge([
-              _container.globalHooks,
-              controller.hooksContainer,
-              spec.route.hooksContainer
-            ])
-        )
+        context: context,
+        handler: _routeExecutionContext.describe(context, errorHandler: _container.config.errorHandler, notFoundHandler: _container.applicationRef.notFoundHandler, rawBody: _container.applicationRef.rawBody),
       );
       logger.info('Mapped {$routePath, $routeMethod} route');
     }
@@ -109,8 +117,13 @@ final class RoutesExplorer {
     return path;
   }
 
-  
-
+  ({({RouteContext route, HandlerFunction handler})? spec, Map<String, dynamic> params})? getRoute(String path, HttpMethod method) {
+    final result = _router.checkRouteByPathAndMethod(path, method);
+    if (result.spec == null) {
+      return null;
+    }
+    return result;
+  }
 
 }
 

@@ -7,21 +7,24 @@ import '../extensions/object_extensions.dart';
 class WrappedResponse {
 
   /// The wrapped data.
-  dynamic data;
+  Object? data;
 
   /// Create a new [WrappedResponse] instance with the given data.
   WrappedResponse(this.data);
 
   /// Convert the data to bytes.
   Uint8List toBytes() {
+    if(data == null) {
+      return Uint8List(0);
+    }
     if (data is! Uint8List) {
       if (data.runtimeType.isPrimitive()) {
-        return data.toBytes();
+        return data?.toBytes() ?? Uint8List(0);
       } else {
         return jsonEncode(data).toBytes();
       }
     } else {
-      return data;
+      return data as Uint8List;
     }
   }
 

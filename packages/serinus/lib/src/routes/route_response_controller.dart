@@ -8,7 +8,7 @@ class RouteResponseController {
 
   const RouteResponseController(this._applicationRef);
 
-  Future<void> sendResponse<TResponse, TData>(TResponse response, TData data, ResponseProperties properties, {ViewEngine? viewEngine}) async {
+  Future<void> sendResponse<TResponse, TData>(TResponse response, TData data, ResponseContext properties, {ViewEngine? viewEngine}) async {
     await _applicationRef.reply(
       response,
       data,
@@ -16,11 +16,11 @@ class RouteResponseController {
     );
   }
 
-  Future<void> redirect<TResponse>(TResponse response, Redirect redirect, ResponseProperties properties) async {
+  Future<void> redirect<TResponse>(TResponse response, Redirect redirect, ResponseContext properties) async {
     await _applicationRef.redirect(response, redirect, properties);
   }
 
-  Future<void> render<TResponse>(TResponse response, View view, ResponseProperties properties) async {
+  Future<void> render<TResponse>(TResponse response, View view, ResponseContext properties) async {
     return _applicationRef.render(
       response,
       view,

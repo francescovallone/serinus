@@ -1,5 +1,6 @@
 import '../contexts/contexts.dart';
 import '../core/core.dart';
+import '../enums/enums.dart';
 import '../http/http.dart';
 import '../mixins/mixins.dart';
 
@@ -87,8 +88,8 @@ class CorsHook extends Hook
   }
 
   @override
-  Future<void> onRequest(Request request, ResponseProperties properties) async {
-    if (request.method == 'OPTIONS') {
+  Future<void> onRequest(Request request, ResponseContext properties) async {
+    if (request.method == HttpMethod.options) {
       properties.headers.addAll({
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
