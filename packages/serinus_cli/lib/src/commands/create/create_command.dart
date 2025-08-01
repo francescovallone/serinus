@@ -99,8 +99,9 @@ class CreateCommand extends Command<int> {
         defaultValue: '',
       ),
     };
-    if(outputDirectory.existsSync() && !force) {
-      _logger?.err('Directory already exists at ${outputDirectory.absolute.path}');
+    if (outputDirectory.existsSync() && !force) {
+      _logger
+          ?.err('Directory already exists at ${outputDirectory.absolute.path}');
       return;
     }
     if (!outputDirectory.existsSync()) {
@@ -150,8 +151,9 @@ class CreateCommand extends Command<int> {
         defaultValue: 'A new Serinus application',
       ),
     };
-    if(outputDirectory.existsSync() && !force) {
-      progress?.fail('Directory already exists at ${outputDirectory.absolute.path}');
+    if (outputDirectory.existsSync() && !force) {
+      progress?.fail(
+          'Directory already exists at ${outputDirectory.absolute.path}');
       return;
     }
     if (!outputDirectory.existsSync()) {
