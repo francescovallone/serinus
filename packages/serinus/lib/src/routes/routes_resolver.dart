@@ -1,12 +1,14 @@
-import 'dart:typed_data';
+import 'dart:convert';
+import 'dart:io';
 
 import '../containers/serinus_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
-import '../extensions/object_extensions.dart';
+import '../exceptions/exceptions.dart';
 import '../http/http.dart';
 import '../services/logger_service.dart';
+import '../utils/wrapped_response.dart';
 import 'route_execution_context.dart';
 import 'route_response_controller.dart';
 import 'router.dart';
@@ -61,10 +63,13 @@ class RoutesResolver {
     final route = _explorer.getRoute(request.path, HttpMethod.parse(request.method));
     if (route == null) {
       _logger.warning('No route found for ${request.method} ${request.uri}');
+      final data = _container.applicationRef.notFoundHandler?.call() ?? NotFoundException(
+        'Route not found for ${request.method} ${request.uri}'
+      );
       _container.applicationRef.reply(
         response,
-        _container.applicationRef.notFoundHandler?.call()?.toBytes() ?? Uint8List(0),
-        ResponseContext({}, {})
+        WrappedResponse(utf8.encode(jsonEncode(data.toJson()))),
+        ResponseContext({}, {})..statusCode = (data.statusCode)..contentType = ContentType.json,
       );
       return;
     }

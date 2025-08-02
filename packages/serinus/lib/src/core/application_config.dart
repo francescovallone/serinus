@@ -4,6 +4,7 @@ import 'package:uuid/v4.dart';
 
 import '../adapters/adapters.dart';
 import '../containers/adapter_container.dart';
+import '../containers/hooks_container.dart';
 import '../containers/model_provider.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
@@ -107,6 +108,10 @@ final class ApplicationConfig {
   /// This is used to store the adapters used by the application
   /// E.g. [SseAdapter], [WsAdapter], etc.
   final AdapterContainer adapters = AdapterContainer();
+
+  /// The [HooksContainer] for the application
+  /// This is used to store the modules used by the application
+  final HooksContainer globalHooks = HooksContainer();
 
   /// The model provider for the application
   final ModelProvider? modelProvider;

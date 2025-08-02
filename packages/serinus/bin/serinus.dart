@@ -95,6 +95,9 @@ class WsGateway extends WebSocketGateway {
   WsGateway({super.path});
 
   @override
+  int? get port => 3001;
+
+  @override
   Future<void> onMessage(dynamic data, WebSocketContext context) async {
     context.send(data);
   }

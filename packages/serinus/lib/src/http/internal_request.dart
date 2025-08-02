@@ -94,6 +94,8 @@ abstract class IncomingMessage {
     });
   }
 
+  bool hijacked = false;
+
   /// This method is used to emit a request event.
   /// 
   /// It add the event and data to the events stream and can be listened whenever the request is processed.

@@ -84,10 +84,10 @@ final class RoutesExplorer {
         isStatic: spec.handler is! Function,
         spec: spec,
         moduleScope: moduleScope,
-        hooksServices: _container.globalHooks.services,
+        hooksServices: _container.config.globalHooks.services,
         hooksContainer: HooksContainer()
           .merge([
-            _container.globalHooks,
+            _container.config.globalHooks,
             controller.hooksContainer,
             spec.route.hooksContainer
           ])

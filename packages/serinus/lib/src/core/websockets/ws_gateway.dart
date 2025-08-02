@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 
 import '../../adapters/ws_adapter.dart';
+import '../../containers/hooks_container.dart';
 import '../../contexts/contexts.dart';
 import '../core.dart';
 
@@ -22,6 +23,9 @@ abstract class WebSocketGateway extends Provider {
   ///
   /// If the path is not provided, the WebSocketGateway will be available at the root path.
   final String? path;
+  
+  /// The [port] property contains the port of the WebSocketGateway.
+  final int? port;
 
   /// The [serializer] property contains the serializer of the WebSocketGateway.
   ///
@@ -37,7 +41,7 @@ abstract class WebSocketGateway extends Provider {
   WsAdapter? server;
 
   /// The [WebSocketGateway] constructor is used to create a new instance of the [WebSocketGateway] class.
-  WebSocketGateway({this.path, this.serializer, this.deserializer});
+  WebSocketGateway({this.port, this.path, this.serializer, this.deserializer});
 
   /// The [onMessage] method will be called when a message from the client is received.
   ///
@@ -55,6 +59,10 @@ abstract class WebSocketGateway extends Provider {
     if (serializer != null) {
       data = serializer!.serialize(data);
     }
-    server?.send(data, key: clientId);
+    server?.send(data, clientId: clientId);
   }
+
+  /// The [Hook]s of the WebSocketGateway.
+  /// This is a list of hooks that will be executed when the WebSocketGateway is initialized
+  final HooksContainer hooks = HooksContainer();
 }

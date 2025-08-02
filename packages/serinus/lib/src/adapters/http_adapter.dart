@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 
-import '../../serinus.dart';
-import '../containers/module_container.dart';
-import '../contexts/request_context.dart';
+import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
+import '../http/server_event.dart';
 import 'server_adapter.dart';
 
 /// The [HttpAdapter] class is used to create an HTTP server adapter.
@@ -45,17 +45,27 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
   /// By default, it is set to false, meaning the framework will try to parse the body.
   bool rawBody;
 
+  final StreamController<ServerEvent> _eventsController = StreamController<ServerEvent>.broadcast();
+
+  /// The [events] property is a stream of [ServerEvent] that allows listening to server events.
+  Stream<ServerEvent> get events => _eventsController.stream;
+
+  /// You can emit a [ServerEvent] to the stream.
+  /// This can be used to notify listeners about server events such as request handling, errors, and more.
+  void emit(ServerEvent event) {
+    _eventsController.add(event);
+  }
+
   /// The [HttpAdapter] constructor is used to create a new instance of the [HttpAdapter] class.
   HttpAdapter(
       {required this.host, required this.port, required this.poweredByHeader, this.securityContext, this.preserveHeaderCase = true, this.viewEngine, this.notFoundHandler, this.rawBody = false});
 
   @override
-  Future<void> init(ModulesContainer container, ApplicationConfig config);
+  Future<void> init(ApplicationConfig config);
 
   @override
   Future<void> close();
 
-  @override
   Future<void> listen(
     {
       required RequestCallback<TRequest, TResponse> onRequest,

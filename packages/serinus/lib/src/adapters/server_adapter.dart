@@ -32,17 +32,9 @@ abstract class Adapter<TServer> {
   bool get shouldBeInitilized;
 
   /// The [init] method is used to initialize the server.
-  Future<void> init(ModulesContainer container, ApplicationConfig config);
+  Future<void> init(ApplicationConfig config);
 
   /// The [close] method is used to close the server.
   Future<void> close();
-
-  /// The [listen] method is used to listen for requests.
-  Future<void> listen(
-    {
-      required RequestCallback onRequest,
-      ErrorHandler? onError,
-    }
-  );
 
 }

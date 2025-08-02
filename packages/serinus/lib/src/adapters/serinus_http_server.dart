@@ -3,14 +3,11 @@ import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
-import '../containers/module_container.dart';
 import '../contexts/contexts.dart';
-import '../contexts/request_context.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../extensions/object_extensions.dart';
-import '../http/internal_request.dart';
-import '../http/internal_response.dart';
+import '../http/http.dart';
 import '../utils/wrapped_response.dart';
 import 'http_adapter.dart';
 import 'server_adapter.dart';
@@ -46,8 +43,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
       });
 
   @override
-  Future<void> init(
-      [ModulesContainer? container, ApplicationConfig? config]) async {
+  Future<void> init([ApplicationConfig? config]) async {
     if (securityContext == null) {
       server = await io.HttpServer.bind(host, port, shared: true);
     } else {
@@ -75,6 +71,20 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
       await for (final req in server!) {
         final request = InternalRequest.from(req, port, host);
         final response = InternalResponse(req.response);
+        if(request.isWebSocket) {
+          request.hijacked = true;
+          emit(ServerEvent<UpgradedEventData>(
+            type: ServerEventType.upgraded,
+            data: UpgradedEventData(
+              clientId: request.webSocketKey,
+              request: request,
+              response: response,
+            ),
+          ));
+        }
+        if(request.hijacked) {
+          continue;
+        }
         onRequest(request, response);
       }
     } catch (e) {

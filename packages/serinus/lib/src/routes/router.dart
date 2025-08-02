@@ -40,6 +40,9 @@ final class Router {
       String path, HttpMethod method) {
     final result = _routeTree.lookup(getHttpMethod(method), Uri.parse(path));
     final route = result?.values.firstOrNull;
+    if (route == null) {
+      return (spec: null, params: {});
+    }
     return (spec: (route: route.$1, handler: route.$2), params: result?.params ?? {});
   }
 

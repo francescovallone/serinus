@@ -183,7 +183,7 @@ class SerinusApplication extends Application {
 
   /// The [use] method is used to add a hook to the application.
   void use(Hook hook) {
-    container.globalHooks.addHook(hook);
+    container.config.globalHooks.addHook(hook);
     _logger.info('Hook ${hook.runtimeType} added to application');
   }
 

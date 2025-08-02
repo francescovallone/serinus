@@ -59,10 +59,16 @@ final class ModulesContainer {
   bool get isInitialized => _scopes.isNotEmpty;
 
   /// The config of the application
-  final ApplicationConfig config;
+  late final ApplicationConfig config;
 
-  /// The constructor of the [ModulesContainer] class
-  ModulesContainer(this.config);
+  ModulesContainer._();
+
+  static final ModulesContainer _instance = ModulesContainer._();
+
+  /// The factory constructor for the [ModulesContainer]
+  factory ModulesContainer() {
+    return _instance;
+  }
 
   /// The [registerModule] method is used to register a module in the application
   ///
@@ -78,7 +84,7 @@ final class ModulesContainer {
       currentScope.controllers.map((controller) =>
           (module: currentScope.module, controller: controller)),
     );
-    final split = currentScope.module.providers.splitBy<ComposedProvider>();
+    final split = currentScope.providers.splitBy<ComposedProvider>();
     for (final provider in split.notOfType) {
       final providerToken = InjectionToken.fromType(provider.runtimeType);
       await initIfUnregistered(provider);
@@ -110,9 +116,7 @@ final class ModulesContainer {
       );
       _scopedProviders[provider.runtimeType] = currentScope;
     }
-    currentScope.extend(
-      providers: split.notOfType,
-    );
+    currentScope.providers.removeAll(split.ofType);
     _deferredProviders[token] = split.ofType;
     logger.info(
         'Initializing ${currentScope.module.runtimeType}${currentScope.module.token.isNotEmpty ? '(${currentScope.token})' : ''} dependencies.');
@@ -147,7 +151,7 @@ final class ModulesContainer {
     final currentScope = ModuleScope(
         module: entrypoint,
         token: token,
-        providers: {},
+        providers: { ...entrypoint.providers },
         exports: {...entrypoint.exports},
         middlewares: {...entrypoint.middlewares},
         controllers: {...entrypoint.controllers},
