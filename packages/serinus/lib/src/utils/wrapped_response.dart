@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import '../extensions/object_extensions.dart';
@@ -20,8 +21,12 @@ class WrappedResponse {
     if (data is! Uint8List) {
       if (data.runtimeType.isPrimitive()) {
         return data?.toBytes() ?? Uint8List(0);
-      } else {
+      } else if (data!.canBeJson()) {
         return jsonEncode(data).toBytes();
+      } else if (data is File) {
+        return (data as File).readAsBytesSync();
+      } else {
+        return utf8.encode(data.toString());
       }
     } else {
       return data as Uint8List;

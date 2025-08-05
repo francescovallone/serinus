@@ -3,6 +3,7 @@ import '../core/core.dart';
 import '../enums/enums.dart';
 import '../http/http.dart';
 import '../mixins/mixins.dart';
+import '../utils/wrapped_response.dart';
 
 /// The [CorsHook] class is a hook that adds CORS headers to the response.
 class CorsHook extends Hook
@@ -82,7 +83,7 @@ class CorsHook extends Hook
   }
 
   @override
-  Future<void> afterHandle(RequestContext context, dynamic response) async {
+  Future<void> afterHandle(RequestContext context, WrappedResponse response) async {
     /// Add the headers to the response.
     context.res.headers.addAll(responseHeaders);
   }

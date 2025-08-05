@@ -44,7 +44,8 @@ final class SerinusFactory {
         entrypoint: entrypoint,
         config: ApplicationConfig(
           serverAdapter: server,
-          modelProvider: modelProvider
+          modelProvider: modelProvider,
+          
         ),
         levels: logLevels,
         logger: logger);

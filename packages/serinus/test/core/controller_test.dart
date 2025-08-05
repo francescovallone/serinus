@@ -6,7 +6,7 @@ class TestController extends Controller {
 }
 
 class GetRoute extends Route {
-  const GetRoute({
+  GetRoute({
     required super.path,
     super.method = HttpMethod.get,
   });

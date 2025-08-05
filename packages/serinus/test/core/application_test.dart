@@ -8,21 +8,25 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
   bool gentlyClose = false;
 
   @override
+  // TODO: implement host
+  String get host => 'localhost';
+
+  @override
+  // TODO: implement port
+  int get port => 3000;
+
+  @override
   String get name => 'http';
 
   @override
   bool get shouldBeInitilized => false;
 
   @override
-  Future<void> listen(covariant RequestCallback requestCallback,
-      {InternalRequest? request, ErrorHandler? errorHandler}) {
-    throw SocketException('Failed to start server on');
-  }
-
-  @override
-  Handler getHandler(
-      ModulesContainer container, ApplicationConfig config, Router router) {
-    return RequestHandler(router, container, config);
+  Future<void> listen({
+    required RequestCallback<InternalRequest, InternalResponse> onRequest,
+    ErrorHandler? onError,
+  }) async {
+    return;
   }
 
   @override
@@ -49,6 +53,7 @@ void main() {
             serverAdapter: adapter),
       );
       await app.serve();
+      await app.close();
       expect(adapter.gentlyClose, true);
     });
   });

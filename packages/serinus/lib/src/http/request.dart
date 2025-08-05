@@ -114,14 +114,13 @@ class Request {
     if (body != null) {
       return;
     }
-    /// If the content type is multipart, it will parse the body as a multipart form data.
-    // if (contentType.isMultipart) {
-    //   final formData = await _original.formData();
-    //   body = FormDataBody(
-    //     formData,
-    //   );
-    //   return;
-    // }
+    if (contentType.isMultipart) {
+      final formData = await _original.formData();
+      body = FormDataBody(
+        formData,
+      );
+      return;
+    }
     if (rawBody) {
       body = RawBody(_original.bytes());
       return;

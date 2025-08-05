@@ -12,7 +12,7 @@ class SerinusHeaders<T> {
 
   /// Constructor for the [SerinusHeaders] class
   SerinusHeaders(Map<String, String> headers) {
-    values.addAll(headers);
+    _requestHeaders.addAll(headers);
   }
 
   /// Operator to get a value by its [key]

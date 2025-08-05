@@ -11,6 +11,7 @@ import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/iterable_extansions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
 import '../mixins/mixins.dart';
@@ -51,7 +52,7 @@ class RouteExecutionContext {
         }
         final requestContext = RequestContext.fromRouteContext(wrappedRequest, context);
         requestContext.metadata = await context.initMetadata(requestContext);
-        requestContext.body = _resolveBody(context.spec.body, requestContext) ?? requestContext.body;
+        requestContext.body = resolveBody(context.spec.body, requestContext) ?? requestContext.body;
         if(context.schema != null) {
           final schema = context.schema!;
           final Map<String, dynamic> toParse = {};
@@ -77,7 +78,7 @@ class RouteExecutionContext {
           requestContext.request.headers.addAll(result['headers'] ?? <String, String>{});
           requestContext.request.params.addAll(result['params'] ?? {});
           requestContext.request.query.addAll(result['query'] ?? {});
-          requestContext.body = result['body'] ?? requestContext.body;
+          requestContext.body = result.containsKey('body') && result['body'] != null ? JsonBody.fromJson(result['body'] ?? {}) : requestContext.body;
         }
         final middlewares = context.getMiddlewares(wrappedRequest.params);
         if (middlewares.isNotEmpty) {
@@ -102,8 +103,8 @@ class RouteExecutionContext {
             handlerResult = handler.call(requestContext);
           } else {
             handlerResult = Function.apply(handler, [
-              context,
-              requestContext.body.value,
+              requestContext,
+              if (context.spec.body != null) requestContext.body.value,
               ...requestContext.params.values
             ]);
             if (handlerResult is Future) {
@@ -114,13 +115,23 @@ class RouteExecutionContext {
         final responseData = WrappedResponse(handlerResult);
         await _executeAfterHandle(requestContext, context, responseData);
         await _executeOnResponse(context, requestContext, responseData);
-        Object? result = _processResult(responseData, requestContext);
-        await _responseController.sendResponse(
-          response,
-          result,
-          requestContext.res,
-          viewEngine: viewEngine,
-        );
+        WrappedResponse result = _processResult(responseData, requestContext);
+        if (result.data is View) {
+          await _responseController.render(
+            response,
+            result.data as View,
+            requestContext.res,
+          );
+        } else if(result.data is Redirect) {
+          await _responseController.redirect(response, result.data as Redirect, requestContext.res);
+        } else {
+          await _responseController.sendResponse(
+            response,
+            result,
+            requestContext.res,
+            viewEngine: viewEngine,
+          );
+        }
       } on SerinusException catch (e, stackTrace) {
         final currentReqContext = requestContext ?? RequestContext(
           Request(request),
@@ -130,6 +141,8 @@ class RouteExecutionContext {
           },
           context.hooksContainer.services
         );
+        currentReqContext.res.statusCode = e.statusCode;
+        currentReqContext.res.contentType = ContentType.json;
         request.emit(
           RequestEvent.error, 
           EventData(
@@ -142,6 +155,7 @@ class RouteExecutionContext {
           context,
           e
         );
+        await _executeOnResponse(context, currentReqContext, WrappedResponse(e));
         if (errorHandler != null) {
           final errorResponse = errorHandler(e, stackTrace);
           if (errorResponse != null) {
@@ -155,7 +169,7 @@ class RouteExecutionContext {
         } else {
           await _responseController.sendResponse(
             response,
-            e.toBytes(),
+            WrappedResponse(e.message),
             currentReqContext.res,
             viewEngine: viewEngine,
           );
@@ -170,7 +184,7 @@ class RouteExecutionContext {
     SerinusException exception,
   ) async {
     for (final hook in context.hooksContainer.exceptionHooks) {
-      if (hook.exceptionTypes.contains(exception.runtimeType)) {
+      if (hook.exceptionTypes.contains(exception.runtimeType) || hook.exceptionTypes.isEmpty) {
         await hook.onException(requestContext, exception);
       }
     }
@@ -214,7 +228,7 @@ class RouteExecutionContext {
       responseData = JsonUtf8Encoder().convert(modelProvider?.to(result.data));
       context.res.contentType ??= ContentType.json;
     }
-    if (result.data is Uint8List) {
+    if (result.data is Uint8List || result.data is File) {
       context.res.contentType ??= ContentType.binary;
     }
     result.data = responseData ?? result.data;
@@ -258,7 +272,7 @@ class RouteExecutionContext {
             EventData(
                 data: data,
                 properties: requestContext.res
-                  ..headers.addAll(response.currentHeaders.toMap())),
+                  ..headers.addAll((response.currentHeaders as HttpHeaders).toMap())),
           );
           return;
         }
@@ -284,7 +298,9 @@ class RouteExecutionContext {
     }
   }
 
-  dynamic _resolveBody(
+  /// The [resolveBody] method is used to resolve the body of the request based on the expected type.
+  /// It checks the type of the body and returns the appropriate value.
+  dynamic resolveBody(
     dynamic body,
     RequestContext context,
   ) {
@@ -297,13 +313,17 @@ class RouteExecutionContext {
       }
       return context.body.value;
     }
-    if ((('$body'.startsWith('Map') || '$body'.contains('List<Map')) &&
+    if ((('$body'.startsWith('Map') || '$body'.contains('List<')) &&
             '$body'.endsWith('>')) ||
         '$body' == 'Map') {
-      if (context.body is! JsonBody) {
-        throw PreconditionFailedException('The body is not a json');
+      if (context.body is! JsonBody && context.body is! FormDataBody) {
+        throw PreconditionFailedException('The body is not a json object');
       }
-      return context.body.value;
+      final requestBody = context.body;
+      if (requestBody is FormDataBody) {
+        return requestBody.asMap();
+      }
+      return requestBody.value;
     }
     if (body == Uint8List) {
       if (context.body is! RawBody) {
@@ -319,27 +339,27 @@ class RouteExecutionContext {
     }
     if (modelProvider != null) {
       try {
-        if (context.body is FormDataBody) {
+        final requestBody = context.body;
+        if (requestBody is FormDataBody) {
           return modelProvider!.from(body, {
-            ...context.body.value.fields,
-            ...Map<String, dynamic>.fromEntries(context
-                .body.value.files.entries
-                .map((e) => MapEntry(e.key, e.value.toJson()))),
+            ...requestBody.asMap(),
+            ...Map<String, dynamic>.fromEntries(requestBody.value.files.entries)
           });
         }
-        if (context.body is JsonBody) {
-          if (context.body is JsonList) {
-            return context.body.value
+        if (requestBody is JsonBody) {
+          if (requestBody is JsonList) {
+            return requestBody.value
                 .map((e) => modelProvider!.from(body, e))
                 .toList();
           } else {
-            return modelProvider!.from(body, context.body.value);
+            return modelProvider!.from(body, requestBody.value);
           }
         }
       } catch (e) {
         throw PreconditionFailedException('The body cannot be converted to a valid model');
       }
     }
+    throw PreconditionFailedException('The body type is not supported: $body');
   }
 
 }

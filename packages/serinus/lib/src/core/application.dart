@@ -24,13 +24,22 @@ abstract class Application {
 
   /// The [container] property contains the Serinus container of the application.
   /// It is used to access the modules and their dependencies and also the adapters.
-  final SerinusContainer container;
+  SerinusContainer _container;
 
   /// The [RoutesResolver] property contains the resolver of the application.
-  late final RoutesResolver routesResolver;
+  RoutesResolver?  _routesResolver;
 
   /// The [config] property contains the application configuration.
   final ApplicationConfig config;
+
+  @visibleForTesting
+  SerinusContainer get container => _container;
+
+  @visibleForTesting
+  set container(SerinusContainer container) {
+    _container = container;
+    _routesResolver = RoutesResolver(_container);
+  }
 
   /// The [Application] constructor is used to create a new instance of the [Application] class.
   Application({
@@ -38,8 +47,8 @@ abstract class Application {
     required this.config,
     Set<LogLevel>? levels,
     LoggerService? logger,
-  })  : container = SerinusContainer(config, config.serverAdapter) {
-    routesResolver = RoutesResolver(container);
+  })  : _container = SerinusContainer(config, config.serverAdapter) {
+    _routesResolver = RoutesResolver(_container);
     if (logger != null) {
       Logger.overrideLogger(logger);
     }
@@ -100,7 +109,7 @@ class SerinusApplication extends Application {
 
   /// The [viewEngine] method is used to set the view engine of the application.
   set viewEngine(ViewEngine viewEngine) {
-    container.applicationRef.viewEngine = viewEngine;
+    _container.applicationRef.viewEngine = viewEngine;
   }
 
   /// The [versioning] setter is used to enable versioning.
@@ -128,7 +137,7 @@ class SerinusApplication extends Application {
     _logger.info('Starting server on $url');
     try {
       server.listen(
-        onRequest: (request, response) => routesResolver.handle(
+        onRequest: (request, response) => _routesResolver!.handle(
           request,
           response,
         ),
@@ -143,7 +152,7 @@ class SerinusApplication extends Application {
           return null; // Handle error as needed
         },
       );
-      await container.emitHook<OnApplicationReady>();
+      await _container.emitHook<OnApplicationReady>();
     } on SocketException catch (e) {
       _logger.severe('Failed to start server on ${e.address}:${e.port}');
       await close();
@@ -161,29 +170,29 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> initialize() async {
-    final modulesContainer = container.modulesContainer;
+    final modulesContainer = _container.modulesContainer;
     if (!modulesContainer.isInitialized) {
       await modulesContainer.registerModules(entrypoint);
     }
-    routesResolver.resolve();
+    _routesResolver?.resolve();
     await modulesContainer.finalize(entrypoint);
-    await container.emitHook<OnApplicationBootstrap>();
+    await _container.emitHook<OnApplicationBootstrap>();
   }
 
   @override
   Future<void> shutdown() async {
     _logger.info('Shutting down server');
-    await container.emitHook<OnApplicationShutdown>();
+    await _container.emitHook<OnApplicationShutdown>();
   }
 
   @override
   Future<void> register() async {
-    container.modulesContainer.registerModules(entrypoint);
+    _container.modulesContainer.registerModules(entrypoint);
   }
 
   /// The [use] method is used to add a hook to the application.
   void use(Hook hook) {
-    container.config.globalHooks.addHook(hook);
+    _container.config.globalHooks.addHook(hook);
     _logger.info('Hook ${hook.runtimeType} added to application');
   }
 

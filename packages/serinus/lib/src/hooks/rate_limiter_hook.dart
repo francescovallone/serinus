@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import '../../serinus.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
@@ -7,7 +8,7 @@ import '../http/http.dart';
 import '../mixins/mixins.dart';
 
 /// The [RateLimiterHook] class is a hook that limits the number of requests a client can make.
-class RateLimiterHook extends Hook with OnRequest, OnBeforeHandle, OnResponse {
+class RateLimiterHook extends Hook with OnBeforeHandle, OnResponse {
   /// Maximum number of requests.
   int maxRequests;
 
@@ -24,11 +25,6 @@ class RateLimiterHook extends Hook with OnRequest, OnBeforeHandle, OnResponse {
   RateLimiterHook(
       {int? maxRequests, this.duration = const Duration(minutes: 1)})
       : maxRequests = maxRequests ?? double.infinity.toInt();
-
-  @override
-  Future<void> onRequest(Request request, ResponseContext properties) async {
-    return;
-  }
 
   @override
   Future<void> beforeHandle(RequestContext context) async {
@@ -65,7 +61,7 @@ class RateLimiterHook extends Hook with OnRequest, OnBeforeHandle, OnResponse {
 
   @override
   Future<void> onResponse(
-      Request request, dynamic data, ResponseContext properties) async {
+      Request request, WrappedResponse data, ResponseContext properties) async {
     if (properties.statusCode < 400 && rateLimiter != null) {
       properties.headers.addAll({
         'X-RateLimit-Limit': '$maxRequests',

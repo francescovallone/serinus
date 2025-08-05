@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/routes/route_execution_context.dart';
+import 'package:serinus/src/routes/route_response_controller.dart';
 import 'package:test/test.dart';
 
 class _MockAdapter extends Mock implements SerinusHttpAdapter {
@@ -51,34 +53,54 @@ void main() {
     test(
         'when the body type is an available body the request handler should provide it',
         () {
-      final RequestHandler requestHandler =
-          RequestHandler(Router(), ModulesContainer(config), config);
-      var body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.text, text: 'test')), String);
+      final executionContext = RouteExecutionContext(
+        RouteResponseController(_MockAdapter()),
+      );
+
+      var body = executionContext.resolveBody(
+        String,
+        _MockContext(StringBody('test'))
+      );
       expect(body, 'test');
 
-      body = requestHandler.getBodyValue(
-          _MockContext(
-              Body(ContentType.json, json: JsonBodyObject({'test': 'test'}))),
-          Map);
+      body = executionContext.resolveBody(
+        Map,
+        _MockContext(JsonBodyObject({'test': 'test'}))
+      );
 
       expect(body, {'test': 'test'});
 
-      body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.json, json: JsonList(['test']))), List);
+      body = executionContext.resolveBody(
+          List,
+          _MockContext(JsonList(['test']))
+      );
 
-      body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.binary, bytes: [1, 2, 3])), Uint8List);
+      body = executionContext.resolveBody(
+          Uint8List,
+          _MockContext(RawBody(
+              [1, 2, 3]
+          ))
+      );
 
       expect(body, [1, 2, 3]);
 
-      body = requestHandler.getBodyValue(
-          _MockContext(Body(
-              ContentType.parse('application/x-www-form-urlencoded'),
-              formData: FormData(fields: {'test': 'test'}))),
-          FormData);
+      body = executionContext.resolveBody(
+          Map,
+          _MockContext(FormDataBody(
+              FormData(fields: {'test': 'test'}, contentType: ContentType.parse('application/x-www-form-urlencoded')))
+          )
+      );
 
-      expect(body.values, {
+      expect(body, {'test': 'test'});
+
+      body = executionContext.resolveBody(
+          Map,
+          _MockContext(FormDataBody(
+              FormData(fields: {'test': 'test'}, files: {}, contentType: ContentType.parse('multipart/form-data')))
+          )
+      );
+
+      expect(body, {
         'fields': {'test': 'test'},
         'files': {}
       });
@@ -87,58 +109,61 @@ void main() {
     test(
         'if the body type is not the same as the current body value then a [PreconditionFailedException] should be thrown',
         () {
-      final RequestHandler requestHandler =
-          RequestHandler(Router(), ModulesContainer(config), config);
+      final executionContext = RouteExecutionContext(
+        RouteResponseController(_MockAdapter()),
+      );
       expect(
-          () => requestHandler.getBodyValue(
-              _MockContext(Body(ContentType.text, text: 'test')), Map),
+          () => executionContext.resolveBody(
+              String,
+              _MockContext(JsonBodyObject({'test': 'test'}))
+          ),
           throwsA(isA<PreconditionFailedException>()));
     });
 
     test(
         'if the body type is in the [ModelProvider] then the body should be converted to the model',
         () {
-      final modelProviderConfig = ApplicationConfig(
-          serverAdapter: _MockAdapter(),
-          modelProvider: _MockModelProvider());
-      final RequestHandler requestHandler = RequestHandler(
-          Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
-      final body = requestHandler.getBodyValue(
-          _MockContext(
-              Body(ContentType.json, json: JsonBodyObject({'name': 'test'}))),
-          TestObject);
+      final executionContext = RouteExecutionContext(
+        RouteResponseController(_MockAdapter()),
+        modelProvider: _MockModelProvider()
+      );
+      
+      final body = executionContext.resolveBody(
+          TestObject,
+          _MockContext(JsonBodyObject({'name': 'test'}))
+      );
       expect(body.name, 'test');
     });
 
     test(
         'if the body type is not in the [ModelProvider] then a [PreconditionFailedException] should be thrown',
         () {
-      final modelProviderConfig = ApplicationConfig(
-          serverAdapter: _MockAdapter(),
-          modelProvider: _MockModelProvider());
-      final RequestHandler requestHandler = RequestHandler(
-          Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
+      final executionContext = RouteExecutionContext(
+        RouteResponseController(_MockAdapter()),
+        modelProvider: _MockModelProvider()
+      );
       expect(
-          () => requestHandler.getBodyValue(
-              _MockContext(Body(ContentType.json,
-                  json: JsonBodyObject({'name': 'test'}))),
-              String),
+          () => executionContext.resolveBody(
+              TestObject,
+              _MockContext(StringBody('test')),
+            ),
           throwsA(isA<PreconditionFailedException>()));
     });
 
     test(
         'if the body type is in the [ModelProvider] and the raw body is a FormData then the body should be converted to the model',
         () {
-      final modelProviderConfig = ApplicationConfig(
-          serverAdapter: _MockAdapter(),
-          modelProvider: _MockModelProvider());
-      final RequestHandler requestHandler = RequestHandler(
-          Router(), ModulesContainer(modelProviderConfig), modelProviderConfig);
-      final body = requestHandler.getBodyValue(
-          _MockContext(Body(
-              ContentType.parse('application/x-www-form-urlencoded'),
-              formData: FormData(fields: {'name': 'test'}))),
-          TestObject);
+      final executionContext = RouteExecutionContext(
+        RouteResponseController(_MockAdapter()),
+        modelProvider: _MockModelProvider()
+      );
+
+      final body = executionContext.resolveBody(
+          TestObject,
+          _MockContext(FormDataBody(
+              FormData(fields: {'name': 'test'}, contentType: ContentType.parse('application/x-www-form-urlencoded')))
+          ),
+        );
       expect(body.name, 'test');
     });
   });

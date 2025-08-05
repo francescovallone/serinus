@@ -17,7 +17,7 @@ class TestObj with JsonObject {
 }
 
 class TestRoute extends Route {
-  const TestRoute({
+  TestRoute({
     required super.path,
     super.method = HttpMethod.get,
   });
@@ -47,7 +47,7 @@ class TestController extends Controller {
       return file;
     });
     on(TestRoute(path: '/redirect'),
-        (context) async => context.res.redirect = Redirect('/text'));
+        (context) async => Redirect('/text'));
     on(TestRoute(path: '/status'), (context) async {
       context.res.statusCode = 201;
       return 'test';

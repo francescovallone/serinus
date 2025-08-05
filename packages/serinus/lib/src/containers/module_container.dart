@@ -55,20 +55,13 @@ final class ModulesContainer {
   /// The [logger] for the module_container
   final logger = Logger('InstanceLoader');
 
+  final ApplicationConfig config;
+
+  /// The [ModulesContainer] constructor is used to create a new instance of the [ModulesContainer] class.
+  ModulesContainer(this.config);
+
   /// The [isInitialized] property contains the initialization status of the application
   bool get isInitialized => _scopes.isNotEmpty;
-
-  /// The config of the application
-  late final ApplicationConfig config;
-
-  ModulesContainer._();
-
-  static final ModulesContainer _instance = ModulesContainer._();
-
-  /// The factory constructor for the [ModulesContainer]
-  factory ModulesContainer() {
-    return _instance;
-  }
 
   /// The [registerModule] method is used to register a module in the application
   ///

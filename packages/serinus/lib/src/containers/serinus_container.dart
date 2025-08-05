@@ -1,4 +1,3 @@
-
 import '../adapters/http_adapter.dart';
 import '../core/core.dart';
 import '../inspector/inspector.dart';
@@ -24,7 +23,8 @@ class SerinusContainer {
   /// The [SerinusContainer] constructor is used to create a new instance of the [SerinusContainer] class.
   /// It initializes the [modulesContainer] and the [inspector].
   SerinusContainer(this.config, this.applicationRef) {
-    modulesContainer = ModulesContainer()..config = config;
+    modulesContainer = ModulesContainer(config);
+    config.modulesContainer = modulesContainer;
     inspector = GraphInspector(SerializedGraph(), modulesContainer);
   }
 

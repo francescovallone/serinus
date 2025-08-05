@@ -1,7 +1,7 @@
 // coverage:ignore-file
 import 'package:serinus/serinus.dart';
 
-class BearerHook extends Hook with OnRequestResponse {
+class BearerHook extends Hook with OnRequest, OnResponse {
   final String header;
 
   final String body;
@@ -15,7 +15,7 @@ class BearerHook extends Hook with OnRequestResponse {
   });
 
   @override
-  Future<void> onRequest(Request request, InternalResponse response) async {
+  Future<void> onRequest(Request request, ResponseContext properties) async {
     final String? authValue = request.headers['authorization'];
     if (request.body == null) {
       await request.parseBody();
@@ -26,7 +26,7 @@ class BearerHook extends Hook with OnRequestResponse {
     if (request.query.containsKey('access_token')) {
       request['bearer'] = request.query['access_token'];
     }
-    final jsonBody = request.body?.json;
+    final jsonBody = request.body as JsonBody?;
     if (jsonBody != null) {
       if (jsonBody.multiple) {
         final List<dynamic> list = jsonBody.value;

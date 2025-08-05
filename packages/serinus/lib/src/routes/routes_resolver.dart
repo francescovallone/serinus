@@ -14,6 +14,9 @@ import 'route_response_controller.dart';
 import 'router.dart';
 import 'routes_explorer.dart';
 
+/// The [RoutesResolver] class is responsible for resolving the routes of the application.
+/// It explores the controllers and registers their routes in the router.
+/// It also handles incoming requests and finds the appropriate route to execute.
 class RoutesResolver {
 
   final SerinusContainer _container;
@@ -24,6 +27,7 @@ class RoutesResolver {
 
   late final RouteExecutionContext _routeExecutionContext;
 
+  /// Constructor for the [RoutesResolver] class.
   RoutesResolver(this._container){
     _routeExecutionContext = RouteExecutionContext(
       RouteResponseController(_container.applicationRef)
@@ -59,17 +63,31 @@ class RoutesResolver {
     }
   }
 
+  /// The [handle] method handles the incoming request and finds the appropriate route.
+  /// If no route is found, it returns a 404 Not Found response.
+  /// If a route is found, it calls the handler of the route with the request and response.
   Future<void> handle(IncomingMessage request, OutcomingMessage response) async {
     final route = _explorer.getRoute(request.path, HttpMethod.parse(request.method));
     if (route == null) {
       _logger.warning('No route found for ${request.method} ${request.uri}');
+      final wrappedRequest = Request(request, {});
       final data = _container.applicationRef.notFoundHandler?.call() ?? NotFoundException(
         'Route not found for ${request.method} ${request.uri}'
       );
+      final reqHooks = _container.config.globalHooks.reqHooks;
+      final resContext = ResponseContext({}, {})..statusCode = HttpStatus.notFound..contentType = ContentType.json;
+      for (final hook in reqHooks) {
+        await hook.onRequest(wrappedRequest, resContext);
+      }
+      final resHooks = _container.config.globalHooks.resHooks;
+      final wrappedData = WrappedResponse(utf8.encode(jsonEncode(data.toJson())));
+      for (final hook in resHooks) {
+        await hook.onResponse(wrappedRequest, wrappedData, resContext);
+      }
       _container.applicationRef.reply(
         response,
-        WrappedResponse(utf8.encode(jsonEncode(data.toJson()))),
-        ResponseContext({}, {})..statusCode = (data.statusCode)..contentType = ContentType.json,
+        wrappedData,
+        resContext,
       );
       return;
     }

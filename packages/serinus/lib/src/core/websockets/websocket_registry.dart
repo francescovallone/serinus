@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:spanner/spanner.dart';
 
-import '../../../serinus.dart';
 import '../../adapters/adapters.dart';
-import '../../containers/module_container.dart';
+import '../../contexts/contexts.dart';
 import '../../errors/initialization_error.dart';
 import '../../mixins/mixins.dart';
+import '../../services/logger_service.dart';
 import '../../utils/wrapped_response.dart';
 import '../core.dart';
 
@@ -26,17 +26,17 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
   Future<void> onApplicationReady() async {
     final wsAdapter = config.adapters.get<WebSocketAdapter>('websocket');
     await wsAdapter.init(config);
-    final modulesContainer = ModulesContainer();
-    final gateways = modulesContainer.getAll<WebSocketGateway>();
+    final gateways = config.modulesContainer.getAll<WebSocketGateway>();
+    print('Application Ready: Found ${gateways.length} WebSocket Gateways');
     final mainPort = wsAdapter.httpAdapter.port;
     for (final gateway in gateways) {
       if (gateway.port == null || gateway.port == mainPort) {
         final router = wsAdapter.router ?? Spanner();
-        final gatewayScope = modulesContainer.getScopeByProvider(gateway.runtimeType);
-        final result = router.lookup(HTTPMethod.ALL, gateway.path ?? '*');
+        final gatewayScope = config.modulesContainer.getScopeByProvider(gateway.runtimeType);
+        final result = router.lookup(HTTPMethod.ALL, gateway.path ?? '/');
         if(result?.values.isNotEmpty ?? false) {
           throw InitializationError(
-            'WebSocket Gateway with path "${gateway.path ?? '*'}" already exists. '
+            'WebSocket Gateway with path "${gateway.path ?? '/'}" already exists. '
             'Please use a different path or port for the gateway.',
           );
         }
@@ -81,8 +81,8 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
           adapters[gateway.port!] = customWsAdapter;
         }
         final router = customWsAdapter.router ?? Spanner();
-        final gatewayScope = modulesContainer.getScopeByProvider(gateway.runtimeType);
-        final result = router.lookup(HTTPMethod.ALL, gateway.path ?? '*');
+        final gatewayScope = config.modulesContainer.getScopeByProvider(gateway.runtimeType);
+        final result = router.lookup(HTTPMethod.ALL, gateway.path ?? '/');
         if(result?.values.isNotEmpty ?? false) {
           throw InitializationError(
             'WebSocket Gateway with path "${gateway.path ?? '*'}" already exists. '

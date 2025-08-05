@@ -1,11 +1,26 @@
 import 'dart:convert';
 
+import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
 import 'package:test/test.dart';
 
 import '../core/module_test.dart';
 import '../mocks/controller_mock.dart';
+
+class _MockAdapter extends Mock implements SerinusHttpAdapter {
+
+  @override
+  String get name => 'http';
+
+  @override
+  Future<void> close() {
+    return Future.value();
+  }
+
+  @override
+  bool get shouldBeInitilized => false;
+}
 
 class TestModule extends Module {
   TestModule({
@@ -50,8 +65,15 @@ void main() {
       test(
         'should return a single node when a module with no dependencies is registered',
         () async {
+          final config = ApplicationConfig(
+            serverAdapter: SerinusHttpAdapter(
+              host: 'localhost',
+              port: 3000,
+              poweredByHeader: 'Powered by Serinus',
+            )
+          );
           final module = TestModule();
-          final container = SerinusContainer(config);
+          final container = SerinusContainer(config, _MockAdapter());
           final inspector = container.inspector;
           final graph = inspector.graph;
           await container.modulesContainer.registerModules(module);
@@ -67,7 +89,14 @@ void main() {
         () async {
           final module = TestModule(
               controllers: [MockController()], providers: [TestProvider()]);
-          final container = SerinusContainer(config);
+          final config = ApplicationConfig(
+            serverAdapter: SerinusHttpAdapter(
+              host: 'localhost',
+              port: 3000,
+              poweredByHeader: 'Powered by Serinus',
+            )
+          );
+          final container = SerinusContainer(config, _MockAdapter());
           final inspector = container.inspector;
           final graph = inspector.graph;
           await container.modulesContainer.registerModules(module);
@@ -99,7 +128,14 @@ void main() {
           ], middlewares: [
             TestMiddleware()
           ]);
-          final container = SerinusContainer(config);
+          final config = ApplicationConfig(
+            serverAdapter: SerinusHttpAdapter(
+              host: 'localhost',
+              port: 3000,
+              poweredByHeader: 'Powered by Serinus',
+            )
+          );
+          final container = SerinusContainer(config, _MockAdapter());
           final inspector = container.inspector;
           final graph = inspector.graph;
           await container.modulesContainer.registerModules(moduleB);
@@ -122,7 +158,14 @@ void main() {
               controllers: [MockController()],
               providers: [TestProvider()],
               middlewares: []);
-          final container = SerinusContainer(config);
+          final config = ApplicationConfig(
+            serverAdapter: SerinusHttpAdapter(
+              host: 'localhost',
+              port: 3000,
+              poweredByHeader: 'Powered by Serinus',
+            )
+          );
+          final container = SerinusContainer(config, _MockAdapter());
           final inspector = container.inspector;
           final graph = inspector.graph;
           await container.modulesContainer.registerModules(moduleB);
@@ -147,7 +190,14 @@ void main() {
               controllers: [MockController()],
               providers: [TestProvider()],
               middlewares: []);
-          final container = SerinusContainer(config);
+          final config = ApplicationConfig(
+            serverAdapter: SerinusHttpAdapter(
+              host: 'localhost',
+              port: 3000,
+              poweredByHeader: 'Powered by Serinus',
+            )
+          );
+          final container = SerinusContainer(config, _MockAdapter());
           final inspector = container.inspector;
           final graph = inspector.graph;
           await container.modulesContainer.registerModules(moduleB);

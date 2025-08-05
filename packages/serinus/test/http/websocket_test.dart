@@ -1,10 +1,11 @@
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
-  const TestRoute({
+  TestRoute({
     required super.path,
     super.method = HttpMethod.get,
   });
@@ -27,7 +28,7 @@ class WsGateway extends WebSocketGateway {
 
   @override
   Future<void> onMessage(dynamic data, WebSocketContext context) async {
-    context.send(data);
+    context.sendText(data);
   }
 }
 
@@ -40,7 +41,7 @@ class WsGatewayMixins extends WebSocketGateway
 
   @override
   Future<void> onMessage(dynamic data, WebSocketContext context) async {
-    context.send(data);
+    context.sendText(data);
   }
 
   @override
@@ -62,7 +63,7 @@ void main() {
       final app = await serinus.createApplication(
           entrypoint:
               TestModule(imports: [WsModule()], providers: [WsGateway()]),
-          logLevels: {LogLevel.none},
+              logLevels: {LogLevel.none},
           port: 3004);
       await app.serve();
       final ws = await WebSocket.connect('ws://localhost:3004/');
@@ -75,11 +76,11 @@ void main() {
     test(
       'when a module import the WsModule and use a WebSocketGateway and the path param is not null then the gateway should only accept connections on the specified path',
       () async {
-        final app = await serinus.createApplication(
+          final app = await serinus.createApplication(
             entrypoint: TestModule(
                 imports: [WsModule()], providers: [WsGateway(path: '/ws')]),
-            logLevels: {LogLevel.none},
-            port: 3001);
+              logLevels: {LogLevel.none},
+            port: 3001,);
         await app.serve();
         try {
           await WebSocket.connect('ws://localhost:3001/');
@@ -88,7 +89,7 @@ void main() {
         }
         final ws = await WebSocket.connect('ws://localhost:3001/ws');
         ws.add('Hello from client');
-        final message = await ws.first;
+        final message = await ws.firstOrNull;
         expect(message, 'Hello from client');
       },
     );

@@ -5,7 +5,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
-  const TestRoute({
+  TestRoute({
     required super.path,
     super.method = HttpMethod.get,
   });
@@ -13,8 +13,11 @@ class TestRoute extends Route {
 
 class TestController extends Controller {
   TestController(super.path) {
-    on(TestRoute(path: '/form', method: HttpMethod.post), (context) async {
-      return context.request.body?.formData?.values ?? {};
+    on(TestRoute(path: '/form', method: HttpMethod.post), (RequestContext context) async {
+      if(context.body is FormDataBody) {
+        final formData = context.body as FormDataBody;
+        return formData.asMap();
+      }
     });
   }
 }

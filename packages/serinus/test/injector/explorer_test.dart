@@ -1,28 +1,60 @@
+import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/explorer.dart';
+import 'package:serinus/src/containers/serinus_container.dart';
+import 'package:serinus/src/routes/route_execution_context.dart';
+import 'package:serinus/src/routes/route_response_controller.dart';
+import 'package:serinus/src/routes/router.dart';
+import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
 
 import '../mocks/controller_mock.dart';
 import '../mocks/module_mock.dart';
 
-final config = ApplicationConfig(
-    serverAdapter: SerinusHttpAdapter(
-      host: 'localhost',
-      port: 3000,
-      poweredByHeader: 'Powered by Serinus',
-    ));
+class _MockAdapter extends Mock implements SerinusHttpAdapter {
+
+  @override
+  String get name => 'http';
+
+  @override
+  // TODO: implement rawBody
+  bool get rawBody => false;
+
+  @override
+  Future<void> close() {
+    return Future.value();
+  }
+
+  @override
+  bool get shouldBeInitilized => false;
+}
 
 void main() {
   Logger.setLogLevels({LogLevel.none});
-  group('$Explorer', () {
+  group('$RoutesExplorer', () {
     test(
         'when the application startup, then the controller can be walked through to register all the routes',
         () async {
       final router = Router();
-      final modulesContainer = ModulesContainer(config);
-      await modulesContainer
+      final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ));
+      final container = SerinusContainer(config, _MockAdapter());
+      await container.modulesContainer
           .registerModules(SimpleMockModule(controllers: [MockController()]));
-      final explorer = Explorer(modulesContainer, router, config);
+      final explorer = RoutesExplorer(
+        container, 
+        router, 
+        RouteExecutionContext(
+          RouteResponseController(_MockAdapter())
+        ),
+        config.versioningOptions,
+        config.globalPrefix,
+      );
+      await container.modulesContainer
+          .registerModules(SimpleMockModule(controllers: [MockController()]));
       explorer.resolveRoutes();
     });
 
@@ -30,18 +62,48 @@ void main() {
         'when the application startup, and a controller has not a static path, then the explorer will throw an error',
         () async {
       final router = Router();
-      final modulesContainer = ModulesContainer(config);
-      await modulesContainer.registerModules(
+      final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ));
+      final container = SerinusContainer(config, _MockAdapter());
+      final explorer = RoutesExplorer(
+        container, 
+        router, 
+        RouteExecutionContext(
+          RouteResponseController(_MockAdapter())
+        ),
+        config.versioningOptions,
+        config.globalPrefix,
+      );
+      await container.modulesContainer.registerModules(
         SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
       );
-      final explorer = Explorer(modulesContainer, router, config);
       expect(() => explorer.resolveRoutes(), throwsException);
     });
 
     test(
         'when a path without leading slash is passed, then the path will be normalized',
         () {
-      final explorer = Explorer(ModulesContainer(config), Router(), config);
+      final router = Router();
+      final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ));
+      final container = SerinusContainer(config, _MockAdapter());
+      final explorer = RoutesExplorer(
+        container, 
+        router, 
+        RouteExecutionContext(
+          RouteResponseController(_MockAdapter())
+        ),
+        config.versioningOptions,
+        config.globalPrefix,
+      );
       final path = 'test';
       final normalizedPath = explorer.normalizePath(path);
       expect(normalizedPath, '/test');
@@ -50,7 +112,23 @@ void main() {
     test(
         'when a path with multiple slashes is passed, then the path will be normalized',
         () {
-      final explorer = Explorer(ModulesContainer(config), Router(), config);
+      final router = Router();
+      final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ));
+      final container = SerinusContainer(config, _MockAdapter());
+      final explorer = RoutesExplorer(
+        container, 
+        router, 
+        RouteExecutionContext(
+          RouteResponseController(_MockAdapter())
+        ),
+        config.versioningOptions,
+        config.globalPrefix,
+      );
       final path = '/test//test';
       final normalizedPath = explorer.normalizePath(path);
       expect(normalizedPath, '/test/test');
@@ -59,16 +137,31 @@ void main() {
     test(
         'when the $VersioningOptions is set to uri, then the route path will be prefixed with the version',
         () async {
+      final config = ApplicationConfig(
+        serverAdapter: SerinusHttpAdapter(
+          host: 'localhost',
+          port: 3000,
+          poweredByHeader: 'Powered by Serinus',
+        )
+      );
       config.versioningOptions =
           VersioningOptions(type: VersioningType.uri, version: 1);
       final router = Router();
-      final modulesContainer = ModulesContainer(config);
-      await modulesContainer
+      final container = SerinusContainer(config, _MockAdapter());
+      await container.modulesContainer
           .registerModules(SimpleMockModule(controllers: [MockController()]));
-      final explorer = Explorer(modulesContainer, router, config);
+      final explorer = RoutesExplorer(
+        container, 
+        router, 
+        RouteExecutionContext(
+          RouteResponseController(_MockAdapter())
+        ),
+        config.versioningOptions,
+        config.globalPrefix,
+      );
       explorer.resolveRoutes();
-      final result = router.getRouteByPathAndMethod('/v1', HttpMethod.get);
-      expect(result.route?.path, '/v1/');
+      final result = router.checkRouteByPathAndMethod('/v1', HttpMethod.get);
+      expect(result.spec?.route.path, '/v1/');
     });
 
     test(
@@ -82,13 +175,21 @@ void main() {
           ));
       config.globalPrefix = GlobalPrefix(prefix: 'api');
       final router = Router();
-      final modulesContainer = ModulesContainer(config);
-      await modulesContainer
+      final container = SerinusContainer(config, _MockAdapter());
+      await container.modulesContainer
           .registerModules(SimpleMockModule(controllers: [MockController()]));
-      final explorer = Explorer(modulesContainer, router, config);
+      final explorer = RoutesExplorer(
+        container, 
+        router, 
+        RouteExecutionContext(
+          RouteResponseController(_MockAdapter())
+        ),
+        config.versioningOptions,
+        config.globalPrefix,
+      );
       explorer.resolveRoutes();
-      final result = router.getRouteByPathAndMethod('/api', HttpMethod.get);
-      expect(result.route?.path, '/api/');
+      final result = router.checkRouteByPathAndMethod('/api', HttpMethod.get);
+      expect(result.spec?.route.path, '/api/');
     });
 
     test(
@@ -155,13 +256,21 @@ void main() {
       config.versioningOptions =
           VersioningOptions(type: VersioningType.uri, version: 1);
       final router = Router();
-      final modulesContainer = ModulesContainer(config);
-      await modulesContainer
+      final container = SerinusContainer(config, _MockAdapter());
+      await container.modulesContainer
           .registerModules(SimpleMockModule(controllers: [MockController()]));
-      final explorer = Explorer(modulesContainer, router, config);
+      final explorer = RoutesExplorer(
+        container, 
+        router, 
+        RouteExecutionContext(
+          RouteResponseController(_MockAdapter())
+        ),
+        config.versioningOptions,
+        config.globalPrefix,
+      );
       explorer.resolveRoutes();
-      final result = router.getRouteByPathAndMethod('/api/v1', HttpMethod.get);
-      expect(result.route?.path, '/api/v1/');
+      final result = router.checkRouteByPathAndMethod('/api/v1', HttpMethod.get);
+      expect(result.spec?.route.path, '/api/v1/');
     });
   });
 }

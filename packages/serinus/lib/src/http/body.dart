@@ -100,6 +100,15 @@ class FormDataBody extends Body<FormData> {
   @override
   int get length => value.length;
 
+  Map<String, dynamic> asMap() {
+    if (contentType.mimeType == 'application/x-www-form-urlencoded') {
+      return value.fields;
+    }
+    return {
+      ...value.values
+    };
+  }
+
   @override
   String toString() => jsonEncode(value.values);
 }

@@ -5,7 +5,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
-  const TestRoute({
+  TestRoute({
     required super.path,
     super.method = HttpMethod.get,
   });
@@ -132,7 +132,7 @@ void main() async {
       await request
           .addStream(Stream.fromIterable([utf8.encode('{"test": "abc"}')]));
       final response = await request.close();
-      expect(response.statusCode, 200);
+      expect(response.statusCode, 201);
     });
 
     test(

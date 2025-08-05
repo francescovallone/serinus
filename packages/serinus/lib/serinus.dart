@@ -20,4 +20,5 @@ export 'src/inspector/inspector.dart';
 export 'src/mixins/mixins.dart';
 export 'src/services/console_logger_service.dart';
 export 'src/services/logger_service.dart';
+export 'src/utils/wrapped_response.dart';
 export 'src/versioning.dart';

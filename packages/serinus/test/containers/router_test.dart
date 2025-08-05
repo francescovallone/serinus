@@ -1,7 +1,12 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/hooks_container.dart';
 import 'package:serinus/src/containers/injection_token.dart';
+import 'package:serinus/src/contexts/route_context.dart';
+import 'package:serinus/src/routes/router.dart';
 import 'package:spanner/spanner.dart';
 import 'package:test/test.dart';
+
+import '../commons/form_data_test.dart';
 
 class TestController extends Controller {
   TestController([super.path = '/']);
@@ -26,8 +31,19 @@ void main() async {
             then it should add a route to the route tree
           ''', () {
       final router = Router();
-      final routeData = RouteData(
-          id: 'id',
+      final routeContext = RouteContext(
+        moduleScope: ModuleScope(
+          token: InjectionToken('moduleToken'),
+          providers: {},
+          exports: {},
+          middlewares: {},
+          controllers: {},
+          imports: {},
+          module: TestModule(),
+          importedBy: {},
+        ),
+        hooksContainer: HooksContainer(),
+        id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),
@@ -38,8 +54,12 @@ void main() async {
             schema: null,
             handler: 'hi',
             route: Route.get('/test'),
-          ));
-      router.registerRoute(routeData);
+          )
+      );
+      router.registerRoute(
+        context: routeContext,
+        handler: (request, response, params) async => '',
+      );
     });
 
     test('''when the function 'getRouteByPathAndMethod' is called,
@@ -47,8 +67,19 @@ void main() async {
             then it should return the correct route
           ''', () {
       final router = Router();
-      final routeData = RouteData(
-          id: 'id',
+      final routeContext = RouteContext(
+        moduleScope: ModuleScope(
+          token: InjectionToken('moduleToken'),
+          providers: {},
+          exports: {},
+          middlewares: {},
+          controllers: {},
+          imports: {},
+          module: TestModule(),
+          importedBy: {},
+        ),
+        hooksContainer: HooksContainer(),
+        id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),
@@ -59,10 +90,14 @@ void main() async {
             schema: null,
             handler: 'hi',
             route: Route.get('/test'),
-          ));
-      router.registerRoute(routeData);
-      final result = router.getRouteByPathAndMethod('/test', HttpMethod.get);
-      expect(result.route, routeData);
+          )
+      );
+      router.registerRoute(
+        context: routeContext,
+        handler: (request, response, params) async => '',
+      );
+      final result = router.checkRouteByPathAndMethod('/test', HttpMethod.get);
+      expect(result.spec?.route, routeContext);
     });
 
     test('''when the function 'getRouteByPathAndMethod' is called,
@@ -70,8 +105,19 @@ void main() async {
             then it should return null
           ''', () {
       final router = Router();
-      final routeData = RouteData(
-          id: 'id',
+      final routeContext = RouteContext(
+        moduleScope: ModuleScope(
+          token: InjectionToken('moduleToken'),
+          providers: {},
+          exports: {},
+          middlewares: {},
+          controllers: {},
+          imports: {},
+          module: TestModule(),
+          importedBy: {},
+        ),
+        hooksContainer: HooksContainer(),
+        id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),
@@ -82,10 +128,14 @@ void main() async {
             schema: null,
             handler: 'hi',
             route: Route.get('/test'),
-          ));
-      router.registerRoute(routeData);
-      final result = router.getRouteByPathAndMethod('/test', HttpMethod.post);
-      expect(result.route, isNull);
+          )
+      );
+      router.registerRoute(
+        context: routeContext,
+        handler: (request, response, params) async => '',
+      );
+      final result = router.checkRouteByPathAndMethod('/test', HttpMethod.post);
+      expect(result.spec?.route, isNull);
     });
   });
 }
