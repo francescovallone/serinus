@@ -19,21 +19,35 @@ import '../services/json_utils.dart';
 import '../utils/wrapped_response.dart';
 import 'route_response_controller.dart';
 
+/// The [RouteExecutionContext] class is used to handle the execution context of a route.
+/// It provides methods to handle requests, responses, and errors.
 class RouteExecutionContext {
-  
+
+  /// The [RouteResponseController] is used to handle responses for routes.
+  /// It provides methods to send responses, redirect, and render views.
   final RouteResponseController _responseController;
 
+  /// The [modelProvider] is used to convert models to and from JSON.
+  /// It is optional and can be null if models are not used in the application.
   final ModelProvider? modelProvider;
 
+  /// The [viewEngine] is used to render views.
+  /// It is optional and can be null if views are not used in the application.
   final ViewEngine? viewEngine;
 
+  /// The [RouteExecutionContext] constructor is used to create a new instance of the [RouteExecutionContext] class.
+  /// It takes a [RouteResponseController] and optional parameters for [modelProvider] and [viewEngine].
   const RouteExecutionContext(this._responseController, {this.modelProvider, this.viewEngine});
 
+  /// The [describe] method is used to describe the route execution context.
+  /// It returns a [HandlerFunction] that can be used to handle the request and response.
+  /// It takes a [RouteContext] and optional parameters such as [errorHandler], [notFoundHandler], and [rawBody].
+  /// The [errorHandler] is used to handle errors that occur during the request processing.
+  /// The [rawBody] parameter indicates whether the body should be treated as raw binary data
   HandlerFunction describe(
     RouteContext context,
     {
       ErrorHandler? errorHandler,
-      NotFoundHandler? notFoundHandler,
       bool rawBody = false
     }
   ) {

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:mocktail/mocktail.dart';
@@ -159,8 +158,6 @@ void main() {
       final request =
           await HttpClient().getUrl(Uri.parse('http://localhost:9101/error'));
       final response = await request.close();
-      final responseBody = await response.transform(Utf8Decoder()).join();
-      print(responseBody);
       expect(response.statusCode, 404);
       await app.close();
       expect(hook.data['onException'], true);

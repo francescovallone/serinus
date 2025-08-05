@@ -28,8 +28,11 @@ class SerinusContainer {
     inspector = GraphInspector(SerializedGraph(), modulesContainer);
   }
 
+  /// The [applicationRef] is the reference to the application default http adapter.
   final HttpAdapter applicationRef;
 
+  /// The [emitHook] method is used to emit a hook to the modules container.
+  /// It takes a generic type [T] that extends [Provider] and emits the hook
   Future<void> emitHook<T extends Provider>() async {
     final providers = modulesContainer.getAll<T>();
     if (T == OnApplicationReady) {

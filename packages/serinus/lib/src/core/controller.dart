@@ -13,6 +13,7 @@ import 'route.dart';
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
 typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 
+/// Shortcut for a synchronous request-response handler. It takes a [RequestContext] and returns a [Response].
 typedef SyncReqResHandler<T> = T Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
@@ -41,6 +42,7 @@ abstract class Controller {
     return _routes[routeId];
   }
 
+  /// The [hooksContainer] property contains the hooks container of the controller.
   HooksContainer get hooksContainer => HooksContainer();
 
   /// The [metadata] property contains the metadata of the controller.

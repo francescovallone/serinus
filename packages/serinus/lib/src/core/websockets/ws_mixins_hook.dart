@@ -1,6 +1,7 @@
 import '../../contexts/websocket_context.dart';
 import '../hook.dart';
 
+/// The [OnBeforeMessage] hook is called before a message is processed by the WebSocket gateway.
 mixin OnBeforeMessage on Hook {
   /// The [OnBeforeMessage] hook is called before a message is processed by the WebSocket gateway.
   ///
@@ -8,6 +9,7 @@ mixin OnBeforeMessage on Hook {
   Future<void> onBeforeMessage(WebSocketContext context, String message);
 }
 
+/// The [OnUpgrade] hook is called when a WebSocket connection is upgraded.
 mixin OnUpgrade on Hook {
   /// The [OnUpgrade] hook is called when a WebSocket connection is upgraded.
   ///
@@ -15,6 +17,7 @@ mixin OnUpgrade on Hook {
   Future<void> onUpgrade(WebSocketContext context);
 }
 
+/// The [OnClose] hook is called when a WebSocket connection is closed.
 mixin OnClose on Hook {
   /// The [OnClose] hook is called when a WebSocket connection is closed.
   ///
@@ -22,6 +25,7 @@ mixin OnClose on Hook {
   Future<void> onClose(WebSocketContext context);
 }
 
+/// The [OnWsException] hook is called when an exception occurs in the WebSocket context.
 mixin OnWsException on Hook {
   /// The [OnWsException] hook is called when an exception occurs in the WebSocket context.
   ///

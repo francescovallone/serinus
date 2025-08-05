@@ -33,6 +33,7 @@ abstract class Application {
   final ApplicationConfig config;
 
   @visibleForTesting
+  /// The [container] getter is used to get the Serinus container of the application.
   SerinusContainer get container => _container;
 
   @visibleForTesting

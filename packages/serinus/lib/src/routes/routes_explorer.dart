@@ -94,7 +94,7 @@ final class RoutesExplorer {
       );
       _router.registerRoute(
         context: context,
-        handler: _routeExecutionContext.describe(context, errorHandler: _container.config.errorHandler, notFoundHandler: _container.applicationRef.notFoundHandler, rawBody: _container.applicationRef.rawBody),
+        handler: _routeExecutionContext.describe(context, errorHandler: _container.config.errorHandler, rawBody: _container.applicationRef.rawBody),
       );
       logger.info('Mapped {$routePath, $routeMethod} route');
     }
@@ -117,6 +117,10 @@ final class RoutesExplorer {
     return path;
   }
 
+  /// Gets the route by path and method.
+  ///
+  /// Returns a [RouteContext] and the handler function if the route exists,
+  /// otherwise returns null.
   ({({RouteContext route, HandlerFunction handler})? spec, Map<String, dynamic> params})? getRoute(String path, HttpMethod method) {
     final result = _router.checkRouteByPathAndMethod(path, method);
     if (result.spec == null) {

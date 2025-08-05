@@ -12,6 +12,7 @@ class FormData {
   final Map<String, dynamic> _fields;
   final Map<String, UploadedFile> _files;
 
+  /// The content type of the form data.
   final ContentType contentType;
 
   /// The [FormData] constructor is used to create a [FormData] object

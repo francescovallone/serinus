@@ -2,46 +2,62 @@ import '../../serinus.dart';
 import '../containers/hooks_container.dart';
 import '../containers/injection_token.dart';
 
+/// The [HandlerFunction] is a function that handles the incoming request and returns a response.
 typedef HandlerFunction = Future<void> Function(
   IncomingMessage request,
   OutcomingMessage response,
   Map<String, dynamic> params,
 );
 
+/// The [RouteContext] class is used to store the context of a route.
 class RouteContext {
-
+  
+  /// The [id] is used to uniquely identify the route.
   final String id;
 
+  /// The [path] is used to store the path of the route.
   final String path;
 
+  /// The [HttpMethod] of the route.
   final HttpMethod method;
 
+  /// The [controller] is used to store the controller that handles the route.
   final Controller controller;
 
+  /// The [routeCls] is used to store the class of the route.
   final Type routeCls;
 
+  /// The [moduleToken] is used to identify the module that the route belongs to.
   final InjectionToken moduleToken;
 
+  /// The [queryParameters] is used to store the query parameters for the route.
   final Map<String, Type> queryParameters;
 
+  /// The [isStatic] is used to determine if the route is static or not.
   final bool isStatic;
 
+  /// The [spec] is used to store the route specification.
   final RouteHandler spec;
 
+  /// The [moduleScope] is used to store the scope of the module.
   final ModuleScope moduleScope;
 
+  /// The [schema] is used to store the schema for the route.
   ParseSchema? get schema => spec.schema;
 
+  /// The [metadata] is used to store the metadata for the route.
   List<Metadata> get metadata => [
     ...controller.metadata,
     ...spec.route.metadata,
   ];
 
-
+  /// The [hooksServices] is used to store the services for the hooks.
   final Map<Type, Object> hooksServices;
 
+  /// The [hooksContainer] is used to store the hooks for the route.
   final HooksContainer hooksContainer;
 
+  /// The [RouteContext] constructor initializes the route context with the provided parameters.
   RouteContext({
     required this.id,
     required this.path,
@@ -70,6 +86,7 @@ class RouteContext {
     return result;
   }
 
+  /// Returns the middlewares for the route.
   Set<Middleware> getMiddlewares(Map<String, dynamic> params) {
     return moduleScope.filterMiddlewaresByRoute(path, params);
   }

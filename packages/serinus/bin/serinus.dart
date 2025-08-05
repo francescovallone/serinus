@@ -99,7 +99,7 @@ class WsGateway extends WebSocketGateway {
 
   @override
   Future<void> onMessage(dynamic data, WebSocketContext context) async {
-    context.send(data);
+    context.sendText(data);
   }
 }
 

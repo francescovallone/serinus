@@ -81,6 +81,7 @@ class JsonList<T> extends JsonBody<List<T>> {
 
 }
 
+/// The class [StringBody] is used to create a string body for the request.
 class StringBody extends Body<String> {
   /// The [StringBody] constructor is used to create a new instance of the [StringBody] class.
   StringBody(String value) : super(ContentType.text, value);
@@ -93,6 +94,7 @@ class StringBody extends Body<String> {
   
 }
 
+/// The [FormDataBody] class is used to create a form data body for the request.
 class FormDataBody extends Body<FormData> {
   /// The [FormDataBody] constructor is used to create a new instance of the [FormDataBody] class.
   FormDataBody(FormData value) : super(value.contentType, value);
@@ -100,6 +102,9 @@ class FormDataBody extends Body<FormData> {
   @override
   int get length => value.length;
 
+  /// Provides a map representation of the form data.
+  /// It returns a map of the form data fields for 'application/x-www-form-urlencoded' content type,
+  /// or a map of the fields and files for 'multipart/form-data' content type.
   Map<String, dynamic> asMap() {
     if (contentType.mimeType == 'application/x-www-form-urlencoded') {
       return value.fields;
@@ -113,6 +118,8 @@ class FormDataBody extends Body<FormData> {
   String toString() => jsonEncode(value.values);
 }
 
+/// The [EmptyBody] class is used to create an empty body for the request.
+/// It is used when there is no body in the request.
 class EmptyBody extends Body<String> {
   /// The [EmptyBody] constructor is used to create a new instance of the [EmptyBody] class.
   EmptyBody() : super(ContentType.text, '');
@@ -124,6 +131,8 @@ class EmptyBody extends Body<String> {
   String toString() => '';
 }
 
+/// The class [RawBody] is used to create a raw body for the request.
+/// It is used to represent binary data in the request body.
 class RawBody extends Body<List<int>> {
   /// The [RawBody] constructor is used to create a new instance of the [RawBody] class.
   RawBody(List<int> value) : super(ContentType.binary, value);
@@ -133,15 +142,4 @@ class RawBody extends Body<List<int>> {
 
   @override
   String toString() => utf8.decode(value);
-}
-
-class CustomBody<T> extends Body<T> {
-  /// The [CustomBody] constructor is used to create a new instance of the [CustomBody] class.
-  CustomBody(ContentType contentType, T value) : super(contentType, value);
-
-  @override
-  int get length => value.toString().length;
-
-  @override
-  String toString() => value.toString();
 }

@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import '../../serinus.dart';
-import '../adapters/serinus_http_server.dart';
+import '../adapters/adapters.dart';
 import '../containers/model_provider.dart';
 import '../enums/log_level.dart';
 import '../services/logger_service.dart';
@@ -45,7 +44,7 @@ final class SerinusFactory {
         config: ApplicationConfig(
           serverAdapter: server,
           modelProvider: modelProvider,
-          
+
         ),
         levels: logLevels,
         logger: logger);

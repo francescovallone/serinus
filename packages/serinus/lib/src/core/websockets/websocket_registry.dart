@@ -10,29 +10,29 @@ import '../../services/logger_service.dart';
 import '../../utils/wrapped_response.dart';
 import '../core.dart';
 
+/// The [WebsocketRegistry] class is responsible for managing WebSocket connections and gateways.
+/// It registers WebSocket gateways, handles their initialization, and manages the lifecycle of WebSocket connections
 class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationShutdown {
+  
+  final Logger _logger = Logger('WebSocketRegistry');
 
-  final Logger logger = Logger('WebSocketRegistry');
+  final Map<int, WsAdapter> _adapters = {};
 
-  final Map<String, WebSocket> server = {};
+  final ApplicationConfig _config;
 
-  final Map<int, WsAdapter> adapters = {};
-
-  final ApplicationConfig config;
-
-  WebsocketRegistry(this.config);
+  /// The [WebsocketRegistry] constructor initializes the registry with the provided application configuration.
+  WebsocketRegistry(this._config);
 
   @override
   Future<void> onApplicationReady() async {
-    final wsAdapter = config.adapters.get<WebSocketAdapter>('websocket');
-    await wsAdapter.init(config);
-    final gateways = config.modulesContainer.getAll<WebSocketGateway>();
-    print('Application Ready: Found ${gateways.length} WebSocket Gateways');
+    final wsAdapter = _config.adapters.get<WebSocketAdapter>('websocket');
+    await wsAdapter.init(_config);
+    final gateways = _config.modulesContainer.getAll<WebSocketGateway>();
     final mainPort = wsAdapter.httpAdapter.port;
     for (final gateway in gateways) {
       if (gateway.port == null || gateway.port == mainPort) {
         final router = wsAdapter.router ?? Spanner();
-        final gatewayScope = config.modulesContainer.getScopeByProvider(gateway.runtimeType);
+        final gatewayScope = _config.modulesContainer.getScopeByProvider(gateway.runtimeType);
         final result = router.lookup(HTTPMethod.ALL, gateway.path ?? '/');
         if(result?.values.isNotEmpty ?? false) {
           throw InitializationError(
@@ -40,7 +40,7 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
             'Please use a different path or port for the gateway.',
           );
         }
-        logger.info('WebSocket Gateway listening on port ${gateway.port ?? mainPort} with path "${gateway.path ?? '*'}"');
+        _logger.info('WebSocket Gateway listening on port ${gateway.port ?? mainPort} with path "${gateway.path ?? '*'}"');
         router.addRoute(
           HTTPMethod.ALL, 
           gateway.path ?? '/', 
@@ -51,14 +51,14 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
                 if (provider.runtimeType != gateway.runtimeType)
                   provider.runtimeType: provider,
             },
-            gateway.hooks.merge([config.globalHooks]),
+            gateway.hooks.merge([_config.globalHooks]),
           )
         );
         wsAdapter.router ??= router;
       } else {
         final WsAdapter customWsAdapter;
-        if (adapters.containsKey(gateway.port!)) {
-          customWsAdapter = adapters[gateway.port!]!;
+        if (_adapters.containsKey(gateway.port!)) {
+          customWsAdapter = _adapters[gateway.port!]!;
         } else {
           final differentPortAdapter = SerinusHttpAdapter(
             host: wsAdapter.httpAdapter.host,
@@ -66,7 +66,7 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
             poweredByHeader: wsAdapter.httpAdapter.poweredByHeader,
             securityContext: wsAdapter.httpAdapter.securityContext,
           );
-          await differentPortAdapter.init(config);
+          await differentPortAdapter.init(_config);
           differentPortAdapter.listen(onRequest: (request, response) async {
             differentPortAdapter.reply(
               response,
@@ -77,11 +77,11 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
           customWsAdapter = WebSocketAdapter(
             differentPortAdapter,
           );
-          await customWsAdapter.init(config);
-          adapters[gateway.port!] = customWsAdapter;
+          await customWsAdapter.init(_config);
+          _adapters[gateway.port!] = customWsAdapter;
         }
         final router = customWsAdapter.router ?? Spanner();
-        final gatewayScope = config.modulesContainer.getScopeByProvider(gateway.runtimeType);
+        final gatewayScope = _config.modulesContainer.getScopeByProvider(gateway.runtimeType);
         final result = router.lookup(HTTPMethod.ALL, gateway.path ?? '/');
         if(result?.values.isNotEmpty ?? false) {
           throw InitializationError(
@@ -89,7 +89,7 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
             'Please use a different path or port for the gateway.',
           );
         }
-        logger.info('WebSocket Gateway listening on port ${gateway.port} with path "${gateway.path ?? '*'}"');
+        _logger.info('WebSocket Gateway listening on port ${gateway.port} with path "${gateway.path ?? '*'}"');
          // Register the gateway with the custom adapter's router
         router.addRoute(
           HTTPMethod.ALL,
@@ -101,7 +101,7 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
                 if(provider.runtimeType != gateway.runtimeType) 
                   provider.runtimeType: provider,
             },
-            gateway.hooks.merge([config.globalHooks]),
+            gateway.hooks.merge([_config.globalHooks]),
           )
         );
         customWsAdapter.router ??= router;
@@ -111,8 +111,8 @@ class WebsocketRegistry extends Provider with OnApplicationReady, OnApplicationS
 
   @override
   Future<void> onApplicationShutdown() async {
-    await config.adapters.get<WebSocketAdapter>('websocket').close();
-    for (final adapter in adapters.values) {
+    await _config.adapters.get<WebSocketAdapter>('websocket').close();
+    for (final adapter in _adapters.values) {
       await adapter.close();
     }
   }

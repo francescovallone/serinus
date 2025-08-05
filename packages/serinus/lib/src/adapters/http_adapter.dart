@@ -66,6 +66,8 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
   @override
   Future<void> close();
 
+  /// The [listen] method is used to listen for incoming requests.
+  /// It takes a [RequestCallback] function that will be called for each incoming request.
   Future<void> listen(
     {
       required RequestCallback<TRequest, TResponse> onRequest,

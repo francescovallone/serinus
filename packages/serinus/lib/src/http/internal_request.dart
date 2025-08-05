@@ -6,10 +6,10 @@ import 'dart:typed_data';
 import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 
-import '../../serinus.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/content_type_extensions.dart';
+import '../extensions/iterable_extansions.dart';
 import 'form_data.dart';
 import 'headers.dart';
 import 'internal_response.dart';
@@ -94,6 +94,7 @@ abstract class IncomingMessage {
     });
   }
 
+  /// It signals that the request has been hijacked and should not be processed further by the default [Adapter].
   bool hijacked = false;
 
   /// This method is used to emit a request event.

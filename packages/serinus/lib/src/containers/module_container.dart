@@ -55,6 +55,7 @@ final class ModulesContainer {
   /// The [logger] for the module_container
   final logger = Logger('InstanceLoader');
 
+  /// The [ApplicationConfig] object.
   final ApplicationConfig config;
 
   /// The [ModulesContainer] constructor is used to create a new instance of the [ModulesContainer] class.

@@ -2,11 +2,11 @@ import 'dart:io';
 
 import 'package:uuid/v4.dart';
 
-import '../../serinus.dart';
 import '../adapters/adapters.dart';
 import '../containers/adapter_container.dart';
 import '../containers/hooks_container.dart';
 import '../containers/model_provider.dart';
+import '../containers/module_container.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../services/tracers_service.dart';
@@ -114,7 +114,8 @@ final class ApplicationConfig {
   /// This is used to store the modules used by the application
   final HooksContainer globalHooks = HooksContainer();
 
-
+  /// The [ModulesContainer] for the application
+  /// This is used to store the modules used by the application
   late final ModulesContainer modulesContainer;
 
   /// The model provider for the application
