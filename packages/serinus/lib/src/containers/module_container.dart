@@ -8,6 +8,7 @@ import '../inspector/node.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
 import 'injection_token.dart';
+import 'serinus_container.dart';
 
 /// A container for all the modules of the application
 ///
@@ -23,10 +24,9 @@ final class ModulesContainer {
   /// The providers available in the application
   Iterable<Provider> get allProviders => {
         ..._providers.values,
-        ...globalProviders,
       };
 
-  final Map<InjectionToken, Iterable<ComposedProvider>> _deferredProviders = {};
+  final Map<InjectionToken, Iterable<ComposedProvider>> _composedProviders = {};
 
   final List<_ProviderDependencies> _providerDependencies = [];
 
@@ -55,7 +55,7 @@ final class ModulesContainer {
   /// The [logger] for the module_container
   final logger = Logger('InstanceLoader');
 
-  /// The [ApplicationConfig] object.
+  /// The [SerinusContainer] object.
   final ApplicationConfig config;
 
   /// The [ModulesContainer] constructor is used to create a new instance of the [ModulesContainer] class.
@@ -67,12 +67,11 @@ final class ModulesContainer {
   /// The [registerModule] method is used to register a module in the application
   ///
   /// The [currentScope] is the scope of the current module that is being registered in the Container
-  Future<void> registerModule(ModuleScope currentScope) async {
+  Future<void> registerModule(ModuleScope currentScope, {bool internal = false}) async {
     final token = currentScope.token;
     if (_scopes.containsKey(token)) {
       return;
     }
-
     _scopes[token] = currentScope;
     _scopedControllers.addAll(
       currentScope.controllers.map((controller) =>
@@ -82,21 +81,7 @@ final class ModulesContainer {
     for (final provider in split.notOfType) {
       final providerToken = InjectionToken.fromType(provider.runtimeType);
       await initIfUnregistered(provider);
-      if (provider.isGlobal) {
-        globalProviders.add(provider);
-        globalInstances[providerToken] = InstanceWrapper(
-          name: providerToken,
-          metadata: ClassMetadataNode(
-            type: InjectableType.provider,
-            sourceModuleName: token,
-            composed: false,
-            global: provider.isGlobal,
-          ),
-          host: token,
-        );
-      } else {
-        _providers[provider.runtimeType] = provider;
-      }
+      _providers[provider.runtimeType] = provider;
       currentScope.instanceMetadata[providerToken] = InstanceWrapper(
         name: providerToken,
         metadata: ClassMetadataNode(
@@ -104,16 +89,20 @@ final class ModulesContainer {
           sourceModuleName: token,
           exported: currentScope.exports.contains(provider.runtimeType),
           composed: false,
-          global: provider.isGlobal,
         ),
         host: token,
       );
       _scopedProviders[provider.runtimeType] = currentScope;
+      if(currentScope.module.isGlobal) {
+        globalProviders.add(provider);
+      }
     }
     currentScope.providers.removeAll(split.ofType);
-    _deferredProviders[token] = split.ofType;
-    logger.info(
+    _composedProviders[token] = split.ofType;
+    if(!internal) {
+      logger.info(
         'Initializing ${currentScope.module.runtimeType}${currentScope.module.token.isNotEmpty ? '(${currentScope.token})' : ''} dependencies.');
+    }
     for (final subModule in currentScope.imports) {
       await registerModules(subModule);
       final subModuleToken = InjectionToken.fromModule(subModule);
@@ -137,9 +126,9 @@ final class ModulesContainer {
   ///
   /// It is the main call to register the modules in the application and it is called by the [initialize] method of the [Application] class.
   /// It is a recursive method that registers all the modules in the application.
-  Future<void> registerModules(Module entrypoint) async {
+  Future<void> registerModules(Module entrypoint, {bool internal = false}) async {
     final token = InjectionToken.fromModule(entrypoint);
-    if (!isInitialized) {
+    if (!isInitialized && !internal) {
       entrypointToken = token;
     }
     final currentScope = ModuleScope(
@@ -156,7 +145,7 @@ final class ModulesContainer {
     }
     final dynamicEntry = await entrypoint.registerAsync(config);
     currentScope.extendWithDynamicModule(dynamicEntry);
-    for (final m in entrypoint.middlewares) {
+    for (final m in currentScope.middlewares) {
       final middlewareToken = InjectionToken.fromType(m.runtimeType);
       currentScope.instanceMetadata[middlewareToken] = InstanceWrapper(
         name: middlewareToken,
@@ -167,7 +156,7 @@ final class ModulesContainer {
         host: token,
       );
     }
-    for (final c in entrypoint.controllers) {
+    for (final c in currentScope.controllers) {
       final controllerToken = InjectionToken.fromType(c.runtimeType);
       currentScope.instanceMetadata[controllerToken] = InstanceWrapper(
         name: controllerToken,
@@ -178,7 +167,7 @@ final class ModulesContainer {
         host: token,
       );
     }
-    await registerModule(currentScope);
+    await registerModule(currentScope, internal: internal);
   }
 
   /// The [getScope] method is used to get the scope of a module
@@ -201,17 +190,24 @@ final class ModulesContainer {
   /// Finalizes the registration of the deferred providers
   Future<void> finalize(Module entrypoint) async {
     for (final scope in _scopes.values) {
-      scope.extend(
-        providers: globalProviders,
-      );
+      scope.unifiedProviders.addAll({
+        ...scope.providers,
+        ...globalProviders
+      });
     }
     await initializeComposedProviders(entrypoint);
+    for (final scope in _scopes.values) {
+      scope.unifiedProviders.addAll({
+        ...scope.providers,
+        ...globalProviders
+      });
+    }
     await resolveProvidersDependencies();
   }
 
   /// Initializes the deferred providers
   Future<void> initializeComposedProviders(Module module) async {
-    for (final entry in _deferredProviders.entries) {
+    for (final entry in _composedProviders.entries) {
       final token = entry.key;
       final providers = entry.value;
       final parentModule = getModuleByToken(token);
@@ -243,7 +239,7 @@ final class ModulesContainer {
         if (currentScope == null) {
           throw InitializationError('Module with token $token not found');
         }
-        final initializedProviders = currentScope.providers
+        final initializedProviders = currentScope.unifiedProviders
             .where((e) => provider.inject.contains(e.runtimeType));
         final setDifferences = provider.inject
             .toSet()
@@ -256,7 +252,7 @@ final class ModulesContainer {
             }
           }
           throw InitializationError(
-            '[${module.runtimeType}] Cannot resolve dependencies for the ${provider.type}! Do the following to fix this error: \n'
+            '[${module.runtimeType}] Cannot resolve dependencies for the [${provider.type}]! Do the following to fix this error: \n'
             '1. Make sure all the dependencies are correctly imported in the module. \n'
             '2. Make sure the dependencies are correctly exported by their module. \n'
             'If the error persists, please check the logs for more information and open an issue on the repository.\n'
@@ -271,34 +267,10 @@ final class ModulesContainer {
         await initIfUnregistered(result);
         module.providers.add(result);
         final providerToken = InjectionToken.fromType(result.runtimeType);
-        if (result.isGlobal) {
+        _providers[result.runtimeType] = result;
+        _scopedProviders[result.runtimeType] = currentScope;
+        if(currentScope.module.isGlobal) {
           globalProviders.add(result);
-          globalInstances[providerToken] = InstanceWrapper(
-            name: providerToken,
-            dependencies: provider.inject.map((e) {
-              final providerScope = getScopeByProvider(e);
-              return InstanceWrapper(
-                metadata: ClassMetadataNode(
-                  type: InjectableType.provider,
-                  sourceModuleName: providerScope.token,
-                ),
-                name: InjectionToken.fromType(e),
-                host: token,
-              );
-            }).toList(),
-            metadata: ClassMetadataNode(
-              type: InjectableType.provider,
-              sourceModuleName: token,
-              composed: false,
-              global: result.isGlobal,
-              initTime: stopwatch.elapsedMicroseconds,
-            ),
-            host: token,
-          );
-          stopwatch.stop();
-        } else {
-          _providers[result.runtimeType] = result;
-          _scopedProviders[result.runtimeType] = currentScope;
         }
         currentScope.addToProviders(result);
         for (final importedBy in currentScope.importedBy) {
@@ -314,7 +286,7 @@ final class ModulesContainer {
             ],
           );
         }
-        _deferredProviders[token] = _deferredProviders[token]
+        _composedProviders[token] = _composedProviders[token]
                 ?.where((e) => e.hashCode != provider.hashCode) ??
             [];
         currentScope.instanceMetadata[providerToken] = InstanceWrapper(
@@ -335,7 +307,6 @@ final class ModulesContainer {
             sourceModuleName: token,
             exported: currentScope.exports.contains(provider.runtimeType),
             composed: false,
-            global: provider.isGlobal,
             initTime: stopwatch.elapsedMicroseconds,
           ),
           host: token,
@@ -389,13 +360,13 @@ final class ModulesContainer {
       if (currentScope == null) {
         throw InitializationError('Module with token $token not found');
       }
-      final initializedProviders = currentScope.providers.where(
+      final initializedProviders = currentScope.unifiedProviders.where(
         (e) => dependencies.contains(e.runtimeType),
       );
       checkForCircularDependencies(provider, module, dependencies.toList());
       if (initializedProviders.isEmpty && dependencies.isNotEmpty) {
         throw InitializationError(
-          '[${module.runtimeType}] Cannot resolve dependencies for a ComposedProvider! Do the following to fix this error: \n'
+          '[${module.runtimeType}] Cannot resolve dependencies for the ComposedProvider [${provider.type}]! Do the following to fix this error: \n'
           '1. Make sure all the dependencies are correctly imported in the module. \n'
           '2. Make sure the dependencies are correctly exported by their module. \n'
           'If the error persists, please check the logs for more information and open an issue on the repository.',
@@ -409,35 +380,11 @@ final class ModulesContainer {
       module.providers.add(result);
       await initIfUnregistered(result);
       final providerToken = InjectionToken.fromType(result.runtimeType);
-      if (result.isGlobal) {
+      if (currentScope.module.isGlobal) {
         globalProviders.add(result);
-        globalInstances[providerToken] = InstanceWrapper(
-          name: providerToken,
-          dependencies: provider.inject.map((e) {
-            final providerScope = getScopeByProvider(e);
-            return InstanceWrapper(
-              metadata: ClassMetadataNode(
-                type: InjectableType.provider,
-                sourceModuleName: providerScope.token,
-              ),
-              name: InjectionToken.fromType(e),
-              host: token,
-            );
-          }).toList(),
-          metadata: ClassMetadataNode(
-            type: InjectableType.provider,
-            sourceModuleName: token,
-            composed: false,
-            global: result.isGlobal,
-            initTime: stopwatch.elapsedMicroseconds,
-          ),
-          host: token,
-        );
-        stopwatch.stop();
-      } else {
-        _providers[result.runtimeType] = result;
-        _scopedProviders[result.runtimeType] = currentScope;
       }
+      _providers[result.runtimeType] = result;
+      _scopedProviders[result.runtimeType] = currentScope;
       currentScope.addToProviders(result);
       currentScope.instanceMetadata[providerToken] = InstanceWrapper(
         name: InjectionToken.fromType(provider.runtimeType),
@@ -457,7 +404,6 @@ final class ModulesContainer {
           sourceModuleName: token,
           exported: currentScope.exports.contains(provider.runtimeType),
           composed: false,
-          global: provider.isGlobal,
           initTime: stopwatch.elapsedMicroseconds,
         ),
         host: token,
@@ -614,6 +560,9 @@ class ModuleScope {
   /// The [instanceMetadata] property contains the metadata of the instances of the module
   final Map<InjectionToken, InstanceWrapper> instanceMetadata = {};
 
+  /// The [unifiedProviders] property contains both the global and the scoped providers
+  final Set<Provider> unifiedProviders = {};
+
   /// The constructor of the [ModuleScope] class
   ModuleScope({
     required this.token,
@@ -636,16 +585,17 @@ class ModuleScope {
     Iterable<String>? importedBy,
   }) {
     this.providers.addAll(this.providers.getMissingElements(providers ?? []));
-    this.exports.addAllIfAbsent(this.exports.getMissingElements(exports ?? []));
+    this.exports.addAll(this.exports.getMissingElements(exports ?? []));
     this
-        .controllers
-        .addAllIfAbsent(this.controllers.getMissingElements(controllers ?? []));
+        .controllers.addAll(
+          this.controllers.getMissingElements(controllers ?? [])
+        );
     this
-        .middlewares
-        .addAllIfAbsent(this.middlewares.getMissingElements(middlewares ?? []));
-    this.imports.addAllIfAbsent(this.imports.getMissingElements(imports ?? []));
-    this.importedBy.addAllIfAbsent(
-        this.importedBy.getMissingElements(imports?.map((e) => InjectionToken.fromModule(e)) ?? []));
+        .middlewares.addAll(
+          this.middlewares.getMissingElements(middlewares ?? [])
+        );
+    this.imports.addAll(this.imports.getMissingElements(imports ?? []));
+    this.importedBy.addAll(imports?.map((e) => InjectionToken.fromModule(e)) ?? []);
   }
 
   /// Extends the module scope with a dynamic module
@@ -662,6 +612,7 @@ class ModuleScope {
   /// Adds a provider to the module scope
   void addToProviders(Provider provider) {
     providers.add(provider);
+    unifiedProviders.add(provider);
   }
 
   /// Filters the guards by route

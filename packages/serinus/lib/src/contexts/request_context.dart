@@ -61,7 +61,7 @@ class RequestContext extends BaseContext {
     return RequestContext(
       request,
       {
-        for (var provider in routeContext.moduleScope.providers)
+        for (var provider in routeContext.moduleScope.unifiedProviders)
           provider.runtimeType: provider,
       },
       routeContext.hooksServices,

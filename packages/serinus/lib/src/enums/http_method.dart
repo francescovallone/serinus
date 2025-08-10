@@ -1,3 +1,5 @@
+import 'package:spanner/spanner.dart';
+
 /// HTTP methods
 ///
 /// This enum contains all the HTTP methods that can be used in a request
@@ -21,7 +23,10 @@ enum HttpMethod {
   head,
 
   /// The OPTIONS method is used to describe the communication options for the target resource.
-  options;
+  options,
+
+  /// The ALL method matches all HTTP methods.
+  all;
 
   /// Returns the string representation of the method
   @override
@@ -31,28 +36,38 @@ enum HttpMethod {
 
   /// Parses a string to return the corresponding [HttpMethod]
   static HttpMethod parse(String method) {
-    switch (method.toUpperCase()) {
+    switch (method.toUpperCase().trim()) {
       case 'POST':
-      case 'post':
         return HttpMethod.post;
       case 'PUT':
-      case 'put':
         return HttpMethod.put;
       case 'DELETE':
-      case 'delete':
         return HttpMethod.delete;
       case 'PATCH':
-      case 'patch':
         return HttpMethod.patch;
       case 'HEAD':
-      case 'head':
         return HttpMethod.head;
       case 'OPTIONS':
-      case 'options':
         return HttpMethod.options;
+      case 'ALL':
+        return HttpMethod.all;
       default:
         return HttpMethod.get;
     }
+  }
+
+  /// Converts a [HttpMethod] to a [HTTPMethod]
+  static HTTPMethod toSpanner(HttpMethod method) {
+    return switch (method) {
+      HttpMethod.get => HTTPMethod.GET,
+      HttpMethod.post => HTTPMethod.POST,
+      HttpMethod.put => HTTPMethod.PUT,
+      HttpMethod.delete => HTTPMethod.DELETE,
+      HttpMethod.patch => HTTPMethod.PATCH,
+      HttpMethod.head => HTTPMethod.HEAD,
+      HttpMethod.options => HTTPMethod.OPTIONS,
+      HttpMethod.all => HTTPMethod.ALL,
+    };
   }
 }
 

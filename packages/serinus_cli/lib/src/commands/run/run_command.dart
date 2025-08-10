@@ -81,7 +81,6 @@ class RunCommand extends Command<int> {
     final progress = _logger?.progress(
       '${restarting ? 'Res' : 'S'}tarting your application...',
     );
-    print(entrypoint);
     final mainFile = File(
       path.join(Directory.current.path, entrypoint),
     );

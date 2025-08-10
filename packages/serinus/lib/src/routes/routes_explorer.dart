@@ -88,8 +88,8 @@ final class RoutesExplorer {
         hooksContainer: HooksContainer()
           .merge([
             _container.config.globalHooks,
-            controller.hooksContainer,
-            spec.route.hooksContainer
+            controller.hooks,
+            spec.route.hooks
           ])
       );
       _router.registerRoute(

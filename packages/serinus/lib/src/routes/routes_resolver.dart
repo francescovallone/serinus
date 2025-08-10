@@ -66,12 +66,12 @@ class RoutesResolver {
   /// The [handle] method handles the incoming request and finds the appropriate route.
   /// If no route is found, it returns a 404 Not Found response.
   /// If a route is found, it calls the handler of the route with the request and response.
-  Future<void> handle(IncomingMessage request, OutcomingMessage response) async {
+  Future<void> handle(IncomingMessage request, OutgoingMessage response) async {
     final route = _explorer.getRoute(request.path, HttpMethod.parse(request.method));
     if (route == null) {
-      _logger.warning('No route found for ${request.method} ${request.uri}');
+      _logger.verbose('No route found for ${request.method} ${request.uri}');
       final wrappedRequest = Request(request, {});
-      final data = _container.applicationRef.notFoundHandler?.call() ?? NotFoundException(
+      final data = _container.applicationRef.notFoundHandler?.call(Request(request)) ?? NotFoundException(
         'Route not found for ${request.method} ${request.uri}'
       );
       final reqHooks = _container.config.globalHooks.reqHooks;

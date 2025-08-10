@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:meta/meta.dart';
 
 import '../../adapters/ws_adapter.dart';
@@ -55,9 +57,12 @@ abstract class WebSocketGateway extends Provider {
   /// A [clientId] can be provided to send the data to a specific client.
   /// If not provided the data will be broadcasted to all clients.
   @nonVirtual
-  void send(dynamic data, [String? clientId]) {
+  void send(dynamic data, {String? clientId}) {
     if (serializer != null) {
       data = serializer!.serialize(data);
+    }
+    if (serializer == null && (data is! String || data is! Uint8List)) {
+      throw ArgumentError('The serialized data must be a String or Uint8List');
     }
     server?.send(data, clientId: clientId);
   }

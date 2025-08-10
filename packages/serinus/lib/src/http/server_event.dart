@@ -53,4 +53,6 @@ enum ServerEventType {
   error,
   /// The [closed] event is sent when a connection is closed.
   closed,
+  /// The [custom] event is sent when a custom event is received from a client.
+  custom
 }

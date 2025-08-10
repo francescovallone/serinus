@@ -1,10 +1,8 @@
 /// The [Provider] class is used to define a provider.
 abstract class Provider {
-  /// The [isGlobal] property is used to define if the provider is global.
-  final bool isGlobal;
 
   /// The [Provider] constructor is used to create a new instance of the [Provider] class.
-  const Provider({this.isGlobal = false});
+  const Provider();
 
   /// The factory constructor [Provider.composed] is used to create a new instance of the [Provider] class with dependencies.
   /// It uses the [ComposedProvider] class to define a provider that is initialized asynchronously.
@@ -16,7 +14,7 @@ abstract class Provider {
       ComposedProvider(init, inject: inject, type: type);
 
   @override
-  String toString() => '$runtimeType(isGlobal: $isGlobal)';
+  String toString() => '$runtimeType';
 }
 
 /// The [ComposedProvider] class is used to define a provider that is initialized asynchronously.

@@ -2,6 +2,8 @@ import 'core.dart';
 
 /// The [Module] class is used to define a module.
 abstract class Module {
+  /// The [isGlobal] property is used to define if the module is global.
+  final bool isGlobal;
   /// The [imports] property contains the modules that are imported in the module.
   final String token;
 
@@ -38,6 +40,7 @@ abstract class Module {
     this.exports = const [],
     this.middlewares = const [],
     this.token = '',
+    this.isGlobal = false,
   });
 
   /// The [register] method is used to register the module.
@@ -71,4 +74,15 @@ class DynamicModule {
     this.exports = const [],
     this.middlewares = const [],
   });
+
+  @override
+  String toString() {
+    return 'DynamicModule('
+        'imports: $imports, '
+        'controllers: $controllers, '
+        'providers: $providers, '
+        'exports: $exports, '
+        'middlewares: $middlewares'
+        ')';
+  }
 }

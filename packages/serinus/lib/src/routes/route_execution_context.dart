@@ -51,7 +51,7 @@ class RouteExecutionContext {
       bool rawBody = false
     }
   ) {
-    return (IncomingMessage request, OutcomingMessage response, Map<String, dynamic> params) async {
+    return (IncomingMessage request, OutgoingMessage response, Map<String, dynamic> params) async {
       RequestContext? requestContext;
       try {
         final currentProperties = ResponseContext({}, {});
@@ -60,7 +60,7 @@ class RouteExecutionContext {
         for (final hook in context.hooksContainer.reqHooks) {
           await hook.onRequest(wrappedRequest, currentProperties);
           if (currentProperties.closed) {
-            await _responseController.sendResponse(response, null, currentProperties, viewEngine: viewEngine);
+            await _responseController.sendResponse(response, WrappedResponse(null), currentProperties, viewEngine: viewEngine);
             return;
           }
         }
@@ -150,7 +150,7 @@ class RouteExecutionContext {
         final currentReqContext = requestContext ?? RequestContext(
           Request(request),
           {
-            for (final provider in context.moduleScope.providers)
+            for (final provider in context.moduleScope.unifiedProviders)
               provider.runtimeType: provider
           },
           context.hooksContainer.services
@@ -253,7 +253,7 @@ class RouteExecutionContext {
     RouteContext context,
     RequestContext requestContext,
     Iterable<Middleware> middlewares,
-    OutcomingMessage response,
+    OutgoingMessage response,
     IncomingMessage request,
   ) async {
     final completer = Completer<void>();
@@ -277,7 +277,7 @@ class RouteExecutionContext {
           );
           await _responseController.sendResponse(
             response,
-            data,
+            data as WrappedResponse,
             requestContext.res,
             viewEngine: viewEngine,
           );

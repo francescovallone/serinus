@@ -2,15 +2,15 @@ import 'dart:io';
 
 import '../../serinus.dart';
 
-/// The [OutcomingMessage] class is an abstract class that defines the methods and properties
-/// that an outcoming message must implement in the Serinus framework.
-abstract class OutcomingMessage<T, THeaders> {
+/// The [OutgoingMessage] class is an abstract class that defines the methods and properties
+/// that an Outgoing message must implement in the Serinus framework.
+abstract class OutgoingMessage<T, THeaders> {
 
   /// The original [T] object.
   final T original;
 
-  /// The [OutcomingMessage] constructor is used to create a new instance of the [OutcomingMessage] class.
-  OutcomingMessage(this.original);
+  /// The [OutgoingMessage] constructor is used to create a new instance of the [OutgoingMessage] class.
+  OutgoingMessage(this.original);
 
   /// Determines if the response is closed.
   bool get isClosed;
@@ -56,7 +56,7 @@ abstract class OutcomingMessage<T, THeaders> {
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
 /// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
-class InternalResponse extends OutcomingMessage<HttpResponse, HttpHeaders> {
+class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
 
   /// The base url of the server
   final String? baseUrl;

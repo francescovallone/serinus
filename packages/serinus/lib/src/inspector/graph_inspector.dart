@@ -8,9 +8,6 @@ import 'serialized_graph.dart';
 /// The [GraphInspector] class is used to inspect the modules and their dependencies in the application.
 /// It creates a graph representation of the modules and their dependencies.
 class GraphInspector extends Provider {
-  @override
-  bool get isGlobal => true;
-
   /// The graph that will be used to display the modules and their dependencies.
   final SerializedGraph graph;
 
@@ -26,7 +23,11 @@ class GraphInspector extends Provider {
       final moduleNode = ModuleNode(
           id: moduleScope.token,
           label: moduleScope.token.name,
-          metadata: ModuleMetadataNode());
+          metadata: ModuleMetadataNode(
+            global: moduleScope.module.isGlobal,
+          ),
+          
+        );
       graph.insertNode(moduleNode);
       _inspectModule(moduleScope);
       _insertEdges(moduleScope);

@@ -12,7 +12,6 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
-import '../mixins/ws_gateway_mixins.dart';
 import 'adapters.dart';
 
 /// The [WsRequestHandler] is used to handle the web socket request
@@ -87,7 +86,7 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
   /// The [request] parameter is the incoming HTTP request.
   /// The [response] parameter is the outgoing HTTP response.
   /// The [clientId] parameter is the unique identifier for the WebSocket client.
-  Future<void> upgrade(IncomingMessage request, OutcomingMessage response, String clientId) async {
+  Future<void> upgrade(IncomingMessage request, OutgoingMessage response, String clientId) async {
     final result = router?.lookup(HTTPMethod.ALL, request.uri);
     final socket = await response.detachSocket();
     final channel = StreamChannel<List<int>>(socket, socket);
@@ -257,8 +256,5 @@ class WebSocketAdapter extends WsAdapter {
 
   @override
   String get name => 'websocket';
-
-  @override
-  bool get shouldBeInitilized => false;
   
 }

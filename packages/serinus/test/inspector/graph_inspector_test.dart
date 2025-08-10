@@ -18,8 +18,6 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
     return Future.value();
   }
 
-  @override
-  bool get shouldBeInitilized => false;
 }
 
 class TestModule extends Module {
@@ -41,8 +39,6 @@ class TestModule extends Module {
 }
 
 class TestProviderTwo extends Provider {
-  @override
-  bool get isGlobal => true;
 
   final TestProvider dep;
 
@@ -172,7 +168,7 @@ void main() {
           inspector.inspectModules();
           expect(graph, isNotNull);
           expect(jsonEncode(inspector.toJson()),
-              '{"nodes":[{"id":"ModuleB","label":"ModuleB","metadata":{"name":"module"}},{"id":"TestProvider","label":"TestProvider","parent":"ModuleB","metadata":{"type":"provider","sourceModuleName":"ModuleB","initTime":0,"exported":false,"composed":false,"global":false}},{"id":"MockController","label":"MockController","parent":"ModuleB","metadata":{"type":"controller","sourceModuleName":"ModuleB","initTime":0}},{"id":"ModuleA","label":"ModuleA","metadata":{"name":"module"}}],"edges":[{"id":"ModuleB-ModuleA","source":"ModuleB","target":"ModuleA","metadata":{"sourceModuleName":"ModuleB","targetModuleName":"ModuleA","type":"module_to_module"}}]}');
+              '{"nodes":[{"id":"ModuleB","label":"ModuleB","metadata":{"name":"module","global":false}},{"id":"TestProvider","label":"TestProvider","parent":"ModuleB","metadata":{"type":"provider","sourceModuleName":"ModuleB","initTime":0,"exported":false,"composed":false}},{"id":"MockController","label":"MockController","parent":"ModuleB","metadata":{"type":"controller","sourceModuleName":"ModuleB","initTime":0}},{"id":"ModuleA","label":"ModuleA","metadata":{"name":"module","global":false}}],"edges":[{"id":"ModuleB-ModuleA","source":"ModuleB","target":"ModuleA","metadata":{"sourceModuleName":"ModuleB","targetModuleName":"ModuleA","type":"module_to_module"}}]}');
         },
       );
 
@@ -204,7 +200,7 @@ void main() {
           inspector.inspectModules();
           expect(graph, isNotNull);
           expect(jsonEncode(inspector.toJson()),
-              '{"nodes":[{"id":"ModuleB","label":"ModuleB","metadata":{"name":"module"}},{"id":"TestProvider","label":"TestProvider","parent":"ModuleB","metadata":{"type":"provider","sourceModuleName":"ModuleB","initTime":0,"exported":false,"composed":false,"global":false}},{"id":"MockController","label":"MockController","parent":"ModuleB","metadata":{"type":"controller","sourceModuleName":"ModuleB","initTime":0}},{"id":"ModuleA","label":"ModuleA","metadata":{"name":"module"}}],"edges":[{"id":"ModuleB-ModuleA","source":"ModuleB","target":"ModuleA","metadata":{"sourceModuleName":"ModuleB","targetModuleName":"ModuleA","type":"module_to_module"}}]}');
+              '{"nodes":[{"id":"ModuleB","label":"ModuleB","metadata":{"name":"module","global":false}},{"id":"TestProvider","label":"TestProvider","parent":"ModuleB","metadata":{"type":"provider","sourceModuleName":"ModuleB","initTime":0,"exported":false,"composed":false}},{"id":"MockController","label":"MockController","parent":"ModuleB","metadata":{"type":"controller","sourceModuleName":"ModuleB","initTime":0}},{"id":"ModuleA","label":"ModuleA","metadata":{"name":"module","global":false}}],"edges":[{"id":"ModuleB-ModuleA","source":"ModuleB","target":"ModuleA","metadata":{"sourceModuleName":"ModuleB","targetModuleName":"ModuleA","type":"module_to_module"}}]}');
         },
       );
     },

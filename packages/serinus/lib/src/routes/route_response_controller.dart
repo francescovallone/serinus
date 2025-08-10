@@ -2,6 +2,7 @@
 import '../adapters/adapters.dart';
 import '../contexts/contexts.dart';
 import '../engines/view_engine.dart';
+import '../utils/wrapped_response.dart';
 
 /// The [RouteResponseController] class is used to handle responses for routes.
 /// It provides methods to send responses, redirect, and render views.
@@ -13,7 +14,7 @@ class RouteResponseController {
   const RouteResponseController(this._applicationRef);
 
   /// The [sendResponse] method is used to send a response to the client.
-  Future<void> sendResponse<TResponse, TData>(TResponse response, TData data, ResponseContext properties, {ViewEngine? viewEngine}) async {
+  Future<void> sendResponse<TResponse, TData>(TResponse response, WrappedResponse data, ResponseContext properties, {ViewEngine? viewEngine}) async {
     await _applicationRef.reply(
       response,
       data,

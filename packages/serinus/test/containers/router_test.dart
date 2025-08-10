@@ -17,14 +17,14 @@ void main() async {
     test('''when the function 'getHttpMethod' is called,
             then it should return the correct HTTP method from Spanner
           ''', () {
-      final router = Router();
-      expect(router.getHttpMethod(HttpMethod.get), HTTPMethod.GET);
-      expect(router.getHttpMethod(HttpMethod.post), HTTPMethod.POST);
-      expect(router.getHttpMethod(HttpMethod.put), HTTPMethod.PUT);
-      expect(router.getHttpMethod(HttpMethod.delete), HTTPMethod.DELETE);
-      expect(router.getHttpMethod(HttpMethod.patch), HTTPMethod.PATCH);
-      expect(router.getHttpMethod(HttpMethod.head), HTTPMethod.HEAD);
-      expect(router.getHttpMethod(HttpMethod.options), HTTPMethod.OPTIONS);
+      expect(HttpMethod.toSpanner(HttpMethod.get), HTTPMethod.GET);
+      expect(HttpMethod.toSpanner(HttpMethod.post), HTTPMethod.POST);
+      expect(HttpMethod.toSpanner(HttpMethod.put), HTTPMethod.PUT);
+      expect(HttpMethod.toSpanner(HttpMethod.delete), HTTPMethod.DELETE);
+      expect(HttpMethod.toSpanner(HttpMethod.patch), HTTPMethod.PATCH);
+      expect(HttpMethod.toSpanner(HttpMethod.head), HTTPMethod.HEAD);
+      expect(HttpMethod.toSpanner(HttpMethod.options), HTTPMethod.OPTIONS);
+      expect(HttpMethod.toSpanner(HttpMethod.all), HTTPMethod.ALL);
     });
 
     test('''when the function 'registerRoute' is called,

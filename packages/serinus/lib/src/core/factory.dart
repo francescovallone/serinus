@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import '../adapters/adapters.dart';
+import '../constants.dart';
 import '../containers/model_provider.dart';
 import '../enums/log_level.dart';
 import '../services/logger_service.dart';
@@ -20,7 +21,7 @@ final class SerinusFactory {
       {required Module entrypoint,
       String host = 'localhost',
       int port = 3000,
-      Set<LogLevel> logLevels = const {LogLevel.verbose},
+      Set<LogLevel>? logLevels,
       LoggerService? logger,
       String poweredByHeader = 'Powered by Serinus',
       SecurityContext? securityContext,
@@ -46,7 +47,7 @@ final class SerinusFactory {
           modelProvider: modelProvider,
 
         ),
-        levels: logLevels,
+        levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
         logger: logger);
     return app;
   }

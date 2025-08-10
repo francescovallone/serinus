@@ -81,9 +81,13 @@ class ModuleMetadataNode {
   /// Indicates if the module represents an internal module.
   final bool? internal;
 
+  /// Indicates if the module represents a global module.
+  final bool? global;
+
   /// Creates a new instance of [ModuleMetadataNode].
   const ModuleMetadataNode({
     this.internal,
+    this.global,
   });
 
   /// Converts the [ModuleMetadataNode] to a JSON object.
@@ -91,6 +95,7 @@ class ModuleMetadataNode {
     return {
       'name': name,
       if (internal != null) 'internal': internal,
+      if (global != null) 'global': global,
     };
   }
 }
@@ -116,9 +121,6 @@ class ClassMetadataNode {
   /// The time it took to initialize the class, in milliseconds.
   final int initTime;
 
-  /// Indicates if the class is global.
-  final bool? global;
-
   /// Indicates if the class represents an internal class.
   final bool? internal;
 
@@ -129,7 +131,6 @@ class ClassMetadataNode {
     this.initTime = 0,
     this.composed,
     this.exported,
-    this.global,
     this.internal,
   });
 
@@ -141,7 +142,6 @@ class ClassMetadataNode {
       'initTime': initTime,
       if (exported != null) 'exported': exported,
       if (composed != null) 'composed': composed,
-      if (global != null) 'global': global,
       if (internal != null) 'internal': internal,
     };
   }

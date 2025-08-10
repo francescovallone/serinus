@@ -16,7 +16,6 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
   String get name => 'http';
 
   @override
-  // TODO: implement rawBody
   bool get rawBody => false;
 
   @override
@@ -24,8 +23,6 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
     return Future.value();
   }
 
-  @override
-  bool get shouldBeInitilized => false;
 }
 
 void main() {

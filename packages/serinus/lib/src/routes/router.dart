@@ -5,6 +5,7 @@ import '../contexts/route_context.dart';
 import '../core/controller.dart';
 import '../core/metadata.dart';
 import '../enums/http_method.dart';
+import '../errors/initialization_error.dart';
 import '../versioning.dart';
 
 /// [RouteInformation] is a utility type that contains the route context and the parameters of the route.
@@ -27,7 +28,18 @@ final class Router {
   }) {
     String path =
         !context.path.startsWith('/') ? '/${context.path}' : context.path;
-    _routeTree.addRoute(getHttpMethod(context.method), path, (context, handler));
+    final routeExists = _routeTree.lookup(
+      HTTPMethod.ALL,
+      Uri.parse(path),
+    );
+    for(final result in (routeExists?.values ?? [])) {
+      if (result.$1.path == path && (result.$1.method == context.method || result.$1.method == HttpMethod.all || context.method == HttpMethod.all)) {
+        throw InitializationError(
+          'A route with the same path and method already exists. [${context.path}]',
+        );
+      }
+    }
+    _routeTree.addRoute(HttpMethod.toSpanner(context.method), path, (context, handler));
   }
 
   /// The [getRouteByPathAndMethod] method is used to get the route by path and method.
@@ -38,7 +50,7 @@ final class Router {
   /// The method will return the route data and the parameters of the route.
   ({({RouteContext route, HandlerFunction handler})? spec, Map<String, dynamic> params}) checkRouteByPathAndMethod(
       String path, HttpMethod method) {
-    final result = _routeTree.lookup(getHttpMethod(method), Uri.parse(path));
+    final result = _routeTree.lookup(HttpMethod.toSpanner(method), Uri.parse(path));
     final route = result?.values.firstOrNull;
     if (route == null) {
       return (spec: null, params: {});
@@ -46,25 +58,6 @@ final class Router {
     return (spec: (route: route.$1, handler: route.$2), params: result?.params ?? {});
   }
 
-  /// The [getHttpMethod] method is used to get the HTTP method.
-  HTTPMethod getHttpMethod(HttpMethod method) {
-    switch (method) {
-      case HttpMethod.get:
-        return HTTPMethod.GET;
-      case HttpMethod.post:
-        return HTTPMethod.POST;
-      case HttpMethod.put:
-        return HTTPMethod.PUT;
-      case HttpMethod.delete:
-        return HTTPMethod.DELETE;
-      case HttpMethod.patch:
-        return HTTPMethod.PATCH;
-      case HttpMethod.head:
-        return HTTPMethod.HEAD;
-      case HttpMethod.options:
-        return HTTPMethod.OPTIONS;
-    }
-  }
 }
 
 /// The [RouteData] class is used to create a route data object.

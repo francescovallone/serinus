@@ -13,8 +13,6 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
     return Future.value();
   }
 
-  @override
-  bool get shouldBeInitilized => false;
 }
 
 class TestProvider extends Provider {

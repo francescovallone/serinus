@@ -5,7 +5,7 @@ import '../containers/injection_token.dart';
 /// The [HandlerFunction] is a function that handles the incoming request and returns a response.
 typedef HandlerFunction = Future<void> Function(
   IncomingMessage request,
-  OutcomingMessage response,
+  OutgoingMessage response,
   Map<String, dynamic> params,
 );
 

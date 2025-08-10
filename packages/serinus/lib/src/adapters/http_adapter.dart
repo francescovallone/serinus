@@ -5,6 +5,7 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../http/server_event.dart';
+import '../utils/wrapped_response.dart';
 import 'server_adapter.dart';
 
 /// The [HttpAdapter] class is used to create an HTTP server adapter.
@@ -79,7 +80,7 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
   /// It takes the [response], [body], [context], and [config] as parameters.
   Future<void> reply(
     TResponse response,
-    dynamic body,
+    WrappedResponse body,
     ResponseContext properties,
   );
 

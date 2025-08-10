@@ -7,6 +7,7 @@ import '../containers/serinus_container.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../global_prefix.dart';
+import '../inspector/inspector_module.dart';
 import '../mixins/mixins.dart';
 import '../routes/routes_resolver.dart';
 import '../services/logger_service.dart';
@@ -173,9 +174,14 @@ class SerinusApplication extends Application {
   Future<void> initialize() async {
     final modulesContainer = _container.modulesContainer;
     if (!modulesContainer.isInitialized) {
+      await modulesContainer.registerModules(
+        InspectorModule(_container.inspector),
+        internal: true
+      );
       await modulesContainer.registerModules(entrypoint);
     }
     _routesResolver?.resolve();
+    _container.inspector.inspectModules(modulesContainer.scopes);
     await modulesContainer.finalize(entrypoint);
     await _container.emitHook<OnApplicationBootstrap>();
   }

@@ -10,7 +10,7 @@ typedef RequestCallback<TRequest, TResponse> = Future<void> Function(
 typedef ErrorHandler = Object? Function(SerinusException e, StackTrace stackTrace);
 
 /// The [NotFoundHandler] type is used to define the not found handler.
-typedef NotFoundHandler = SerinusException? Function();
+typedef NotFoundHandler = SerinusException Function(Request request);
 
 /// The [Adapter] class is used to create a new adapter.
 abstract class Adapter<TServer> {
@@ -27,9 +27,6 @@ abstract class Adapter<TServer> {
 
   /// The [isOpen] property contains the status of the adapter.
   bool get isOpen;
-
-  /// If true the application will also initialize the adapter.
-  bool get shouldBeInitilized;
 
   /// The [init] method is used to initialize the server.
   Future<void> init(ApplicationConfig config);

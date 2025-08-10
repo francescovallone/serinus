@@ -76,7 +76,7 @@ class HookRoute extends Route {
   final Map<String, dynamic> data = {};
 
   HookRoute({super.path = '/', super.method = HttpMethod.get}){
-    hooksContainer.addHook(HookedRoute());
+    hooks.addHook(HookedRoute());
   }
     
 }
@@ -135,8 +135,8 @@ void main() {
       final response = await request.close();
       expect(response.statusCode, 200);
       await app.close();
-      expect(route.hooksContainer.beforeHooks.whereType<HookedRoute>().first.data['beforeHandle-route'], true);
-      expect(route.hooksContainer.afterHooks.whereType<HookedRoute>().last.data['afterHandle-route'], true);
+      expect(route.hooks.beforeHooks.whereType<HookedRoute>().first.data['beforeHandle-route'], true);
+      expect(route.hooks.afterHooks.whereType<HookedRoute>().last.data['afterHandle-route'], true);
       expect(hook.data['onRequest'], true);
       expect(hook.data['beforeHandle'], true);
       expect(hook.data['afterHandle'], true);

@@ -43,7 +43,7 @@ abstract class Controller {
   }
 
   /// The [hooksContainer] property contains the hooks container of the controller.
-  HooksContainer get hooksContainer => HooksContainer();
+  final HooksContainer hooks = HooksContainer();
 
   /// The [metadata] property contains the metadata of the controller.
   List<Metadata> get metadata => [];

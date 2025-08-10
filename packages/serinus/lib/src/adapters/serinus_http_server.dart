@@ -5,6 +5,8 @@ import 'package:collection/collection.dart';
 
 import '../contexts/contexts.dart';
 import '../core/core.dart';
+import '../core/sse/sse_event_data.dart';
+import '../core/sse/sse_extensions.dart';
 import '../engines/view_engine.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
@@ -77,6 +79,16 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
             type: ServerEventType.upgraded,
             data: UpgradedEventData(
               clientId: request.webSocketKey,
+              request: request,
+              response: response,
+            ),
+          ));
+        }
+        if(request.isSse) {
+          request.hijacked = true;
+          emit(ServerEvent<SseEventData>(
+            type: ServerEventType.custom,
+            data: SseEventData(
               request: request,
               response: response,
             ),
@@ -213,9 +225,6 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
     }
     return data.toBytes();
   }
-
-  @override
-  bool get shouldBeInitilized => true;
   
   @override
   Future<void> render(InternalResponse response, View view, ResponseContext properties) async {

@@ -4,6 +4,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/contexts/sse_context.dart';
+import 'package:serinus/src/core/sse/sse_mixins.dart';
+import 'package:serinus/src/core/sse/sse_module.dart';
+import 'package:serinus/src/core/sse/sse_provider.dart';
 
 class TestProvider extends Provider {
   final List<String> testList = [
@@ -11,7 +15,7 @@ class TestProvider extends Provider {
     'World',
   ];
 
-  TestProvider({super.isGlobal});
+  TestProvider();
 
   String testMethod() {
     testList.add('Hello world');
@@ -74,11 +78,24 @@ class CircularDependencyModule extends Module {
         ], middlewares: []);
 }
 
+class AnotherController extends Controller {
+
+  AnotherController() : super('/another') {
+    on(Route.get('/'), (RequestContext context) {
+      return 'Hello from another controller!';
+    });
+    on(Route.all('/'), (RequestContext context) {
+      return 'Hello ajdaudiha!';
+    });
+  }
+
+}
+
 class AnotherModule extends Module {
   AnotherModule()
       : super(imports: [
           CircularDependencyModule()
-        ], controllers: [], providers: [
+        ], controllers: [AnotherController()], providers: [
           Provider.composed((TestProviderThree tp) => TestProviderTwo(tp),
               inject: [TestProviderThree], type: TestProviderTwo),
           Provider.composed(
@@ -103,17 +120,23 @@ class WsGateway extends WebSocketGateway {
   }
 }
 
+class GlobalModule extends Module {
+  GlobalModule()
+      : super(imports: [], controllers: [], providers: [TestProvider()], middlewares: [], isGlobal: true);
+}
+
 class AppModule extends Module {
   AppModule()
       : super(imports: [
           AnotherModule(),
           WsModule(),
+          SseModule(),
+          GlobalModule(),
           CircularDependencyModule()
         ], controllers: [
           AppController()
         ], providers: [
           WsGateway(),
-          TestProvider(isGlobal: true),
         ], middlewares: [
           LogMiddleware()
         ]);
@@ -137,14 +160,22 @@ class LogMiddleware extends Middleware {
   }
 }
 
-class AppController extends Controller {
+class AppController extends Controller with SseController {
   final logger = Logger('AppController');
 
   AppController([super.path = '/']) {
     on(Route.get('/'), (RequestContext context) {
-      logger.info('Hello world');
-      context.headers['X-Serinus'] = 'Hello world';
+      context.use<SseDispatcher>().send('Hello world');
+      return 'Hello world!';
     });
+    onSse(
+      Route.get('/sse'), 
+      (SseContext context) async* {
+        yield 'Hello';
+        await Future.delayed(Duration(seconds: 3));
+        yield 'World';
+      }
+    );
   }
 }
 

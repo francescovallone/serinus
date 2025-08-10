@@ -17,10 +17,7 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
 
   @override
   String get name => 'http';
-
-  @override
-  bool get shouldBeInitilized => false;
-
+  
   @override
   Future<void> listen({
     required RequestCallback<InternalRequest, InternalResponse> onRequest,

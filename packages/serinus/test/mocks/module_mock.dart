@@ -39,13 +39,13 @@ class SimpleModuleWithInjectables extends Module {
 }
 
 class TestGlobalProvider extends Provider {
-  TestGlobalProvider({super.isGlobal = true});
+  TestGlobalProvider();
 }
 
 class TestGlobalProviderWithDeps extends Provider {
   final TestProviderTwo dep;
 
-  TestGlobalProviderWithDeps(this.dep, {super.isGlobal = true});
+  TestGlobalProviderWithDeps(this.dep);
 }
 
 class ImportableModuleWithProvider extends Module {
@@ -67,6 +67,7 @@ class ImportableModuleWithProvider extends Module {
           ],
           exports: [TestProviderTwo],
           middlewares: [],
+          isGlobal: true
         );
 }
 
@@ -98,5 +99,6 @@ class SimpleModuleWithGlobal extends Module {
           controllers: [],
           providers: [TestGlobalProvider()],
           exports: [],
+          isGlobal: true
         );
 }

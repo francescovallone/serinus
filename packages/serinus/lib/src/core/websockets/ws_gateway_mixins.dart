@@ -1,4 +1,4 @@
-import '../core/websockets/ws_gateway.dart';
+import 'ws_gateway.dart';
 
 /// The [OnClientConnect] mixin is used to handle the client connections.
 mixin OnClientConnect on WebSocketGateway {
