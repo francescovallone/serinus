@@ -10,7 +10,7 @@ class ConfigModule extends Module {
   /// Create a new instance of [ConfigModule].
   ///
   /// Optionally, you can pass a [ConfigModuleOptions] object to configure the module.
-  ConfigModule({this.dotEnvPath = '.env'}) : super();
+  ConfigModule({this.dotEnvPath = '.env'}) : super(isGlobal: true);
 
   @override
 

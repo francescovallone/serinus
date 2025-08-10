@@ -10,7 +10,7 @@ class TestRoute extends Route {
 }
 
 class MainController extends Controller {
-  MainController({super.path = '/'}) {
+  MainController(): super('/') {
     on(TestRoute(), (context) async {
       final configService = context.use<ConfigService>();
       final value = configService.getOrThrow(context.query['key'] ?? 'TEST');
@@ -34,7 +34,7 @@ void main() {
 
   setUpAll(() async {
     app = await serinus.createApplication(
-        entrypoint: MainModule(), loggingLevel: LogLevel.none);
+        entrypoint: MainModule(), logLevels: {LogLevel.none});
     await app?.serve();
   });
 

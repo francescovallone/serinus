@@ -1,13 +1,9 @@
 import 'package:serinus/serinus.dart';
 import 'package:serinus_config/serinus_config.dart';
 
-class TestRoute extends Route {
-  TestRoute({super.path = '/', super.method = HttpMethod.get});
-}
-
 class MainController extends Controller {
-  MainController({super.path = '/'}) {
-    on(TestRoute(), (context) async {
+  MainController() : super('/') {
+    on(Route.get('/'), (RequestContext context) async {
       return context.use<ConfigService>().getOrThrow('TEST');
     });
   }
@@ -20,6 +16,5 @@ class MainModule extends Module {
 
 void main() async {
   final app = await serinus.createApplication(entrypoint: MainModule());
-
   await app.serve();
 }

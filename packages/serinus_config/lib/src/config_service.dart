@@ -3,8 +3,6 @@ import 'package:serinus/serinus.dart';
 
 /// A service that provides access to environment variables.
 class ConfigService extends Provider {
-  @override
-  bool get isGlobal => true;
 
   /// The [DotEnv] instance used to access environment variables.
   final DotEnv _dotEnv;
@@ -25,8 +23,7 @@ class ConfigService extends Provider {
   String getOrThrow(String key) {
     return _dotEnv.getOrElse(
         key,
-        () => throw PreconditionFailedException(
-            message: 'Missing environment variable: $key'));
+        () => throw PreconditionFailedException('Missing environment variable: $key'));
   }
 
   /// Get the value of an environment variable or return `null` if it is not set.
