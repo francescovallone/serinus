@@ -67,26 +67,24 @@ class RunCommand extends Command<int> {
     final restartQueue = Queue<WatchEvent>();
     final subscription =
         _watcher.events.where((_) => _developmentMode).listen((event) async {
-      if (event.type == ChangeType.MODIFY) {
-        if (restarting) {
-          restartQueue.add(event);
-          return;
-        }
+      if (restarting) {
+        restartQueue.add(event);
+        return;
+      }
+      restarting = true;
+      await _killProcess(process, restarting: true);
+      // ignore: avoid_print
+      print('\x1B[2J\x1B[0;0H');
+      process = await serve(entrypoint, restarting: true);
+      restarting = false;
+      if (restartQueue.isNotEmpty) {
         restarting = true;
         await _killProcess(process, restarting: true);
         // ignore: avoid_print
         print('\x1B[2J\x1B[0;0H');
         process = await serve(entrypoint, restarting: true);
+        restartQueue.clear();
         restarting = false;
-        if (restartQueue.isNotEmpty) {
-          final nextEvent = restartQueue.removeLast();
-          if (nextEvent.type == ChangeType.MODIFY) {
-            await _killProcess(process, restarting: true);
-            // ignore: avoid_print
-            print('\x1B[2J\x1B[0;0H');
-            process = await serve(entrypoint, restarting: true);
-          }
-        }
       }
     });
 
@@ -140,7 +138,8 @@ class RunCommand extends Command<int> {
         exit(0);
       }
     } else {
-      process.kill();
+      Process.killPid(process.pid);
+      await process.exitCode;
     }
   }
 
