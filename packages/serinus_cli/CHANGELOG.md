@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.9
+
+- 
+
 ## 1.0.8 
 
 - fix(#187): debounce the events executing only the last one.

@@ -1,6 +1,6 @@
 name: serinus_cli
 description: The official CLI of the Serinus Framework. It allows you to create, build, and manage Serinus projects.
-version: 1.0.8
+version: 1.0.9
 repository: 'https://github.com/francescovallone/serinus'
 homepage: https://serinus.app
 
