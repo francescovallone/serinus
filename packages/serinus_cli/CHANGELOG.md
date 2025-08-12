@@ -2,7 +2,7 @@
 
 ## 1.0.9
 
-- 
+- fix(#189): await for `Process.exitCode` after killing the process in Linux and MacOS. [#190](https://github.com/francescovallone/serinus/pull/190) by [francescovallone](https://github.com/francescovallone)
 
 ## 1.0.8 
 
