@@ -3,12 +3,12 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:serinus_cli/src/commands/generate/generate_models/generate_models_command.dart';
+import 'package:serinus_cli/src/utils/config.dart';
 
 class ModelsAnalyzer {
   Future<List<Model>> analyze(
     List<File> files,
-    Map<String, dynamic> config,
+    ModelsConfig? config,
     List<SerializeKeyword> serializeKeywords,
     List<DeserializeKeyword> deserializeKeywords,
   ) async {
@@ -48,7 +48,7 @@ class ModelsAnalyzer {
           for (final c in constructors) {
             if (!hasFromJson) {
               for (final s in deserializeKeywords) {
-                if (c.name.contains(s.name) && !s.isStatic && !c.isStatic) {
+                if (c.name.contains(s.keyword) && !s.staticMethod && !c.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${c.name}';
                   break;
@@ -59,7 +59,7 @@ class ModelsAnalyzer {
           for (final m in methods) {
             if (!hasFromJson) {
               for (final s in deserializeKeywords) {
-                if (m.name.contains(s.name) && s.isStatic && m.isStatic) {
+                if (m.name.contains(s.keyword) && s.staticMethod && m.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${m.name}';
                   break;
@@ -68,7 +68,7 @@ class ModelsAnalyzer {
             }
             if (!hasToJson) {
               for (final s in serializeKeywords) {
-                if (m.name.contains(s.name)) {
+                if (m.name.contains(s.keyword)) {
                   hasToJson = true;
                   toJson = m.name;
                   break;

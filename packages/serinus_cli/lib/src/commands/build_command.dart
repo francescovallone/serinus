@@ -27,11 +27,14 @@ class BuildCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final config = await getProjectConfiguration(_logger!);
-    if (config.length == 1 && config.containsKey('error')) {
-      return config['error'] as int;
+    final Config config;
+    try {
+      config = await getProjectConfiguration(_logger!, deps: true);
+    } catch (e) {
+      _logger?.err('Failed to load project configuration: $e');
+      return ExitCode.config.code;
     }
-    final entrypoint = config['entrypoint'] as String? ?? 'bin/main.dart';
+    final entrypoint = config.entrypoint ?? 'bin/main.dart';
     final progress = _logger.progress('Building application...');
     final dist = Directory('dist');
     if (!dist.existsSync()) {
@@ -39,7 +42,7 @@ class BuildCommand extends Command<int> {
     }
     final process = await Process.start(
       'dart',
-      ['compile', 'exe', entrypoint, '-o', 'dist/${config['name']}'],
+      ['compile', 'exe', entrypoint, '-o', 'dist/${config.name}'],
     );
 
     process.stdout.transform(utf8.decoder).listen((data) {

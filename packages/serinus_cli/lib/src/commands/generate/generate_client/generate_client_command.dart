@@ -94,9 +94,12 @@ class GenerateClientCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final config = await getProjectConfiguration(_logger!, deps: true);
-    if (config.length == 1 && config.containsKey('error')) {
-      return config['error'] as int;
+    final Config config;
+    try {
+      config = await getProjectConfiguration(_logger!, deps: true);
+    } catch (e) {
+      _logger?.err('Failed to load project configuration: $e');
+      return ExitCode.config.code;
     }
     if (output == null) {
       return ExitCode.usage.code;
@@ -126,8 +129,7 @@ class GenerateClientCommand extends Command<int> {
           '''The http client $httpClient is not supported. If you want it to be supported please click here: https://github.com/francescovallone/serinus/issues/new?assignees=&labels=feature&projects=&template=feature.md&title=feat%3A+Add%20$httpClient%20support%20to%20the%20client%20generation%20command''');
       return ExitCode.config.code;
     }
-    if (!Map<String, String>.from(config['dependencies'] as Map? ?? {})
-        .containsKey(httpClient)) {
+    if (!config.dependencies.containsKey(httpClient)) {
       _logger.warn(
           'The choosen http client does not exist in your pubspec! Please add it using "dart pub add $httpClient"!');
     }
@@ -155,14 +157,14 @@ class GenerateClientCommand extends Command<int> {
       language,
       httpClient,
       controllers,
-      config['client']?['verbose'] as bool? ?? argResults.flag('verbose'),
+      config.client?.verbose ?? argResults.flag('verbose'),
     );
     return ExitCode.success.code;
   }
 
   Future<List<({File file, bool isRoute})>> _recursiveGetFiles(
     Directory dir,
-    Map<String, dynamic> config,
+    Config config,
   ) async {
     final files = <({File file, bool isRoute})>[];
     final entities = dir.listSync();

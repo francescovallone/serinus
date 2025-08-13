@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.12
+
+- feat: add whitelist of files to watch & make .dart files watched by default
+
 ## 1.0.11
 
 - fix: remove `runInShell` from `Process.start` in run command

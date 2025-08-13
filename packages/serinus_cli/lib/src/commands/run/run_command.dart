@@ -57,11 +57,14 @@ class RunCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final config = await getProjectConfiguration(_logger!);
-    if (config.length == 1 && config.containsKey('error')) {
-      return config['error'] as int;
+    final Config config;
+    try {
+      config = await getProjectConfiguration(_logger!, deps: true);
+    } catch (e) {
+      _logger?.err('Failed to load project configuration: $e');
+      return ExitCode.config.code;
     }
-    final entrypoint = config['entrypoint'] as String? ?? 'bin/main.dart';
+    final entrypoint = config.entrypoint ?? 'bin/main.dart';
     var process = await serve(entrypoint);
     if (_isWindows) {
       signalSubscription = ProcessSignal.sigint.watch().listen((event) {
@@ -71,8 +74,17 @@ class RunCommand extends Command<int> {
     }
     var restarting = false;
     final restartQueue = Queue<WatchEvent>();
+    final watcherPaths = config.watcher?.whitelist ?? [];
     final subscription =
         _watcher.events.where((_) => _developmentMode).listen((event) async {
+      final shouldRestart = event.path.endsWith('.dart') ||
+          watcherPaths.any((path) {
+            final entity = FileSystemEntity.isDirectorySync(path) ? Directory(path) : File(path);
+            return entity.existsSync() && FileSystemEntity.identicalSync(event.path, entity.absolute.path);
+          });
+      if(!shouldRestart) {
+        return;
+      }
       if (restarting) {
         restartQueue.add(event);
         return;

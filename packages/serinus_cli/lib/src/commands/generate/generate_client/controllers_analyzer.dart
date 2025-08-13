@@ -9,6 +9,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:mason/mason.dart';
+import 'package:serinus_cli/src/utils/config.dart';
 
 final onRouteRegex = RegExp(r'on\(([^()]*|\([^()]*\))*\)');
 final superParamsRegex = RegExp(r'super\(([^()]*|\([^()]*\))*\)', dotAll: true);
@@ -31,7 +32,7 @@ class ControllerAstVisitor extends GeneralizingAstVisitor<Object> {
 class ControllersAnalyzer {
   Future<Map<String, UserRoute>> analyzeRoutes(
     List<File> files,
-    Map<String, dynamic> config,
+    Config config,
     Logger logger,
   ) async {
     final progress = logger.progress('Analyzing user defined routes');
@@ -171,7 +172,7 @@ class ControllersAnalyzer {
   Future<Map<String, Controller>> analyzeControllers(
     List<File> files,
     Map<String, UserRoute> routes,
-    Map<String, dynamic> config,
+    Config config,
     Logger logger,
   ) async {
     final analysisProgress =

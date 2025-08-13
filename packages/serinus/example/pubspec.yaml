@@ -30,4 +30,8 @@ serinus:
     verbose: false
     language: 'Dart'
     httpClient: 'dio'
+  watcher:
+    whitelist:
+      - README.md
+      - pubspec_overrides.yaml
         
