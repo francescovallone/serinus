@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
@@ -50,6 +51,10 @@ class RunCommand extends Command<int> {
 
   final bool _isWindows;
 
+  StreamSubscription<ProcessSignal>? signalSubscription;
+  StreamSubscription<String>? stderrSubscription;
+  StreamSubscription<String>? stdoutSubscription;
+
   @override
   Future<int> run() async {
     final config = await getProjectConfiguration(_logger!);
@@ -59,8 +64,9 @@ class RunCommand extends Command<int> {
     final entrypoint = config['entrypoint'] as String? ?? 'bin/main.dart';
     var process = await serve(entrypoint);
     if (_isWindows) {
-      ProcessSignal.sigint.watch().listen((event) {
+      signalSubscription = ProcessSignal.sigint.watch().listen((event) {
         _killProcess(process);
+        signalSubscription?.cancel();
       });
     }
     var restarting = false;
@@ -105,14 +111,13 @@ class RunCommand extends Command<int> {
     final process = await Process.start(
       'dart',
       [mainFile.absolute.path],
-      runInShell: true,
       environment: {
         if (port != null) 'PORT': port,
         if (host != null) 'HOST': host,
       },
     );
     progress?.complete();
-    process.stdout.transform(utf8.decoder).listen((data) {
+    stdoutSubscription = process.stdout.transform(utf8.decoder).listen((data) {
       if (data.endsWith('\n')) {
         data = data.substring(0, data.length - 1);
       }
@@ -120,7 +125,7 @@ class RunCommand extends Command<int> {
         data,
       );
     });
-    process.stderr.transform(utf8.decoder).listen((data) {
+    stderrSubscription = process.stderr.transform(utf8.decoder).listen((data) {
       if (data.endsWith('\n')) {
         data = data.substring(0, data.length - 1);
       }
@@ -138,7 +143,10 @@ class RunCommand extends Command<int> {
         exit(0);
       }
     } else {
-      Process.killPid(process.pid);
+      process.kill();
+      await signalSubscription?.cancel();
+      await stderrSubscription?.cancel();
+      await stdoutSubscription?.cancel();
       await process.exitCode;
     }
   }

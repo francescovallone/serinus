@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.11
+
+- fix: remove `runInShell` from `Process.start` in run command
+
 ## 1.0.10
 
 - fix: remove `--enable-vm-service` from run command
