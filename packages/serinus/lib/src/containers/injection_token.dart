@@ -3,6 +3,8 @@ import '../core/module.dart';
 /// A simple class to represent an injection token.
 extension type InjectionToken(String name) {
 
+  static final InjectionToken global = InjectionToken('global');
+
   /// The token is take from the object type
   factory InjectionToken.fromType(Type type) {
     return InjectionToken(type.toString());

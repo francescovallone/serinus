@@ -1,5 +1,6 @@
 import '../containers/injection_token.dart';
 import 'edge.dart';
+import 'entrypoint.dart';
 import 'node.dart';
 
 /// The [SerializedGraph] class is used as a base class for the graph inspector.
@@ -10,6 +11,8 @@ class SerializedGraph {
 
   /// The Map of edges in the graph.
   final Map<String, Edge> edges = {};
+
+  final Map<String, Entrypoint> entrypoints = {};
 
   /// Inserts a node into the graph.
   Node insertNode(Node node) {
@@ -27,6 +30,14 @@ class SerializedGraph {
     }
     edges[edge.id] = edge;
     return edge;
+  }
+
+  Entrypoint insertEntrypoint(Entrypoint entrypoint) {
+    if (entrypoints.containsKey(entrypoint.id)) {
+      return entrypoints[entrypoint.id]!;
+    }
+    entrypoints[entrypoint.id] = entrypoint;
+    return entrypoint;
   }
 
   /// Converts the [SerializedGraph] to a JSON object.

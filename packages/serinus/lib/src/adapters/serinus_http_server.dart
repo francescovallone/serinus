@@ -5,8 +5,6 @@ import 'package:collection/collection.dart';
 
 import '../contexts/contexts.dart';
 import '../core/core.dart';
-import '../core/sse/sse_event_data.dart';
-import '../core/sse/sse_extensions.dart';
 import '../engines/view_engine.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
@@ -169,7 +167,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
   @override
   Future<void> reply(
     InternalResponse response, 
-    dynamic body, 
+    WrappedResponse body, 
     ResponseContext properties,
   ) async {
     response.cookies.addAll(properties.cookies);
@@ -182,7 +180,8 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
       properties.contentType ?? io.ContentType.text, 
       preserveHeaderCase: preserveHeaderCase
     );
-    if (body is io.File) {
+    final bodyData = body.data;
+    if (bodyData is io.File) {
       response.contentType(
         properties.contentType ??  io.ContentType.parse('application/octet-stream'),
         preserveHeaderCase: preserveHeaderCase
@@ -193,7 +192,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
         }, 
         preserveHeaderCase: preserveHeaderCase
       );
-      final readPipe = body.openRead();
+      final readPipe = bodyData.openRead();
       return response.addStream(readPipe);
     }
     responseBody = _convertData(body, response, properties);

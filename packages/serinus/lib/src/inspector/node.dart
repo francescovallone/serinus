@@ -104,10 +104,13 @@ class ModuleMetadataNode {
 class ClassMetadataNode {
   /// The type of the class. This is used to identify the class in the tree.
   /// It can be one of the following:
-  /// - `provider` - The class is a regular class.
-  /// - `controller` - The class is a factory class.
-  /// - `middleware` - The class is a service class.
+  /// - `provider` - The class is a provider class.
+  /// - `controller` - The class is a controller class.
+  /// - `middleware` - The class is a middleware class.
+  /// - `hook` - The class is a hook class.
   final InjectableType type;
+
+  final List<String>? subTypes;
 
   /// The name of the module where the class is defined.
   final InjectionToken sourceModuleName;
@@ -132,6 +135,7 @@ class ClassMetadataNode {
     this.composed,
     this.exported,
     this.internal,
+    this.subTypes,
   });
 
   /// Converts the [ClassMetadataNode] to a JSON object.
@@ -143,6 +147,7 @@ class ClassMetadataNode {
       if (exported != null) 'exported': exported,
       if (composed != null) 'composed': composed,
       if (internal != null) 'internal': internal,
+      if (subTypes != null) 'subTypes': subTypes,
     };
   }
 }
@@ -157,8 +162,11 @@ enum InjectableType {
   controller('controller'),
 
   /// The class is a service class.
-  middleware('middleware'),;
-  
+  middleware('middleware'),
+
+  /// The class is a hook class.
+  hook('hook');
+
   const InjectableType(this.name);
 
   /// The name of the class type.

@@ -1,7 +1,10 @@
 import '../containers/injection_token.dart';
 import '../containers/module_container.dart';
 import '../core/core.dart';
+import '../mixins/mixins.dart';
 import 'edge.dart';
+import 'entrypoint.dart';
+import 'inspector_module.dart';
 import 'node.dart';
 import 'serialized_graph.dart';
 
@@ -13,6 +16,11 @@ class GraphInspector extends Provider {
 
   final ModulesContainer _container;
 
+  final List<Type> _internal = const [
+    GraphInspector,
+    InspectorModule
+  ];
+
   /// Creates a new instance of [GraphInspector].
   const GraphInspector(this.graph, this._container);
 
@@ -20,6 +28,9 @@ class GraphInspector extends Provider {
   void inspectModules([Iterable<ModuleScope>? modules]) {
     final appModulesScopes = modules ?? _container.scopes;
     for (final moduleScope in appModulesScopes) {
+      if(_internal.contains(moduleScope.module.runtimeType)) {
+        continue;
+      }
       final moduleNode = ModuleNode(
           id: moduleScope.token,
           label: moduleScope.token.name,
@@ -31,6 +42,9 @@ class GraphInspector extends Provider {
       graph.insertNode(moduleNode);
       _inspectModule(moduleScope);
       _insertEdges(moduleScope);
+    }
+    for(final hook in _container.config.globalHooks.hooks) {
+      graph.insertNode(_prepareHook(hook, InjectionToken.global, null));
     }
   }
 
@@ -48,8 +62,10 @@ class GraphInspector extends Provider {
       );
       graph.insertEdge(edge);
     }
-
-    for (final provider in module.providers) {
+    for (final provider in module.unifiedProviders) {
+      if(_internal.contains(provider.runtimeType)) {
+        continue;
+      }
       final providerToken = InjectionToken.fromType(provider.runtimeType);
       final instanceWrapper = module.instanceMetadata[providerToken];
       if (instanceWrapper?.dependencies.isNotEmpty ?? false) {
@@ -57,7 +73,7 @@ class GraphInspector extends Provider {
           final edge = Edge(
             id: '${providerToken.name}-${dependency.$2.name}',
             source: providerToken,
-            target: providerToken,
+            target: dependency.$2.name,
             metadata: ClassToClassEdgeMetadata(
               sourceClassName: providerToken,
               targetClassName: dependency.$2.name,
@@ -105,7 +121,50 @@ class GraphInspector extends Provider {
         metadata: module.instanceMetadata[controllerToken]!.metadata,
       );
       graph.insertNode(controllerNode);
+      for(final hook in controller.hooks.hooks) {
+        graph.insertNode(_prepareHook(hook, controllerToken, module));
+      }
+      for(final routeEntry in controller.routes.entries) {
+        final entrypoint = Entrypoint(
+          type: EntrypointType.http,
+          id: routeEntry.key,
+          className: controllerToken.name,
+          metadata: EntrypointMetadata(
+            key: routeEntry.value.route.path,
+            requestMethod: routeEntry.value.route.method.name,
+            path: routeEntry.value.route.path,
+          )
+        );
+        graph.insertEntrypoint(entrypoint);
+        for(final hook in routeEntry.value.route.hooks.hooks) {
+          graph.insertNode(_prepareHook(hook, InjectionToken(routeEntry.key), module));
+        }
+      }
     }
+  }
+
+  ClassNode _prepareHook(Hook hook, InjectionToken parentToken, ModuleScope? module) {
+    final hookToken = InjectionToken.fromType(hook.runtimeType);
+    return ClassNode(
+      id: hookToken,
+      label: hookToken.name,
+      parent: parentToken,
+      metadata: ClassMetadataNode(
+        type: InjectableType.hook, 
+        sourceModuleName: module?.token ?? parentToken,
+        subTypes: [
+          if(hook is OnBeforeHandle) 'beforeHandle',
+          if(hook is OnAfterHandle) 'afterHandle',
+          if(hook is OnException) 'onException',
+          if(hook is OnRequest) 'onRequest',
+          if(hook is OnResponse) 'onResponse',
+          if(hook is OnBeforeMessage) 'onBeforeMessage',
+          if(hook is OnUpgrade) 'onUpgrade',
+          if(hook is OnWsException) 'onWsException',
+          if(hook is OnClose) 'onClose'
+        ]
+      )
+    );
   }
 
   /// Converts the [GraphInspector] to a JSON object.

@@ -6,7 +6,9 @@ import '../mixins/hooks_mixins.dart';
 final class HooksContainer {
 
   /// The set of hooks registered in the container
-  final Set<Type> hooks = {};
+  final Set<Type> registeredHooks = {};
+
+  final Set<Hook> hooks = {};
   
   /// The request response hooks for the container
   final Set<OnRequest> reqHooks = {};
@@ -70,18 +72,19 @@ final class HooksContainer {
     if (hook.service != null) {
       services[hook.service!.runtimeType] = hook.service!;
     }
-    hooks.add(hook.runtimeType);
+    registeredHooks.add(hook.runtimeType);
+    hooks.add(hook);
   }
 
   /// Merge multiple hooks containers into one
   HooksContainer merge(List<HooksContainer> containers) {
     final merged = HooksContainer();
     for (final container in containers) {
-      merged.reqHooks.addAll(container.reqHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
-      merged.resHooks.addAll(container.resHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
-      merged.beforeHooks.addAll(container.beforeHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
-      merged.afterHooks.addAll(container.afterHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
-      merged.exceptionHooks.addAll(container.exceptionHooks.where((e) => !merged.hooks.contains(e.runtimeType)));
+      merged.reqHooks.addAll(container.reqHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
+      merged.resHooks.addAll(container.resHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
+      merged.beforeHooks.addAll(container.beforeHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
+      merged.afterHooks.addAll(container.afterHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
+      merged.exceptionHooks.addAll(container.exceptionHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
       for (final service in container.services.entries) {
         if (!merged.services.containsKey(service.key)) {
           merged.services[service.key] = service.value;

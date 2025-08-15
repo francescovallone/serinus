@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../contexts/request_context.dart';
+import '../../contexts/request_context.dart';
 
 /// The [NextFunction] type is used to define the next function of the middleware.
 typedef NextFunction = Future<void> Function([Object? data]);

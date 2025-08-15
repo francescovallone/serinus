@@ -7,7 +7,7 @@ import '../containers/serinus_container.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../global_prefix.dart';
-import '../inspector/inspector_module.dart';
+import '../injector/internal_core_module.dart';
 import '../mixins/mixins.dart';
 import '../routes/routes_resolver.dart';
 import '../services/logger_service.dart';
@@ -33,6 +33,9 @@ abstract class Application {
   /// The [config] property contains the application configuration.
   final ApplicationConfig config;
 
+  /// Whether to abort the application on error.
+  final bool abortOnError;
+
   @visibleForTesting
   /// The [container] getter is used to get the Serinus container of the application.
   SerinusContainer get container => _container;
@@ -47,6 +50,7 @@ abstract class Application {
   Application({
     required this.entrypoint,
     required this.config,
+    this.abortOnError = true,
     Set<LogLevel>? levels,
     LoggerService? logger,
   })  : _container = SerinusContainer(config, config.serverAdapter) {
@@ -135,15 +139,18 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> serve() async {
-    await initialize();
-    _logger.info('Starting server on $url');
     try {
+      await initialize();
+      _logger.info('Starting server on $url');
       server.listen(
         onRequest: (request, response) => _routesResolver!.handle(
           request,
           response,
         ),
         onError: (e, stackTrace) {
+          if (abortOnError) {
+            throw e;
+          }
           _logger.severe(
             'Error occurred while handling request', 
             OptionalParameters(
@@ -158,6 +165,14 @@ class SerinusApplication extends Application {
     } on SocketException catch (e) {
       _logger.severe('Failed to start server on ${e.address}:${e.port}');
       await close();
+    } catch (e) {
+      if(abortOnError) {
+        rethrow;
+      }
+      _logger.severe(
+        'Error occurred while starting server',
+        OptionalParameters(error: e, stackTrace: StackTrace.current),
+      );
     }
   }
 
@@ -172,18 +187,28 @@ class SerinusApplication extends Application {
 
   @override
   Future<void> initialize() async {
-    final modulesContainer = _container.modulesContainer;
-    if (!modulesContainer.isInitialized) {
-      await modulesContainer.registerModules(
-        InspectorModule(_container.inspector),
-        internal: true
+    try {
+      final modulesContainer = _container.modulesContainer;
+      if (!modulesContainer.isInitialized) {
+        await modulesContainer.registerModules(
+          InternalCoreModule(_container.inspector),
+          internal: true
+        );
+        await modulesContainer.registerModules(entrypoint);
+      }
+      _routesResolver?.resolve();
+      await modulesContainer.finalize(entrypoint);
+      _container.inspector.inspectModules(modulesContainer.scopes);
+      await _container.emitHook<OnApplicationBootstrap>();
+    } catch (e) {
+      if(abortOnError) {
+        rethrow;
+      }
+      _logger.severe(
+        'Error occurred while initializing application',
+        OptionalParameters(error: e, stackTrace: StackTrace.current),
       );
-      await modulesContainer.registerModules(entrypoint);
     }
-    _routesResolver?.resolve();
-    _container.inspector.inspectModules(modulesContainer.scopes);
-    await modulesContainer.finalize(entrypoint);
-    await _container.emitHook<OnApplicationBootstrap>();
   }
 
   @override

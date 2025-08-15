@@ -104,7 +104,7 @@ final class ModulesContainer {
         'Initializing ${currentScope.module.runtimeType}${currentScope.module.token.isNotEmpty ? '(${currentScope.token})' : ''} dependencies.');
     }
     for (final subModule in currentScope.imports) {
-      await registerModules(subModule);
+      await registerModules(subModule, internal: internal);
       final subModuleToken = InjectionToken.fromModule(subModule);
       final subModuleScope = _scopes[subModuleToken];
       if (subModuleScope == null) {
@@ -364,16 +364,18 @@ final class ModulesContainer {
         (e) => dependencies.contains(e.runtimeType),
       );
       checkForCircularDependencies(provider, module, dependencies.toList());
-      if (initializedProviders.isEmpty && dependencies.isNotEmpty) {
-        throw InitializationError(
-          '[${module.runtimeType}] Cannot resolve dependencies for the ComposedProvider [${provider.type}]! Do the following to fix this error: \n'
-          '1. Make sure all the dependencies are correctly imported in the module. \n'
-          '2. Make sure the dependencies are correctly exported by their module. \n'
-          'If the error persists, please check the logs for more information and open an issue on the repository.',
-        );
-      }
       Map<Type, Provider> dependenciesMap =
           generateDependenciesMap(initializedProviders);
+      final cannotResolveDependencies = !(provider.inject.every((key) => dependenciesMap[key] != null));
+      if ((initializedProviders.isEmpty && dependencies.isNotEmpty) || cannotResolveDependencies) {
+        throw InitializationError(
+          '[${module.runtimeType}] Cannot resolve dependencies for the ComposedProvider [${provider.type}]!\n' 
+          'Do the following to fix this error: \n'
+          '1. Make sure all the dependencies are correctly imported in the module. \n'
+          '2. Make sure the dependencies are correctly exported by their module. \n'
+          'If the error persists, please check the logs for more information and open an issue on the repository.'
+        );
+      }
       final result = await Function.apply(provider.init,
           provider.inject.map((e) => dependenciesMap[e]).toList());
       checkResultType(provider, result, module);

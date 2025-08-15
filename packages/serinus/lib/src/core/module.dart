@@ -38,7 +38,6 @@ abstract class Module {
     this.controllers = const [],
     this.providers = const [],
     this.exports = const [],
-    this.middlewares = const [],
     this.token = '',
     this.isGlobal = false,
   });
@@ -47,6 +46,8 @@ abstract class Module {
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     return DynamicModule();
   }
+
+  void configure(MiddlewareConsumer consumer) {}
 }
 
 /// The [DynamicModule] class is used to define a dynamic module.
