@@ -53,6 +53,9 @@ class Route {
 
   /// The [Route.all] factory constructor is used to create a new instance of the [Route] class with the ALL method.
   factory Route.all(String path, {List<Metadata> metadata = const []}) {
+    if(path.contains('<')) {
+      throw ArgumentError('"ALL" route cannot contain path parameters');
+    }
     return Route(path: path, method: HttpMethod.all, metadata: metadata);
   }
 }

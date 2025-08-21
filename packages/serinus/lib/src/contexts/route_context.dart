@@ -51,6 +51,8 @@ class RouteContext {
     ...spec.route.metadata,
   ];
 
+  final List<Pipe> pipes;
+
   /// The [hooksServices] is used to store the services for the hooks.
   final Map<Type, Object> hooksServices;
 
@@ -69,6 +71,7 @@ class RouteContext {
     required this.moduleScope,
     required this.hooksContainer,
     this.isStatic = false,
+    this.pipes = const [],
     this.queryParameters = const {},
     this.hooksServices = const {},
   });

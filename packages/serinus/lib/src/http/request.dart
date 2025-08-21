@@ -2,13 +2,12 @@ import 'dart:io';
 
 import '../enums/enums.dart';
 import '../extensions/content_type_extensions.dart';
-import '../extensions/string_extensions.dart';
 import 'http.dart';
 
 /// The class [Request] is used to create a request object.
 ///
 /// It is a wrapper around the [ParsableRequest] object.
-class Request {
+class Request<B extends Body> {
   /// The original [IncomingMessage] object.
   final IncomingMessage _original;
 
@@ -19,6 +18,7 @@ class Request {
   /// The [params] parameter is used to pass parameters to the request.
   Request(this._original, [Map<String, dynamic> params = const {}]) {
     this.params = params;
+    _query.addAll(_original.queryParameters);
   }
 
   /// This method is used to set the parameters of the request.
@@ -42,7 +42,9 @@ class Request {
   SerinusHeaders get headers => _original.headers;
 
   /// The query parameters of the request.
-  Map<String, dynamic> get query => Map.from(_original.queryParameters);
+  Map<String, dynamic> get query => _query;
+
+  final Map<String, dynamic> _query = {};
 
   /// The session of the request.
   Session get session => _original.session;
@@ -99,7 +101,7 @@ class Request {
   }
 
   /// The body of the request.
-  Body? body;
+  B? body;
 
   /// The content type of the request.
   int get contentLength => _original.contentLength > -1
@@ -118,43 +120,47 @@ class Request {
       final formData = await _original.formData();
       body = FormDataBody(
         formData,
-      );
+      ) as B;
       return;
     }
+    final bytes = await _original.bytes();
     if (rawBody) {
-      body = RawBody(_original.bytes());
+      body = RawBody(bytes) as B;
       return;
     }
     /// If the body is empty, it will return an empty body.
-    final parsedBody = await _original.body();
+    final parsedBody = _original.body();
     if (parsedBody.isEmpty) {
-      body = Body.empty();
+      body = Body.empty() as B;
       return;
     }
 
     /// If the content type is url encoded, it will parse the body as a url encoded form data.
     if (contentType.isUrlEncoded) {
       final formData = FormData.parseUrlEncoded(parsedBody);
-      body = FormDataBody(formData);
+      body = FormDataBody(formData) as B;
       return;
     }
 
     /// If the content type is json, it will parse the body as a json object.
-    final parsedJson = _original.bytes().tryParse();
-    if ((parsedJson != null && contentType == ContentType.json) ||
-        parsedJson != null) {
-      body = JsonBody.fromJson(parsedJson);
-      return;
+    final jsonPred = parsedBody.codeUnitAt(0);
+    if (jsonPred == 123 || jsonPred == 91) {
+      final parsedJson = _original.json();
+      if ((parsedJson != null && contentType == ContentType.json) ||
+          parsedJson != null) {
+        body = JsonBody.fromJson(parsedJson) as B;
+        return;
+      }
     }
 
     /// If the content type is binary, it will parse the body as a binary data.
     if (contentType == ContentType.binary) {
-      body = RawBody(_original.bytes());
+      body = RawBody(bytes) as B;
       return;
     }
 
     /// If the content type is text, it will parse the body as a text data.
-    body = StringBody(parsedBody);
+    body = StringBody(parsedBody) as B;
   }
 
   /// This method is used to add data to the request.

@@ -17,7 +17,9 @@ mixin SseController on Controller {
 
   /// This method is called when a new SSE route is registered.
   @mustCallSuper
-  void onSse<R extends Route>(R route, Stream Function(SseContext context) handler) {
+  void onSse<R extends Route>(R route, Stream Function(SseContext context) handler, {
+    List<Pipe> pipes = const [],
+  }) {
     if(route.method != HttpMethod.get) {
       throw StateError('SSE routes must use GET method. [${route.method}]');
     }
@@ -31,7 +33,7 @@ mixin SseController on Controller {
     }
 
     _sseRoutes[UuidV4().generate()] =
-        (handler: handler, route: route, schema: null, body: null);
+        (handler: handler, route: route, schema: null, body: null, pipes: pipes);
   }
 
 }

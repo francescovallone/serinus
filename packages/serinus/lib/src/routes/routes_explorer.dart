@@ -75,6 +75,12 @@ final class RoutesExplorer {
       final moduleToken = InjectionToken.fromModule(module);
       final moduleScope = _container.modulesContainer.getScope(moduleToken);
       final routeMethod = spec.route.method;
+      final mergedContainer = HooksContainer()
+          .merge([
+            _container.config.globalHooks,
+            controller.hooks,
+            spec.route.hooks
+          ]);
       final context = RouteContext(
         id: entry.key,
         path: routePath,
@@ -85,13 +91,13 @@ final class RoutesExplorer {
         isStatic: spec.handler is! Function,
         spec: spec,
         moduleScope: moduleScope,
-        hooksServices: _container.config.globalHooks.services,
-        hooksContainer: HooksContainer()
-          .merge([
-            _container.config.globalHooks,
-            controller.hooks,
-            spec.route.hooks
-          ])
+        hooksServices: mergedContainer.services,
+        hooksContainer: mergedContainer,
+        pipes: [
+          ...controller.pipes,
+          ...spec.pipes,
+          ..._container.config.globalPipes,
+        ]
       );
       _router.registerRoute(
         context: context,

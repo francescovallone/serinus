@@ -1,32 +1,50 @@
+import 'package:acanthis/acanthis.dart';
+
 import '../../serinus.dart';
 
-abstract class Pipe<T, R> extends Processable{
+abstract class Pipe extends Processable {
   /// The [Pipe] constructor is used to create a [Pipe] object.
   const Pipe();
   /// Transform and validate the input data
-  Future<R> transform(T value, RequestContext context);
+  Future<void> transform(RequestContext context);
 }
 
-class BodySchemaValidationPipe<T> extends Pipe<T, T> {
-  final ParseSchema schema;
+class BodySchemaValidationPipe<T extends Body> extends Pipe {
+  final AcanthisType schema;
   
   const BodySchemaValidationPipe(this.schema);
   
   @override
-  Future<T> transform(T value, RequestContext context) async {
-    // Use existing ParseSchema validation logic
-    final result = await schema.tryParse(value: value);
-    return result['body'] as T;
+  Future<void> transform(RequestContext context) async {
+    try {
+      final result = schema.tryParse(context.body.value);
+      switch (schema) {
+        case AcanthisMap():
+          context.body = JsonBody.fromJson(result.value as Map<String, dynamic>);
+          break;
+        case AcanthisList():
+          context.body = JsonBody.fromJson(result.value as List<dynamic>);
+          break;
+        case AcanthisType():
+          context.body = StringBody(result.value.toString());
+      }
+    } catch(e) {
+      throw BadRequestException('Body validation failed: $e');
+    }
   }
 }
 
-class TransformPipe<T, R> extends Pipe<T, R> {
-  final Future<R> Function(T value, RequestContext context) transformer;
+class TransformPipe<R> extends Pipe {
+  final Future<R> Function(RequestContext context) transformer;
   
   const TransformPipe(this.transformer);
   
   @override
-  Future<R> transform(T value, RequestContext context) async {
-    return await transformer(value, context);
+  Future<void> transform(RequestContext context) async {
+    try {
+      await transformer(context);
+    } catch (e) {
+      throw BadRequestException('Transform failed: $e');
+    }
   }
 }

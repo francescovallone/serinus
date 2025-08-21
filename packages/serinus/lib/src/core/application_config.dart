@@ -11,6 +11,7 @@ import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../services/tracers_service.dart';
 import '../versioning.dart';
+import 'pipe.dart' as s;
 import 'tracer.dart';
 
 /// The configuration for the application
@@ -116,7 +117,7 @@ final class ApplicationConfig {
 
   /// The [PipesContainer] for the application
   /// This is used to store the pipes used by the application
-  final PipesContainer globalPipes = PipesContainer();
+  final List<s.Pipe> globalPipes = [];
 
   /// The [ModulesContainer] for the application
   /// This is used to store the modules used by the application

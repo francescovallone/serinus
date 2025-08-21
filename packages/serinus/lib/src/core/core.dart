@@ -10,6 +10,7 @@ export 'metadata.dart';
 export 'middlewares/middleware.dart';
 export 'module.dart';
 export 'parse_schema.dart';
+export 'pipe.dart';
 export 'provider.dart';
 export 'route.dart';
 export 'sse/sse.dart';

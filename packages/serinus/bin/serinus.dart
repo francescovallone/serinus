@@ -88,9 +88,37 @@ class AnotherController extends Controller {
       final data = context.request.params['data'];
       return context.use<GraphInspector>().toJson();
     });
-    on(Route.all('/'), (RequestContext context) {
-      return 'Hello ajdaudiha!';
-    });
+    // on(
+    //   Route.all('/'),
+    //   _fallback,
+    //   schema: AcanthisParseSchema(
+    //     body: object({}).passthrough().list(),
+    //   )
+    // );
+    on(
+      Route.post('/<data>'), 
+      _fallback,
+      pipes: [
+        BodySchemaValidationPipe(object({}).passthrough().list()),
+        TransformPipe((context) async {
+          context.query.putIfAbsent('transform', () => true);
+        })
+      ]
+    );
+    on(
+      Route.all('/'), 
+      _fallback,
+      pipes: [
+        BodySchemaValidationPipe(object({}).passthrough().list()),
+        TransformPipe((context) async {
+          context.query['transform'] = 'true';
+        })
+      ]
+    );
+  }
+
+  String _fallback(RequestContext context) {
+    return 'Hello ajdaudiha! - ${context.request.body} - ${context.request.query} - ${context.request.params}';
   }
 
 }

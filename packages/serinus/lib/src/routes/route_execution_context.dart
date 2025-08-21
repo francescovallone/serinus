@@ -88,11 +88,22 @@ class RouteExecutionContext {
           if (schema.session != null) {
             toParse['session'] = requestContext.request.session.all;
           }
-          final result = await schema.tryParse(value: toParse);
+          final result = await schema.tryParse(
+            bodyValue: toParse['body'],
+            queryValue: toParse['query'],
+            paramsValue: toParse['params'],
+            headersValue: toParse['headers'],
+            sessionValue: toParse['session'],
+          );
           requestContext.request.headers.addAll(result['headers'] ?? <String, String>{});
           requestContext.request.params.addAll(result['params'] ?? {});
           requestContext.request.query.addAll(result['query'] ?? {});
           requestContext.body = result.containsKey('body') && result['body'] != null ? JsonBody.fromJson(result['body'] ?? {}) : requestContext.body;
+        }
+        if (context.pipes.isNotEmpty) {
+          for (final pipe in context.pipes) {
+            await pipe.transform(requestContext);
+          }
         }
         if(!rawBody) {
           requestContext.body = resolveBody(context.spec.body, requestContext) ?? requestContext.body;

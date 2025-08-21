@@ -143,3 +143,15 @@ class RawBody extends Body<List<int>> {
   @override
   String toString() => utf8.decode(value);
 }
+
+class CustomBody<T> extends Body<T> {
+
+  CustomBody(T value, ContentType custom) : super(custom, value);
+
+  @override
+  int get length => toString().length;
+
+  @override
+  String toString() => jsonEncode(value);
+
+}

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
 
 import '../enums/enums.dart';
@@ -15,7 +14,7 @@ import 'headers.dart';
 import 'internal_response.dart';
 import 'session.dart';
 
-final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
+final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
 /// The [IncomingMessage] interface defines the methods and properties that a request must implement.
 /// It is used to parse the request and provide access to its properties.
@@ -64,16 +63,16 @@ abstract class IncomingMessage {
   List<String> get segments;
 
   /// This method is used to get the body of the request as a [String]
-  Future<String> body();
+  String body();
 
   /// This method is used to get the body of the request as a [dynamic] json object
-  Future<dynamic> json();
+  dynamic json();
 
   /// This method is used to get the body of the request as a [Uint8List]
-  Uint8List bytes();
+  Future<Uint8List> bytes();
 
   /// This method is used to get the body of the request as a [Stream<List<int>>]
-  Future<Stream<List<int>>> stream();
+  Stream<List<int>> stream();
 
   /// This method is used to get the body of the request as a [FormData]
   Future<FormData> formData();
@@ -166,8 +165,7 @@ class InternalRequest extends IncomingMessage {
   Uint8List? _bytes;
 
   @override
-  Map<String, String> get queryParameters =>
-      original.requestedUri.queryParameters;
+  Map<String, String> get queryParameters => original.requestedUri.queryParameters;
 
   @override
   ContentType get contentType =>
@@ -229,13 +227,8 @@ class InternalRequest extends IncomingMessage {
   /// String body = await request.body();
   /// ```
   @override
-  Future<String> body() async {
-    final data = Uint8List(0);
-    await for (var part in original) {
-      data.addAll(part);
-    }
-    _bytes = Uint8List.fromList(data);
-    return utf8.decode(data);
+  String body() {
+    return utf8.decode(_bytes ?? Uint8List(0));
   }
 
   /// This method is used to get the body of the request as a [dynamic] json object
@@ -245,45 +238,30 @@ class InternalRequest extends IncomingMessage {
   /// dynamic json = await request.json();
   /// ```
   @override
-  Future<dynamic> json() async {
-    if (encoding == null || (encoding != null && encoding!.name == 'utf-8')) {
-      try {
-        return (await _utf8JsonDecoder.bind(original).firstOrNull) ?? {};
-      } catch (e) {
-        throw BadRequestException('The json body is malformed');
-      }
-    }
-    final data = await body();
-    if (data.isEmpty) {
-      return {};
-    }
+  dynamic json() {
     try {
-      dynamic jsonData = jsonDecode(data);
-      return jsonData;
+      return utf8JsonDecoder.convert(_bytes!);
     } catch (e) {
-      throw BadRequestException('The json body is malformed');
+      return null;
     }
   }
 
   /// This method is used to get the body of the request as a [Uint8List]
   /// it is used internally by the [body], the [json] and the [stream] methods
   @override
-  Uint8List bytes() {
-    try {
-      return _bytes!;
-    } catch (_) {
-      return Uint8List(0);
+  Future<Uint8List> bytes() async {
+    final byteBuffer = BytesBuilder();
+    await for (var part in original) {
+      byteBuffer.add(part);
     }
+    _bytes = byteBuffer.takeBytes();
+    return _bytes!;
   }
 
   /// This method is used to get the body of the request as a [Stream<List<int>>]
   @override
-  Future<Stream<List<int>>> stream() async {
-    try {
-      return Stream.value(List<int>.from(_bytes!));
-    } catch (_) {
-      return Stream.value(List<int>.from(Uint8List(0)));
-    }
+  Stream<List<int>> stream() async* {
+    yield List<int>.from(_bytes ?? Uint8List(0));
   }
 
   @override
@@ -291,8 +269,7 @@ class InternalRequest extends IncomingMessage {
     if (contentType.isMultipart) {
       return FormData.parseMultipart(request: original);
     } else if (contentType.isUrlEncoded) {
-      final body = await this.body();
-      return FormData.parseUrlEncoded(body);
+      return FormData.parseUrlEncoded(body());
     } else {
       throw BadRequestException('The content type is not supported for form data');
     }
