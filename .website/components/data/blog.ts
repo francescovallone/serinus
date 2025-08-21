@@ -13,6 +13,7 @@ export interface Post {
     alt?: string
     author: keyof Authors
     date: string
+    lastUpdated?: string
     shadow?: boolean
     tags: string[],
     href: string

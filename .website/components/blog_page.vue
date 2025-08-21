@@ -9,7 +9,8 @@ const props = defineProps<{
     author: keyof Authors
     date: string
     shadow?: boolean
-    tags: string[]
+    tags: string[],
+    lastUpdated: string
 }>()
 
 const author = authors[props.author]
@@ -58,16 +59,17 @@ function calculateReadingTime(text: string): string {
                 />
                 <div class="flex flex-col justify-start">
                     <h3 class="!text-sm !m-0 opacity-75">{{ props.author }}</h3>
-                    <p class="flex flex-row items-center gap-2 !text-xs !m-0 opacity-75">
+                    <p class="flex flex-row items-center gap-2 !text-xs !m-0 opacity-75 relative">
                         <span>{{ props.date }}</span>
                         <span>ー</span>
                         <a :href="x" target="_blank">@{{ author.twitter }}</a>
                     </p>
                 </div>
             </div>
-            <p class="!text-xs !m-0 opacity-75 flex items-center gap-1">
-                <span class="font-bold">{{ readingTime }}</span> min read
-            </p>
+            <div class="!text-xs !m-0 opacity-75 flex flex-col items-end gap-1">
+                <div><span class="font-bold">{{ readingTime }}</span> min read</div>
+                <div v-if="props.lastUpdated">Last updated: <span class="font-bold">{{ lastUpdated }}</span></div>
+            </div>
         </div>
         <img :src="props.src" :alt="props.alt" class="w-full mt-6 mb-2" :class="props.shadow ? 'shadow-xl' : 'border'" />
         <main id="blog-content">

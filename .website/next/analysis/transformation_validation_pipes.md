@@ -24,6 +24,7 @@ head:
 	title="Transformation & Validation Pipes"
 	author="Francesco Vallone"
 	date="21 Aug 2025"
+  lastUpdated="21 Aug 2025"
 	shadow
 >
 
