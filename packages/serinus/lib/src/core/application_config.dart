@@ -10,7 +10,6 @@ import '../containers/module_container.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../services/tracers_service.dart';
-import '../utils/body_parsers/body_parser_registry.dart';
 import '../versioning.dart';
 import 'tracer.dart';
 
@@ -104,9 +103,6 @@ final class ApplicationConfig {
 
   /// The http adapter for the application
   final HttpAdapter serverAdapter;
-
-  /// The body parsers used by the application
-  final BodyParserRegistry bodyParsers = BodyParserRegistry();
 
   /// The adapters used by the application
   ///

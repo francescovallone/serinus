@@ -67,9 +67,6 @@ class RouteExecutionContext {
         }
         final requestContext = RequestContext.fromRouteContext(wrappedRequest, context);
         requestContext.metadata = await context.initMetadata(requestContext);
-        if(!rawBody) {
-          requestContext.body = resolveBody(context.spec.body, requestContext) ?? requestContext.body;
-        }
         if(context.schema != null) {
           final schema = context.schema!;
           final Map<String, dynamic> toParse = {};
@@ -96,6 +93,9 @@ class RouteExecutionContext {
           requestContext.request.params.addAll(result['params'] ?? {});
           requestContext.request.query.addAll(result['query'] ?? {});
           requestContext.body = result.containsKey('body') && result['body'] != null ? JsonBody.fromJson(result['body'] ?? {}) : requestContext.body;
+        }
+        if(!rawBody) {
+          requestContext.body = resolveBody(context.spec.body, requestContext) ?? requestContext.body;
         }
         final middlewares = context.getMiddlewares(request);
         if (middlewares.isNotEmpty) {
