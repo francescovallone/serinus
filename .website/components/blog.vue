@@ -2,7 +2,10 @@
 import { computed, ref } from 'vue'
 
 const props = defineProps({
-    posts: Array
+    posts: Array,
+	title: String,
+	desc: String,
+	blog: Boolean
 })
 
 const currentTopic = ref('')
@@ -37,12 +40,12 @@ const topics = computed(() => {
 	<div>
 		<header class="flex flex-col justify-center container gap-2 w-full mx-auto pt-20 p-4">
 			<h1 class="text-3xl font-semibold text-white">
-				Blog
+				{{title ?? 'Blog'}}
 			</h1>
 			<p class="text-white text-md">
-				Updates, tutorials, and more from the Serinus team.
+				{{desc ?? 'Updates, tutorials, and more from the Serinus team.'}}
 			</p>
-			<div class="flex gap-4 my-2">
+			<div v-if="blog" class="flex gap-4 my-2">
 				<button @click="changeTopic('')" class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg" :class="currentTopic === '' ? '' : 'inactive'">All</button>
 				<button 
 					v-for="topic in topics" 

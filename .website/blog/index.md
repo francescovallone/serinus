@@ -23,4 +23,4 @@ head:
     import { posts } from '../components/data/blog.ts'
 </script>
 
-<Blog :posts="posts"/>
+<Blog :posts="posts" blog/>

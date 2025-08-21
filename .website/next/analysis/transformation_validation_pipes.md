@@ -1,4 +1,31 @@
-# Pipe System Design for Serinus
+---
+title: Transformation & Validation Pipes
+sidebar: false
+editLink: false
+search: false
+head:
+    - - meta
+      - property: 'og:title'
+        content: Transformation & Validation Pipes
+
+    - - meta
+      - name: 'description'
+        content: Analysis of Transformation & Validation Pipes in Serinus
+
+    - - meta
+      - property: 'og:description'
+        content: Analysis of Transformation & Validation Pipes in Serinus
+---
+<script setup>
+	import BlogPage from '../../components/blog_page.vue'
+</script>
+
+<BlogPage
+	title="Transformation & Validation Pipes"
+	author="Francesco Vallone"
+	date="21 Aug 2025"
+	shadow
+>
 
 This document outlines a proposed Pipe system for Serinus that integrates with the existing validation methods to provide a flexible and composable approach to data validation and transformation.
 
@@ -363,3 +390,4 @@ class StrictValidationPipe extends Pipe<Map<String, dynamic>, Map<String, dynami
 4. **Phase 4**: Consider deprecating direct ParseSchema in favor of ValidationPipe
 
 This design provides a powerful, flexible, and intuitive way to handle data validation and transformation in Serinus applications while maintaining compatibility with existing code.
+</BlogPage>

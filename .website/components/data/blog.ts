@@ -9,8 +9,8 @@ export type Authors = typeof authors
 
 export interface Post {
     title: string
-    src: string
-    alt: string
+    src?: string
+    alt?: string
     author: keyof Authors
     date: string
     shadow?: boolean
