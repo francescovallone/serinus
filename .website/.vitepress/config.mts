@@ -46,6 +46,14 @@ export default defineConfig({
         link: '/introduction'
       },
       {
+        text: 'v2.0',
+        items: [
+          { text: 'Breaking Changes', link: '/next/breaking-changes' },
+          { text: 'Roadmap', link: '/next/roadmap' },
+          { text: 'Analysis', link: '/next/analysis/' }
+        ]
+      },
+      {
         text: 'Blog',
         link: '/blog/'
       },

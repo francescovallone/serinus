@@ -37,13 +37,15 @@ const plugins = [
 				<div 
 					v-for="(plugin, index) in plugins" 
 					:key="plugin.title" 
-					class="plugin transition-all bg-neutral-900 p-8 rounded-xl flex flex-col gap-4"
+					class="plugin transition-all bg-neutral-900 p-8 rounded-xl flex flex-col gap-4 justify-between"
 					:class="plugins.length % 2 !== 0 && index === plugins.length - 1 ? 'col-span-6' : 'col-span-3'"
 				>
-					<h1 class="text-2xl font-semibold">
-						{{ plugin.title }}
-					</h1>
-					<p class="text-md">{{ plugin.desc }}</p>
+					<div class="flex gap-4 flex-col">
+						<h1 class="text-2xl font-semibold">
+							{{ plugin.title }}
+						</h1>
+						<p class="text-md">{{ plugin.desc }}</p>
+					</div>
 					<div class="flex gap-4">
 						<a :href="plugin.pub" class="bg-orange-400 text-white px-4 py-2 rounded-lg">
 							Pub.dev

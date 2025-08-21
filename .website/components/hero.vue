@@ -6,6 +6,9 @@
         <div class="relative w-72 h-72">
             <div class="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 blur-3xl z-[-1]"></div>
             <img src="/serinus-logo.png" alt="Serinus Logo" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72" />
+            <div class="absolute top-1/5 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm uppercase transform py-2 px-4 bg-[#1b1b1f] rounded-full">
+                v2.0 is here!
+            </div>
         </div>
         <div class="flex flex-col items-center">
             <div class="text-4xl lg:text-6xl md:w-[44rem] text-pretty font-bold text-center">The modular Backend for your Flutter apps</div>
