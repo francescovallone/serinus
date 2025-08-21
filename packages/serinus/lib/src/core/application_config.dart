@@ -114,6 +114,10 @@ final class ApplicationConfig {
   /// This is used to store the modules used by the application
   final HooksContainer globalHooks = HooksContainer();
 
+  /// The [PipesContainer] for the application
+  /// This is used to store the pipes used by the application
+  final PipesContainer globalPipes = PipesContainer();
+
   /// The [ModulesContainer] for the application
   /// This is used to store the modules used by the application
   late final ModulesContainer modulesContainer;
