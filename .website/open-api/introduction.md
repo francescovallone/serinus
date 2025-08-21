@@ -1,13 +1,6 @@
-<script setup>
-	import PluginType from '../../components/plugin_type.vue'
-  import PluginButtons from '../../components/plugin_buttons.vue'
-</script>
-
 # Swagger Plugin
 
-<PluginType :types="['Module']" />
-
-A plugin to add OpenAPI Specification in your Serinus applications 🐤.
+The OpenAPI specification is a language-agnostic definition format used to describe RESTful APIs. Serinus provides a dedicated module which allows generating such a specification by leveraging the Route class.
 
 ## Installation
 
@@ -42,14 +35,3 @@ void main(List<String> args) async {
   await app.serve();
 }
 ```
-
-## Links
-
-<PluginButtons 
-  :buttons="[
-    {
-      label: 'Pub.dev',
-      url: 'https://pub.dev/packages/serinus_swagger',
-    }
-  ]" 
-/>

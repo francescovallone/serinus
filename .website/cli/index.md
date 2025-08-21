@@ -1,3 +1,9 @@
+---
+next:
+    text: 'Create'
+    link: '/cli/create'
+---
+
 # Introduction
 
 This section is about the Command Line Interface (CLI) of Serinus.

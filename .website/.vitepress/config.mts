@@ -130,6 +130,17 @@ export default defineConfig({
               { text: 'Deploy', link: 'deploy' },
             ]
           },
+          { 
+            text: 'Open API', 
+            collapsed: true,
+            base: '/open-api/',
+            items: [
+              { text: 'Introduction', link: 'introduction' },
+              { text: 'Document', link: 'document' },
+              { text: 'Api Specification', link: 'api_spec' },
+              { text: 'Components', link: 'components' },
+            ],
+          },
           {
             text: 'Plugins',
             base: '/plugins/',
@@ -138,20 +149,8 @@ export default defineConfig({
               { text: 'Configuration', link: 'configuration' },
               { text: 'Serve Static Files', link: 'serve_static' },
               { text: 'Liquify', link: 'serinus_liquify' },
-              { 
-                text: 'Swagger', 
-                collapsed: true,
-                base: '/plugins/swagger/',
-                items: [
-                  { text: 'Introduction', link: '/' },
-                  { text: 'Document', link: 'document' },
-                  { text: 'Api Specification', link: 'api_spec' },
-                  { text: 'Components', link: 'components' },
-                ],
-              },
               { text: 'Frontier', link: 'frontier' },
               { text: 'Health Check [WIP]' },
-              { text: 'Cron [WIP]' },
               { text: 'Socket.IO [WIP]', link: 'socketio' },
             ],
             link: '/'
