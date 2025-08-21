@@ -19,9 +19,6 @@ abstract class Module {
   /// The [exports] property contains the exports of the module.
   List<Type> exports;
 
-  /// The [middlewares] property contains the middlewares of the module.
-  List<Middleware> middlewares;
-
   /// The [options] property contains the options of the module.
   List<Provider> get exportedProviders {
     if (exports.isEmpty) {

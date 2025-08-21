@@ -8,6 +8,7 @@ import '../containers/model_provider.dart';
 import '../contexts/contexts.dart';
 import '../contexts/route_context.dart';
 import '../core/core.dart';
+import '../core/middlewares/middleware_executor.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
@@ -66,7 +67,9 @@ class RouteExecutionContext {
         }
         final requestContext = RequestContext.fromRouteContext(wrappedRequest, context);
         requestContext.metadata = await context.initMetadata(requestContext);
-        requestContext.body = resolveBody(context.spec.body, requestContext) ?? requestContext.body;
+        if(!rawBody) {
+          requestContext.body = resolveBody(context.spec.body, requestContext) ?? requestContext.body;
+        }
         if(context.schema != null) {
           final schema = context.schema!;
           final Map<String, dynamic> toParse = {};
@@ -94,9 +97,39 @@ class RouteExecutionContext {
           requestContext.request.query.addAll(result['query'] ?? {});
           requestContext.body = result.containsKey('body') && result['body'] != null ? JsonBody.fromJson(result['body'] ?? {}) : requestContext.body;
         }
-        final middlewares = context.getMiddlewares(wrappedRequest.params);
+        final middlewares = context.getMiddlewares(request);
         if (middlewares.isNotEmpty) {
-          await _handleMiddlewares(context, requestContext, middlewares, response, request);
+          final executor = MiddlewareExecutor();
+          await executor.execute(
+            middlewares, 
+            requestContext, 
+            response,
+            onDataReceived: (data) async {
+              await _executeOnResponse(
+                context,
+                requestContext,
+                data,
+              );
+              data = _processResult(data, requestContext);
+              request.emit(
+                RequestEvent.data,
+                EventData(data: data, properties: requestContext.res),
+              );
+              await _responseController.sendResponse(
+                response,
+                data,
+                requestContext.res,
+                viewEngine: viewEngine,
+              );
+              request.emit(
+                RequestEvent.close,
+                EventData(
+                    data: data,
+                    properties: requestContext.res
+                      ..headers.addAll((response.currentHeaders as HttpHeaders).toMap())),
+              );
+            },
+          );
           if (response.isClosed) {
             return;
           }
@@ -247,59 +280,6 @@ class RouteExecutionContext {
     }
     result.data = responseData ?? result.data;
     return result;
-  }
-  
-  Future<void> _handleMiddlewares(
-    RouteContext context,
-    RequestContext requestContext,
-    Iterable<Middleware> middlewares,
-    OutgoingMessage response,
-    IncomingMessage request,
-  ) async {
-    final completer = Completer<void>();
-    if (middlewares.isEmpty) {
-      return;
-    }
-    for (int i = 0; i < middlewares.length; i++) {
-      final middleware = middlewares.elementAt(i);
-      await middleware.use(requestContext, ([data]) async {
-        if (data != null) {
-          final responseData = WrappedResponse(data);
-          _executeOnResponse(
-            context,
-            requestContext,
-            responseData,
-          );
-          data = _processResult(responseData, requestContext);
-          request.emit(
-            RequestEvent.data,
-            EventData(data: data, properties: requestContext.res),
-          );
-          await _responseController.sendResponse(
-            response,
-            data as WrappedResponse,
-            requestContext.res,
-            viewEngine: viewEngine,
-          );
-          request.emit(
-            RequestEvent.close,
-            EventData(
-                data: data,
-                properties: requestContext.res
-                  ..headers.addAll((response.currentHeaders as HttpHeaders).toMap())),
-          );
-          return;
-        }
-        if (i == middlewares.length - 1) {
-          completer.complete();
-        }
-      });
-      if (response.isClosed && !completer.isCompleted) {
-        completer.complete();
-        break;
-      }
-    }
-    return completer.future;
   }
 
   Future<void> _executeOnResponse(

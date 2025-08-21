@@ -26,8 +26,8 @@ class SseRegistry extends Provider with OnApplicationBootstrap, OnApplicationShu
     for(final record in controllers) {
       final controller = record.controller as SseController;
       final currentModuleScope = _config.modulesContainer.getScope(InjectionToken.fromModule(record.module));
-      for (final spec in controller.sseRoutes.values) {
-        final route = spec.route;
+      for (final spec in controller.sseRoutes.entries) {
+        final route = spec.value.route;
         final result = router.lookup(HttpMethod.toSpanner(route.method), route.path);
         if (result?.values.isNotEmpty ?? false) {
           throw InitializationError(
@@ -39,17 +39,20 @@ class SseRegistry extends Provider with OnApplicationBootstrap, OnApplicationShu
           HttpMethod.toSpanner(route.method), 
           route.path,
           SseScope(
-            spec,
+            spec.value,
             {
               for (final provider in currentModuleScope.unifiedProviders)
                 if (provider.runtimeType != controller.runtimeType)
                   provider.runtimeType: provider,
             },
-            spec.route.hooks.merge([_config.globalHooks, controller.hooks]),
+            spec.value.route.hooks.merge([_config.globalHooks, controller.hooks]),
             [
-              ...spec.route.metadata,
+              ...spec.value.route.metadata,
               ...controller.metadata
-            ]
+            ],
+            (request) {
+              return currentModuleScope.getRouteMiddlewares(spec.key, request);
+            }
           ),
         );
         _logger.info('Mapped {${route.path}} Server-Sent Event Route');

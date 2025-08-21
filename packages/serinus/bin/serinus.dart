@@ -75,7 +75,7 @@ class CircularDependencyModule extends Module {
               inject: [TestProvider], type: TestProviderThree),
         ], exports: [
           TestProviderThree
-        ], middlewares: []);
+        ]);
 }
 
 class AnotherController extends Controller {
@@ -83,6 +83,10 @@ class AnotherController extends Controller {
   AnotherController() : super('/another') {
     on(Route.get('/'), (RequestContext context) {
       return 'Hello from another controller!';
+    });
+    on(Route.get('/<data>'), (RequestContext context) {
+      final data = context.request.params['data'];
+      return context.use<GraphInspector>().toJson();
     });
     on(Route.all('/'), (RequestContext context) {
       return 'Hello ajdaudiha!';
@@ -103,9 +107,19 @@ class AnotherModule extends Module {
                   TestProviderFour(t, tp),
               inject: [TestProviderTwo, TestProviderThree],
               type: TestProviderFour),
-        ], middlewares: [], exports: [
+        ], exports: [
           TestProviderFour
         ]);
+
+    @override
+  void configure(MiddlewareConsumer consumer) {
+    consumer.apply([LogMiddleware()]).forRoutes([
+      RouteInfo(
+        path: '/another',
+      ),
+      RouteInfo(path: '/another/hello', method: HttpMethod.get),
+    ]);
+  }
 }
 
 class WsGateway extends WebSocketGateway {
@@ -122,7 +136,7 @@ class WsGateway extends WebSocketGateway {
 
 class GlobalModule extends Module {
   GlobalModule()
-      : super(imports: [], controllers: [], providers: [TestProvider()], middlewares: [], isGlobal: true);
+      : super(imports: [], controllers: [], providers: [TestProvider()], isGlobal: true);
 }
 
 class AppModule extends Module {
@@ -137,14 +151,22 @@ class AppModule extends Module {
           AppController()
         ], providers: [
           WsGateway(),
-        ], middlewares: [
-          LogMiddleware()
         ]);
+
+  @override
+  void configure(MiddlewareConsumer consumer) {
+    consumer.apply([Log2Middleware()]).forRoutes([
+      RouteInfo(
+        path: '/another',
+      ),
+      RouteInfo(path: '/another/hello', method: HttpMethod.get),
+    ]).forControllers([
+      AppController
+    ]);
+  }
 }
 
 class LogMiddleware extends Middleware {
-  @override
-  List<String> get routes => ['*'];
 
   final logger = Logger('LogMiddleware');
 
@@ -156,6 +178,28 @@ class LogMiddleware extends Middleware {
           OptionalParameters(
               error: data.exception, stackTrace: StackTrace.current));
     });
+    logger.info(
+      'Request received: ${context.request.method} ${context.request.path}',
+    );
+    return next();
+  }
+}
+
+class Log2Middleware extends Middleware {
+
+  final logger = Logger('Log2Middleware');
+
+  @override
+  Future<void> use(RequestContext context, NextFunction next) {
+    context.request.on(RequestEvent.error, (event, data) async {
+      logger.severe(
+          'Error occurred',
+          OptionalParameters(
+              error: data.exception, stackTrace: StackTrace.current));
+    });
+    logger.info(
+      'Request received: ${context.request.method} ${context.request.path}',
+    );
     return next();
   }
 }

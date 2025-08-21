@@ -46,6 +46,7 @@ class SerializedGraph {
     return {
       'nodes': nodes.values.map((e) => e.toJson()).toList(),
       'edges': edges.values.map((e) => e.toJson()).toList(),
+      'entrypoints': entrypoints.values.map((e) => e.toJson()).toList()
     };
   }
 }

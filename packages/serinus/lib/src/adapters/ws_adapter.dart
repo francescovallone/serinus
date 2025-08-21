@@ -10,6 +10,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
+import '../core/middlewares/middleware_executor.dart';
+import '../core/middlewares/middleware_registry.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
 import 'adapters.dart';
@@ -78,6 +80,7 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
     required IncomingMessage request,
     required GatewayScope gatewayScope,
     required Map<String, dynamic> params,
+    required OutgoingMessage response,
   });
   
   /// The [upgrade] method is used to upgrade the HTTP request to a WebSocket connection.
@@ -107,7 +110,7 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
     final gatewayScope = List<GatewayScope>.from(result.values).first;
     bindClientConnection(clientId: clientId, socket: webSocket, request: request, gatewayScope: gatewayScope);
     bindClientDisconnection(clientId: clientId, request: request, gatewayScope: gatewayScope, params: result.params);
-    await bindMessageHandler(clientId: clientId, request: request, gatewayScope: gatewayScope, params: result.params);
+    await bindMessageHandler(clientId: clientId, request: request, gatewayScope: gatewayScope, params: result.params, response: response);
   }
 
   /// [sendText] is used to send a text message to the client.
@@ -210,6 +213,7 @@ class WebSocketAdapter extends WsAdapter {
   Future<void> bindMessageHandler({
     required String clientId,
     required IncomingMessage request,
+    required OutgoingMessage response,
     required GatewayScope gatewayScope,
     required Map<String, dynamic> params,
   }) async {
@@ -222,6 +226,21 @@ class WebSocketAdapter extends WsAdapter {
       gatewayScope.hooks.services,
       this,
     );
+    final middlewares = context.use<MiddlewareRegistry>().getRouteMiddlewares(
+      gatewayScope.gateway.path ?? '/',
+    );
+    if(middlewares.isNotEmpty) {
+      final executor = MiddlewareExecutor();
+      await executor.execute(
+        middlewares, 
+        context,
+        response,
+        onDataReceived: (data) async {
+          client?.close();
+        }
+      );
+      return;
+    }
     for (final hook in hooks.upgradeHooks) {
       await hook.onUpgrade(context);
     }

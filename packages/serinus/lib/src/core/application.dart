@@ -6,6 +6,7 @@ import '../adapters/adapters.dart';
 import '../containers/serinus_container.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
+import '../extensions/string_extensions.dart';
 import '../global_prefix.dart';
 import '../injector/internal_core_module.dart';
 import '../mixins/mixins.dart';
@@ -128,13 +129,7 @@ class SerinusApplication extends Application {
     if (prefix == '/') {
       return;
     }
-    if (!prefix.startsWith('/')) {
-      prefix = '/$prefix';
-    }
-    if (prefix.endsWith('/')) {
-      prefix = prefix.substring(0, prefix.length - 1);
-    }
-    config.globalPrefix = GlobalPrefix(prefix: prefix);
+    config.globalPrefix = GlobalPrefix(prefix: prefix.addLeadingSlash().stripEndSlash());
   }
 
   @override

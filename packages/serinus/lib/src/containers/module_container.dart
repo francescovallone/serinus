@@ -4,6 +4,8 @@ import '../core/core.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
 
+import '../http/http.dart';
+import '../injector/tree/topology_tree.dart';
 import '../inspector/node.dart';
 import '../mixins/mixins.dart';
 import '../services/logger_service.dart';
@@ -62,7 +64,7 @@ final class ModulesContainer {
   ModulesContainer(this.config);
 
   /// The [isInitialized] property contains the initialization status of the application
-  bool get isInitialized => _scopes.isNotEmpty;
+  bool get isInitialized => entrypointToken != null;
 
   /// The [registerModule] method is used to register a module in the application
   ///
@@ -136,26 +138,28 @@ final class ModulesContainer {
         token: token,
         providers: { ...entrypoint.providers },
         exports: {...entrypoint.exports},
-        middlewares: {...entrypoint.middlewares},
         controllers: {...entrypoint.controllers},
         imports: {...entrypoint.imports},
         importedBy: {});
+    if(entrypoint.isGlobal) {
+      currentScope.distance = double.maxFinite;
+    }
     if (entrypointToken == token && currentScope.exports.isNotEmpty) {
       throw InitializationError('The entrypoint module cannot have exports');
     }
     final dynamicEntry = await entrypoint.registerAsync(config);
     currentScope.extendWithDynamicModule(dynamicEntry);
-    for (final m in currentScope.middlewares) {
-      final middlewareToken = InjectionToken.fromType(m.runtimeType);
-      currentScope.instanceMetadata[middlewareToken] = InstanceWrapper(
-        name: middlewareToken,
-        metadata: ClassMetadataNode(
-          type: InjectableType.middleware,
-          sourceModuleName: token,
-        ),
-        host: token,
-      );
-    }
+    // for (final m in currentScope.middlewares) {
+    //   final middlewareToken = InjectionToken.fromType(m.runtimeType);
+    //   currentScope.instanceMetadata[middlewareToken] = InstanceWrapper(
+    //     name: middlewareToken,
+    //     metadata: ClassMetadataNode(
+    //       type: InjectableType.middleware,
+    //       sourceModuleName: token,
+    //     ),
+    //     host: token,
+    //   );
+    // }
     for (final c in currentScope.controllers) {
       final controllerToken = InjectionToken.fromType(c.runtimeType);
       currentScope.instanceMetadata[controllerToken] = InstanceWrapper(
@@ -203,6 +207,25 @@ final class ModulesContainer {
       });
     }
     await resolveProvidersDependencies();
+    calculateModuleDistances();
+  }
+
+  /// Calculates the distance between modules
+  void calculateModuleDistances() {
+    final entrypoint = _scopes[entrypointToken];
+    if (entrypoint == null) {
+      throw ArgumentError('Module with token $entrypointToken not found');
+    }
+    final tree = TopologyTree(entrypoint.module);
+    tree.walk((module, depth) {
+      final scope = _scopes[InjectionToken.fromModule(module)];
+      if (scope != null) {
+        if(scope.module.isGlobal) {
+          return;
+        }
+        scope.distance = depth.toDouble();
+      }
+    });
   }
 
   /// Initializes the deferred providers
@@ -550,9 +573,6 @@ class ModuleScope {
   /// The [middlewares] property contains the middlewares of the module
   final Set<Controller> controllers;
 
-  /// The [middlewares] property contains the middlewares of the module
-  final Set<Middleware> middlewares;
-
   /// The [imports] property contains the imports of the module
   final Set<Module> imports;
 
@@ -565,16 +585,30 @@ class ModuleScope {
   /// The [unifiedProviders] property contains both the global and the scoped providers
   final Set<Provider> unifiedProviders = {};
 
+  double _distance = 0;
+
+  final bool internal;
+
+  /// The [distance] property contains the distance of the module
+  double get distance => _distance;
+
+  /// The [distance] property contains the distance of the module
+  set distance(double value) {
+    _distance = value;
+  }
+
+  final Map<String, Function(IncomingMessage request)>  _middlewaresToRoutes = {};
+
   /// The constructor of the [ModuleScope] class
   ModuleScope({
     required this.token,
     required this.providers,
     required this.exports,
-    required this.middlewares,
     required this.controllers,
     required this.imports,
     required this.module,
     required this.importedBy,
+    this.internal = false
   });
 
   /// Extends the module scope with new values
@@ -591,10 +625,6 @@ class ModuleScope {
     this
         .controllers.addAll(
           this.controllers.getMissingElements(controllers ?? [])
-        );
-    this
-        .middlewares.addAll(
-          this.middlewares.getMissingElements(middlewares ?? [])
         );
     this.imports.addAll(this.imports.getMissingElements(imports ?? []));
     this.importedBy.addAll(imports?.map((e) => InjectionToken.fromModule(e)) ?? []);
@@ -617,38 +647,17 @@ class ModuleScope {
     unifiedProviders.add(provider);
   }
 
-  /// Filters the guards by route
-  Set<Middleware> filterMiddlewaresByRoute(
-      String path, Map<String, dynamic> params) {
-    Set<Middleware> executedMiddlewares = {};
-    for (Middleware middleware in middlewares) {
-      for (final route in middleware.routes) {
-        final segments = route.split('/');
-        final routeSegments = path.split('/');
-        if (segments.last == '*') {
-          executedMiddlewares.add(middleware);
-        }
-        if (routeSegments.length == segments.length) {
-          bool match = true;
-          for (int i = 0; i < segments.length; i++) {
-            if (segments[i] != routeSegments[i] &&
-                segments[i] != '*' &&
-                params.isEmpty) {
-              match = false;
-            }
-          }
-          if (match) {
-            executedMiddlewares.add(middleware);
-          }
-        }
-      }
-    }
-    return executedMiddlewares;
+  void setRouteMiddlewares(String routeId, Iterable<Middleware> Function(IncomingMessage request) middlewareFactory) {
+    _middlewaresToRoutes[routeId] = middlewareFactory;
+  }
+
+  Iterable<Middleware> getRouteMiddlewares(String routeId, IncomingMessage request) {
+    return _middlewaresToRoutes[routeId]?.call(request) ?? [];
   }
 
   @override
   String toString() {
-    return 'ModuleScope{module: $module, token: $token, providers: $providers, exports: $exports, middlewares: $middlewares, controllers: $controllers, imports: $imports, importedBy: $importedBy}';
+    return 'ModuleScope{module: $module, token: $token, providers: $providers, exports: $exports, distance: $distance, controllers: $controllers, imports: $imports, importedBy: $importedBy}';
   }
 }
 

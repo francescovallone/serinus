@@ -1,29 +1,19 @@
 import 'dart:typed_data';
 
 import '../adapters/adapters.dart';
-import '../http/http.dart';
-import 'base_context.dart';
+import 'request_context.dart';
 
 /// The [WebSocketContext] class is used to create a new web socket context.
-class WebSocketContext extends BaseContext {
-
-  /// The [request] property contains the request of the WebSocket.
-  final Request request;
+class WebSocketContext extends RequestContext {
 
   /// The [clientId] property contains the client ID of the WebSocket.
   final String clientId;
 
   final WsAdapter _adapter;
 
-  /// The [queryParamters] property contains the query parameters of the request.
-  Map<String, dynamic> get query => request.query;
-
-  /// The [headers] property contains the headers of the request.
-  SerinusHeaders get headers => request.headers;
-
   /// The [WebSocketContext] constructor is used to create a new instance of the [WebSocketContext] class.
-  const WebSocketContext(
-    this.request, 
+  WebSocketContext(
+    super.request, 
     this.clientId, 
     super.providers, 
     super.hooksServices, 

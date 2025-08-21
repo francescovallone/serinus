@@ -230,9 +230,9 @@ class InternalRequest extends IncomingMessage {
   /// ```
   @override
   Future<String> body() async {
-    List<int> data = [];
+    final data = Uint8List(0);
     await for (var part in original) {
-      data += part;
+      data.addAll(part);
     }
     _bytes = Uint8List.fromList(data);
     return utf8.decode(data);

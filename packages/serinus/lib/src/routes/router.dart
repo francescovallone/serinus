@@ -6,6 +6,7 @@ import '../core/controller.dart';
 import '../core/metadata.dart';
 import '../enums/http_method.dart';
 import '../errors/initialization_error.dart';
+import '../extensions/string_extensions.dart';
 import '../versioning.dart';
 
 /// [RouteInformation] is a utility type that contains the route context and the parameters of the route.
@@ -26,8 +27,7 @@ final class Router {
     required RouteContext context,
     required HandlerFunction handler,
   }) {
-    String path =
-        !context.path.startsWith('/') ? '/${context.path}' : context.path;
+    final path = context.path.stripEndSlash().addLeadingSlash();
     final routeExists = _routeTree.lookup(
       HTTPMethod.ALL,
       Uri.parse(path),

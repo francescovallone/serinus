@@ -6,6 +6,7 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/string_extensions.dart';
 import '../http/http.dart';
 import '../services/logger_service.dart';
 import '../utils/wrapped_response.dart';
@@ -67,7 +68,7 @@ class RoutesResolver {
   /// If no route is found, it returns a 404 Not Found response.
   /// If a route is found, it calls the handler of the route with the request and response.
   Future<void> handle(IncomingMessage request, OutgoingMessage response) async {
-    final route = _explorer.getRoute(request.path, HttpMethod.parse(request.method));
+    final route = _explorer.getRoute(request.path.stripEndSlash(), HttpMethod.parse(request.method));
     if (route == null) {
       _logger.verbose('No route found for ${request.method} ${request.uri}');
       final wrappedRequest = Request(request, {});

@@ -15,11 +15,21 @@ class Entrypoint {
     required this.metadata,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type.name,
+      'className': className,
+      'id': id,
+      'metadata': metadata.toJson(),
+    };
+  }
+
 }
 
 enum EntrypointType {
   http,
   websocket,
+  middleware,
 }
 
 class EntrypointMetadata {
@@ -30,5 +40,21 @@ class EntrypointMetadata {
 
   final String requestMethod;
 
-  EntrypointMetadata({required this.key, required this.path, required this.requestMethod});
+  final List<int> versions;
+
+  EntrypointMetadata({
+    required this.key,
+    required this.path,
+    required this.requestMethod,
+    this.versions = const [],
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'key': key,
+      'path': path,
+      'requestMethod': requestMethod,
+      'versions': versions,
+    };
+  }
 }

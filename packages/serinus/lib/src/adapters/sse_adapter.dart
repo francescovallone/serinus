@@ -9,9 +9,8 @@ import 'package:stream_channel/stream_channel.dart';
 
 import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
-import '../contexts/sse_context.dart';
 import '../core/core.dart';
-import '../core/sse/sse_event_data.dart';
+import '../core/middlewares/middleware_executor.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
@@ -30,9 +29,11 @@ class SseScope {
   final HooksContainer hooks;
   /// The [metadata] property contains the metadata of the WebSocket gateway.
   final List<Metadata> metadata;
+  /// The [middlewares] property contains the middlewares of the WebSocket gateway.
+  final Iterable<Middleware> Function(IncomingMessage request) middlewares;
 
   /// The [GatewayScope] constructor is used to create a new instance of the [GatewayScope] class.
-  const SseScope(this.sseRouteSpec, this.providers, this.hooks, this.metadata);
+  const SseScope(this.sseRouteSpec, this.providers, this.hooks, this.metadata, this.middlewares);
 
   @override
   String toString() {
@@ -143,6 +144,24 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       clientId
     );
     context.metadata = await initMetadata(context, currentScope.metadata);
+    final middlewares = currentScope.middlewares(request);
+    if (middlewares.isNotEmpty) {
+      final executor = MiddlewareExecutor();
+      await executor.execute(
+        middlewares,
+        context,
+        response,
+        onDataReceived: (data) async {
+          if (_connections.containsKey(clientId)) {
+            final connection = _connections[clientId];
+            connection?.shutdown();
+          }
+        }
+      );
+      if(response.isClosed) {
+        return;
+      }
+    }
     for (final hook in currentScope.hooks.beforeHooks) {
       await hook.beforeHandle(context);
     }

@@ -50,7 +50,7 @@ class SwaggerModule {
     final globalPrefix = app.config.globalPrefix;
     final versioning = app.config.versioningOptions;
     final controllers = <Controller>[];
-    for (final module in app.modulesContainer.modules) {
+    for (final module in app.config.modulesContainer.scopes) {
       controllers.addAll(module.controllers);
     }
     for (final controller in controllers) {
@@ -76,7 +76,7 @@ class SwaggerModule {
           sb.write('/$globalPrefix');
         }
         if (versioning != null && versioning.type == VersioningType.uri) {
-          sb.write('/v${versioning.version}');
+          sb.write('/${versioning.versionPrefix}${versioning.version}');
         }
         sb.write('/$controllerPath');
         sb.write('/${routePath.join('/')}');
@@ -180,8 +180,8 @@ class SwaggerModule {
         url: _swaggerUrl!
             .replaceAll('{{endpoint}}', endpoint.replaceAll('/', '')));
     _swaggerUiModule = SwaggerUiModule(endpoint, swaggerHtml());
-    await app.modulesContainer.registerModules(
-        _swaggerUiModule!, app.modulesContainer.modules.last.runtimeType);
+    await app.config.modulesContainer.registerModules(
+        _swaggerUiModule!);
   }
 
   /// The [normalizePath] method is used to normalize the path.

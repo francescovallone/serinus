@@ -101,16 +101,16 @@ class GraphInspector extends Provider {
       graph.insertNode(providerNode);
     }
 
-    for (final middleware in module.middlewares) {
-      final middlewareToken = InjectionToken.fromType(middleware.runtimeType);
-      final middlewareNode = ClassNode(
-        id: middlewareToken,
-        label: middlewareToken.name,
-        parent: module.token,
-        metadata: module.instanceMetadata[middlewareToken]!.metadata,
-      );
-      graph.insertNode(middlewareNode);
-    }
+    // for (final middleware in module.middlewares) {
+    //   final middlewareToken = InjectionToken.fromType(middleware.runtimeType);
+    //   final middlewareNode = ClassNode(
+    //     id: middlewareToken,
+    //     label: middlewareToken.name,
+    //     parent: module.token,
+    //     metadata: module.instanceMetadata[middlewareToken]!.metadata,
+    //   );
+    //   graph.insertNode(middlewareNode);
+    // }
 
     for (final controller in module.controllers) {
       final controllerToken = InjectionToken.fromType(controller.runtimeType);

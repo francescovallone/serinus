@@ -5,16 +5,16 @@ import 'package:shelf/shelf.dart' as shelf;
 
 import '../../contexts/request_context.dart';
 
+export 'middleware_consumer.dart';
+
 /// The [NextFunction] type is used to define the next function of the middleware.
 typedef NextFunction = Future<void> Function([Object? data]);
 
 /// The [Middleware] class is used to define a middleware.
 abstract class Middleware {
-  /// The [routes] property contains the routes of the middleware.
-  final List<String> routes;
 
   /// The [Middleware] constructor is used to create a new instance of the [Middleware] class.
-  const Middleware({this.routes = const ['*']});
+  const Middleware();
 
   /// The [use] method is used to execute the middleware.
   Future<void> use(RequestContext context, NextFunction next) async {
@@ -27,9 +27,8 @@ abstract class Middleware {
   ///
   /// It is used to create a middleware from a shelf middleware giving interoperability between Serinus and Shelf.
   factory Middleware.shelf(Function handler,
-      {List<String> routes = const ['*'], bool ignoreResponse = true}) {
-    return _ShelfMiddleware(handler,
-        routes: routes, ignoreResponse: ignoreResponse);
+      {bool ignoreResponse = true}) {
+    return _ShelfMiddleware(handler, ignoreResponse: ignoreResponse);
   }
 }
 
@@ -39,7 +38,7 @@ class _ShelfMiddleware extends Middleware {
   final bool ignoreResponse;
 
   _ShelfMiddleware(this._handler,
-      {super.routes = const ['*'], this.ignoreResponse = true});
+      {this.ignoreResponse = true});
 
   /// Most of the code has been taken from
   /// https://github.com/codekeyz/pharaoh/tree/main/packages/pharaoh/lib/src/shelf_interop
@@ -63,6 +62,8 @@ class _ShelfMiddleware extends Middleware {
       return next();
     }
     final response = await _responseFromShelf(context, shelfResponse);
+    context.res.statusCode = shelfResponse.statusCode;
+    context.res.headers.addAll(shelfResponse.headers);
     return next(response);
   }
 

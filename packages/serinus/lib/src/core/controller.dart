@@ -26,6 +26,10 @@ typedef RouteHandler = ({
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
+
+  /// The [version] property contains the version of the controller.
+  int? get version => null;
+
   /// The [path] property contains the path of the controller.
   final String path;
 

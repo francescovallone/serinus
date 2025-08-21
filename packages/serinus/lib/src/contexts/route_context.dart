@@ -87,8 +87,8 @@ class RouteContext {
   }
 
   /// Returns the middlewares for the route.
-  Set<Middleware> getMiddlewares(Map<String, dynamic> params) {
-    return moduleScope.filterMiddlewaresByRoute(path, params);
+  Iterable<Middleware> getMiddlewares(IncomingMessage message) {
+    return moduleScope.getRouteMiddlewares(id, message);
   }
 
 }

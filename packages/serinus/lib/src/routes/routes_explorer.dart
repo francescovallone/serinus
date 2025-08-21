@@ -4,6 +4,7 @@ import '../containers/serinus_container.dart';
 import '../contexts/route_context.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
+import '../extensions/string_extensions.dart';
 import '../global_prefix.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
@@ -65,7 +66,7 @@ final class RoutesExplorer {
       final spec = entry.value;
       String routePath = '$controllerPath${spec.route.path}';
       if (versioningEnabled) {
-        routePath ='v${spec.route.version ?? _versioningOptions?.version}/$routePath';
+        routePath ='${_versioningOptions?.versionPrefix}${spec.route.version ?? controller.version ?? _versioningOptions?.version}/$routePath';
       }
       if (_globalPrefix != null) {
         routePath = '${_globalPrefix.prefix}/$routePath';
@@ -105,12 +106,7 @@ final class RoutesExplorer {
   /// It removes the trailing slash and adds a leading slash if it is missing.
   /// It also removes multiple slashes.
   String normalizePath(String path) {
-    if (!path.startsWith('/')) {
-      path = '/$path';
-    }
-    if (path.endsWith('/') && path.length > 1) {
-      path = path.substring(0, path.length - 1);
-    }
+    path = path.addLeadingSlash().stripEndSlash();
     if (path.contains(RegExp('([/]{2,})'))) {
       path = path.replaceAll(RegExp('([/]{2,})'), '/');
     }
