@@ -31,74 +31,11 @@ The Pipe system follows Serinus's existing patterns (similar to hooks and middle
 
 To maximize flexibility and simplify framework implementation, the Pipe system should operate directly on the `RequestContext`. This allows each pipe to access and mutate any part of the request (body, query, params, headers, session) without strict value passing.
 
-### 1. Core Pipe Interface
-
-```dart
-/// A generic pipe that operates on the whole RequestContext
-abstract class Pipe {
-  /// Transform and validate any part of the request context
-  Future<void> transform(RequestContext context);
-}
-```
-
-### 2. Built-in Pipe Implementations (Examples)
-
-#### Query Validation Pipe
-```dart
-class QueryValidationPipe extends Pipe {
-  @override
-  Future<void> transform(RequestContext context) async {
-    final query = context.query;
-    // Validate or transform query parameters
-    final value = int.tryParse(query['page'] ?? '');
-    if (query['page'] != null && value == null) {
-      throw BadRequestException(message: 'Invalid page parameter');
-    }
-    // Optionally mutate context.query
-    context.query['page'] = value;
-  }
-}
-```
-
-### 3. Integration Points
+## 1. Integration Points
 
 - Pipes can be attached globally, per controller, or per route.
 - All pipes receive the full `RequestContext` and can operate on any property.
 - Pipes are executed in order before the route handler.
-
-### 4. Benefits
-
-- **Maximum Flexibility:** Pipes can operate on any part of the request.
-- **Simple Framework Logic:** No need to orchestrate value passing.
-- **Composable:** Pipes can be chained and reused.
-- **No Type Restrictions:** Pipes can validate, transform, or enrich context as needed.
-- **Consistent API:** All pipes use the same method signature.
-
-### 5. Example Usage
-
-```dart
-on(
-  Route.get('/users/<id>'),
-  getUserHandler,
-  pipes: [
-    QueryValidationPipe(),
-  ]
-);
-```
-
-### 6. Error Handling
-
-Any pipe can throw a SerinusException for its source, which will be handled by the framework's error system.
-
-### 7. Migration Path
-
-- Add context-driven pipe support without breaking changes
-- Provide built-in pipes for all sources
-- Encourage migration from direct ParseSchema usage to pipes
-
-This revised design ensures that Serinus users can validate and transform any part of the request, with maximum flexibility and minimal framework complexity.
-
-## 3. Integration Points
 
 ### A. Route Level Pipes
 
@@ -172,7 +109,7 @@ void main() async {
 }
 ```
 
-## 4. Execution Flow
+## 2. Execution Flow
 
 Pipes execute in the following order:
 
@@ -183,7 +120,7 @@ Pipes execute in the following order:
 
 This integration occurs in the existing request handling flow right after body parsing but before route handler execution, similar to how ParseSchema currently works.
 
-## 5. Custom Pipe Examples
+## 3. Custom Pipe Examples
 
 ### Email Validation Pipe
 ```dart
@@ -242,7 +179,7 @@ class UserValidationPipe extends Pipe {
 }
 ```
 
-## 6. Complete Usage Example
+## 4. Complete Usage Example
 
 ```dart
 class UserController extends Controller {
@@ -280,19 +217,19 @@ class UserController extends Controller {
 }
 ```
 
-## 7. Benefits
+## 5. Benefits
 
-1. **Easy Integration**: Pipes can be added at route, controller, or application level
-2. **Flexible Validation**: Users can define custom validation logic through custom Pipe implementations
-3. **Body Transformation**: The transformed value from pipes becomes the new body value for the route handler
-4. **Type Safety**: Generic types ensure type safety throughout the transformation chain
-5. **Composable**: Multiple pipes can be chained together
-6. **Existing Pattern**: Follows the same pattern as hooks and middleware
-7. **Backward Compatible**: Existing routes continue to work without modification
-8. **Reusable**: Pipes can be shared across different routes and controllers
-9. **Testable**: Each pipe can be unit tested independently
+- **Maximum Flexibility:** Pipes can operate on any part of the request.
+- **Simple Framework Logic:** No need to orchestrate value passing.
+- **Composable:** Pipes can be chained and reused.
+- **No Type Restrictions:** Pipes can validate, transform, or enrich context as needed.
+- **Consistent API:** All pipes use the same method signature.
+- **Existing Pattern:** Follows the same pattern as hooks and middleware.
+- **Backward Compatible:** Existing routes continue to work without modification.
+- **Reusable:** Pipes can be shared across different routes and controllers.
+- **Testable:** Each pipe can be unit tested independently.
 
-## 8. Error Handling
+## 6. Error Handling
 
 Pipes can throw any `SerinusException` which will be handled by the existing error handling system:
 
@@ -314,7 +251,7 @@ class StrictValidationPipe extends Pipe {
 }
 ```
 
-## 9. Performance Considerations
+## 7. Performance Considerations
 
 - Pipes execute sequentially in the defined order
 - Each pipe transformation is awaited before proceeding to the next
