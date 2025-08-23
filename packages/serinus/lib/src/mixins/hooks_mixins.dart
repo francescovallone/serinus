@@ -6,7 +6,7 @@ import '../utils/wrapped_response.dart';
 /// The [OnRequest] mixin is used to execute code before and after the request is handled
 mixin OnRequest on Hook {
   /// The [onRequest] method is used to execute code before the request is handled
-  Future<void> onRequest(Request request, ResponseContext properties) async {}
+  Future<void> onRequest(Request request, ResponseContext properties);
 
 }
 
@@ -14,7 +14,7 @@ mixin OnRequest on Hook {
 mixin OnResponse on Hook {
   /// The [onResponse] method is used to execute code before the response is sent
   Future<void> onResponse(
-      Request request, WrappedResponse data, ResponseContext properties) async {}
+      Request request, WrappedResponse data, ResponseContext properties);
 
 }
 

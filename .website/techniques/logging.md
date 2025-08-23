@@ -9,7 +9,7 @@ The logger as a stand-alone class and will use the properties defined in the `Lo
 ```dart
 class TestProvider extends Provider with OnApplicationInit {
 
-  Logger logger = Logger('TestProviderFour');
+  final logger = Logger('TestProviderFour');
 
   TestProvider();
 
@@ -32,7 +32,7 @@ You can change the prefix of the logger by using the `setLoggerPrefix` method fr
 
 ```dart
 void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
+  final application = await serinus.createApplication(
       entrypoint: AppModule(), host: InternetAddress.anyIPv4.address);
   application.enableShutdownHooks();
   application.setLoggerPrefix('MyApp');
@@ -52,7 +52,7 @@ You can configure the logger service by using the `LoggerService` class.
 
 ```dart
 void main(List<String> arguments) async {
-  SerinusApplication application = await serinus.createApplication(
+  final application = await serinus.createApplication(
     entrypoint: AppModule(), 
     host: InternetAddress.anyIPv4.address,
     loggerService: LoggerService(

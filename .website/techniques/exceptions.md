@@ -9,7 +9,7 @@ import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
 
-	UserController() : super(path: '/users') {
+	UserController() : super('/users') {
 		on(Route.get('/<id>'), getUser);
 	}
   
@@ -17,7 +17,7 @@ class UserController extends Controller {
 		final userId = request.params['id'];
 		final user = await context.use<UserService>().getUserById(userId);
 		if (user == null) {
-			throw SerinusException(message: 'User not found', statusCode: 404);
+			throw SerinusException('User not found', statusCode: 404);
 		}
 		return user;
 	}
@@ -53,7 +53,7 @@ These exceptions are automatically mapped to HTTP status codes, so you don't hav
 All these exceptions have a `message` field that you can use to provide a custom error message.
 
 ```dart
-throw BadRequestException(message: 'Invalid request format');
+throw BadRequestException('Invalid request format');
 ```
 
 ## Creating a Custom Exception
@@ -66,8 +66,8 @@ import 'package:serinus/serinus.dart';
 class CustomException extends SerinusException {
   final List<String> errors;
 
-  CustomException({required String message, required this.errors, int statusCode = 400}) 
-    : super(message: message, statusCode: statusCode);
+  CustomException(String message, {required this.errors, int statusCode = 400}) 
+    : super(message, statusCode: statusCode);
 }
 ```
 
@@ -78,7 +78,7 @@ import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
 
-  UserController() : super(path: '/users') {
+  UserController() : super('/users') {
     on(Route.get('/<id>'), getUser);
   }
   
@@ -86,7 +86,7 @@ class UserController extends Controller {
     final userId = request.params['id'];
     final user = await context.use<UserService>().getUserById(userId);
     if (user == null) {
-      throw CustomException(message: 'User not found', errors: ['User with id $userId not found'], statusCode: 404);
+      throw CustomException('User not found', errors: ['User with id $userId not found'], statusCode: 404);
     }
     return user;
   }

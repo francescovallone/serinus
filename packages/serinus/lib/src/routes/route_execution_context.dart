@@ -313,7 +313,7 @@ class RouteExecutionContext {
       return null;
     }
     if (body == String) {
-      if (context.body is! StringBody) {
+      if (context.body is! TextBody) {
         throw PreconditionFailedException('The body is not a string');
       }
       return context.body.value;

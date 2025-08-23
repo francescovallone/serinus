@@ -4,10 +4,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/contexts/sse_context.dart';
-import 'package:serinus/src/core/sse/sse_mixins.dart';
-import 'package:serinus/src/core/sse/sse_module.dart';
-import 'package:serinus/src/core/sse/sse_provider.dart';
 
 class TestProvider extends Provider {
   final List<String> testList = [
@@ -101,6 +97,13 @@ class AnotherController extends Controller {
       pipes: [
         BodySchemaValidationPipe(object({}).passthrough().list()),
         TransformPipe((context) async {
+          final data = <String, dynamic>{};
+          for(final item in context.bodyAs<JsonList>().value) {
+            data.addAll(item);
+          }
+          context.body = JsonBody.fromJson(data);
+        }),
+        TransformPipe((context) async {
           context.query.putIfAbsent('transform', () => true);
         })
       ]
@@ -111,6 +114,12 @@ class AnotherController extends Controller {
       pipes: [
         BodySchemaValidationPipe(object({}).passthrough().list()),
         TransformPipe((context) async {
+          context.body = JsonBody.fromJson([
+            for (var item in context.bodyAs<JsonList>().value)
+              item..['data'] = 'hello!'
+          ]);
+        }),
+        TransformPipe((context) async {
           context.query['transform'] = 'true';
         })
       ]
@@ -118,7 +127,8 @@ class AnotherController extends Controller {
   }
 
   String _fallback(RequestContext context) {
-    return 'Hello ajdaudiha! - ${context.request.body} - ${context.request.query} - ${context.request.params}';
+    final body = context.body;
+    return 'Hello ajdaudiha! - $body - ${context.request.query} - ${context.request.params}';
   }
 
 }
@@ -255,7 +265,8 @@ void main(List<String> arguments) async {
   final application = await serinus.createApplication(
       entrypoint: AppModule(),
       host: InternetAddress.anyIPv4.address,
-      logger: ConsoleLogger(prefix: 'Serinus New Logger'));
+      logger: ConsoleLogger(prefix: 'Serinus New Logger'),
+      logLevels: {LogLevel.info, LogLevel.warning, LogLevel.severe});
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());
   await application.serve();

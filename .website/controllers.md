@@ -20,7 +20,7 @@ Controllers define routes using the `on` and `onStatic` methods. The `on` method
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers);
   }
 
@@ -57,7 +57,7 @@ The `RequestContext` object is also used to access all the providers in the modu
 | `params` | The path parameters of the current request. |
 | `query` | The query parameters of the current request. |
 | `metadata` | The metadata of the current request. |
-| `res` | The response properties of the current request. |
+| `res` | The `ResponseContext` of the current request. |
 | `stream` | The method to stream data to the response. |
 | `stat` | The method to retrieve a metadata from the context. |
 | `canStat` | The method to check if a metadata exists in the context. |
@@ -84,7 +84,7 @@ You can use wildcards in the path of a route to match any value. Wildcards are d
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers);
     on(Route.get('/*'), getUser);
   }
@@ -104,13 +104,11 @@ The route `/users/*` will match any path that starts with `/users/` and will mat
 
 ## Status Codes
 
-You can return a status code from a controller method by setting the `res.statusCode` property of the `RequestContext` object. The default status code is `200`.
+You can return a status code from a controller method by setting the `res.statusCode` property of the `RequestContext` object. The default status code is `201` for POST requests and `200` for all other requests.
 
 ```dart
 Future<User> createUser(RequestContext context) async {
-  final user = await context.use<UsersService>().createUser(context.body);
-  context.res.statusCode = 201;
-  return user;
+  return await context.use<UsersService>().createUser(context.body);
 }
 ```
 
@@ -157,7 +155,7 @@ To enable this feature with your custom class please refer to the [ModelProvider
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.post('/', body: User), createUser);
   }
 
@@ -174,7 +172,7 @@ The body parameter must always be the **second** parameter of the handler method
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.put('/<id>', body: UserUpdate), updateUser);
   }
 
@@ -193,7 +191,7 @@ You can define path parameters in the route path by enclosing the parameter name
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/<id>'), getUser);
   }
 
@@ -216,7 +214,7 @@ If you don't want to use the path parameter in the method signature, you can acc
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/<id>'), getUser);
   }
 
@@ -236,7 +234,7 @@ You can access query parameters in the route path by using the `query` property 
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers);
   }
 
@@ -261,7 +259,7 @@ class UserController extends Controller {
     GuardMetadata(),
   ];
 
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers);
   }
 
@@ -278,7 +276,7 @@ You can define static routes using the `onStatic` method. Static routes are rout
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     onStatic(Route.get('/'), 'Hello World');
   }
 

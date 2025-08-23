@@ -8,15 +8,23 @@ import 'response_context.dart';
 import 'route_context.dart';
 
 /// The [RequestContext] class is used to create the request context.
-class RequestContext<B extends Body> extends BaseContext {
+class RequestContext extends BaseContext {
   /// The [request] property contains the request of the context.
   final Request request;
 
   /// The [body] property contains the body of the context.
-  B get body => (request.body ?? Body.empty()) as B;
+  Body get body => request.body ?? Body.empty();
 
-  set body(Body value) {
-    request.body = value;
+  set body(Object value) {
+    if(value is Body) {
+      request.body = value;
+    } else {
+      request.body = CustomBody(value, ContentType.json);
+    }
+  }
+
+  T bodyAs<T>() {
+    return request.body as T;
   }
 
   /// The [path] property contains the path of the request.

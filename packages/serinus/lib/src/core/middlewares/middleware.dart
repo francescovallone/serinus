@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:shelf/shelf.dart' as shelf;
 
 import '../../contexts/request_context.dart';
+import '../core.dart';
 
 export 'middleware_consumer.dart';
 
@@ -11,7 +12,7 @@ export 'middleware_consumer.dart';
 typedef NextFunction = Future<void> Function([Object? data]);
 
 /// The [Middleware] class is used to define a middleware.
-abstract class Middleware {
+abstract class Middleware extends Processable {
 
   /// The [Middleware] constructor is used to create a new instance of the [Middleware] class.
   const Middleware();

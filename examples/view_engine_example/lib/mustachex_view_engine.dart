@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:serinus/serinus.dart';
 import 'package:mustachex/mustachex.dart';
 
-class MustacheViewEngine extends ViewEngine{
+class MustacheViewEngine extends ViewEngine {
   
   const MustacheViewEngine({
     super.viewFolder

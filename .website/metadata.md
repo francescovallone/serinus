@@ -54,7 +54,7 @@ If you add a metadata to a controller, it will be applied to all the routes of t
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers, metadata: [IsPublic()]);
     on(Route.get('/<id>'), getUser);
   }
@@ -81,7 +81,7 @@ They can be used in combination in this way:
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers, metadata: [IsPublic()]);
     on(Route.get('/<id>'), getUser);
   }

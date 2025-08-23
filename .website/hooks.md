@@ -13,14 +13,16 @@ As for the Routes, Hooks are `Hookable` objects, so they can use the lifecycle h
 |-------|------|-------------|
 | OnBeforeHandle | `beforeHandle` | Executes code before the request is handled. |
 | OnAfterHandle | `afterHandle` | Executes code after the request is handled. |
-| OnRequestResponse | `onRequest` & `onResponse` | Executes code when the request is received and before sending the response back to the client |
+| OnRequest | `onRequest` | Executes code when the request is received |
+| OnResponse | `onResponse` | Executes code when the response is sent. |
+| OnError | `onError` | Executes code when an error occurs. |
 
 In the example below, we create a custom hook that logs the request and response.
 
 ```dart
 import 'package:serinus/serinus.dart';
 
-class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequestResponse {
+class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequest, OnResponse, OnError {
 
   @override
   Future<void> beforeHandle(RequestContext context) async {
@@ -40,6 +42,11 @@ class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequestResponse
   @override
   Future<void> onResponse(Request request, dynamic data, ResponseProperties properties) async {
     print('Response sent: ${data}');
+  }
+
+  @override
+  Future<void> onError(Request request, dynamic error) async {
+    print('Error occurred: ${error}');
   }
 
 }

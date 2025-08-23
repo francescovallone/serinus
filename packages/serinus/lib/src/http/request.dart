@@ -7,7 +7,7 @@ import 'http.dart';
 /// The class [Request] is used to create a request object.
 ///
 /// It is a wrapper around the [ParsableRequest] object.
-class Request<B extends Body> {
+class Request {
   /// The original [IncomingMessage] object.
   final IncomingMessage _original;
 
@@ -101,7 +101,7 @@ class Request<B extends Body> {
   }
 
   /// The body of the request.
-  B? body;
+  Body? body;
 
   /// The content type of the request.
   int get contentLength => _original.contentLength > -1
@@ -120,25 +120,25 @@ class Request<B extends Body> {
       final formData = await _original.formData();
       body = FormDataBody(
         formData,
-      ) as B;
+      );
       return;
     }
     final bytes = await _original.bytes();
     if (rawBody) {
-      body = RawBody(bytes) as B;
+      body = RawBody(bytes);
       return;
     }
     /// If the body is empty, it will return an empty body.
     final parsedBody = _original.body();
     if (parsedBody.isEmpty) {
-      body = Body.empty() as B;
+      body = Body.empty();
       return;
     }
 
     /// If the content type is url encoded, it will parse the body as a url encoded form data.
     if (contentType.isUrlEncoded) {
       final formData = FormData.parseUrlEncoded(parsedBody);
-      body = FormDataBody(formData) as B;
+      body = FormDataBody(formData);
       return;
     }
 
@@ -148,19 +148,19 @@ class Request<B extends Body> {
       final parsedJson = _original.json();
       if ((parsedJson != null && contentType == ContentType.json) ||
           parsedJson != null) {
-        body = JsonBody.fromJson(parsedJson) as B;
+        body = JsonBody.fromJson(parsedJson);
         return;
       }
     }
 
     /// If the content type is binary, it will parse the body as a binary data.
     if (contentType == ContentType.binary) {
-      body = RawBody(bytes) as B;
+      body = RawBody(bytes);
       return;
     }
 
     /// If the content type is text, it will parse the body as a text data.
-    body = StringBody(parsedBody) as B;
+    body = TextBody(parsedBody);
   }
 
   /// This method is used to add data to the request.

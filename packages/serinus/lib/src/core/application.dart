@@ -218,9 +218,20 @@ class SerinusApplication extends Application {
   }
 
   /// The [use] method is used to add a hook to the application.
-  void use(Hook hook) {
-    _container.config.globalHooks.addHook(hook);
-    _logger.info('Hook ${hook.runtimeType} added to application');
+  void use(Processable processable) {
+    switch(processable) {
+      case Hook():
+        _container.config.globalHooks.addHook(processable);
+        _logger.verbose('Hook ${processable.runtimeType} added to application');
+        break;
+      case Pipe():
+        _container.config.globalPipes.add(processable);
+        break;
+      case Middleware():
+        
+      default:
+        throw ArgumentError('Unknown processable type: ${processable.runtimeType}');
+    }
   }
 
   /// The [trace] method is used to add a tracer to the application.

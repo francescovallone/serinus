@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../extensions/content_type_extensions.dart';
 import 'form_data.dart';
 
 /// The class [Body] is used to create a body for the request.
@@ -81,10 +82,10 @@ class JsonList<T> extends JsonBody<List<T>> {
 
 }
 
-/// The class [StringBody] is used to create a string body for the request.
-class StringBody extends Body<String> {
-  /// The [StringBody] constructor is used to create a new instance of the [StringBody] class.
-  StringBody(String value) : super(ContentType.text, value);
+/// The class [TextBody] is used to create a string body for the request.
+class TextBody extends Body<String> {
+  /// The [TextBody] constructor is used to create a new instance of the [TextBody] class.
+  TextBody(String value) : super(ContentType.text, value);
 
   @override
   int get length => value.length;
@@ -106,7 +107,7 @@ class FormDataBody extends Body<FormData> {
   /// It returns a map of the form data fields for 'application/x-www-form-urlencoded' content type,
   /// or a map of the fields and files for 'multipart/form-data' content type.
   Map<String, dynamic> asMap() {
-    if (contentType.mimeType == 'application/x-www-form-urlencoded') {
+    if (contentType.isUrlEncoded) {
       return value.fields;
     }
     return {
@@ -144,6 +145,7 @@ class RawBody extends Body<List<int>> {
   String toString() => utf8.decode(value);
 }
 
+/// The class [CustomBody] is used to create a custom body for the request.
 class CustomBody<T> extends Body<T> {
 
   CustomBody(T value, ContentType custom) : super(custom, value);
@@ -152,6 +154,6 @@ class CustomBody<T> extends Body<T> {
   int get length => toString().length;
 
   @override
-  String toString() => jsonEncode(value);
+  String toString() => value.toString();
 
 }

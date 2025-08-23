@@ -173,7 +173,11 @@ export default defineConfig({
               { text: 'Globe', link: 'globe' },
               { text: 'VPS', link: 'vps' },
             ],
-          }, 
+          },
+          {
+            'text': 'Breaking Changes in 2.x',
+            'link': '/next/breaking-changes'
+          }
         ]
       },
     ],

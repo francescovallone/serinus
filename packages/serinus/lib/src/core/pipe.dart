@@ -26,7 +26,7 @@ class BodySchemaValidationPipe<T extends Body> extends Pipe {
           context.body = JsonBody.fromJson(result.value as List<dynamic>);
           break;
         case AcanthisType():
-          context.body = StringBody(result.value.toString());
+          context.body = TextBody(result.value.toString());
       }
     } catch(e) {
       throw BadRequestException('Body validation failed: $e');

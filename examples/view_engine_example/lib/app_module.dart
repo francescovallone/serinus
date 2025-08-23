@@ -13,4 +13,10 @@ class AppModule extends Module {
       AppProvider()
     ],
   );
+
+  @override
+  Future<DynamicModule> registerAsync(ApplicationConfig config) {
+    // TODO: implement registerAsync
+    return super.registerAsync(config);
+  }
 }
