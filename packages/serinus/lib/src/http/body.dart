@@ -6,7 +6,6 @@ import 'form_data.dart';
 
 /// The class [Body] is used to create a body for the request.
 abstract class Body<T> {
-  
   /// The content type of the body.
   final ContentType contentType;
 
@@ -29,7 +28,7 @@ abstract class Body<T> {
 /// The class [JsonBody] is used to create a json body for the request.
 ///
 /// The [JsonBody] class is an abstract class that is used express both a single json object and a list of json objects.
-abstract class JsonBody<T> extends Body<T>{
+abstract class JsonBody<T> extends Body<T> {
   /// true if the body is a list of json objects.
   final bool multiple;
 
@@ -46,17 +45,15 @@ abstract class JsonBody<T> extends Body<T>{
 
   @override
   String toString() => jsonEncode(value);
-  
+
   @override
   int get length => toString().length;
-
 }
 
 /// The class [JsonBodyObject] is used to create a json object body for the request.
 class JsonBodyObject extends JsonBody<Map<String, dynamic>> {
   /// The [JsonBodyObject] constructor is used to create a new instance of the [JsonObject] class.
   JsonBodyObject(super.value);
-
 }
 
 /// The class [JsonList] is used to create a json list body for the request.
@@ -79,7 +76,6 @@ class JsonBodyObject extends JsonBody<Map<String, dynamic>> {
 class JsonList<T> extends JsonBody<List<T>> {
   /// The [JsonList] constructor is used to create a new instance of the [JsonList] class.
   JsonList(super.value) : super(multiple: true);
-
 }
 
 /// The class [TextBody] is used to create a string body for the request.
@@ -92,7 +88,6 @@ class TextBody extends Body<String> {
 
   @override
   String toString() => value;
-  
 }
 
 /// The [FormDataBody] class is used to create a form data body for the request.
@@ -110,9 +105,7 @@ class FormDataBody extends Body<FormData> {
     if (contentType.isUrlEncoded) {
       return value.fields;
     }
-    return {
-      ...value.values
-    };
+    return {...value.values};
   }
 
   @override
@@ -147,7 +140,7 @@ class RawBody extends Body<List<int>> {
 
 /// The class [CustomBody] is used to create a custom body for the request.
 class CustomBody<T> extends Body<T> {
-
+  /// Creates a new instance of [CustomBody].
   CustomBody(T value, ContentType custom) : super(custom, value);
 
   @override
@@ -155,5 +148,4 @@ class CustomBody<T> extends Body<T> {
 
   @override
   String toString() => value.toString();
-
 }

@@ -14,8 +14,8 @@ import 'server_adapter.dart';
 
 /// The [SerinusHttpAdapter] class is used to create an HTTP server adapter.
 /// It extends the [HttpAdapter] class.
-class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, InternalResponse> {
-
+class SerinusHttpAdapter
+    extends HttpAdapter<io.HttpServer, InternalRequest, InternalResponse> {
   /// The [enableCompression] property is used to enable compression.
   final bool enableCompression;
 
@@ -32,23 +32,27 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
   String get name => 'http';
 
   /// The [SerinusHttpAdapter] constructor is used to create a new instance of the [SerinusHttpAdapter] class.
-  SerinusHttpAdapter(
-      {required super.host,
-      required super.port,
-      required super.poweredByHeader,
-      super.securityContext,
-      this.enableCompression = true,
-      super.notFoundHandler,
-      super.rawBody
-      });
+  SerinusHttpAdapter({
+    required super.host,
+    required super.port,
+    required super.poweredByHeader,
+    super.securityContext,
+    this.enableCompression = true,
+    super.notFoundHandler,
+    super.rawBody,
+  });
 
   @override
   Future<void> init([ApplicationConfig? config]) async {
     if (securityContext == null) {
       server = await io.HttpServer.bind(host, port, shared: true);
     } else {
-      server = await io.HttpServer.bindSecure(host, port, securityContext!,
-          shared: true);
+      server = await io.HttpServer.bindSecure(
+        host,
+        port,
+        securityContext!,
+        shared: true,
+      );
     }
     server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
     server?.autoCompress = enableCompression;
@@ -65,34 +69,35 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
     ErrorHandler? onError,
   }) async {
     try {
-      if(!isRunning) {
+      if (!isRunning) {
         await init();
       }
       await for (final req in server!) {
         final request = InternalRequest.from(req, port, host);
         final response = InternalResponse(req.response);
-        if(request.isWebSocket) {
+        if (request.isWebSocket) {
           request.hijacked = true;
-          emit(ServerEvent<UpgradedEventData>(
-            type: ServerEventType.upgraded,
-            data: UpgradedEventData(
-              clientId: request.webSocketKey,
-              request: request,
-              response: response,
+          emit(
+            ServerEvent<UpgradedEventData>(
+              type: ServerEventType.upgraded,
+              data: UpgradedEventData(
+                clientId: request.webSocketKey,
+                request: request,
+                response: response,
+              ),
             ),
-          ));
+          );
         }
-        if(request.isSse) {
+        if (request.isSse) {
           request.hijacked = true;
-          emit(ServerEvent<SseEventData>(
-            type: ServerEventType.custom,
-            data: SseEventData(
-              request: request,
-              response: response,
+          emit(
+            ServerEvent<SseEventData>(
+              type: ServerEventType.custom,
+              data: SseEventData(request: request, response: response),
             ),
-          ));
+          );
         }
-        if(request.hijacked) {
+        if (request.hijacked) {
           continue;
         }
         onRequest(request, response);
@@ -108,16 +113,12 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
     Redirect redirect,
     ResponseContext properties,
   ) async {
-    response.headers(
-      {
-        io.HttpHeaders.locationHeader: redirect.location,
-        ...properties.headers.asMap()
-      },
-      preserveHeaderCase: preserveHeaderCase
-    );
+    response.headers({
+      io.HttpHeaders.locationHeader: redirect.location,
+      ...properties.headers.asMap(),
+    }, preserveHeaderCase: preserveHeaderCase);
     return response.redirect(redirect);
   }
-
 
   // @override
   // Future<({
@@ -138,7 +139,7 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
   //     final context = RequestContext(
   //       routeRequest,
   //       {
-  //         for (final provider in container.modulesContainer.globalProviders) 
+  //         for (final provider in container.modulesContainer.globalProviders)
   //           provider.runtimeType: provider
   //       },
   //       config.hooks.services
@@ -166,32 +167,30 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
 
   @override
   Future<void> reply(
-    InternalResponse response, 
-    WrappedResponse body, 
+    InternalResponse response,
+    WrappedResponse body,
     ResponseContext properties,
   ) async {
     response.cookies.addAll(properties.cookies);
     response.headers(
-      properties.headers.asMap(), 
-      preserveHeaderCase: preserveHeaderCase
+      properties.headers.asMap(),
+      preserveHeaderCase: preserveHeaderCase,
     );
     Uint8List responseBody = Uint8List(0);
     response.contentType(
-      properties.contentType ?? io.ContentType.text, 
-      preserveHeaderCase: preserveHeaderCase
+      properties.contentType ?? io.ContentType.text,
+      preserveHeaderCase: preserveHeaderCase,
     );
     final bodyData = body.data;
     if (bodyData is io.File) {
       response.contentType(
-        properties.contentType ??  io.ContentType.parse('application/octet-stream'),
-        preserveHeaderCase: preserveHeaderCase
+        properties.contentType ??
+            io.ContentType.parse('application/octet-stream'),
+        preserveHeaderCase: preserveHeaderCase,
       );
-      response.headers(
-        {
-          'transfer-encoding': 'chunked',
-        }, 
-        preserveHeaderCase: preserveHeaderCase
-      );
+      response.headers({
+        'transfer-encoding': 'chunked',
+      }, preserveHeaderCase: preserveHeaderCase);
       final readPipe = bodyData.openRead();
       return response.addStream(readPipe);
     }
@@ -199,17 +198,18 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
     if (responseBody.isEmpty) {
       responseBody = Uint8List(0);
     }
-    response.headers(
-      {
-        io.HttpHeaders.contentLengthHeader: responseBody.length.toString()
-      }, 
-      preserveHeaderCase: preserveHeaderCase
-    );
+    response.headers({
+      io.HttpHeaders.contentLengthHeader: responseBody.length.toString(),
+    }, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
     return response.send(responseBody);
   }
 
-  Uint8List _convertData(WrappedResponse data, InternalResponse response, ResponseContext properties) {
+  Uint8List _convertData(
+    WrappedResponse data,
+    InternalResponse response,
+    ResponseContext properties,
+  ) {
     final coding = response.currentHeaders['transfer-encoding']?.join(';');
     if ((coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) ||
         (properties.statusCode >= 200 &&
@@ -217,34 +217,33 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer, InternalRequest, Int
             properties.statusCode != 304 &&
             properties.contentLength == null &&
             properties.contentType?.mimeType != 'multipart/byteranges')) {
-      response.headers(
-        {io.HttpHeaders.transferEncodingHeader: 'chunked'}, 
-        preserveHeaderCase: preserveHeaderCase
-      );
+      response.headers({
+        io.HttpHeaders.transferEncodingHeader: 'chunked',
+      }, preserveHeaderCase: preserveHeaderCase);
     }
     return data.toBytes();
   }
-  
+
   @override
-  Future<void> render(InternalResponse response, View view, ResponseContext properties) async {
+  Future<void> render(
+    InternalResponse response,
+    View view,
+    ResponseContext properties,
+  ) async {
     if (viewEngine == null) {
       throw StateError('ViewEngine is required to render views');
     }
     response.cookies.addAll(properties.cookies);
     response.headers(
-      properties.headers.asMap(), 
-      preserveHeaderCase: preserveHeaderCase
+      properties.headers.asMap(),
+      preserveHeaderCase: preserveHeaderCase,
     );
     final result = await viewEngine!.render(view);
     response.contentType(properties.contentType ?? io.ContentType.html);
-    response.headers(
-      {
-        io.HttpHeaders.contentLengthHeader: result.length.toString(),
-      }, 
-      preserveHeaderCase: preserveHeaderCase
-    );
+    response.headers({
+      io.HttpHeaders.contentLengthHeader: result.length.toString(),
+    }, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
     return response.send(result.toBytes());
   }
-
 }

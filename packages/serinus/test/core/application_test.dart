@@ -17,7 +17,7 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
 
   @override
   String get name => 'http';
-  
+
   @override
   Future<void> listen({
     required RequestCallback<InternalRequest, InternalResponse> onRequest,
@@ -40,18 +40,18 @@ class TestModule extends Module {
 void main() {
   group('$SerinusApplication', () {
     test(
-        "when the adapter can't listen to requests and throw a $SocketException the application should gently shutdown",
-        () async {
-      final adapter = _MockAdapter();
-      final app = SerinusApplication(
-        entrypoint: TestModule(),
-        levels: {LogLevel.none},
-        config: ApplicationConfig(
-            serverAdapter: adapter),
-      );
-      await app.serve();
-      await app.close();
-      expect(adapter.gentlyClose, true);
-    });
+      "when the adapter can't listen to requests and throw a $SocketException the application should gently shutdown",
+      () async {
+        final adapter = _MockAdapter();
+        final app = SerinusApplication(
+          entrypoint: TestModule(),
+          levels: {LogLevel.none},
+          config: ApplicationConfig(serverAdapter: adapter),
+        );
+        await app.serve();
+        await app.close();
+        expect(adapter.gentlyClose, true);
+      },
+    );
   });
 }

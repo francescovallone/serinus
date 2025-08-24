@@ -2,7 +2,7 @@ import '../core/module.dart';
 
 /// A simple class to represent an injection token.
 extension type InjectionToken(String name) {
-
+  /// The [global] token is used to register global providers.
   static final InjectionToken global = InjectionToken('global');
 
   /// The token is take from the object type
@@ -13,9 +13,8 @@ extension type InjectionToken(String name) {
   /// The token is taken from the module name
   /// or the module type if the name is empty.
   factory InjectionToken.fromModule(Module module) {
-    return module.token.isNotEmpty 
-      ? InjectionToken(module.token)
-      : InjectionToken.fromType(module.runtimeType);
+    return module.token.isNotEmpty
+        ? InjectionToken(module.token)
+        : InjectionToken.fromType(module.runtimeType);
   }
-
 }

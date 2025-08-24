@@ -12,6 +12,7 @@ class SerializedGraph {
   /// The Map of edges in the graph.
   final Map<String, Edge> edges = {};
 
+  /// The Map of entrypoints in the graph.
   final Map<String, Entrypoint> entrypoints = {};
 
   /// Inserts a node into the graph.
@@ -32,6 +33,7 @@ class SerializedGraph {
     return edge;
   }
 
+  /// Inserts an entrypoint into the graph.
   Entrypoint insertEntrypoint(Entrypoint entrypoint) {
     if (entrypoints.containsKey(entrypoint.id)) {
       return entrypoints[entrypoint.id]!;
@@ -46,7 +48,7 @@ class SerializedGraph {
     return {
       'nodes': nodes.values.map((e) => e.toJson()).toList(),
       'edges': edges.values.map((e) => e.toJson()).toList(),
-      'entrypoints': entrypoints.values.map((e) => e.toJson()).toList()
+      'entrypoints': entrypoints.values.map((e) => e.toJson()).toList(),
     };
   }
 }

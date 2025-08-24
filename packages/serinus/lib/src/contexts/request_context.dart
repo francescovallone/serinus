@@ -16,13 +16,14 @@ class RequestContext extends BaseContext {
   Body get body => request.body ?? Body.empty();
 
   set body(Object value) {
-    if(value is Body) {
+    if (value is Body) {
       request.body = value;
     } else {
       request.body = CustomBody(value, ContentType.json);
     }
   }
 
+  /// Returns the body as a specific type.
   T bodyAs<T>() {
     return request.body as T;
   }
@@ -48,16 +49,10 @@ class RequestContext extends BaseContext {
   Map<String, dynamic> get query => request.query;
 
   /// The constructor of the [RequestContext] class.
-  RequestContext(
-    this.request,
-    super.providers,
-    super.hooksServices,
-  ) {
-    res = ResponseContext(
-      providers,
-      hooksServices,
-    );
-    res.statusCode = request.method == HttpMethod.post ? HttpStatus.created : HttpStatus.ok;
+  RequestContext(this.request, super.providers, super.hooksServices) {
+    res = ResponseContext(providers, hooksServices);
+    res.statusCode =
+        request.method == HttpMethod.post ? HttpStatus.created : HttpStatus.ok;
   }
 
   /// The [RequestContext.fromRouteContext] constructor is used to create a new instance of the [RequestContext] class
@@ -66,14 +61,10 @@ class RequestContext extends BaseContext {
     Request request,
     RouteContext routeContext,
   ) {
-    return RequestContext(
-      request,
-      {
-        for (var provider in routeContext.moduleScope.unifiedProviders)
-          provider.runtimeType: provider,
-      },
-      routeContext.hooksServices,
-    );
+    return RequestContext(request, {
+      for (var provider in routeContext.moduleScope.unifiedProviders)
+        provider.runtimeType: provider,
+    }, routeContext.hooksServices);
   }
 
   /// The [metadata] property contains the metadata of the request context.
@@ -106,7 +97,6 @@ class RequestContext extends BaseContext {
   ///
   /// The [redirect] property uses a [Redirect] class to create the redirect response.
   late ResponseContext res;
-
 }
 
 /// The [Redirect] class is used to create the redirect response.
@@ -118,6 +108,8 @@ final class Redirect {
   final int statusCode;
 
   /// The [Redirect] constructor.
-  const Redirect(this.location,
-      {this.statusCode = HttpStatus.movedTemporarily});
+  const Redirect(
+    this.location, {
+    this.statusCode = HttpStatus.movedTemporarily,
+  });
 }

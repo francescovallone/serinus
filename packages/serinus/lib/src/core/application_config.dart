@@ -135,10 +135,7 @@ final class ApplicationConfig {
   }
 
   /// The application config constructor
-  ApplicationConfig({
-    required this.serverAdapter,
-    this.modelProvider,
-  }) {
+  ApplicationConfig({required this.serverAdapter, this.modelProvider}) {
     adapters.add(serverAdapter);
   }
 }

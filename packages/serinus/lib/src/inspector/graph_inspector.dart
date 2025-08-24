@@ -16,10 +16,7 @@ class GraphInspector extends Provider {
 
   final ModulesContainer _container;
 
-  final List<Type> _internal = const [
-    GraphInspector,
-    InspectorModule
-  ];
+  final List<Type> _internal = const [GraphInspector, InspectorModule];
 
   /// Creates a new instance of [GraphInspector].
   const GraphInspector(this.graph, this._container);
@@ -28,23 +25,23 @@ class GraphInspector extends Provider {
   void inspectModules([Iterable<ModuleScope>? modules]) {
     final appModulesScopes = modules ?? _container.scopes;
     for (final moduleScope in appModulesScopes) {
-      if(_internal.contains(moduleScope.module.runtimeType)) {
+      if (_internal.contains(moduleScope.module.runtimeType)) {
         continue;
       }
       final moduleNode = ModuleNode(
-          id: moduleScope.token,
-          label: moduleScope.token.name,
-          metadata: ModuleMetadataNode(
-            global: moduleScope.module.isGlobal,
-            isDynamic: moduleScope.isDynamic,
-            internal: moduleScope.internal
-          ),
-        );
+        id: moduleScope.token,
+        label: moduleScope.token.name,
+        metadata: ModuleMetadataNode(
+          global: moduleScope.module.isGlobal,
+          isDynamic: moduleScope.isDynamic,
+          internal: moduleScope.internal,
+        ),
+      );
       graph.insertNode(moduleNode);
       _inspectModule(moduleScope);
       _insertEdges(moduleScope);
     }
-    for(final hook in _container.config.globalHooks.hooks) {
+    for (final hook in _container.config.globalHooks.hooks) {
       graph.insertNode(_prepareHook(hook, InjectionToken.global, null));
     }
   }
@@ -64,7 +61,7 @@ class GraphInspector extends Provider {
       graph.insertEdge(edge);
     }
     for (final provider in module.unifiedProviders) {
-      if(_internal.contains(provider.runtimeType)) {
+      if (_internal.contains(provider.runtimeType)) {
         continue;
       }
       final providerToken = InjectionToken.fromType(provider.runtimeType);
@@ -96,7 +93,8 @@ class GraphInspector extends Provider {
         id: providerToken,
         label: providerToken.name,
         parent: module.token,
-        metadata: module.instanceMetadata[providerToken]?.metadata ??
+        metadata:
+            module.instanceMetadata[providerToken]?.metadata ??
             _container.globalInstances[providerToken]!.metadata,
       );
       graph.insertNode(providerNode);
@@ -122,10 +120,10 @@ class GraphInspector extends Provider {
         metadata: module.instanceMetadata[controllerToken]!.metadata,
       );
       graph.insertNode(controllerNode);
-      for(final hook in controller.hooks.hooks) {
+      for (final hook in controller.hooks.hooks) {
         graph.insertNode(_prepareHook(hook, controllerToken, module));
       }
-      for(final routeEntry in controller.routes.entries) {
+      for (final routeEntry in controller.routes.entries) {
         final entrypoint = Entrypoint(
           type: EntrypointType.http,
           id: routeEntry.key,
@@ -134,37 +132,43 @@ class GraphInspector extends Provider {
             key: routeEntry.value.route.path,
             requestMethod: routeEntry.value.route.method.name,
             path: routeEntry.value.route.path,
-          )
+          ),
         );
         graph.insertEntrypoint(entrypoint);
-        for(final hook in routeEntry.value.route.hooks.hooks) {
-          graph.insertNode(_prepareHook(hook, InjectionToken(routeEntry.key), module));
+        for (final hook in routeEntry.value.route.hooks.hooks) {
+          graph.insertNode(
+            _prepareHook(hook, InjectionToken(routeEntry.key), module),
+          );
         }
       }
     }
   }
 
-  ClassNode _prepareHook(Hook hook, InjectionToken parentToken, ModuleScope? module) {
+  ClassNode _prepareHook(
+    Hook hook,
+    InjectionToken parentToken,
+    ModuleScope? module,
+  ) {
     final hookToken = InjectionToken.fromType(hook.runtimeType);
     return ClassNode(
       id: hookToken,
       label: hookToken.name,
       parent: parentToken,
       metadata: ClassMetadataNode(
-        type: InjectableType.hook, 
+        type: InjectableType.hook,
         sourceModuleName: module?.token ?? parentToken,
         subTypes: [
-          if(hook is OnBeforeHandle) 'beforeHandle',
-          if(hook is OnAfterHandle) 'afterHandle',
-          if(hook is OnException) 'onException',
-          if(hook is OnRequest) 'onRequest',
-          if(hook is OnResponse) 'onResponse',
-          if(hook is OnBeforeMessage) 'onBeforeMessage',
-          if(hook is OnUpgrade) 'onUpgrade',
-          if(hook is OnWsException) 'onWsException',
-          if(hook is OnClose) 'onClose'
-        ]
-      )
+          if (hook is OnBeforeHandle) 'beforeHandle',
+          if (hook is OnAfterHandle) 'afterHandle',
+          if (hook is OnException) 'onException',
+          if (hook is OnRequest) 'onRequest',
+          if (hook is OnResponse) 'onResponse',
+          if (hook is OnBeforeMessage) 'onBeforeMessage',
+          if (hook is OnUpgrade) 'onUpgrade',
+          if (hook is OnWsException) 'onWsException',
+          if (hook is OnClose) 'onClose',
+        ],
+      ),
     );
   }
 

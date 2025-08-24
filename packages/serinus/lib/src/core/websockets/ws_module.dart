@@ -10,13 +10,11 @@ class WsModule extends Module {
 
   @override
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
-    final webSocketAdapter = WebSocketAdapter(config.adapters.get<HttpAdapter>('http'));
+    final webSocketAdapter = WebSocketAdapter(
+      config.adapters.get<HttpAdapter>('http'),
+    );
     config.adapters.add(webSocketAdapter);
     final websocketRegistry = WebsocketRegistry(config);
-    return DynamicModule(
-      providers: [
-        websocketRegistry,
-      ],
-    );
+    return DynamicModule(providers: [websocketRegistry]);
   }
 }

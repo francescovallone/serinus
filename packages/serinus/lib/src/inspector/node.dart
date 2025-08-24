@@ -10,17 +10,11 @@ abstract class Node {
   final String label;
 
   /// The parent of this node. This is used to build the tree structure.
-  const Node({
-    required this.id,
-    required this.label,
-  });
+  const Node({required this.id, required this.label});
 
   /// Converts the [Node] to a JSON object.
   Map<String, dynamic> toJson() {
-    return {
-      'id': id.name,
-      'label': label,
-    };
+    return {'id': id.name, 'label': label};
   }
 }
 
@@ -43,11 +37,7 @@ class ClassNode extends Node {
   /// Converts the [ClassNode] to a JSON object.
   @override
   Map<String, dynamic> toJson() {
-    return {
-      ...super.toJson(),
-      'parent': parent,
-      'metadata': metadata.toJson(),
-    };
+    return {...super.toJson(), 'parent': parent, 'metadata': metadata.toJson()};
   }
 }
 
@@ -66,10 +56,7 @@ class ModuleNode extends Node {
   /// Converts the [ModuleNode] to a JSON object.
   @override
   Map<String, dynamic> toJson() {
-    return {
-      ...super.toJson(),
-      'metadata': metadata.toJson(),
-    };
+    return {...super.toJson(), 'metadata': metadata.toJson()};
   }
 }
 
@@ -115,6 +102,7 @@ class ClassMetadataNode {
   /// - `hook` - The class is a hook class.
   final InjectableType type;
 
+  /// The subtypes of the class. This is used to identify the class in the tree.
   final List<String>? subTypes;
 
   /// The name of the module where the class is defined.
@@ -157,7 +145,6 @@ class ClassMetadataNode {
   }
 }
 
-
 /// An enum that represents the type of a class in the inspector.
 enum InjectableType {
   /// The class is a regular class.
@@ -176,5 +163,4 @@ enum InjectableType {
 
   /// The name of the class type.
   final String name;
-
 }

@@ -29,7 +29,7 @@ abstract class Application {
   SerinusContainer _container;
 
   /// The [RoutesResolver] property contains the resolver of the application.
-  RoutesResolver?  _routesResolver;
+  RoutesResolver? _routesResolver;
 
   /// The [config] property contains the application configuration.
   final ApplicationConfig config;
@@ -54,7 +54,7 @@ abstract class Application {
     this.abortOnError = true,
     Set<LogLevel>? levels,
     LoggerService? logger,
-  })  : _container = SerinusContainer(config, config.serverAdapter) {
+  }) : _container = SerinusContainer(config, config.serverAdapter) {
     _routesResolver = RoutesResolver(_container);
     if (logger != null) {
       Logger.overrideLogger(logger);
@@ -129,7 +129,9 @@ class SerinusApplication extends Application {
     if (prefix == '/') {
       return;
     }
-    config.globalPrefix = GlobalPrefix(prefix: prefix.addLeadingSlash().stripEndSlash());
+    config.globalPrefix = GlobalPrefix(
+      prefix: prefix.addLeadingSlash().stripEndSlash(),
+    );
   }
 
   @override
@@ -138,20 +140,15 @@ class SerinusApplication extends Application {
       await initialize();
       _logger.info('Starting server on $url');
       server.listen(
-        onRequest: (request, response) => _routesResolver!.handle(
-          request,
-          response,
-        ),
+        onRequest:
+            (request, response) => _routesResolver!.handle(request, response),
         onError: (e, stackTrace) {
           if (abortOnError) {
             throw e;
           }
           _logger.severe(
-            'Error occurred while handling request', 
-            OptionalParameters(
-              error: e,
-              stackTrace: stackTrace,
-            ),
+            'Error occurred while handling request',
+            OptionalParameters(error: e, stackTrace: stackTrace),
           );
           return null; // Handle error as needed
         },
@@ -161,7 +158,7 @@ class SerinusApplication extends Application {
       _logger.severe('Failed to start server on ${e.address}:${e.port}');
       await close();
     } catch (e) {
-      if(abortOnError) {
+      if (abortOnError) {
         rethrow;
       }
       _logger.severe(
@@ -187,7 +184,7 @@ class SerinusApplication extends Application {
       if (!modulesContainer.isInitialized) {
         await modulesContainer.registerModules(
           InternalCoreModule(_container.inspector),
-          internal: true
+          internal: true,
         );
         await modulesContainer.registerModules(entrypoint);
       }
@@ -196,7 +193,7 @@ class SerinusApplication extends Application {
       _container.inspector.inspectModules(modulesContainer.scopes);
       await _container.emitHook<OnApplicationBootstrap>();
     } catch (e) {
-      if(abortOnError) {
+      if (abortOnError) {
         rethrow;
       }
       _logger.severe(
@@ -219,7 +216,7 @@ class SerinusApplication extends Application {
 
   /// The [use] method is used to add a hook to the application.
   void use(Processable processable) {
-    switch(processable) {
+    switch (processable) {
       case Hook():
         _container.config.globalHooks.addHook(processable);
         _logger.verbose('Hook ${processable.runtimeType} added to application');
@@ -228,9 +225,10 @@ class SerinusApplication extends Application {
         _container.config.globalPipes.add(processable);
         break;
       case Middleware():
-        
       default:
-        throw ArgumentError('Unknown processable type: ${processable.runtimeType}');
+        throw ArgumentError(
+          'Unknown processable type: ${processable.runtimeType}',
+        );
     }
   }
 
@@ -238,6 +236,7 @@ class SerinusApplication extends Application {
   void trace(Tracer tracer) {
     config.registerTracer(tracer);
     _logger.info(
-        'Tracer ${tracer.name}(${tracer.runtimeType}) added to application');
+      'Tracer ${tracer.name}(${tracer.runtimeType}) added to application',
+    );
   }
 }

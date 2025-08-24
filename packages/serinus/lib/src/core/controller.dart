@@ -15,17 +15,17 @@ typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 typedef SyncReqResHandler<T> = T Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
-typedef RouteHandler = ({
-  Route route,
-  dynamic handler,
-  ParseSchema? schema,
-  Type? body,
-  List<Pipe> pipes,
-});
+typedef RouteHandler =
+    ({
+      Route route,
+      dynamic handler,
+      ParseSchema? schema,
+      Type? body,
+      List<Pipe> pipes,
+    });
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
-
   /// The [version] property contains the version of the controller.
   int? get version => null;
 
@@ -37,6 +37,7 @@ abstract class Controller {
 
   final Map<String, RouteHandler> _routes = {};
 
+  /// The list of pipes to be applied.
   List<Pipe> pipes = [];
 
   /// The [routes] property contains the routes of the controller.
@@ -59,17 +60,29 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route>(R route, Function handler,
-      {ParseSchema? schema, Type? body, List<Pipe> pipes = const []}) {
+  void on<R extends Route>(
+    R route,
+    Function handler, {
+    ParseSchema? schema,
+    Type? body,
+    List<Pipe> pipes = const [],
+  }) {
     final routeExists = _routes.values.any(
-        (r) => r.route.path == route.path && r.route.method == route.method);
+      (r) => r.route.path == route.path && r.route.method == route.method,
+    );
     if (routeExists) {
       throw StateError(
-          'A route with the same path and method already exists. [${route.path}] [${route.method}]');
+        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
+      );
     }
 
-    _routes[UuidV4().generate()] =
-        (handler: handler, route: route, schema: schema, body: body, pipes: pipes);
+    _routes[UuidV4().generate()] = (
+      handler: handler,
+      route: route,
+      schema: schema,
+      body: body,
+      pipes: pipes,
+    );
   }
 
   /// The [onStatic] method is used to register a static route.
@@ -82,13 +95,20 @@ abstract class Controller {
       throw StateError('The handler must be a static value');
     }
     final routeExists = _routes.values.any(
-        (r) => r.route.path == route.path && r.route.method == route.method);
+      (r) => r.route.path == route.path && r.route.method == route.method,
+    );
     if (routeExists) {
       throw StateError(
-          'A route with the same path and method already exists. [${route.path}] [${route.method}]');
+        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
+      );
     }
 
-    _routes[UuidV4().generate()] =
-        (handler: handler, route: route, schema: null, body: null, pipes: const []);
+    _routes[UuidV4().generate()] = (
+      handler: handler,
+      route: route,
+      schema: null,
+      body: null,
+      pipes: const [],
+    );
   }
 }

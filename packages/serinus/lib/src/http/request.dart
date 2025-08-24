@@ -95,8 +95,10 @@ class Request {
   }
 
   /// This method is used to listen to a request event.
-  void on(RequestEvent event,
-      Future<void> Function(RequestEvent, EventData) listener) {
+  void on(
+    RequestEvent event,
+    Future<void> Function(RequestEvent, EventData) listener,
+  ) {
     _original.on(event, listener);
   }
 
@@ -104,9 +106,10 @@ class Request {
   Body? body;
 
   /// The content type of the request.
-  int get contentLength => _original.contentLength > -1
-      ? _original.contentLength
-      : body?.length ?? 0;
+  int get contentLength =>
+      _original.contentLength > -1
+          ? _original.contentLength
+          : body?.length ?? 0;
 
   /// This method is used to parse the body of the request.
   ///
@@ -118,9 +121,7 @@ class Request {
     }
     if (contentType.isMultipart) {
       final formData = await _original.formData();
-      body = FormDataBody(
-        formData,
-      );
+      body = FormDataBody(formData);
       return;
     }
     final bytes = await _original.bytes();
@@ -128,6 +129,7 @@ class Request {
       body = RawBody(bytes);
       return;
     }
+
     /// If the body is empty, it will return an empty body.
     final parsedBody = _original.body();
     if (parsedBody.isEmpty) {

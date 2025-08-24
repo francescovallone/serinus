@@ -4,6 +4,7 @@ import 'core.dart';
 abstract class Module {
   /// The [isGlobal] property is used to define if the module is global.
   final bool isGlobal;
+
   /// The [imports] property contains the modules that are imported in the module.
   final String token;
 
@@ -25,7 +26,7 @@ abstract class Module {
       return [];
     }
     return [
-      ...providers.where((element) => exports.contains(element.runtimeType))
+      ...providers.where((element) => exports.contains(element.runtimeType)),
     ];
   }
 
@@ -44,6 +45,7 @@ abstract class Module {
     return DynamicModule();
   }
 
+  /// Configures the middleware for the module.
   void configure(MiddlewareConsumer consumer) {}
 }
 

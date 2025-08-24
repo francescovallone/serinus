@@ -1,6 +1,5 @@
 /// The [Provider] class is used to define a provider.
 abstract class Provider {
-
   /// The [Provider] constructor is used to create a new instance of the [Provider] class.
   const Provider();
 
@@ -9,9 +8,11 @@ abstract class Provider {
   ///
   /// The [init] function is called when the provider is initialized.
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
-  factory Provider.composed(Function init,
-          {required List<Type> inject, required Type type}) =>
-      ComposedProvider(init, inject: inject, type: type);
+  factory Provider.composed(
+    Function init, {
+    required List<Type> inject,
+    required Type type,
+  }) => ComposedProvider(init, inject: inject, type: type);
 
   @override
   String toString() => '$runtimeType';

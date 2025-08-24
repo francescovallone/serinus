@@ -17,7 +17,6 @@ class ConsoleLogger implements LoggerService {
   IOSink _channel = stdout.nonBlocking;
 
   @visibleForTesting
-
   /// Usable for testing purposes.
   set channel(IOSink value) => _channel = value;
 
@@ -57,11 +56,12 @@ class ConsoleLogger implements LoggerService {
   Set<LogLevel> get logLevels => Logger.logLevels;
 
   /// The [ConsoleLogger] constructor.
-  ConsoleLogger(
-      {this.json = false,
-      this.prefix = 'Serinus',
-      this.timestamp = false,
-      Set<LogLevel>? levels}) {
+  ConsoleLogger({
+    this.json = false,
+    this.prefix = 'Serinus',
+    this.timestamp = false,
+    Set<LogLevel>? levels,
+  }) {
     if (levels != null) {
       Logger.setLogLevels(levels);
     }
@@ -70,7 +70,8 @@ class ConsoleLogger implements LoggerService {
     }
     logging.Logger.root.level = getLowestLevel(Logger.logLevels);
     logging.Logger.root.onRecord.listen((logging.LogRecord rec) {
-      final hasError = rec.object is AugmentedMessage &&
+      final hasError =
+          rec.object is AugmentedMessage &&
           (rec.object as AugmentedMessage).params?.error != null;
       if (hasError) {
         printErrors(rec, prefix);
@@ -94,31 +95,34 @@ class ConsoleLogger implements LoggerService {
   void printMessages(logging.LogRecord record, String prefix) {
     final formattedPid = _formatPid(pid, prefix);
     final logLevel = _formatLogLevel(record.level);
-    final formattedTime = json
-        ? record.time.toIso8601String()
-        : DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
+    final formattedTime =
+        json
+            ? record.time.toIso8601String()
+            : DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
     final message = record.object as AugmentedMessage;
     final loggerName = message.params?.context ?? record.loggerName;
-    final formattedMessage = json
-        ? jsonEncode({
-            'prefix': prefix,
-            'pid': formattedPid,
-            'context': loggerName,
-            'level': logLevel,
-            'message': message.message,
-            'time': formattedTime,
-            if (message.params?.metadata != null)
-              'metadata': message.params?.metadata,
-          })
-        : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message}';
+    final formattedMessage =
+        json
+            ? jsonEncode({
+              'prefix': prefix,
+              'pid': formattedPid,
+              'context': loggerName,
+              'level': logLevel,
+              'message': message.message,
+              'time': formattedTime,
+              if (message.params?.metadata != null)
+                'metadata': message.params?.metadata,
+            })
+            : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message}';
     channel.writeln(formattedMessage);
   }
 
   String _formatErrorMessage(String message, Object? error) {
     if (error != null) {
-      final errorString = error is SerinusException
-          ? '${error.statusCode} ${error.message}'
-          : error.toString();
+      final errorString =
+          error is SerinusException
+              ? '${error.statusCode} ${error.message}'
+              : error.toString();
       return '$message - $errorString';
     }
     return message;
@@ -133,17 +137,18 @@ class ConsoleLogger implements LoggerService {
     final formattedTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
     final error = message.params?.error;
     final errorMessage = _formatErrorMessage(message.message.toString(), error);
-    final formattedMessage = json
-        ? jsonEncode({
-            'prefix': prefix,
-            'pid': pid,
-            'context': loggerName,
-            'level': logLevel,
-            'message': errorMessage,
-            'time': formattedTime,
-            'error': error is String ? error : error.runtimeType.toString(),
-          })
-        : '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage ${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
+    final formattedMessage =
+        json
+            ? jsonEncode({
+              'prefix': prefix,
+              'pid': pid,
+              'context': loggerName,
+              'level': logLevel,
+              'message': errorMessage,
+              'time': formattedTime,
+              'error': error is String ? error : error.runtimeType.toString(),
+            })
+            : '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage ${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
     channel.writeln(formattedMessage);
   }
 
@@ -153,8 +158,10 @@ class ConsoleLogger implements LoggerService {
       return;
     }
     final logger = logging.Logger.root;
-    logger.log(logging.Level('DEBUG', 300),
-        AugmentedMessage(message, optionalParameters));
+    logger.log(
+      logging.Level('DEBUG', 300),
+      AugmentedMessage(message, optionalParameters),
+    );
   }
 
   @override
@@ -163,8 +170,11 @@ class ConsoleLogger implements LoggerService {
       return;
     }
     final logger = logging.Logger.root;
-    logger.info(AugmentedMessage(message, optionalParameters),
-        optionalParameters?.error, optionalParameters?.stackTrace);
+    logger.info(
+      AugmentedMessage(message, optionalParameters),
+      optionalParameters?.error,
+      optionalParameters?.stackTrace,
+    );
   }
 
   /// Sets the log levels of the logger.
@@ -197,8 +207,10 @@ class ConsoleLogger implements LoggerService {
       return;
     }
     final logger = logging.Logger.root;
-    logger.log(logging.Level('VERBOSE', 0),
-        AugmentedMessage(message, optionalParameters));
+    logger.log(
+      logging.Level('VERBOSE', 0),
+      AugmentedMessage(message, optionalParameters),
+    );
   }
 
   @override

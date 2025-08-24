@@ -14,15 +14,15 @@ import 'headers.dart';
 import 'internal_response.dart';
 import 'session.dart';
 
+/// The UTF-8 JSON decoder.
 final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
 /// The [IncomingMessage] interface defines the methods and properties that a request must implement.
 /// It is used to parse the request and provide access to its properties.
 abstract class IncomingMessage {
-
   /// The id of the request.
   String get id;
-  
+
   /// The path of the request.
   String get path;
 
@@ -82,10 +82,12 @@ abstract class IncomingMessage {
       StreamController.broadcast(sync: true);
 
   /// This method is used to listen to a request event.
-  /// 
+  ///
   /// It provides a [RequestEvent] and a listener function that takes the event and event data.
-  void on(RequestEvent event,
-      Future<void> Function(RequestEvent, EventData) listener) {
+  void on(
+    RequestEvent event,
+    Future<void> Function(RequestEvent, EventData) listener,
+  ) {
     events.stream.listen((e) {
       if (e.$1 == event || e.$1 == RequestEvent.all) {
         listener(e.$1, e.$2);
@@ -97,7 +99,7 @@ abstract class IncomingMessage {
   bool hijacked = false;
 
   /// This method is used to emit a request event.
-  /// 
+  ///
   /// It add the event and data to the events stream and can be listened whenever the request is processed.
   void emit(RequestEvent event, EventData data) {
     events.sink.add((event, data));
@@ -127,14 +129,12 @@ abstract class IncomingMessage {
   /// The [webSocketKey] property contains the key of the web socket
   /// It is used to upgrade the request to a web socket request.
   String get webSocketKey;
-
 }
 
 /// The class Request is used to handle the request
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
 
 class InternalRequest extends IncomingMessage {
-
   @override
   final String id;
 
@@ -165,7 +165,8 @@ class InternalRequest extends IncomingMessage {
   Uint8List? _bytes;
 
   @override
-  Map<String, String> get queryParameters => original.requestedUri.queryParameters;
+  Map<String, String> get queryParameters =>
+      original.requestedUri.queryParameters;
 
   @override
   ContentType get contentType =>
@@ -180,10 +181,11 @@ class InternalRequest extends IncomingMessage {
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
   factory InternalRequest.from(HttpRequest request, int port, String host) {
     return InternalRequest(
-        headers: SerinusHeaders(request.headers.toMap()),
-        original: request,
-        port: port,
-        host: host);
+      headers: SerinusHeaders(request.headers.toMap()),
+      original: request,
+      port: port,
+      host: host,
+    );
   }
 
   @override
@@ -271,7 +273,9 @@ class InternalRequest extends IncomingMessage {
     } else if (contentType.isUrlEncoded) {
       return FormData.parseUrlEncoded(body());
     } else {
-      throw BadRequestException('The content type is not supported for form data');
+      throw BadRequestException(
+        'The content type is not supported for form data',
+      );
     }
   }
 
@@ -285,8 +289,10 @@ class InternalRequest extends IncomingMessage {
     if (connection == null) {
       return false;
     }
-    final tokens =
-        connection.toLowerCase().split(',').map((token) => token.trim());
+    final tokens = connection
+        .toLowerCase()
+        .split(',')
+        .map((token) => token.trim());
     if (!tokens.contains('upgrade')) {
       return false;
     }
@@ -306,7 +312,9 @@ class InternalRequest extends IncomingMessage {
     }
 
     if (original.protocolVersion != '1.1') {
-      throw BadRequestException('unexpected HTTP version "${original.protocolVersion}".');
+      throw BadRequestException(
+        'unexpected HTTP version "${original.protocolVersion}".',
+      );
     }
 
     final key = original.headers.value('Sec-WebSocket-Key');
@@ -318,8 +326,7 @@ class InternalRequest extends IncomingMessage {
     webSocketKey = key;
     return true;
   }
-  
+
   @override
   String get hostname => original.headers.value('Host')?.split(':').first ?? '';
-  
 }

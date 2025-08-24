@@ -5,16 +5,15 @@ import '../../http/http.dart';
 import '../../utils/wrapped_response.dart';
 import '../core.dart';
 
+/// Executes a series of middleware functions.
 class MiddlewareExecutor {
-
+  /// Executes the middleware functions in the given [middlewares] iterable.
   Future<void> execute(
     Iterable<Middleware> middlewares,
     RequestContext requestContext,
-    OutgoingMessage response,
-    {
-      required Future<void> Function(WrappedResponse data) onDataReceived,
-    }
-  ) async {
+    OutgoingMessage response, {
+    required Future<void> Function(WrappedResponse data) onDataReceived,
+  }) async {
     final completer = Completer<void>();
     if (middlewares.isEmpty) {
       return;
@@ -23,7 +22,8 @@ class MiddlewareExecutor {
       final middleware = middlewares.elementAt(i);
       await middleware.use(requestContext, ([data]) async {
         if (data != null) {
-          final responseData = data is WrappedResponse ? data : WrappedResponse(data);
+          final responseData =
+              data is WrappedResponse ? data : WrappedResponse(data);
           await onDataReceived(responseData);
           return;
         }
@@ -38,5 +38,4 @@ class MiddlewareExecutor {
     }
     return completer.future;
   }
-
 }

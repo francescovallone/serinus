@@ -3,15 +3,15 @@ import '../containers/hooks_container.dart';
 import '../containers/injection_token.dart';
 
 /// The [HandlerFunction] is a function that handles the incoming request and returns a response.
-typedef HandlerFunction = Future<void> Function(
-  IncomingMessage request,
-  OutgoingMessage response,
-  Map<String, dynamic> params,
-);
+typedef HandlerFunction =
+    Future<void> Function(
+      IncomingMessage request,
+      OutgoingMessage response,
+      Map<String, dynamic> params,
+    );
 
 /// The [RouteContext] class is used to store the context of a route.
 class RouteContext {
-  
   /// The [id] is used to uniquely identify the route.
   final String id;
 
@@ -51,6 +51,7 @@ class RouteContext {
     ...spec.route.metadata,
   ];
 
+  /// The list of pipes to be applied.
   final List<Pipe> pipes;
 
   /// The [hooksServices] is used to store the services for the hooks.
@@ -91,7 +92,6 @@ class RouteContext {
 
   /// Returns the middlewares for the route.
   Iterable<Middleware> getMiddlewares(IncomingMessage message) {
-    return moduleScope.getRouteMiddlewares(id, message);
+    return moduleScope.getRouteMiddlewares(id, message, this);
   }
-
 }

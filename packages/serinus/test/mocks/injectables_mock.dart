@@ -25,7 +25,7 @@ class TestProviderThree extends Provider {
 }
 
 class TestMiddleware extends Middleware {
-  TestMiddleware() : super(routes: ['*']);
+  TestMiddleware();
 
   @override
   Future<void> use(RequestContext context, NextFunction next) async {

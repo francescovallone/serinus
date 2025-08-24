@@ -20,7 +20,7 @@ enum RequestEvent {
   error,
 
   /// All events.
-  all
+  all,
 }
 
 /// The [EventData] class is used to store the data of an event.

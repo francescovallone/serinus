@@ -27,24 +27,27 @@ final class VersioningOptions {
   VersioningOptions({required this.type, this.version = 1, this.header}) {
     if (version < 1) {
       throw ArgumentError.value(
-          version, 'version', 'Version must be greater than 0');
+        version,
+        'version',
+        'Version must be greater than 0',
+      );
     }
     if (type == VersioningType.header && header == null) {
       throw ArgumentError.notNull('header');
     }
   }
 
+  /// Returns the version prefix for the API.
   String get versionPrefix {
     return 'v';
   }
 
+  /// Creates a new instance of [VersioningOptions] with [VersioningType.uri].
   factory VersioningOptions.uri({int version = 1}) {
-    return VersioningOptions(
-      type: VersioningType.uri,
-      version: version,
-    );
+    return VersioningOptions(type: VersioningType.uri, version: version);
   }
 
+  /// Creates a new instance of [VersioningOptions] with [VersioningType.header].
   factory VersioningOptions.header({required String header, int version = 1}) {
     return VersioningOptions(
       type: VersioningType.header,
@@ -52,7 +55,7 @@ final class VersioningOptions {
       header: header,
     );
   }
-  
+
   @override
   bool operator ==(covariant VersioningOptions other) {
     if (identical(this, other)) {
@@ -71,5 +74,4 @@ final class VersioningOptions {
   int get hashCode {
     return Object.hash(version, type, header);
   }
-
 }

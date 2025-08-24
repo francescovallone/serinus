@@ -83,9 +83,7 @@ class ClassToClassEdgeMetadata extends EdgeMetadata {
     required this.targetClassName,
     this.key,
     this.internal,
-  }) : super(
-          type: 'class_to_class',
-        );
+  }) : super(type: 'class_to_class');
 }
 
 /// A [ModuleToModuleEdgeMetadata] is a class that represents the metadata of a module to module edge in the inspector.
@@ -94,7 +92,5 @@ class ModuleToModuleEdgeMetadata extends EdgeMetadata {
   const ModuleToModuleEdgeMetadata({
     required super.sourceModuleName,
     required super.targetModuleName,
-  }) : super(
-          type: 'module_to_module',
-        );
+  }) : super(type: 'module_to_module');
 }

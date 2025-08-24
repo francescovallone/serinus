@@ -13,7 +13,6 @@ typedef NextFunction = Future<void> Function([Object? data]);
 
 /// The [Middleware] class is used to define a middleware.
 abstract class Middleware extends Processable {
-
   /// The [Middleware] constructor is used to create a new instance of the [Middleware] class.
   const Middleware();
 
@@ -27,8 +26,7 @@ abstract class Middleware extends Processable {
   /// It accepts a [shelf.Middleware] or a [shelf.Handler] object.
   ///
   /// It is used to create a middleware from a shelf middleware giving interoperability between Serinus and Shelf.
-  factory Middleware.shelf(Function handler,
-      {bool ignoreResponse = true}) {
+  factory Middleware.shelf(Function handler, {bool ignoreResponse = true}) {
     return _ShelfMiddleware(handler, ignoreResponse: ignoreResponse);
   }
 }
@@ -38,8 +36,7 @@ class _ShelfMiddleware extends Middleware {
 
   final bool ignoreResponse;
 
-  _ShelfMiddleware(this._handler,
-      {this.ignoreResponse = true});
+  _ShelfMiddleware(this._handler, {this.ignoreResponse = true});
 
   /// Most of the code has been taken from
   /// https://github.com/codekeyz/pharaoh/tree/main/packages/pharaoh/lib/src/shelf_interop
@@ -52,27 +49,30 @@ class _ShelfMiddleware extends Middleware {
     late shelf.Response shelfResponse;
     if (_handler is shelf.Middleware) {
       shelfResponse = await _handler(
-          (req) => shelf.Response.ok(context.body.toString()))(request);
+        (req) => shelf.Response.ok(context.body.toString()),
+      )(request);
     } else if (_handler is shelf.Handler) {
       shelfResponse = await _handler.call(request);
     } else {
       throw Exception('Handler must be a shelf.Middleware or a shelf.Handler');
     }
     if (ignoreResponse) {
-      context.res.headers.addAll(shelfResponse.headers);
+      context.res.addHeaders(shelfResponse.headers);
       return next();
     }
     final response = await _responseFromShelf(context, shelfResponse);
     context.res.statusCode = shelfResponse.statusCode;
-    context.res.headers.addAll(shelfResponse.headers);
+    context.res.addHeaders(shelfResponse.headers);
     return next(response);
   }
 
   Future<dynamic> _responseFromShelf(
-      RequestContext context, shelf.Response response) async {
+    RequestContext context,
+    shelf.Response response,
+  ) async {
     Map<String, String> headers = {
       for (var key in response.headers.keys)
-        key: response.headers[key].toString()
+        key: response.headers[key].toString(),
     };
     response.headers.forEach((key, value) => headers[key] = value);
     context.res.statusCode = response.statusCode;

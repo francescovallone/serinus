@@ -1,7 +1,6 @@
 import 'package:serinus/src/http/headers.dart';
 import 'package:test/test.dart';
 
-
 void main() {
   group('$SerinusHeaders', () {
     test('', () {

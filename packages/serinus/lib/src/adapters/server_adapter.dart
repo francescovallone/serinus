@@ -3,18 +3,18 @@ import 'dart:async';
 import '../../serinus.dart';
 
 /// The [RequestCallback] type is used to define the request callback.
-typedef RequestCallback<TRequest, TResponse> = Future<void> Function(
-    TRequest request, TResponse response);
+typedef RequestCallback<TRequest, TResponse> =
+    Future<void> Function(TRequest request, TResponse response);
 
 /// The [ErrorHandler] type is used to define the error handler.
-typedef ErrorHandler = Object? Function(SerinusException e, StackTrace stackTrace);
+typedef ErrorHandler =
+    Object? Function(SerinusException e, StackTrace stackTrace);
 
 /// The [NotFoundHandler] type is used to define the not found handler.
 typedef NotFoundHandler = SerinusException Function(Request request);
 
 /// The [Adapter] class is used to create a new adapter.
 abstract class Adapter<TServer> {
-
   /// The [name] property contains the name of the adapter.
   /// The name is used to identify the adapter in the application and also to understand the type of request that is being handled.
   String get name;
@@ -33,5 +33,4 @@ abstract class Adapter<TServer> {
 
   /// The [close] method is used to close the server.
   Future<void> close();
-
 }

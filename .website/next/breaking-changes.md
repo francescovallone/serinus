@@ -100,7 +100,7 @@ class AppModule extends Module {
     void configure(MiddlewareConsumer consumer) { // [!code ++]
         consumer.apply(LogMiddleware()).forRoutes([ // [!code ++]
             RouteInfo( // [!code ++]
-                path: '*' // [!code ++]
+                '*' // [!code ++]
             ) // [!code ++]
         ]); // [!code ++]
     } // [!code ++]

@@ -4,12 +4,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:shelf/shelf.dart' as s;
 
 class TestProvider extends Provider {
-  final List<String> testList = [
-    'Hello',
-    'World',
-  ];
+  final List<String> testList = ['Hello', 'World'];
 
   TestProvider();
 
@@ -66,22 +64,26 @@ class TestProviderFour extends Provider with OnApplicationInit {
 
 class CircularDependencyModule extends Module {
   CircularDependencyModule()
-      : super(imports: [], controllers: [], providers: [
-          Provider.composed((TestProvider tp) => TestProviderThree(tp),
-              inject: [TestProvider], type: TestProviderThree),
-        ], exports: [
-          TestProviderThree
-        ]);
+    : super(
+        imports: [],
+        controllers: [],
+        providers: [
+          Provider.composed(
+            (TestProvider tp) => TestProviderThree(tp),
+            inject: [TestProvider],
+            type: TestProviderThree,
+          ),
+        ],
+        exports: [TestProviderThree],
+      );
 }
 
 class AnotherController extends Controller {
-
   AnotherController() : super('/another') {
     on(Route.get('/'), (RequestContext context) {
       return 'Hello from another controller!';
     });
     on(Route.get('/<data>'), (RequestContext context) {
-      final data = context.request.params['data'];
       return context.use<GraphInspector>().toJson();
     });
     // on(
@@ -92,37 +94,20 @@ class AnotherController extends Controller {
     //   )
     // );
     on(
-      Route.post('/<data>'), 
-      _fallback,
-      pipes: [
-        BodySchemaValidationPipe(object({}).passthrough().list()),
-        TransformPipe((context) async {
-          final data = <String, dynamic>{};
-          for(final item in context.bodyAs<JsonList>().value) {
-            data.addAll(item);
-          }
-          context.body = JsonBody.fromJson(data);
-        }),
-        TransformPipe((context) async {
-          context.query.putIfAbsent('transform', () => true);
-        })
-      ]
-    );
-    on(
-      Route.all('/'), 
+      Route.all('/'),
       _fallback,
       pipes: [
         BodySchemaValidationPipe(object({}).passthrough().list()),
         TransformPipe((context) async {
           context.body = JsonBody.fromJson([
             for (var item in context.bodyAs<JsonList>().value)
-              item..['data'] = 'hello!'
+              item..['data'] = 'hello!',
           ]);
         }),
         TransformPipe((context) async {
           context.query['transform'] = 'true';
-        })
-      ]
+        }),
+      ],
     );
   }
 
@@ -130,33 +115,42 @@ class AnotherController extends Controller {
     final body = context.body;
     return 'Hello ajdaudiha! - $body - ${context.request.query} - ${context.request.params}';
   }
-
 }
 
 class AnotherModule extends Module {
   AnotherModule()
-      : super(imports: [
-          CircularDependencyModule()
-        ], controllers: [AnotherController()], providers: [
-          Provider.composed((TestProviderThree tp) => TestProviderTwo(tp),
-              inject: [TestProviderThree], type: TestProviderTwo),
+    : super(
+        imports: [CircularDependencyModule()],
+        controllers: [AnotherController()],
+        providers: [
           Provider.composed(
-              (TestProviderTwo tp, TestProviderThree t) =>
-                  TestProviderFour(t, tp),
-              inject: [TestProviderTwo, TestProviderThree],
-              type: TestProviderFour),
-        ], exports: [
-          TestProviderFour
-        ]);
+            (TestProviderThree tp) => TestProviderTwo(tp),
+            inject: [TestProviderThree],
+            type: TestProviderTwo,
+          ),
+          Provider.composed(
+            (TestProviderTwo tp, TestProviderThree t) =>
+                TestProviderFour(t, tp),
+            inject: [TestProviderTwo, TestProviderThree],
+            type: TestProviderFour,
+          ),
+        ],
+        exports: [TestProviderFour],
+      );
 
-    @override
+  @override
   void configure(MiddlewareConsumer consumer) {
     consumer.apply([LogMiddleware()]).forRoutes([
-      RouteInfo(
-        path: '/another',
-      ),
-      RouteInfo(path: '/another/hello', method: HttpMethod.get),
+      RouteInfo('/another'),
+      RouteInfo('/another/hello', method: HttpMethod.get),
     ]);
+    consumer
+        .apply([
+          Middleware.shelf((s.Request request) async {
+            return s.Response(200);
+          }),
+        ])
+        .forControllers([AnotherController]);
   }
 }
 
@@ -174,47 +168,53 @@ class WsGateway extends WebSocketGateway {
 
 class GlobalModule extends Module {
   GlobalModule()
-      : super(imports: [], controllers: [], providers: [TestProvider()], isGlobal: true);
+    : super(
+        imports: [],
+        controllers: [],
+        providers: [TestProvider()],
+        isGlobal: true,
+      );
 }
 
 class AppModule extends Module {
   AppModule()
-      : super(imports: [
+    : super(
+        imports: [
           AnotherModule(),
           WsModule(),
           SseModule(),
           GlobalModule(),
-          CircularDependencyModule()
-        ], controllers: [
-          AppController()
-        ], providers: [
-          WsGateway(),
-        ]);
+          CircularDependencyModule(),
+        ],
+        controllers: [AppController()],
+        providers: [WsGateway()],
+      );
 
   @override
   void configure(MiddlewareConsumer consumer) {
-    consumer.apply([Log2Middleware()]).forRoutes([
-      RouteInfo(
-        path: '/another',
-      ),
-      RouteInfo(path: '/another/hello', method: HttpMethod.get),
-    ]).forControllers([
-      AppController
-    ]);
+    consumer
+        .apply([Log2Middleware()])
+        .forRoutes([
+          RouteInfo('/another'),
+          RouteInfo('/another/hello', method: HttpMethod.get),
+        ])
+        .forControllers([AppController]);
   }
 }
 
 class LogMiddleware extends Middleware {
-
   final logger = Logger('LogMiddleware');
 
   @override
   Future<void> use(RequestContext context, NextFunction next) {
     context.request.on(RequestEvent.error, (event, data) async {
       logger.severe(
-          'Error occurred',
-          OptionalParameters(
-              error: data.exception, stackTrace: StackTrace.current));
+        'Error occurred',
+        OptionalParameters(
+          error: data.exception,
+          stackTrace: StackTrace.current,
+        ),
+      );
     });
     logger.info(
       'Request received: ${context.request.method} ${context.request.path}',
@@ -224,16 +224,18 @@ class LogMiddleware extends Middleware {
 }
 
 class Log2Middleware extends Middleware {
-
   final logger = Logger('Log2Middleware');
 
   @override
   Future<void> use(RequestContext context, NextFunction next) {
     context.request.on(RequestEvent.error, (event, data) async {
       logger.severe(
-          'Error occurred',
-          OptionalParameters(
-              error: data.exception, stackTrace: StackTrace.current));
+        'Error occurred',
+        OptionalParameters(
+          error: data.exception,
+          stackTrace: StackTrace.current,
+        ),
+      );
     });
     logger.info(
       'Request received: ${context.request.method} ${context.request.path}',
@@ -250,23 +252,20 @@ class AppController extends Controller with SseController {
       context.use<SseDispatcher>().send('Hello world');
       return 'Hello world!';
     });
-    onSse(
-      Route.get('/sse'), 
-      (SseContext context) async* {
-        yield 'Hello';
-        await Future.delayed(Duration(seconds: 3));
-        yield 'World';
-      }
-    );
+    onSse(Route.get('/sse'), (SseContext context) async* {
+      yield 'Hello';
+      await Future.delayed(Duration(seconds: 3));
+      yield 'World';
+    });
   }
 }
 
 void main(List<String> arguments) async {
   final application = await serinus.createApplication(
-      entrypoint: AppModule(),
-      host: InternetAddress.anyIPv4.address,
-      logger: ConsoleLogger(prefix: 'Serinus New Logger'),
-      logLevels: {LogLevel.info, LogLevel.warning, LogLevel.severe});
+    entrypoint: AppModule(),
+    host: InternetAddress.anyIPv4.address,
+    logger: ConsoleLogger(prefix: 'Serinus New Logger'),
+  );
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());
   await application.serve();

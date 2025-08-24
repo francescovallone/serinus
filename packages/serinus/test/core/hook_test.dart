@@ -25,7 +25,10 @@ class HookTest extends Hook
 
   @override
   Future<void> onResponse(
-      Request request, WrappedResponse data, ResponseContext properties) async {
+    Request request,
+    WrappedResponse data,
+    ResponseContext properties,
+  ) async {
     this.data['onResponse'] = true;
   }
 
@@ -33,18 +36,31 @@ class HookTest extends Hook
   Future<void> onException(RequestContext request, Exception exception) async {
     data['onException'] = true;
   }
-  
+
   @override
   List<Type> get exceptionTypes => [];
 }
 
-class NoOverrideHook extends Hook with OnRequest, OnResponse {}
-
-class MockRequest extends Mock implements Request {
+class NoOverrideHook extends Hook with OnRequest, OnResponse {
+  @override
+  Future<void> onRequest(Request request, ResponseContext context) async {
+    // No-op
+  }
 
   @override
+  Future<void> onResponse(
+    Request request,
+    WrappedResponse data,
+    ResponseContext properties,
+  ) async {
+    // No-op
+  }
+}
+
+class MockRequest extends Mock implements Request {
+  @override
   HttpMethod get method => HttpMethod.get;
-  
+
   final Map<String, dynamic> _data = {};
 
   @override
@@ -75,10 +91,9 @@ class HookedRoute extends Hook with OnBeforeHandle, OnAfterHandle {
 class HookRoute extends Route {
   final Map<String, dynamic> data = {};
 
-  HookRoute({super.path = '/', super.method = HttpMethod.get}){
+  HookRoute({super.path = '/', super.method = HttpMethod.get}) {
     hooks.addHook(HookedRoute());
   }
-    
 }
 
 class TestController extends Controller {
@@ -97,71 +112,89 @@ class TestModule extends Module {
 void main() {
   group('$Hook', () {
     test(
-        'if a hook is augmented and the methods are called then the data should be populated',
-        () async {
-      final hook = HookTest();
-      final context =
-          RequestContext(
-            MockRequest(),
-            {},
-            {}
-          );
-      await hook.onRequest(context.request, ResponseContext({}, {}));
-      expect(hook.data['onRequest'], true);
-      await hook.beforeHandle(context);
-      expect(hook.data['beforeHandle'], true);
-      await hook.afterHandle(context, 'response');
-      expect(hook.data['afterHandle'], true);
-      await hook.onResponse(context.request, WrappedResponse('data'), ResponseContext({}, {}));
-      expect(hook.data['onResponse'], true);
-    });
+      'if a hook is augmented and the methods are called then the data should be populated',
+      () async {
+        final hook = HookTest();
+        final context = RequestContext(MockRequest(), {}, {});
+        await hook.onRequest(context.request, ResponseContext({}, {}));
+        expect(hook.data['onRequest'], true);
+        await hook.beforeHandle(context);
+        expect(hook.data['beforeHandle'], true);
+        await hook.afterHandle(context, 'response');
+        expect(hook.data['afterHandle'], true);
+        await hook.onResponse(
+          context.request,
+          WrappedResponse('data'),
+          ResponseContext({}, {}),
+        );
+        expect(hook.data['onResponse'], true);
+      },
+    );
   });
 
   group('$Hookable', () {
     test(
-        'if a hook or a route are augmented and the methods are called then the data should be populated',
-        () async {
-      final route = HookRoute();
-      final app = await serinus.createApplication(
+      'if a hook or a route are augmented and the methods are called then the data should be populated',
+      () async {
+        final route = HookRoute();
+        final app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController(route)]),
           port: 9000,
-          logLevels: {LogLevel.none});
-      final hook = HookTest();
-      app.use(hook);
-      app.use(NoOverrideHook());
-      await app.serve();
-      final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:9000'));
-      final response = await request.close();
-      expect(response.statusCode, 200);
-      await app.close();
-      expect(route.hooks.beforeHooks.whereType<HookedRoute>().first.data['beforeHandle-route'], true);
-      expect(route.hooks.afterHooks.whereType<HookedRoute>().last.data['afterHandle-route'], true);
-      expect(hook.data['onRequest'], true);
-      expect(hook.data['beforeHandle'], true);
-      expect(hook.data['afterHandle'], true);
-      expect(hook.data['onResponse'], true);
-    });
+          logLevels: {LogLevel.none},
+        );
+        final hook = HookTest();
+        app.use(hook);
+        app.use(NoOverrideHook());
+        await app.serve();
+        final request = await HttpClient().getUrl(
+          Uri.parse('http://localhost:9000'),
+        );
+        final response = await request.close();
+        expect(response.statusCode, 200);
+        await app.close();
+        expect(
+          route.hooks.beforeHooks
+              .whereType<HookedRoute>()
+              .first
+              .data['beforeHandle-route'],
+          true,
+        );
+        expect(
+          route.hooks.afterHooks
+              .whereType<HookedRoute>()
+              .last
+              .data['afterHandle-route'],
+          true,
+        );
+        expect(hook.data['onRequest'], true);
+        expect(hook.data['beforeHandle'], true);
+        expect(hook.data['afterHandle'], true);
+        expect(hook.data['onResponse'], true);
+      },
+    );
 
     test(
-        'if a hook is augmented with onException and an exception is thrown then the onException method should be called',
-        () async {
-      final route = HookRoute();
-      final app = await serinus.createApplication(
+      'if a hook is augmented with onException and an exception is thrown then the onException method should be called',
+      () async {
+        final route = HookRoute();
+        final app = await serinus.createApplication(
           entrypoint: TestModule(controllers: [TestController(route)]),
           port: 9101,
-          logLevels: {LogLevel.none});
-      final hook = HookTest();
-      app.use(hook);
-      app.use(NoOverrideHook());
-      await app.serve();
-      final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:9101/error'));
-      final response = await request.close();
-      expect(response.statusCode, 404);
-      await app.close();
-      expect(hook.data['onException'], true);
-      expect(hook.data['onResponse'], true);
-    });
+          logLevels: {LogLevel.none},
+        );
+        final hook = HookTest();
+        app.use(hook);
+        app.use(NoOverrideHook());
+        await app.serve();
+        final request = await HttpClient().getUrl(
+          Uri.parse('http://localhost:9101/error'),
+        );
+        final response = await request.close();
+        expect(response.statusCode, 404);
+        await app.close();
+        expect(hook.data['onException'], true);
+        expect(hook.data['onResponse'], true);
+      },
+    );
   });
 }

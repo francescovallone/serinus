@@ -25,7 +25,7 @@ abstract class WebSocketGateway extends Provider {
   ///
   /// If the path is not provided, the WebSocketGateway will be available at the root path.
   final String? path;
-  
+
   /// The [port] property contains the port of the WebSocketGateway.
   final int? port;
 

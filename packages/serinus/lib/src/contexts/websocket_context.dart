@@ -5,7 +5,6 @@ import 'request_context.dart';
 
 /// The [WebSocketContext] class is used to create a new web socket context.
 class WebSocketContext extends RequestContext {
-
   /// The [clientId] property contains the client ID of the WebSocket.
   final String clientId;
 
@@ -13,11 +12,11 @@ class WebSocketContext extends RequestContext {
 
   /// The [WebSocketContext] constructor is used to create a new instance of the [WebSocketContext] class.
   WebSocketContext(
-    super.request, 
-    this.clientId, 
-    super.providers, 
-    super.hooksServices, 
-    this._adapter, 
+    super.request,
+    this.clientId,
+    super.providers,
+    super.hooksServices,
+    this._adapter,
   );
 
   /// The [sendText] method is used to send a text message to the client.
@@ -69,5 +68,4 @@ class WebSocketContext extends RequestContext {
       throw ArgumentError('Unsupported data type: ${data.runtimeType}');
     }
   }
-
 }

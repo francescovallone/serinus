@@ -47,8 +47,8 @@ abstract class ParseSchema<R, BodyType, MapType> {
 
 /// The [AcanthisParseSchema] class is used to define the schema of the parsing process using the [Acanthis] library.
 @Deprecated('Use pipes instead')
-class AcanthisParseSchema extends ParseSchema<AcanthisParseResult, AcanthisType, AcanthisMap> {
-
+class AcanthisParseSchema
+    extends ParseSchema<Map<String, dynamic>, AcanthisType, AcanthisMap> {
   /// The [AcanthisParseSchema] constructor is used to create a new instance of the [AcanthisParseSchema] class.
   const AcanthisParseSchema({
     super.body,
@@ -60,69 +60,58 @@ class AcanthisParseSchema extends ParseSchema<AcanthisParseResult, AcanthisType,
   });
 
   @override
-  Future<AcanthisParseResult> tryParse({
+  Future<Map<String, dynamic>> tryParse({
     Object? bodyValue,
     Map<String, dynamic>? queryValue,
     Map<String, dynamic>? paramsValue,
     Map<String, dynamic>? headersValue,
     Map<String, dynamic>? sessionValue,
   }) async {
-    final AcanthisParseResult result = AcanthisParseResult();
-    if(body != null) {
-      final value = body!.tryParse(bodyValue);
-      result.body = value.value;
-      if(value.errors.isNotEmpty) {
-        throw error?.call(value.errors) ?? BadRequestException('Body value is invalid');
+    final Map<String, dynamic> result = {};
+    if (body != null) {
+      try {
+        final value = body!.tryParse(bodyValue);
+        result['body'] = value.value;
+        if (value.errors.isNotEmpty) {
+          throw error?.call(value.errors) ??
+              BadRequestException('Body value is invalid');
+        }
+      } catch (e) {
+        throw PreconditionFailedException('Body value is invalid');
       }
     }
-    if(query != null) {
+    if (query != null) {
       final value = query!.tryParse(queryValue ?? {});
-      result.query = value.value;
-      if(value.errors.isNotEmpty) {
-        throw error?.call(value.errors) ?? BadRequestException('Query value is invalid');
+      result['query'] = value.value;
+      if (value.errors.isNotEmpty) {
+        throw error?.call(value.errors) ??
+            BadRequestException('Query value is invalid');
       }
     }
-    if(params != null) {
+    if (params != null) {
       final value = params!.tryParse(paramsValue ?? {});
-      result.params = value.value;
-      if(value.errors.isNotEmpty) {
-        throw error?.call(value.errors) ?? BadRequestException('Params value is invalid');
+      result['params'] = value.value;
+      if (value.errors.isNotEmpty) {
+        throw error?.call(value.errors) ??
+            BadRequestException('Params value is invalid');
       }
     }
-    if(headers != null) {
+    if (headers != null) {
       final value = headers!.tryParse(headersValue ?? {});
-      result.headers = value.value;
-      if(value.errors.isNotEmpty) {
-        throw error?.call(value.errors) ?? BadRequestException('Headers value is invalid');
+      result['headers'] = value.value;
+      if (value.errors.isNotEmpty) {
+        throw error?.call(value.errors) ??
+            BadRequestException('Headers value is invalid');
       }
     }
-    if(session != null) {
+    if (session != null) {
       final value = session!.tryParse(sessionValue ?? {});
-      result.session = value.value;
-      if(value.errors.isNotEmpty) {
-        throw error?.call(value.errors) ?? BadRequestException('Session value is invalid');
+      result['session'] = value.value;
+      if (value.errors.isNotEmpty) {
+        throw error?.call(value.errors) ??
+            BadRequestException('Session value is invalid');
       }
     }
     return result;
   }
-}
-
-class AcanthisParseResult {
-  Object? body;
-
-  Map<String, dynamic>? query;
-
-  Map<String, dynamic>? params;
-
-  Map<String, dynamic>? headers;
-
-  Map<String, dynamic>? session;
-
-  AcanthisParseResult({
-    this.body,
-    this.query,
-    this.params,
-    this.headers,
-    this.session,
-  });
 }

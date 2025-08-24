@@ -13,7 +13,6 @@ import 'router.dart';
 
 /// The [RoutesExplorer] class is used to explore the routes of the application.
 final class RoutesExplorer {
-
   final SerinusContainer _container;
 
   final Router _router;
@@ -28,7 +27,13 @@ final class RoutesExplorer {
   /// It is used to get the global prefix and the versioning options.
 
   /// The [RoutesExplorer] constructor is used to create a new instance of the [RoutesExplorer] class.
-  const RoutesExplorer(this._container, this._router, this._routeExecutionContext, [this._versioningOptions, this._globalPrefix]);
+  const RoutesExplorer(
+    this._container,
+    this._router,
+    this._routeExecutionContext, [
+    this._versioningOptions,
+    this._globalPrefix,
+  ]);
 
   /// The [resolveRoutes] method is used to resolve the routes of the application.
   ///
@@ -37,16 +42,17 @@ final class RoutesExplorer {
     final Logger logger = Logger('RoutesResolver');
     Map<Controller, _ControllerSpec> controllers = {
       for (final record in _container.modulesContainer.controllers)
-        record.controller:
-            _ControllerSpec(record.controller.path, record.module)
+        record.controller: _ControllerSpec(
+          record.controller.path,
+          record.module,
+        ),
     };
     for (var controller in controllers.entries) {
       if (controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))) {
         throw Exception('Invalid controller path: ${controller.value.path}');
       }
       logger.info('${controller.key.runtimeType} {${controller.value.path}}');
-      explore(
-          controller.key, controller.value.module, controller.value.path);
+      explore(controller.key, controller.value.module, controller.value.path);
     }
   }
 
@@ -54,11 +60,7 @@ final class RoutesExplorer {
   ///
   /// It registers the routes in the router.
   /// It also logs the mapped routes.
-  void explore(
-    Controller controller,
-    Module module,
-    String controllerPath,
-  ) {
+  void explore(Controller controller, Module module, String controllerPath) {
     final logger = Logger('RoutesExplorer');
     final routes = controller.routes;
     final versioningEnabled = _versioningOptions?.type == VersioningType.uri;
@@ -66,7 +68,8 @@ final class RoutesExplorer {
       final spec = entry.value;
       String routePath = '$controllerPath${spec.route.path}';
       if (versioningEnabled) {
-        routePath ='${_versioningOptions?.versionPrefix}${spec.route.version ?? controller.version ?? _versioningOptions?.version}/$routePath';
+        routePath =
+            '${_versioningOptions?.versionPrefix}${spec.route.version ?? controller.version ?? _versioningOptions?.version}/$routePath';
       }
       if (_globalPrefix != null) {
         routePath = '${_globalPrefix.prefix}/$routePath';
@@ -75,12 +78,11 @@ final class RoutesExplorer {
       final moduleToken = InjectionToken.fromModule(module);
       final moduleScope = _container.modulesContainer.getScope(moduleToken);
       final routeMethod = spec.route.method;
-      final mergedContainer = HooksContainer()
-          .merge([
-            _container.config.globalHooks,
-            controller.hooks,
-            spec.route.hooks
-          ]);
+      final mergedContainer = HooksContainer().merge([
+        _container.config.globalHooks,
+        controller.hooks,
+        spec.route.hooks,
+      ]);
       final context = RouteContext(
         id: entry.key,
         path: routePath,
@@ -97,11 +99,15 @@ final class RoutesExplorer {
           ...controller.pipes,
           ...spec.pipes,
           ..._container.config.globalPipes,
-        ]
+        ],
       );
       _router.registerRoute(
         context: context,
-        handler: _routeExecutionContext.describe(context, errorHandler: _container.config.errorHandler, rawBody: _container.applicationRef.rawBody),
+        handler: _routeExecutionContext.describe(
+          context,
+          errorHandler: _container.config.errorHandler,
+          rawBody: _container.applicationRef.rawBody,
+        ),
       );
       logger.info('Mapped {$routePath, $routeMethod} route');
     }
@@ -123,14 +129,17 @@ final class RoutesExplorer {
   ///
   /// Returns a [RouteContext] and the handler function if the route exists,
   /// otherwise returns null.
-  ({({RouteContext route, HandlerFunction handler})? spec, Map<String, dynamic> params})? getRoute(String path, HttpMethod method) {
+  ({
+    ({RouteContext route, HandlerFunction handler})? spec,
+    Map<String, dynamic> params,
+  })?
+  getRoute(String path, HttpMethod method) {
     final result = _router.checkRouteByPathAndMethod(path, method);
     if (result.spec == null) {
       return null;
     }
     return result;
   }
-
 }
 
 class _ControllerSpec {

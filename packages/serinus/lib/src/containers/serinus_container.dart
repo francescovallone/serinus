@@ -6,7 +6,6 @@ import 'module_container.dart';
 
 /// The [SerinusContainer] is the main container of the Serinus Framework.
 class SerinusContainer {
-
   /// The [modulesContainer] behaves as a DI Container for the Serinus Framework.
   /// It contains all the modules and their dependencies and it is responsible for
   /// resolving the dependencies and providing them to the application.
@@ -53,5 +52,4 @@ class SerinusContainer {
       }
     }
   }
-
 }

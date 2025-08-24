@@ -14,11 +14,7 @@ class Route {
   int? get version => null;
 
   /// The [Route] constructor is used to create a new instance of the [Route] class.
-  Route({
-    required this.path,
-    required this.method,
-    this.metadata = const [],
-  });
+  Route({required this.path, required this.method, this.metadata = const []});
 
   /// The [metadata] getter is used to get the List of [Metadata] of the route.
   final List<Metadata> metadata;
@@ -53,7 +49,7 @@ class Route {
 
   /// The [Route.all] factory constructor is used to create a new instance of the [Route] class with the ALL method.
   factory Route.all(String path, {List<Metadata> metadata = const []}) {
-    if(path.contains('<')) {
+    if (path.contains('<')) {
       throw ArgumentError('"ALL" route cannot contain path parameters');
     }
     return Route(path: path, method: HttpMethod.all, metadata: metadata);

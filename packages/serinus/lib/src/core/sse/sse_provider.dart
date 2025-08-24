@@ -16,10 +16,7 @@ class SseDispatcher extends Provider {
   /// This method is used to send data to the client.
   /// The [data] parameter is the data to be sent.
   @nonVirtual
-  void send(
-    String data,
-    {String? clientId}
-  ) {
+  void send(String data, {String? clientId}) {
     _adapter.send(data, clientId);
   }
 }

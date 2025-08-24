@@ -4,7 +4,6 @@
 /// The fetch of a header is lazy since it will get the
 /// value only if requested otherwise will not copy it.
 class SerinusHeaders<T> {
-
   final Map<String, String> _requestHeaders = {};
 
   /// The [values] currently available
@@ -36,7 +35,7 @@ class SerinusHeaders<T> {
   /// The [asMap] method is used to get the headers as a map.
   Map<String, String> asMap() {
     return Map.unmodifiable(values);
-  } 
+  }
 
   /// The [addAll] method is used to add all the values available in the [headers] parameter.
   void addAll(Map<String, String> headers) {
@@ -44,7 +43,7 @@ class SerinusHeaders<T> {
   }
 
   /// Operator to assign to a [key] a [value]
-  operator []=(String key, String value) {
+  void operator []=(String key, String value) {
     values[key] = value;
   }
 

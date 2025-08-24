@@ -18,7 +18,8 @@ import 'server_adapter.dart';
 /// - [host]: The host of the server.
 /// - [port]: The port of the server.
 /// - [poweredByHeader]: The powered by header.
-abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer> {
+abstract class HttpAdapter<TServer, TRequest, TResponse>
+    extends Adapter<TServer> {
   /// The [host] property contains the host of the server.
   final String host;
 
@@ -46,7 +47,8 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
   /// By default, it is set to false, meaning the framework will try to parse the body.
   bool rawBody;
 
-  final StreamController<ServerEvent> _eventsController = StreamController<ServerEvent>.broadcast();
+  final StreamController<ServerEvent> _eventsController =
+      StreamController<ServerEvent>.broadcast();
 
   /// The [events] property is a stream of [ServerEvent] that allows listening to server events.
   Stream<ServerEvent> get events => _eventsController.stream;
@@ -58,8 +60,16 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
   }
 
   /// The [HttpAdapter] constructor is used to create a new instance of the [HttpAdapter] class.
-  HttpAdapter(
-      {required this.host, required this.port, required this.poweredByHeader, this.securityContext, this.preserveHeaderCase = true, this.viewEngine, this.notFoundHandler, this.rawBody = false});
+  HttpAdapter({
+    required this.host,
+    required this.port,
+    required this.poweredByHeader,
+    this.securityContext,
+    this.preserveHeaderCase = true,
+    this.viewEngine,
+    this.notFoundHandler,
+    this.rawBody = false,
+  });
 
   @override
   Future<void> init(ApplicationConfig config);
@@ -69,13 +79,11 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
 
   /// The [listen] method is used to listen for incoming requests.
   /// It takes a [RequestCallback] function that will be called for each incoming request.
-  Future<void> listen(
-    {
-      required RequestCallback<TRequest, TResponse> onRequest,
-      ErrorHandler? onError,
-    }
-  );
-  
+  Future<void> listen({
+    required RequestCallback<TRequest, TResponse> onRequest,
+    ErrorHandler? onError,
+  });
+
   /// The [reply] method is used to send a response to the client.
   /// It takes the [response], [body], [context], and [config] as parameters.
   Future<void> reply(
@@ -94,6 +102,9 @@ abstract class HttpAdapter<TServer, TRequest, TResponse> extends Adapter<TServer
 
   /// The [render] method is used to render a view and send it as a response.
   /// It takes the [response], [view], and [properties] as parameters.
-  Future<void> render(TResponse response, View view, ResponseContext properties);
-
+  Future<void> render(
+    TResponse response,
+    View view,
+    ResponseContext properties,
+  );
 }

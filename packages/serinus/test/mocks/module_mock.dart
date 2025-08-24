@@ -9,33 +9,17 @@ class SimpleMockModule extends Module {
 }
 
 class SimpleModule extends Module {
-  SimpleModule()
-      : super(
-          controllers: [],
-          providers: [],
-          exports: [],
-          middlewares: [],
-        );
+  SimpleModule() : super(controllers: [], providers: [], exports: []);
 }
 
 class SimpleModuleWithProvider extends Module {
   SimpleModuleWithProvider()
-      : super(
-          controllers: [],
-          providers: [TestProvider()],
-          exports: [],
-          middlewares: [],
-        );
+    : super(controllers: [], providers: [TestProvider()], exports: []);
 }
 
 class SimpleModuleWithInjectables extends Module {
   SimpleModuleWithInjectables()
-      : super(
-          controllers: [],
-          providers: [TestProvider()],
-          exports: [],
-          middlewares: [TestMiddleware()],
-        );
+    : super(controllers: [], providers: [TestProvider()], exports: []);
 }
 
 class TestGlobalProvider extends Provider {
@@ -50,55 +34,52 @@ class TestGlobalProviderWithDeps extends Provider {
 
 class ImportableModuleWithProvider extends Module {
   ImportableModuleWithProvider()
-      : super(
-          imports: [ImportableModuleWithNonExportedProvider()],
-          controllers: [],
-          providers: [
-            Provider.composed(
-              () => TestProviderTwo(),
-              inject: [],
-              type: TestProviderTwo,
-            ),
-            Provider.composed(
-              (TestProviderTwo p) => TestGlobalProviderWithDeps(p),
-              inject: [TestProviderTwo],
-              type: TestGlobalProviderWithDeps,
-            )
-          ],
-          exports: [TestProviderTwo],
-          middlewares: [],
-          isGlobal: true
-        );
+    : super(
+        imports: [ImportableModuleWithNonExportedProvider()],
+        controllers: [],
+        providers: [
+          Provider.composed(
+            () => TestProviderTwo(),
+            inject: [],
+            type: TestProviderTwo,
+          ),
+          Provider.composed(
+            (TestProviderTwo p) => TestGlobalProviderWithDeps(p),
+            inject: [TestProviderTwo],
+            type: TestGlobalProviderWithDeps,
+          ),
+        ],
+        exports: [TestProviderTwo],
+        isGlobal: true,
+      );
 }
 
 class ImportableModuleWithNonExportedProvider extends Module {
   ImportableModuleWithNonExportedProvider()
-      : super(
-          imports: [],
-          controllers: [],
-          providers: [TestProviderThree()],
-          exports: [],
-          middlewares: [],
-        );
+    : super(
+        imports: [],
+        controllers: [],
+        providers: [TestProviderThree()],
+        exports: [],
+      );
 }
 
 class SimpleModuleWithImportsAndInjects extends Module {
   SimpleModuleWithImportsAndInjects()
-      : super(
-          imports: [ImportableModuleWithProvider()],
-          controllers: [],
-          providers: [TestProvider()],
-          exports: [],
-          middlewares: [TestMiddleware()],
-        );
+    : super(
+        imports: [ImportableModuleWithProvider()],
+        controllers: [],
+        providers: [TestProvider()],
+        exports: [],
+      );
 }
 
 class SimpleModuleWithGlobal extends Module {
   SimpleModuleWithGlobal()
-      : super(
-          controllers: [],
-          providers: [TestGlobalProvider()],
-          exports: [],
-          isGlobal: true
-        );
+    : super(
+        controllers: [],
+        providers: [TestGlobalProvider()],
+        exports: [],
+        isGlobal: true,
+      );
 }

@@ -3,7 +3,6 @@ import '../adapters/adapters.dart';
 /// The [AdapterContainer] class is used to manage adapters in the application.
 /// It allows adding, retrieving, and checking the existence of adapters by their name.
 class AdapterContainer {
-
   final Map<String, Adapter> _adapters = {};
 
   /// Adds an adapter to the container.
@@ -31,5 +30,4 @@ class AdapterContainer {
     }
     return adapter as T;
   }
-
 }

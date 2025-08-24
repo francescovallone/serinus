@@ -23,7 +23,6 @@ import 'route_response_controller.dart';
 /// The [RouteExecutionContext] class is used to handle the execution context of a route.
 /// It provides methods to handle requests, responses, and errors.
 class RouteExecutionContext {
-
   /// The [RouteResponseController] is used to handle responses for routes.
   /// It provides methods to send responses, redirect, and render views.
   final RouteResponseController _responseController;
@@ -38,7 +37,11 @@ class RouteExecutionContext {
 
   /// The [RouteExecutionContext] constructor is used to create a new instance of the [RouteExecutionContext] class.
   /// It takes a [RouteResponseController] and optional parameters for [modelProvider] and [viewEngine].
-  const RouteExecutionContext(this._responseController, {this.modelProvider, this.viewEngine});
+  const RouteExecutionContext(
+    this._responseController, {
+    this.modelProvider,
+    this.viewEngine,
+  });
 
   /// The [describe] method is used to describe the route execution context.
   /// It returns a [HandlerFunction] that can be used to handle the request and response.
@@ -46,13 +49,15 @@ class RouteExecutionContext {
   /// The [errorHandler] is used to handle errors that occur during the request processing.
   /// The [rawBody] parameter indicates whether the body should be treated as raw binary data
   HandlerFunction describe(
-    RouteContext context,
-    {
-      ErrorHandler? errorHandler,
-      bool rawBody = false
-    }
-  ) {
-    return (IncomingMessage request, OutgoingMessage response, Map<String, dynamic> params) async {
+    RouteContext context, {
+    ErrorHandler? errorHandler,
+    bool rawBody = false,
+  }) {
+    return (
+      IncomingMessage request,
+      OutgoingMessage response,
+      Map<String, dynamic> params,
+    ) async {
       RequestContext? requestContext;
       try {
         final currentProperties = ResponseContext({}, {});
@@ -61,13 +66,21 @@ class RouteExecutionContext {
         for (final hook in context.hooksContainer.reqHooks) {
           await hook.onRequest(wrappedRequest, currentProperties);
           if (currentProperties.closed) {
-            await _responseController.sendResponse(response, WrappedResponse(null), currentProperties, viewEngine: viewEngine);
+            await _responseController.sendResponse(
+              response,
+              WrappedResponse(null),
+              currentProperties,
+              viewEngine: viewEngine,
+            );
             return;
           }
         }
-        final requestContext = RequestContext.fromRouteContext(wrappedRequest, context);
+        final requestContext = RequestContext.fromRouteContext(
+          wrappedRequest,
+          context,
+        );
         requestContext.metadata = await context.initMetadata(requestContext);
-        if(context.schema != null) {
+        if (context.schema != null) {
           final schema = context.schema!;
           final Map<String, dynamic> toParse = {};
           if (schema.body != null) {
@@ -82,7 +95,7 @@ class RouteExecutionContext {
           if (schema.headers != null) {
             toParse['headers'] = {
               for (final key in schema.headers!.fields.keys)
-                key: requestContext.request.headers[key]
+                key: requestContext.request.headers[key],
             };
           }
           if (schema.session != null) {
@@ -92,35 +105,38 @@ class RouteExecutionContext {
             bodyValue: toParse['body'],
             queryValue: toParse['query'],
             paramsValue: toParse['params'],
-            headersValue: toParse['headers'],
-            sessionValue: toParse['session'],
+            headersValue: Map<String, dynamic>.from(toParse['headers'] ?? {}),
+            sessionValue: Map<String, dynamic>.from(toParse['session'] ?? {}),
           );
-          requestContext.request.headers.addAll(result['headers'] ?? <String, String>{});
+          requestContext.request.headers.addAll(
+            result['headers'] ?? <String, String>{},
+          );
           requestContext.request.params.addAll(result['params'] ?? {});
           requestContext.request.query.addAll(result['query'] ?? {});
-          requestContext.body = result.containsKey('body') && result['body'] != null ? JsonBody.fromJson(result['body'] ?? {}) : requestContext.body;
+          requestContext.body =
+              result.containsKey('body') && result['body'] != null
+                  ? JsonBody.fromJson(result['body'] ?? {})
+                  : requestContext.body;
         }
         if (context.pipes.isNotEmpty) {
           for (final pipe in context.pipes) {
             await pipe.transform(requestContext);
           }
         }
-        if(!rawBody) {
-          requestContext.body = resolveBody(context.spec.body, requestContext) ?? requestContext.body;
+        if (!rawBody) {
+          requestContext.body =
+              resolveBody(context.spec.body, requestContext) ??
+              requestContext.body;
         }
         final middlewares = context.getMiddlewares(request);
         if (middlewares.isNotEmpty) {
           final executor = MiddlewareExecutor();
           await executor.execute(
-            middlewares, 
-            requestContext, 
+            middlewares,
+            requestContext,
             response,
             onDataReceived: (data) async {
-              await _executeOnResponse(
-                context,
-                requestContext,
-                data,
-              );
+              await _executeOnResponse(context, requestContext, data);
               data = _processResult(data, requestContext);
               request.emit(
                 RequestEvent.data,
@@ -135,9 +151,13 @@ class RouteExecutionContext {
               request.emit(
                 RequestEvent.close,
                 EventData(
-                    data: data,
-                    properties: requestContext.res
-                      ..headers.addAll((response.currentHeaders as HttpHeaders).toMap())),
+                  data: data,
+                  properties:
+                      requestContext.res
+                        ..headers.addAll(
+                          (response.currentHeaders as HttpHeaders).toMap(),
+                        ),
+                ),
               );
             },
           );
@@ -163,7 +183,7 @@ class RouteExecutionContext {
             handlerResult = Function.apply(handler, [
               requestContext,
               if (context.spec.body != null) requestContext.body.value,
-              ...requestContext.params.values
+              ...requestContext.params.values,
             ]);
             if (handlerResult is Future) {
               handlerResult = await handlerResult;
@@ -175,14 +195,52 @@ class RouteExecutionContext {
         await _executeOnResponse(context, requestContext, responseData);
         WrappedResponse result = _processResult(responseData, requestContext);
         if (result.data is View) {
+          request.emit(
+            RequestEvent.data,
+            EventData(data: result.data, properties: requestContext.res),
+          );
+          request.emit(
+            RequestEvent.close,
+            EventData(
+              data: result.data,
+              properties:
+                  requestContext.res
+                    ..headers.addAll(
+                      (response.currentHeaders as HttpHeaders).toMap(),
+                    ),
+            ),
+          );
           await _responseController.render(
             response,
             result.data as View,
             requestContext.res,
           );
-        } else if(result.data is Redirect) {
-          await _responseController.redirect(response, result.data as Redirect, requestContext.res);
+        } else if (result.data is Redirect) {
+          request.emit(
+            RequestEvent.redirect,
+            EventData(data: result.data, properties: requestContext.res),
+          );
+          await _responseController.redirect(
+            response,
+            result.data as Redirect,
+            requestContext.res,
+          );
         } else {
+          request.emit(
+            RequestEvent.data,
+            EventData(data: result.data, properties: requestContext.res),
+          );
+          request.emit(
+            RequestEvent.close,
+            EventData(
+              data: result.data,
+              properties:
+                  requestContext.res
+                    ..headers.addAll(
+                      (response.currentHeaders as HttpHeaders).toMap(),
+                    ),
+            ),
+          );
           await _responseController.sendResponse(
             response,
             result,
@@ -191,29 +249,24 @@ class RouteExecutionContext {
           );
         }
       } on SerinusException catch (e, stackTrace) {
-        final currentReqContext = requestContext ?? RequestContext(
-          Request(request),
-          {
-            for (final provider in context.moduleScope.unifiedProviders)
-              provider.runtimeType: provider
-          },
-          context.hooksContainer.services
-        );
+        final currentReqContext =
+            requestContext ??
+            RequestContext(Request(request), {
+              for (final provider in context.moduleScope.unifiedProviders)
+                provider.runtimeType: provider,
+            }, context.hooksContainer.services);
         currentReqContext.res.statusCode = e.statusCode;
         currentReqContext.res.contentType = ContentType.json;
         request.emit(
-          RequestEvent.error, 
-          EventData(
-            data: e,
-            properties: currentReqContext.res
-          )
+          RequestEvent.error,
+          EventData(data: e, properties: currentReqContext.res),
         );
-        await _executeOnException(
-          currentReqContext,
+        await _executeOnException(currentReqContext, context, e);
+        await _executeOnResponse(
           context,
-          e
+          currentReqContext,
+          WrappedResponse(e),
         );
-        await _executeOnResponse(context, currentReqContext, WrappedResponse(e));
         if (errorHandler != null) {
           final errorResponse = errorHandler(e, stackTrace);
           if (errorResponse != null) {
@@ -242,7 +295,8 @@ class RouteExecutionContext {
     SerinusException exception,
   ) async {
     for (final hook in context.hooksContainer.exceptionHooks) {
-      if (hook.exceptionTypes.contains(exception.runtimeType) || hook.exceptionTypes.isEmpty) {
+      if (hook.exceptionTypes.contains(exception.runtimeType) ||
+          hook.exceptionTypes.isEmpty) {
         await hook.onException(requestContext, exception);
       }
     }
@@ -257,32 +311,41 @@ class RouteExecutionContext {
       await hook.afterHandle(requestContext, response);
     }
     if (context.spec.route is OnAfterHandle) {
-      await (context.spec.route as OnAfterHandle)
-          .afterHandle(requestContext, response);
+      await (context.spec.route as OnAfterHandle).afterHandle(
+        requestContext,
+        response,
+      );
     }
   }
 
-  Future<void> _executeBeforeHandle(RequestContext requestContext, RouteContext context) async {
+  Future<void> _executeBeforeHandle(
+    RequestContext requestContext,
+    RouteContext context,
+  ) async {
     for (final hook in context.hooksContainer.beforeHooks) {
       await hook.beforeHandle(requestContext);
     }
-    if(context.spec.route is OnBeforeHandle) {
+    if (context.spec.route is OnBeforeHandle) {
       await (context.spec.route as OnBeforeHandle).beforeHandle(requestContext);
     }
   }
 
   WrappedResponse _processResult(
-      WrappedResponse result, RequestContext context) {
+    WrappedResponse result,
+    RequestContext context,
+  ) {
     Object? responseData;
-    if(result.data == null) {
+    if (result.data == null) {
       return result;
     }
     if (result.data?.canBeJson() ?? false) {
-      responseData =
-          JsonUtf8Encoder().convert(parseJsonToResponse(result.data, modelProvider));
+      responseData = JsonUtf8Encoder().convert(
+        parseJsonToResponse(result.data, modelProvider),
+      );
       context.res.contentType ??= ContentType.json;
     }
-    if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType) ?? false) {
+    if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType) ??
+        false) {
       responseData = JsonUtf8Encoder().convert(modelProvider?.to(result.data));
       context.res.contentType ??= ContentType.json;
     }
@@ -299,16 +362,17 @@ class RouteExecutionContext {
     WrappedResponse responseData,
   ) async {
     for (final hook in context.hooksContainer.resHooks) {
-      await hook.onResponse(requestContext.request, responseData, requestContext.res);
+      await hook.onResponse(
+        requestContext.request,
+        responseData,
+        requestContext.res,
+      );
     }
   }
 
   /// The [resolveBody] method is used to resolve the body of the request based on the expected type.
   /// It checks the type of the body and returns the appropriate value.
-  dynamic resolveBody(
-    dynamic body,
-    RequestContext context,
-  ) {
+  dynamic resolveBody(dynamic body, RequestContext context) {
     if (body == null) {
       return null;
     }
@@ -348,7 +412,9 @@ class RouteExecutionContext {
         if (requestBody is FormDataBody) {
           return modelProvider!.from(body, {
             ...requestBody.asMap(),
-            ...Map<String, dynamic>.fromEntries(requestBody.value.files.entries)
+            ...Map<String, dynamic>.fromEntries(
+              requestBody.value.files.entries,
+            ),
           });
         }
         if (requestBody is JsonBody) {
@@ -361,10 +427,11 @@ class RouteExecutionContext {
           }
         }
       } catch (e) {
-        throw PreconditionFailedException('The body cannot be converted to a valid model');
+        throw PreconditionFailedException(
+          'The body cannot be converted to a valid model',
+        );
       }
     }
     throw PreconditionFailedException('The body type is not supported: $body');
   }
-
 }

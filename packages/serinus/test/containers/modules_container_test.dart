@@ -7,7 +7,6 @@ import '../mocks/injectables_mock.dart';
 import '../mocks/module_mock.dart';
 
 class _MockAdapter extends Mock implements HttpAdapter {
-
   @override
   String get name => 'http';
 }
@@ -17,108 +16,135 @@ final config = ApplicationConfig(serverAdapter: _MockAdapter());
 void main() {
   group('$ModulesContainer', () {
     test(
-        'registerModules should register a module in the container and store it in the modules list',
-        () async {
-      Logger.setLogLevels({LogLevel.none});
-      final container = ModulesContainer(config);
-      final module = SimpleModule();
-      await container.registerModules(module);
-      expect(container.scopes.length, 1);
-    });
+      'registerModules should register a module in the container and store it in the modules list',
+      () async {
+        Logger.setLogLevels({LogLevel.none});
+        final container = ModulesContainer(config);
+        final module = SimpleModule();
+        await container.registerModules(module);
+        expect(container.scopes.length, 1);
+      },
+    );
 
     test(
-        'registerModules should skip registering a module if it is already registered',
-        () async {
-      Logger.setLogLevels({LogLevel.none});
-      final container = ModulesContainer(config);
-      final module = SimpleModule();
-      await container.registerModules(module);
-      await container.registerModules(module);
-      expect(container.scopes.length, 1);
-    });
+      'registerModules should skip registering a module if it is already registered',
+      () async {
+        Logger.setLogLevels({LogLevel.none});
+        final container = ModulesContainer(config);
+        final module = SimpleModule();
+        await container.registerModules(module);
+        await container.registerModules(module);
+        expect(container.scopes.length, 1);
+      },
+    );
 
     test(
-        'registerModules should register a module and create a [ModuleScope] with the providers',
-        () async {
-      final container = ModulesContainer(config);
-      final module = SimpleModuleWithProvider();
-      await container.registerModules(module);
-      expect(container.scopes.length, 1);
-      expect(container.getScope(InjectionToken.fromModule(module)).providers.length,
-          1);
-    });
+      'registerModules should register a module and create a [ModuleScope] with the providers',
+      () async {
+        final container = ModulesContainer(config);
+        final module = SimpleModuleWithProvider();
+        await container.registerModules(module);
+        expect(container.scopes.length, 1);
+        expect(
+          container
+              .getScope(InjectionToken.fromModule(module))
+              .providers
+              .length,
+          1,
+        );
+      },
+    );
 
     test(
-        'registerModule should register a module with injectables and create a [ModuleScope] with all the injectables',
-        () async {
-      final container = ModulesContainer(config);
-      final module = SimpleModuleWithInjectables();
-      await container.registerModules(module);
-      expect(container.scopes.length, 1);
-      final scope = container.getScope(InjectionToken.fromModule(module));
-      expect(scope.providers.length, 1);
-      expect(scope.middlewares.length, 1);
-    });
+      'registerModule should register a module with injectables and create a [ModuleScope] with all the injectables',
+      () async {
+        final container = ModulesContainer(config);
+        final module = SimpleModuleWithInjectables();
+        await container.registerModules(module);
+        expect(container.scopes.length, 1);
+        final scope = container.getScope(InjectionToken.fromModule(module));
+        expect(scope.providers.length, 1);
+      },
+    );
 
     test(
-        'if getModuleInjectablesByToken is called with a module that is not registered, it should throw an $ArgumentError',
-        () async {
-      final container = ModulesContainer(config);
-      expect(() => container.getScope(InjectionToken('NotRegisteredModule')),
-          throwsA(isA<ArgumentError>()));
-    });
+      'if getModuleInjectablesByToken is called with a module that is not registered, it should throw an $ArgumentError',
+      () async {
+        final container = ModulesContainer(config);
+        expect(
+          () => container.getScope(InjectionToken('NotRegisteredModule')),
+          throwsA(isA<ArgumentError>()),
+        );
+      },
+    );
 
     test(
-        'if getModuleByProvider is called with a provider with an unregistered Module, it should throw an $ArgumentError',
-        () async {
-      final container = ModulesContainer(config);
-      expect(() => container.getModuleByProvider(TestProvider),
-          throwsA(isA<ArgumentError>()));
-    });
+      'if getModuleByProvider is called with a provider with an unregistered Module, it should throw an $ArgumentError',
+      () async {
+        final container = ModulesContainer(config);
+        expect(
+          () => container.getModuleByProvider(TestProvider),
+          throwsA(isA<ArgumentError>()),
+        );
+      },
+    );
 
-    test('''
+    test(
+      '''
         registerModule should register a module with imports and injectables,
         then the ModulesContainer should create two ModuleInjectables which for the main module contains all its own injectables and the providers from the imported module,
-      ''', () async {
-      final container = ModulesContainer(config);
-      final module = SimpleModuleWithImportsAndInjects();
-      await container.registerModules(module);
-      await container.finalize(module);
-      expect(container.scopes.length, 3);
-      final injectables = container.getScope(InjectionToken.fromModule(module));
-      expect(injectables.middlewares.length, 1);
-      expect(injectables.providers.length, 2);
-      final t = ImportableModuleWithProvider;
-      final subInjectables = container.getScope(InjectionToken.fromType(t));
-      expect(injectables.middlewares.length, 1);
-      expect(subInjectables.providers.length, 2);
-      expect(
-          injectables.providers.where((e) =>
-              e.runtimeType == subInjectables.providers.last.runtimeType),
-          isEmpty);
-      final t2 = ImportableModuleWithNonExportedProvider;
-      final subInjectablesTwo = container.getScope(InjectionToken.fromType(t2));
-      expect(subInjectablesTwo.providers.length, 1);
-    });
+      ''',
+      () async {
+        final container = ModulesContainer(config);
+        final module = SimpleModuleWithImportsAndInjects();
+        await container.registerModules(module);
+        await container.finalize(module);
+        expect(container.scopes.length, 3);
+        final injectables = container.getScope(
+          InjectionToken.fromModule(module),
+        );
+        expect(injectables.providers.length, 2);
+        final t = ImportableModuleWithProvider;
+        final subInjectables = container.getScope(InjectionToken.fromType(t));
+        expect(subInjectables.providers.length, 2);
+        expect(
+          injectables.providers.where(
+            (e) => e.runtimeType == subInjectables.providers.last.runtimeType,
+          ),
+          isEmpty,
+        );
+        final t2 = ImportableModuleWithNonExportedProvider;
+        final subInjectablesTwo = container.getScope(
+          InjectionToken.fromType(t2),
+        );
+        expect(subInjectablesTwo.providers.length, 1);
+      },
+    );
 
-    test('''
+    test(
+      '''
         if the module has a $ComposedProvider, then the provider should be registered in the container and the module should be marked as finalized,
-      ''', () async {
-      final container = ModulesContainer(config);
-      final module = SimpleModuleWithImportsAndInjects();
-      await container.registerModules(module);
-      await container.finalize(module);
-      expect(container.scopes.length, 3);
-    });
+      ''',
+      () async {
+        final container = ModulesContainer(config);
+        final module = SimpleModuleWithImportsAndInjects();
+        await container.registerModules(module);
+        await container.finalize(module);
+        expect(container.scopes.length, 3);
+      },
+    );
 
-    test('''
+    test(
+      '''
         if the module has a $Provider set as global, then the provider should be registered in the container and the module should be marked as finalized,
-      ''', () async {
-      final container = ModulesContainer(config);
-      final module = SimpleModuleWithGlobal();
-      await container.registerModules(module);
-      await container.finalize(module);
-      expect(container.scopes.length, 1);
-    });
+      ''',
+      () async {
+        final container = ModulesContainer(config);
+        final module = SimpleModuleWithGlobal();
+        await container.registerModules(module);
+        await container.finalize(module);
+        expect(container.scopes.length, 1);
+      },
+    );
   });
 }

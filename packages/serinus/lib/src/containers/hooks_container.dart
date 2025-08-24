@@ -4,12 +4,12 @@ import '../mixins/hooks_mixins.dart';
 
 /// The [HooksContainer] class is used to manage hooks in the application.
 final class HooksContainer {
-
   /// The set of hooks registered in the container
   final Set<Type> registeredHooks = {};
 
+  /// The set of hooks registered in the container
   final Set<Hook> hooks = {};
-  
+
   /// The request response hooks for the container
   final Set<OnRequest> reqHooks = {};
 
@@ -80,11 +80,31 @@ final class HooksContainer {
   HooksContainer merge(List<HooksContainer> containers) {
     final merged = HooksContainer();
     for (final container in containers) {
-      merged.reqHooks.addAll(container.reqHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
-      merged.resHooks.addAll(container.resHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
-      merged.beforeHooks.addAll(container.beforeHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
-      merged.afterHooks.addAll(container.afterHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
-      merged.exceptionHooks.addAll(container.exceptionHooks.where((e) => !merged.registeredHooks.contains(e.runtimeType)));
+      merged.reqHooks.addAll(
+        container.reqHooks.where(
+          (e) => !merged.registeredHooks.contains(e.runtimeType),
+        ),
+      );
+      merged.resHooks.addAll(
+        container.resHooks.where(
+          (e) => !merged.registeredHooks.contains(e.runtimeType),
+        ),
+      );
+      merged.beforeHooks.addAll(
+        container.beforeHooks.where(
+          (e) => !merged.registeredHooks.contains(e.runtimeType),
+        ),
+      );
+      merged.afterHooks.addAll(
+        container.afterHooks.where(
+          (e) => !merged.registeredHooks.contains(e.runtimeType),
+        ),
+      );
+      merged.exceptionHooks.addAll(
+        container.exceptionHooks.where(
+          (e) => !merged.registeredHooks.contains(e.runtimeType),
+        ),
+      );
       for (final service in container.services.entries) {
         if (!merged.services.containsKey(service.key)) {
           merged.services[service.key] = service.value;

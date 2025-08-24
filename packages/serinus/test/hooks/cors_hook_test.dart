@@ -15,7 +15,6 @@ class TestModule extends Module {
     super.imports,
     super.providers,
     super.exports,
-    super.middlewares,
   });
 }
 
@@ -24,9 +23,10 @@ void main() {
   final controller = TestController();
   setUpAll(() async {
     app = await serinus.createApplication(
-        entrypoint: TestModule(controllers: [controller]),
-        logLevels: {LogLevel.none},
-        port: 7501);
+      entrypoint: TestModule(controllers: [controller]),
+      logLevels: {LogLevel.none},
+      port: 7501,
+    );
     app?.use(CorsHook());
     await app?.serve();
   });
@@ -34,21 +34,27 @@ void main() {
     await app?.close();
   });
 
-  test('when a CORS hook is set, then the application should return 200',
-      () async {
-    final request =
-        await HttpClient().getUrl(Uri.parse('http://localhost:7501/'));
-    final response = await request.close();
-    expect(response.statusCode, 200);
-  });
+  test(
+    'when a CORS hook is set, then the application should return 200',
+    () async {
+      final request = await HttpClient().getUrl(
+        Uri.parse('http://localhost:7501/'),
+      );
+      final response = await request.close();
+      expect(response.statusCode, 200);
+    },
+  );
 
   test(
-      'when a CORS hook is set and a OPTIONS request is made, then the application should return 200',
-      () async {
-    final request = await HttpClient()
-        .openUrl('OPTIONS', Uri.parse('http://localhost:7501/'));
-    final response = await request.close();
-    expect(response.statusCode, 200);
-    expect(response.headers.toMap(), contains('access-control-allow-origin'));
-  });
+    'when a CORS hook is set and a OPTIONS request is made, then the application should return 200',
+    () async {
+      final request = await HttpClient().openUrl(
+        'OPTIONS',
+        Uri.parse('http://localhost:7501/'),
+      );
+      final response = await request.close();
+      expect(response.statusCode, 200);
+      expect(response.headers.toMap(), contains('access-control-allow-origin'));
+    },
+  );
 }

@@ -8,12 +8,10 @@ abstract class ViewEngine {
 
   /// This method is used to render a view.
   Future<String> render(View view);
-
 }
 
 /// The [View] class contains all the information needed to render a view by a view engine.
 class View {
-
   /// The view data.
   final String template;
 
@@ -35,5 +33,4 @@ class View {
   factory View.string(String template, Map<String, dynamic> variables) {
     return View._(template, variables, false);
   }
-
 }

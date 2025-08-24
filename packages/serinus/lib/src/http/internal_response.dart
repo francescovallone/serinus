@@ -5,7 +5,6 @@ import '../../serinus.dart';
 /// The [OutgoingMessage] class is an abstract class that defines the methods and properties
 /// that an Outgoing message must implement in the Serinus framework.
 abstract class OutgoingMessage<T, THeaders> {
-
   /// The original [T] object.
   final T original;
 
@@ -14,7 +13,7 @@ abstract class OutgoingMessage<T, THeaders> {
 
   /// Determines if the response is closed.
   bool get isClosed;
-  
+
   /// This method is used to detach the socket from the response.
   ///
   /// It will return a [Future<Socket>].
@@ -50,14 +49,12 @@ abstract class OutgoingMessage<T, THeaders> {
 
   /// This method is used to redirect the response to a new location.
   Future<void> redirect(Redirect redirect);
-
 }
 
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
 /// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
 class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
-
   /// The base url of the server
   final String? baseUrl;
 
@@ -101,7 +98,9 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
 
   @override
   void contentType(ContentType contentType, {bool preserveHeaderCase = true}) {
-    headers({'content-type': contentType.toString()}, preserveHeaderCase: preserveHeaderCase);
+    headers({
+      'content-type': contentType.toString(),
+    }, preserveHeaderCase: preserveHeaderCase);
   }
 
   @override
@@ -109,7 +108,11 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
     for (final key in headers.keys) {
       final currentValue = original.headers.value(key);
       if (currentValue == null || currentValue != headers[key]) {
-        original.headers.set(key, headers[key]!, preserveHeaderCase: preserveHeaderCase);
+        original.headers.set(
+          key,
+          headers[key]!,
+          preserveHeaderCase: preserveHeaderCase,
+        );
       }
     }
   }
@@ -126,10 +129,13 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
 
   @override
   Future<void> redirect(Redirect redirect) async {
-    original.redirect(Uri.parse(redirect.location), status: redirect.statusCode);
+    original.redirect(
+      Uri.parse(redirect.location),
+      status: redirect.statusCode,
+    );
     _isClosed = true;
   }
-  
+
   @override
   void addStream(Stream<List<int>> stream, {bool close = true}) {
     original.addStream(stream).then((_) {

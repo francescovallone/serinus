@@ -6,7 +6,6 @@ import 'base_context.dart';
 /// The [ResponseContext] class is an utility class that provides a context for the response.
 /// It contains properties and methods to manage the response, such as status code, headers, content type, cookies, and more.
 class ResponseContext extends BaseContext {
-
   /// The [ResponseContext] constructor is used to create a new instance of the [ResponseContext] class.
   ResponseContext(super.providers, super.hooksServices);
 
@@ -18,7 +17,7 @@ class ResponseContext extends BaseContext {
 
   int _statusCode = HttpStatus.ok;
 
-  /// Allow to read the current status code of the response. 
+  /// Allow to read the current status code of the response.
   /// By default it is set to [HttpStatus.ok] for all methods except [HttpMethod.post] which is set to [HttpStatus.created].
   int get statusCode => _statusCode;
 
@@ -27,11 +26,14 @@ class ResponseContext extends BaseContext {
   /// If the status code is not in this range, it will throw an [ArgumentError].
   set statusCode(int value) {
     if (_closed) {
-      throw StateError('Response context has been closed and cannot be modified.');
+      throw StateError(
+        'Response context has been closed and cannot be modified.',
+      );
     }
     if (value < 100 || value > 999) {
       throw ArgumentError(
-          'The status code must be between 100 and 999. $value is not a valid status code.');
+        'The status code must be between 100 and 999. $value is not a valid status code.',
+      );
     }
     _statusCode = value;
   }
@@ -52,7 +54,9 @@ class ResponseContext extends BaseContext {
   /// If the content type is set to null, it will remove the content type header from the response.
   set contentType(ContentType? value) {
     if (_closed) {
-      throw StateError('Response context has been closed and cannot be modified.');
+      throw StateError(
+        'Response context has been closed and cannot be modified.',
+      );
     }
     _contentType = value;
     if (value != null) {
@@ -66,7 +70,9 @@ class ResponseContext extends BaseContext {
   /// If the response context is closed, it will throw a [StateError].
   void addHeader(String name, String value) {
     if (_closed) {
-      throw StateError('Response context has been closed and cannot be modified.');
+      throw StateError(
+        'Response context has been closed and cannot be modified.',
+      );
     }
     _headers[name] = value;
   }
@@ -75,7 +81,9 @@ class ResponseContext extends BaseContext {
   /// If the response context is closed, it will throw a [StateError].
   void addHeaders(Map<String, String> headers) {
     if (_closed) {
-      throw StateError('Response context has been closed and cannot be modified.');
+      throw StateError(
+        'Response context has been closed and cannot be modified.',
+      );
     }
     _headers.addAll(headers);
   }
@@ -88,7 +96,9 @@ class ResponseContext extends BaseContext {
   /// This is useful when the content length is not known in advance.
   set contentLength(int? contentLength) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _contentLength = contentLength;
     if (contentLength != null) {
@@ -111,15 +121,19 @@ class ResponseContext extends BaseContext {
   /// The [addCookie] method is used to add a cookie to the response.
   void addCookie(Cookie cookie) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _cookies.add(cookie);
   }
-  
+
   /// The [addCookies] method is used to add multiple cookies to the response.
   void addCookies(List<Cookie> cookies) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _cookies.addAll(cookies);
   }
@@ -131,13 +145,14 @@ class ResponseContext extends BaseContext {
   void close() {
     _closed = true;
   }
-
 }
 
 /// The [ResponseProperties] class is used to create the response properties.
 ///
 /// It contains the status code, headers, and redirect properties.
-@Deprecated('The ResponseProperties will be removed in future versions. Use ResponseContext instead.')
+@Deprecated(
+  'The ResponseProperties will be removed in future versions. Use ResponseContext instead.',
+)
 final class ResponseProperties {
   /// The [statusCode] property contains the status code of the response.
   int _statusCode = HttpStatus.ok;
@@ -149,7 +164,8 @@ final class ResponseProperties {
   set statusCode(int value) {
     if (value < 100 || value > 999) {
       throw ArgumentError(
-          'The status code must be between 100 and 999. $value is not a valid status code.');
+        'The status code must be between 100 and 999. $value is not a valid status code.',
+      );
     }
     _statusCode = value;
   }
@@ -175,15 +191,19 @@ final class ResponseProperties {
   /// The [addCookie] method is used to add a cookie to the response.
   void addCookie(Cookie cookie) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _cookies.add(cookie);
   }
-  
+
   /// The [addCookies] method is used to add multiple cookies to the response.
   void addCookies(List<Cookie> cookies) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _cookies.addAll(cookies);
   }
@@ -191,7 +211,9 @@ final class ResponseProperties {
   /// The [addHeader] method is used to add a header to the response.
   void addHeader(String name, String value) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _headers[name] = value;
   }
@@ -199,14 +221,18 @@ final class ResponseProperties {
   /// The [addHeaders] method is used to add multiple headers to the response.
   void addHeaders(Map<String, String> headers) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _headers.addAll(headers);
   }
 
   set contentType(ContentType? contentType) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _contentType = contentType;
     if (contentType != null) {
@@ -221,7 +247,9 @@ final class ResponseProperties {
 
   set contentLength(int? contentLength) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     _contentLength = contentLength;
     if (contentLength != null) {
@@ -243,7 +271,8 @@ final class ResponseProperties {
     _contentType = contentType;
     _contentLength = contentLength;
     _headers.addAll({
-      HttpHeaders.contentTypeHeader: contentType?.toString() ?? ContentType.text.toString(),
+      HttpHeaders.contentTypeHeader:
+          contentType?.toString() ?? ContentType.text.toString(),
       HttpHeaders.contentLengthHeader: contentLength?.toString() ?? '0',
     });
     _cookies.addAll(cookies);
@@ -256,7 +285,9 @@ final class ResponseProperties {
     List<Cookie>? cookies,
   }) {
     if (_closed) {
-      throw StateError('Response properties have been closed and cannot be modified.');
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
     }
     return ResponseProperties(
       contentType: contentType ?? this.contentType,

@@ -6,7 +6,6 @@ import '../extensions/object_extensions.dart';
 
 /// The [WrappedResponse] class is used to wrap the response data.
 class WrappedResponse {
-
   /// The wrapped data.
   Object? data;
 
@@ -15,7 +14,7 @@ class WrappedResponse {
 
   /// Convert the data to bytes.
   Uint8List toBytes() {
-    if(data == null) {
+    if (data == null) {
       return Uint8List(0);
     }
     if (data is! Uint8List) {
@@ -32,5 +31,4 @@ class WrappedResponse {
       return data as Uint8List;
     }
   }
-
 }

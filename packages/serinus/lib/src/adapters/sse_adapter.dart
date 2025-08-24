@@ -20,31 +20,38 @@ import 'adapters.dart';
 /// The [SseScope] class is used to define the scope of a Server-Sent Events (SSE) gateway.
 /// It contains the [SseRouteSpec], the providers, and the hooks.
 class SseScope {
-
   /// The [gateway] property contains the WebSocket gateway.
   final RouteHandler sseRouteSpec;
+
   /// The [providers] property contains the providers of the WebSocket gateway.
   final Map<Type, Provider> providers;
+
   /// The [hooks] property contains the hooks of the WebSocket gateway.
   final HooksContainer hooks;
+
   /// The [metadata] property contains the metadata of the WebSocket gateway.
   final List<Metadata> metadata;
+
   /// The [middlewares] property contains the middlewares of the WebSocket gateway.
   final Iterable<Middleware> Function(IncomingMessage request) middlewares;
 
   /// The [GatewayScope] constructor is used to create a new instance of the [GatewayScope] class.
-  const SseScope(this.sseRouteSpec, this.providers, this.hooks, this.metadata, this.middlewares);
+  const SseScope(
+    this.sseRouteSpec,
+    this.providers,
+    this.hooks,
+    this.metadata,
+    this.middlewares,
+  );
 
   @override
   String toString() {
     return 'GatewayScope(gateway: $sseRouteSpec, providers: $providers)';
   }
-
 }
 
 /// The [SseAdapter] class is used to create a new Server-Sent Events (SSE) adapter.
 class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
-
   final _connections = <String?, SseConnection>{};
   final _connectionController = StreamController<SseConnection>();
 
@@ -55,7 +62,8 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
   final Spanner router = Spanner();
 
   /// The [connections] property contains the active SSE connections.
-  Map<String?, SseConnection> get connections => UnmodifiableMapView(_connections);
+  Map<String?, SseConnection> get connections =>
+      UnmodifiableMapView(_connections);
 
   bool _isOpen = false;
 
@@ -81,7 +89,10 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
   }
 
   /// Accepts a reconnection request from a client.
-  Future<void> acceptReconnection(String clientId, StringConversionSink sink) async {
+  Future<void> acceptReconnection(
+    String clientId,
+    StringConversionSink sink,
+  ) async {
     final connection = _connections[clientId];
     if (connection == null) {
       return;
@@ -103,15 +114,17 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
   Future<void> start(IncomingMessage request, OutgoingMessage response) async {
     final route = router.lookup(HTTPMethod.GET, request.path);
     if (route == null) {
-      final exception = httpAdapter.notFoundHandler?.call(Request(request)) ?? NotFoundException(
-        'No SSE route found for ${request.method} ${request.path}'
-      );
+      final exception =
+          httpAdapter.notFoundHandler?.call(Request(request)) ??
+          NotFoundException(
+            'No SSE route found for ${request.method} ${request.path}',
+          );
       await httpAdapter.reply(
         response,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
-        ResponseContext({}, {})..headers.addAll({
-          'content-type': 'application/json',
-        })..statusCode = exception.statusCode
+        ResponseContext({}, {})
+          ..headers.addAll({'content-type': 'application/json'})
+          ..statusCode = exception.statusCode,
       );
       return;
     }
@@ -122,14 +135,16 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       currentScope.hooks.services,
     );
     final clientId = wrappedRequest.query['sseClientId'];
-    if(clientId == null) {
-      final exception = BadRequestException('Missing sseClientId query parameter');
+    if (clientId == null) {
+      final exception = BadRequestException(
+        'Missing sseClientId query parameter',
+      );
       await httpAdapter.reply(
         response,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
-        responseContext..statusCode = exception.statusCode..headers.addAll({
-          'content-type': 'application/json',
-        })
+        responseContext
+          ..statusCode = exception.statusCode
+          ..headers.addAll({'content-type': 'application/json'}),
       );
       return;
     }
@@ -141,7 +156,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       wrappedRequest,
       currentScope.providers,
       currentScope.hooks.services,
-      clientId
+      clientId,
     );
     context.metadata = await initMetadata(context, currentScope.metadata);
     final middlewares = currentScope.middlewares(request);
@@ -156,9 +171,9 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
             final connection = _connections[clientId];
             connection?.shutdown();
           }
-        }
+        },
       );
-      if(response.isClosed) {
+      if (response.isClosed) {
         return;
       }
     }
@@ -186,19 +201,20 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
   /// Upgrades the HTTP connection to a SSE connection.
   Future<StringConversionSink> upgrade(
     IncomingMessage req,
-    OutgoingMessage res
+    OutgoingMessage res,
   ) async {
     final socket = await res.detachSocket();
     final channel = StreamChannel<List<int>>(socket, socket);
     final origin = (req.headers['origin'] ?? req.headers['host']);
-    final sink = utf8.encoder.startChunkedConversion(channel.sink)
-      ..add('HTTP/1.1 200 OK\r\n'
-          'Content-Type: text/event-stream\r\n'
-          'Cache-Control: no-cache\r\n'
-          'Connection: keep-alive\r\n'
-          'Access-Control-Allow-Credentials: true\r\n'
-          "${origin != null ? 'Access-Control-Allow-Origin: $origin\r\n' : ''}"
-          '\r\n');
+    final sink = utf8.encoder.startChunkedConversion(channel.sink)..add(
+      'HTTP/1.1 200 OK\r\n'
+      'Content-Type: text/event-stream\r\n'
+      'Cache-Control: no-cache\r\n'
+      'Connection: keep-alive\r\n'
+      'Access-Control-Allow-Credentials: true\r\n'
+      "${origin != null ? 'Access-Control-Allow-Origin: $origin\r\n' : ''}"
+      '\r\n',
+    );
     return sink;
   }
 
@@ -207,7 +223,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     if (server == null) {
       return;
     }
-    for(final connection in _connections.values) {
+    for (final connection in _connections.values) {
       connection.shutdown();
     }
     _isOpen = false;
@@ -229,7 +245,10 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
   }
 
   /// Initializes the metadata for the SSE connection.
-  Future<Map<String, Metadata>> initMetadata(RequestContext context, List<Metadata> metadata) async {
+  Future<Map<String, Metadata>> initMetadata(
+    RequestContext context,
+    List<Metadata> metadata,
+  ) async {
     final result = <String, Metadata>{};
     for (final meta in metadata) {
       if (meta is ContextualizedMetadata) {
@@ -243,7 +262,6 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
 
   @override
   String get name => 'sse';
-  
 }
 
 /// Code entirely copied from https://raw.githubusercontent.com/dart-lang/sse/master/lib/src/server/sse_handler.dart
@@ -305,8 +323,8 @@ class SseConnection extends StreamChannelMixin<String> {
   }
 
   Future<void> _setUpListener() async {
-    while (
-        !_outgoingController.isClosed && await _outgoingStreamQueue.hasNext) {
+    while (!_outgoingController.isClosed &&
+        await _outgoingStreamQueue.hasNext) {
       // If we're in a KeepAlive timeout, there's nowhere to send messages so
       // wait a short period and check again.
       if (isInKeepAlivePeriod) {
