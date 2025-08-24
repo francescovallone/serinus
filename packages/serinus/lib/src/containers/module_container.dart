@@ -149,17 +149,6 @@ final class ModulesContainer {
     }
     final dynamicEntry = await entrypoint.registerAsync(config);
     currentScope.extendWithDynamicModule(dynamicEntry);
-    // for (final m in currentScope.middlewares) {
-    //   final middlewareToken = InjectionToken.fromType(m.runtimeType);
-    //   currentScope.instanceMetadata[middlewareToken] = InstanceWrapper(
-    //     name: middlewareToken,
-    //     metadata: ClassMetadataNode(
-    //       type: InjectableType.middleware,
-    //       sourceModuleName: token,
-    //     ),
-    //     host: token,
-    //   );
-    // }
     for (final c in currentScope.controllers) {
       final controllerToken = InjectionToken.fromType(c.runtimeType);
       currentScope.instanceMetadata[controllerToken] = InstanceWrapper(
@@ -589,6 +578,8 @@ class ModuleScope {
 
   final bool internal;
 
+  bool isDynamic = false;
+
   /// The [distance] property contains the distance of the module
   double get distance => _distance;
 
@@ -632,13 +623,20 @@ class ModuleScope {
 
   /// Extends the module scope with a dynamic module
   void extendWithDynamicModule(DynamicModule dynamicModule) {
-    extend(
-      providers: dynamicModule.providers,
-      exports: dynamicModule.exports,
-      controllers: dynamicModule.controllers,
-      middlewares: dynamicModule.middlewares,
-      imports: dynamicModule.imports,
-    );
+    if(dynamicModule.providers.isNotEmpty ||
+       dynamicModule.exports.isNotEmpty ||
+       dynamicModule.controllers.isNotEmpty ||
+       dynamicModule.middlewares.isNotEmpty ||
+       dynamicModule.imports.isNotEmpty) {
+      isDynamic = true;
+      extend(
+        providers: dynamicModule.providers,
+        exports: dynamicModule.exports,
+        controllers: dynamicModule.controllers,
+        middlewares: dynamicModule.middlewares,
+        imports: dynamicModule.imports,
+      );
+    }
   }
 
   /// Adds a provider to the module scope

@@ -36,8 +36,9 @@ class GraphInspector extends Provider {
           label: moduleScope.token.name,
           metadata: ModuleMetadataNode(
             global: moduleScope.module.isGlobal,
+            isDynamic: moduleScope.isDynamic,
+            internal: moduleScope.internal
           ),
-          
         );
       graph.insertNode(moduleNode);
       _inspectModule(moduleScope);

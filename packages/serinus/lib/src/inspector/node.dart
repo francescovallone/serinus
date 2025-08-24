@@ -79,23 +79,28 @@ class ModuleMetadataNode {
   final String name = 'module';
 
   /// Indicates if the module represents an internal module.
-  final bool? internal;
+  final bool internal;
 
   /// Indicates if the module represents a global module.
-  final bool? global;
+  final bool global;
+
+  /// Indicates if the module represents a dynamic module.
+  final bool isDynamic;
 
   /// Creates a new instance of [ModuleMetadataNode].
   const ModuleMetadataNode({
-    this.internal,
-    this.global,
+    this.internal = false,
+    this.isDynamic = false,
+    this.global = false,
   });
 
   /// Converts the [ModuleMetadataNode] to a JSON object.
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      if (internal != null) 'internal': internal,
-      if (global != null) 'global': global,
+      'internal': internal,
+      'global': global,
+      'dynamic': isDynamic,
     };
   }
 }
