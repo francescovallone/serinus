@@ -78,7 +78,7 @@ class RouteContext {
   });
 
   /// Initializes the metadata for the route context.
-  Future<Map<String, Metadata>> initMetadata(RequestContext context) async {
+  Future<Map<String, Metadata>> initMetadata(ExecutionContext context) async {
     final result = <String, Metadata>{};
     for (final meta in metadata) {
       if (meta is ContextualizedMetadata) {

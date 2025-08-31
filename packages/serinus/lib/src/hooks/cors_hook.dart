@@ -1,12 +1,11 @@
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
-import '../http/http.dart';
 import '../mixins/mixins.dart';
 import '../utils/wrapped_response.dart';
 
 /// The [CorsHook] class is a hook that adds CORS headers to the response.
-class CorsHook extends Hook with OnRequest, OnAfterHandle, OnBeforeHandle {
+class CorsHook extends Hook with OnRequest, OnResponse, OnBeforeHandle {
   /// The allowed origins.
   final List<String> allowedOrigins;
 
@@ -54,7 +53,7 @@ class CorsHook extends Hook with OnRequest, OnAfterHandle, OnBeforeHandle {
   Map<String, String> responseHeaders = {};
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     /// Get the origin from the request headers.
     final origin = context.headers['origin'];
 
@@ -80,25 +79,25 @@ class CorsHook extends Hook with OnRequest, OnAfterHandle, OnBeforeHandle {
   }
 
   @override
-  Future<void> afterHandle(
-    RequestContext context,
+  Future<void> onResponse(
+    ExecutionContext context,
     WrappedResponse response,
   ) async {
     /// Add the headers to the response.
-    context.res.headers.addAll(responseHeaders);
+    context.response.headers.addAll(responseHeaders);
   }
 
   @override
-  Future<void> onRequest(Request request, ResponseContext properties) async {
-    if (request.method == HttpMethod.options) {
-      properties.headers.addAll({
+  Future<void> onRequest(ExecutionContext context) async {
+    if (context.request.method == HttpMethod.options) {
+      context.response.headers.addAll({
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age': '86400',
       });
-      properties.statusCode = 200;
-      properties.close();
+      context.response.statusCode = 200;
+      context.response.close();
       return;
     }
     return;

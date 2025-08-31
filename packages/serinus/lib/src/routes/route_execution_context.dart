@@ -15,7 +15,6 @@ import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
-import '../mixins/mixins.dart';
 import '../services/json_utils.dart';
 import '../utils/wrapped_response.dart';
 import 'route_response_controller.dart';
@@ -58,28 +57,33 @@ class RouteExecutionContext {
       OutgoingMessage response,
       Map<String, dynamic> params,
     ) async {
-      RequestContext? requestContext;
+      ExecutionContext? executionContext;
       try {
-        final currentProperties = ResponseContext({}, {});
         final wrappedRequest = Request(request, params);
         await wrappedRequest.parseBody(rawBody);
+        executionContext = ExecutionContext(
+          HostType.http,
+          {
+            for (var provider in context.moduleScope.unifiedProviders)
+              provider.runtimeType: provider,
+          }, 
+          context.hooksServices,
+          wrappedRequest
+        );
         for (final hook in context.hooksContainer.reqHooks) {
-          await hook.onRequest(wrappedRequest, currentProperties);
-          if (currentProperties.closed) {
+          await hook.onRequest(executionContext);
+          if (executionContext.response.closed) {
             await _responseController.sendResponse(
               response,
               WrappedResponse(null),
-              currentProperties,
+              executionContext.response,
               viewEngine: viewEngine,
             );
             return;
           }
         }
-        final requestContext = RequestContext.fromRouteContext(
-          wrappedRequest,
-          context,
-        );
-        requestContext.metadata = await context.initMetadata(requestContext);
+        executionContext.metadata.addAll(await context.initMetadata(executionContext));
+        final requestContext = executionContext.switchToHttp();
         if (context.schema != null) {
           final schema = context.schema!;
           final Map<String, dynamic> toParse = {};
@@ -87,15 +91,15 @@ class RouteExecutionContext {
             toParse['body'] = requestContext.body.value;
           }
           if (schema.query != null) {
-            toParse['query'] = requestContext.request.query;
+            toParse['query'] = requestContext.query;
           }
           if (schema.params != null) {
-            toParse['params'] = requestContext.request.params;
+            toParse['params'] = requestContext.params;
           }
           if (schema.headers != null) {
             toParse['headers'] = {
               for (final key in schema.headers!.fields.keys)
-                key: requestContext.request.headers[key],
+                key: requestContext.headers[key],
             };
           }
           if (schema.session != null) {
@@ -108,11 +112,11 @@ class RouteExecutionContext {
             headersValue: Map<String, dynamic>.from(toParse['headers'] ?? {}),
             sessionValue: Map<String, dynamic>.from(toParse['session'] ?? {}),
           );
-          requestContext.request.headers.addAll(
+          requestContext.headers.addAll(
             result['headers'] ?? <String, String>{},
           );
-          requestContext.request.params.addAll(result['params'] ?? {});
-          requestContext.request.query.addAll(result['query'] ?? {});
+          requestContext.params.addAll(result['params'] ?? {});
+          requestContext.query.addAll(result['query'] ?? {});
           requestContext.body =
               result.containsKey('body') && result['body'] != null
                   ? JsonBody.fromJson(result['body'] ?? {})
@@ -120,7 +124,7 @@ class RouteExecutionContext {
         }
         if (context.pipes.isNotEmpty) {
           for (final pipe in context.pipes) {
-            await pipe.transform(requestContext);
+            await pipe.transform(executionContext);
           }
         }
         if (!rawBody) {
@@ -133,19 +137,19 @@ class RouteExecutionContext {
           final executor = MiddlewareExecutor();
           await executor.execute(
             middlewares,
-            requestContext,
+            executionContext,
             response,
             onDataReceived: (data) async {
-              await _executeOnResponse(context, requestContext, data);
-              data = _processResult(data, requestContext);
+              await _executeOnResponse(context, executionContext!, data);
+              data = _processResult(data, executionContext);
               request.emit(
                 RequestEvent.data,
-                EventData(data: data, properties: requestContext.res),
+                EventData(data: data, properties: executionContext.response),
               );
               await _responseController.sendResponse(
                 response,
                 data,
-                requestContext.res,
+                executionContext.response,
                 viewEngine: viewEngine,
               );
               request.emit(
@@ -153,7 +157,7 @@ class RouteExecutionContext {
                 EventData(
                   data: data,
                   properties:
-                      requestContext.res
+                      executionContext.response
                         ..headers.addAll(
                           (response.currentHeaders as HttpHeaders).toMap(),
                         ),
@@ -165,7 +169,7 @@ class RouteExecutionContext {
             return;
           }
         }
-        await _executeBeforeHandle(requestContext, context);
+        await _executeBeforeHandle(executionContext, context);
         Object? handlerResult;
         final handler = context.spec.handler;
         if (context.isStatic) {
@@ -191,20 +195,20 @@ class RouteExecutionContext {
           }
         }
         final responseData = WrappedResponse(handlerResult);
-        await _executeAfterHandle(requestContext, context, responseData);
-        await _executeOnResponse(context, requestContext, responseData);
-        WrappedResponse result = _processResult(responseData, requestContext);
+        await _executeAfterHandle(executionContext, context, responseData);
+        await _executeOnResponse(context, executionContext, responseData);
+        WrappedResponse result = _processResult(responseData, executionContext);
         if (result.data is View) {
           request.emit(
             RequestEvent.data,
-            EventData(data: result.data, properties: requestContext.res),
+            EventData(data: result.data, properties: executionContext.response),
           );
           request.emit(
             RequestEvent.close,
             EventData(
               data: result.data,
               properties:
-                  requestContext.res
+                  executionContext.response
                     ..headers.addAll(
                       (response.currentHeaders as HttpHeaders).toMap(),
                     ),
@@ -213,29 +217,29 @@ class RouteExecutionContext {
           await _responseController.render(
             response,
             result.data as View,
-            requestContext.res,
+            executionContext.response,
           );
         } else if (result.data is Redirect) {
           request.emit(
             RequestEvent.redirect,
-            EventData(data: result.data, properties: requestContext.res),
+            EventData(data: result.data, properties: executionContext.response),
           );
           await _responseController.redirect(
             response,
             result.data as Redirect,
-            requestContext.res,
+            executionContext.response,
           );
         } else {
           request.emit(
             RequestEvent.data,
-            EventData(data: result.data, properties: requestContext.res),
+            EventData(data: result.data, properties: executionContext.response),
           );
           request.emit(
             RequestEvent.close,
             EventData(
               data: result.data,
               properties:
-                  requestContext.res
+                  executionContext.response
                     ..headers.addAll(
                       (response.currentHeaders as HttpHeaders).toMap(),
                     ),
@@ -244,27 +248,26 @@ class RouteExecutionContext {
           await _responseController.sendResponse(
             response,
             result,
-            requestContext.res,
+            executionContext.response,
             viewEngine: viewEngine,
           );
         }
       } on SerinusException catch (e, stackTrace) {
-        final currentReqContext =
-            requestContext ??
-            RequestContext(Request(request), {
-              for (final provider in context.moduleScope.unifiedProviders)
-                provider.runtimeType: provider,
-            }, context.hooksContainer.services);
-        currentReqContext.res.statusCode = e.statusCode;
-        currentReqContext.res.contentType = ContentType.json;
-        request.emit(
-          RequestEvent.error,
-          EventData(data: e, properties: currentReqContext.res),
+        executionContext ??= ExecutionContext(
+          HostType.http,
+          {
+            for (var provider in context.moduleScope.unifiedProviders)
+              provider.runtimeType: provider,
+          }, 
+          context.hooksServices,
+          Request(request, params)
         );
-        await _executeOnException(currentReqContext, context, e);
+        executionContext.response.statusCode = e.statusCode;
+        executionContext.response.contentType ??= ContentType.json;
+        await _executeOnException(executionContext, context, e);
         await _executeOnResponse(
           context,
-          currentReqContext,
+          executionContext,
           WrappedResponse(e),
         );
         if (errorHandler != null) {
@@ -272,8 +275,8 @@ class RouteExecutionContext {
           if (errorResponse != null) {
             await _responseController.sendResponse(
               response,
-              _processResult(WrappedResponse(errorResponse), currentReqContext),
-              currentReqContext.res,
+              _processResult(WrappedResponse(errorResponse), executionContext),
+              executionContext.response,
               viewEngine: viewEngine,
             );
           }
@@ -281,7 +284,7 @@ class RouteExecutionContext {
           await _responseController.sendResponse(
             response,
             WrappedResponse(e.message),
-            currentReqContext.res,
+            executionContext.response,
             viewEngine: viewEngine,
           );
         }
@@ -290,49 +293,40 @@ class RouteExecutionContext {
   }
 
   Future<void> _executeOnException(
-    RequestContext requestContext,
+    ExecutionContext executionContext,
     RouteContext context,
     SerinusException exception,
   ) async {
     for (final hook in context.hooksContainer.exceptionHooks) {
       if (hook.exceptionTypes.contains(exception.runtimeType) ||
           hook.exceptionTypes.isEmpty) {
-        await hook.onException(requestContext, exception);
+        await hook.onException(executionContext, exception);
       }
     }
   }
 
   Future<void> _executeAfterHandle(
-    RequestContext requestContext,
+    ExecutionContext executionContext,
     RouteContext context,
     WrappedResponse response,
   ) async {
     for (final hook in context.hooksContainer.afterHooks) {
-      await hook.afterHandle(requestContext, response);
-    }
-    if (context.spec.route is OnAfterHandle) {
-      await (context.spec.route as OnAfterHandle).afterHandle(
-        requestContext,
-        response,
-      );
+      await hook.afterHandle(executionContext, response);
     }
   }
 
   Future<void> _executeBeforeHandle(
-    RequestContext requestContext,
+    ExecutionContext executionContext,
     RouteContext context,
   ) async {
     for (final hook in context.hooksContainer.beforeHooks) {
-      await hook.beforeHandle(requestContext);
-    }
-    if (context.spec.route is OnBeforeHandle) {
-      await (context.spec.route as OnBeforeHandle).beforeHandle(requestContext);
+      await hook.beforeHandle(executionContext);
     }
   }
 
   WrappedResponse _processResult(
     WrappedResponse result,
-    RequestContext context,
+    ExecutionContext context,
   ) {
     Object? responseData;
     if (result.data == null) {
@@ -342,15 +336,15 @@ class RouteExecutionContext {
       responseData = JsonUtf8Encoder().convert(
         parseJsonToResponse(result.data, modelProvider),
       );
-      context.res.contentType ??= ContentType.json;
+      context.response.contentType ??= ContentType.json;
     }
     if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType) ??
         false) {
       responseData = JsonUtf8Encoder().convert(modelProvider?.to(result.data));
-      context.res.contentType ??= ContentType.json;
+      context.response.contentType ??= ContentType.json;
     }
     if (result.data is Uint8List || result.data is File) {
-      context.res.contentType ??= ContentType.binary;
+      context.response.contentType ??= ContentType.binary;
     }
     result.data = responseData ?? result.data;
     return result;
@@ -358,14 +352,13 @@ class RouteExecutionContext {
 
   Future<void> _executeOnResponse(
     RouteContext context,
-    RequestContext requestContext,
+    ExecutionContext executionContext,
     WrappedResponse responseData,
   ) async {
     for (final hook in context.hooksContainer.resHooks) {
       await hook.onResponse(
-        requestContext.request,
+        executionContext,
         responseData,
-        requestContext.res,
       );
     }
   }

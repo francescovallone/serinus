@@ -52,7 +52,7 @@ class TestMiddleware extends Middleware {
   TestMiddleware() : super();
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     return next();
   }
 }

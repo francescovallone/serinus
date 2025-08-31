@@ -165,7 +165,6 @@ class GraphInspector extends Provider {
           if (hook is OnResponse) 'onResponse',
           if (hook is OnBeforeMessage) 'onBeforeMessage',
           if (hook is OnUpgrade) 'onUpgrade',
-          if (hook is OnWsException) 'onWsException',
           if (hook is OnClose) 'onClose',
         ],
       ),

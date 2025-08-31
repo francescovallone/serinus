@@ -28,7 +28,7 @@ class RateLimiterHook extends Hook with OnBeforeHandle, OnResponse {
   }) : maxRequests = maxRequests ?? double.infinity.toInt();
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     final shouldSkip = context.metadata.values.any(
       (element) => element is SkipRateLimit,
     );
@@ -63,12 +63,11 @@ class RateLimiterHook extends Hook with OnBeforeHandle, OnResponse {
 
   @override
   Future<void> onResponse(
-    Request request,
+    ExecutionContext context,
     WrappedResponse data,
-    ResponseContext properties,
   ) async {
-    if (properties.statusCode < 400 && rateLimiter != null) {
-      properties.headers.addAll({
+    if (context.response.statusCode < 400 && rateLimiter != null) {
+      context.response.headers.addAll({
         'X-RateLimit-Limit': '$maxRequests',
         'X-RateLimit-Remaining': '${max(maxRequests - rateLimiter!.count, 0)}',
         'X-RateLimit-Reset':

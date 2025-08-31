@@ -10,7 +10,7 @@ class MiddlewareExecutor {
   /// Executes the middleware functions in the given [middlewares] iterable.
   Future<void> execute(
     Iterable<Middleware> middlewares,
-    RequestContext requestContext,
+    ExecutionContext context,
     OutgoingMessage response, {
     required Future<void> Function(WrappedResponse data) onDataReceived,
   }) async {
@@ -20,7 +20,7 @@ class MiddlewareExecutor {
     }
     for (int i = 0; i < middlewares.length; i++) {
       final middleware = middlewares.elementAt(i);
-      await middleware.use(requestContext, ([data]) async {
+      await middleware.use(context, ([data]) async {
         if (data != null) {
           final responseData =
               data is WrappedResponse ? data : WrappedResponse(data);

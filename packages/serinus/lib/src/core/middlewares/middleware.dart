@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart' as shelf;
 
-import '../../contexts/request_context.dart';
+import '../../contexts/execution_context.dart';
 import '../core.dart';
 
 export 'middleware_consumer.dart';
@@ -17,7 +17,7 @@ abstract class Middleware extends Processable {
   const Middleware();
 
   /// The [use] method is used to execute the middleware.
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     return next();
   }
 
@@ -44,7 +44,7 @@ class _ShelfMiddleware extends Middleware {
   ///
   /// Let's thank [codekeyz](https://github.com/codekeyz) for his work.
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     final shelf.Request request = _createShelfRequest(context);
     late shelf.Response shelfResponse;
     if (_handler is shelf.Middleware) {
@@ -57,17 +57,17 @@ class _ShelfMiddleware extends Middleware {
       throw Exception('Handler must be a shelf.Middleware or a shelf.Handler');
     }
     if (ignoreResponse) {
-      context.res.addHeaders(shelfResponse.headers);
+      context.response.addHeaders(shelfResponse.headers);
       return next();
     }
     final response = await _responseFromShelf(context, shelfResponse);
-    context.res.statusCode = shelfResponse.statusCode;
-    context.res.addHeaders(shelfResponse.headers);
+    context.response.statusCode = shelfResponse.statusCode;
+    context.response.addHeaders(shelfResponse.headers);
     return next(response);
   }
 
   Future<dynamic> _responseFromShelf(
-    RequestContext context,
+    ExecutionContext context,
     shelf.Response response,
   ) async {
     Map<String, String> headers = {
@@ -75,15 +75,15 @@ class _ShelfMiddleware extends Middleware {
         key: response.headers[key].toString(),
     };
     response.headers.forEach((key, value) => headers[key] = value);
-    context.res.statusCode = response.statusCode;
-    context.res.headers.addAll(headers);
+    context.response.statusCode = response.statusCode;
+    context.response.headers.addAll(headers);
     final responseBody = await response.readAsString();
     if (responseBody.isNotEmpty) {
       return utf8.encode(responseBody);
     }
   }
 
-  shelf.Request _createShelfRequest(RequestContext context) {
+  shelf.Request _createShelfRequest(ExecutionContext context) {
     return shelf.Request(
       context.request.method.toString(),
       context.request.uri,

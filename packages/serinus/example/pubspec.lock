@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: acanthis
-      sha256: c94c65603385e211b7de35e8bf882421c5810600416846397d9223211ef1276b
+      sha256: d414bf18029385100c2accde137d31ea5f3cc96f13373ea7610520ea2410863e
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.2"
+    version: "1.4.0"
   analyzer:
     dependency: transitive
     description:
@@ -455,7 +455,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "1.0.4"
+    version: "2.0.0"
   shelf:
     dependency: transitive
     description:
@@ -596,10 +596,10 @@ packages:
     dependency: transitive
     description:
       name: watcher
-      sha256: "0b7fd4a0bbc4b92641dbf20adfd7e3fd1398fe17102d94b674234563e110088a"
+      sha256: "5bf046f41320ac97a469d506261797f35254fa61c641741ef32dacda98b7d39c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.2"
+    version: "1.1.3"
   web:
     dependency: transitive
     description:

@@ -5,8 +5,8 @@ import 'package:secure_session/secure_session.dart';
 
 import '../contexts/contexts.dart';
 import '../core/hook.dart';
-import '../http/request.dart';
 import '../mixins/mixins.dart';
+import '../utils/wrapped_response.dart';
 
 /// The [SecureSessionHook] class is used to create a hook that can be used to secure the session of the request.
 class SecureSessionHook extends Hook with OnRequest, OnResponse {
@@ -21,22 +21,21 @@ class SecureSessionHook extends Hook with OnRequest, OnResponse {
   }
 
   @override
-  Future<void> onRequest(Request request, ResponseContext properties) async {
+  Future<void> onRequest(ExecutionContext context) async {
     _secureSession.clear();
-    _secureSession.init(request.cookies);
+    _secureSession.init(context.request.cookies);
   }
 
   @override
   Future<void> onResponse(
-    Request request,
-    dynamic data,
-    ResponseContext properties,
+    ExecutionContext context,
+    WrappedResponse data,
   ) async {
     for (final option in _secureSession.options) {
       final name = option.cookieName ?? option.defaultSessionName;
       final session = _secureSession.get(name);
       if (session != null) {
-        properties.cookies.add(
+        context.response.cookies.add(
           Cookie(name, base64.encode((session.value as String).codeUnits))
             ..maxAge = session.ttl ~/ 1000
             ..expires = DateTime.now().add(Duration(milliseconds: session.ttl))
@@ -48,7 +47,7 @@ class SecureSessionHook extends Hook with OnRequest, OnResponse {
         );
         continue;
       }
-      properties.cookies.add(
+      context.response.cookies.add(
         Cookie(name, '')
           ..maxAge = 0
           ..expires = DateTime.now(),

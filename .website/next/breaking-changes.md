@@ -244,6 +244,11 @@ class TestModule extends Module {
 }
 ```
 
+## 14. Hooks, Pipes and Middlewares now use the `ExecutionContext`
+
+Hooks, Pipes and Middlewares now receive an `ExecutionContext` as their first argument. This context contains information about the current request, response, and other relevant data.
+The reason behind this abstraction is to provide an unified API for these components for common requests, websockets, and other types of interactions.
+
 ## Other Changes
 
 ### a. Headers are now a separate class

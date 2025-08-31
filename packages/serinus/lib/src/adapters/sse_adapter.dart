@@ -149,22 +149,24 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       return;
     }
     final sink = await upgrade(request, response);
-    for (final hook in currentScope.hooks.reqHooks) {
-      await hook.onRequest(wrappedRequest, responseContext);
-    }
-    final context = SseContext(
-      wrappedRequest,
+    final executionContext = ExecutionContext(
+      HostType.sse,
       currentScope.providers,
       currentScope.hooks.services,
-      clientId,
+      wrappedRequest
     );
-    context.metadata = await initMetadata(context, currentScope.metadata);
+    for (final hook in currentScope.hooks.reqHooks) {
+      await hook.onRequest(executionContext);
+    }
+    executionContext.metadata.addAll(
+      await initMetadata(executionContext, currentScope.metadata)
+    );
     final middlewares = currentScope.middlewares(request);
     if (middlewares.isNotEmpty) {
       final executor = MiddlewareExecutor();
       await executor.execute(
         middlewares,
-        context,
+        executionContext,
         response,
         onDataReceived: (data) async {
           if (_connections.containsKey(clientId)) {
@@ -178,11 +180,14 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       }
     }
     for (final hook in currentScope.hooks.beforeHooks) {
-      await hook.beforeHandle(context);
+      await hook.beforeHandle(executionContext);
     }
+    final sseContext = executionContext.switchToSse();
     if (_connections.containsKey(clientId)) {
       await acceptReconnection(clientId, sink);
-      final result = currentScope.sseRouteSpec.handler.call(context) as Stream;
+      final result = currentScope.sseRouteSpec.handler.call(
+        sseContext
+      ) as Stream;
       final connection = _connections[clientId];
       result.listen((data) {
         connection!.sink.add(data);
@@ -192,9 +197,21 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     final connection = SseConnection(sink, keepAlive: keepAlive);
     addConnection(clientId, connection);
     addConnectionController(connection);
-    final result = currentScope.sseRouteSpec.handler.call(context) as Stream;
+    final result = currentScope.sseRouteSpec.handler.call(sseContext) as Stream;
     result.listen((data) {
       connection.sink.add(data);
+    });
+    connection._closedCompleter.future.whenComplete(() async {
+      _connections.remove(clientId);
+      for (final hook in currentScope.hooks.afterHooks) {
+        await hook.afterHandle(executionContext, WrappedResponse(null));
+      }
+      for (final hook in currentScope.hooks.resHooks) {
+        await hook.onResponse(
+          executionContext,
+          WrappedResponse(null),
+        );
+      }
     });
   }
 
@@ -246,7 +263,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
 
   /// Initializes the metadata for the SSE connection.
   Future<Map<String, Metadata>> initMetadata(
-    RequestContext context,
+    ExecutionContext context,
     List<Metadata> metadata,
   ) async {
     final result = <String, Metadata>{};

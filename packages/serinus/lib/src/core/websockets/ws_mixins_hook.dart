@@ -24,11 +24,3 @@ mixin OnClose on Hook {
   /// It can be used to perform actions when a WebSocket connection is closed.
   Future<void> onClose(WebSocketContext context);
 }
-
-/// The [OnWsException] hook is called when an exception occurs in the WebSocket context.
-mixin OnWsException on Hook {
-  /// The [OnWsException] hook is called when an exception occurs in the WebSocket context.
-  ///
-  /// It can be used to handle exceptions that occur during WebSocket operations.
-  Future<void> onWsException(WebSocketContext context, Object exception);
-}

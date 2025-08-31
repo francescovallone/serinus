@@ -1,7 +1,6 @@
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
-import '../http/http.dart';
 import '../mixins/mixins.dart';
 
 /// The [BodySizeLimitHook] class is used to define a body size limit hook.
@@ -13,7 +12,8 @@ class BodySizeLimitHook extends Hook with OnRequest {
   const BodySizeLimitHook({this.maxSize = 1024 * 1024});
 
   @override
-  Future<void> onRequest(Request request, ResponseContext properties) async {
+  Future<void> onRequest(ExecutionContext context) async {
+    final request = context.request;
     await request.parseBody();
     if (request.contentLength > maxSize) {
       throw PayloadTooLargeException(

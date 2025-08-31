@@ -28,7 +28,7 @@ class TestMiddleware extends Middleware {
   TestMiddleware();
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     return next();
   }
 }

@@ -99,8 +99,9 @@ class AnotherController extends Controller {
       pipes: [
         BodySchemaValidationPipe(object({}).passthrough().list()),
         TransformPipe((context) async {
-          context.body = JsonBody.fromJson([
-            for (var item in context.bodyAs<JsonList>().value)
+          final requestContext = context.switchToHttp();
+          requestContext.body = JsonBody.fromJson([
+            for (var item in requestContext.bodyAs<JsonList>().value)
               item..['data'] = 'hello!',
           ]);
         }),
@@ -206,7 +207,7 @@ class LogMiddleware extends Middleware {
   final logger = Logger('LogMiddleware');
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) {
+  Future<void> use(ExecutionContext context, NextFunction next) {
     context.request.on(RequestEvent.error, (event, data) async {
       logger.severe(
         'Error occurred',
@@ -227,7 +228,7 @@ class Log2Middleware extends Middleware {
   final logger = Logger('Log2Middleware');
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) {
+  Future<void> use(ExecutionContext context, NextFunction next) {
     context.request.on(RequestEvent.error, (event, data) async {
       logger.severe(
         'Error occurred',

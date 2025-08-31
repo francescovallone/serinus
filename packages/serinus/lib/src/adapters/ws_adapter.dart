@@ -212,13 +212,6 @@ class WebSocketAdapter extends WsAdapter {
     required Map<String, dynamic> params,
   }) {
     final socket = server?[clientId];
-    final context = WebSocketContext(
-      Request(request, params),
-      clientId,
-      gatewayScope.providers,
-      gatewayScope.hooks.services,
-      this,
-    );
     if (socket != null) {
       socket.done.then((value) {
         server!.remove(clientId);
@@ -226,9 +219,6 @@ class WebSocketAdapter extends WsAdapter {
         final gateway = gatewayScope.gateway;
         if (gateway is OnClientDisconnect) {
           gateway.onClientDisconnect(clientId);
-        }
-        for (final hook in gatewayScope.hooks.closeHooks) {
-          hook.onClose(context);
         }
       });
     }
@@ -244,12 +234,12 @@ class WebSocketAdapter extends WsAdapter {
   }) async {
     final client = server?[clientId];
     final hooks = gatewayScope.hooks;
-    final context = WebSocketContext(
-      Request(request, params),
-      clientId,
+    final context = ExecutionContext(
+      HostType.websocket,
       gatewayScope.providers,
       gatewayScope.hooks.services,
-      this,
+      Request(request),
+      this
     );
     final middlewares = context.use<MiddlewareRegistry>().getRouteMiddlewares(
       gatewayScope.gateway.path ?? '/',
@@ -266,19 +256,23 @@ class WebSocketAdapter extends WsAdapter {
       );
       return;
     }
-    for (final hook in hooks.upgradeHooks) {
-      await hook.onUpgrade(context);
+    for (final hook in hooks.reqHooks) {
+      await hook.onRequest(context);
     }
+    final wsContext = context.switchToWs();
     client?.listen((data) async {
       final message = data is String ? data : utf8.decode(data);
-      for (final hook in hooks.beforeMessageHooks) {
-        await hook.onBeforeMessage(context, message);
+      wsContext.currentMessage = message;
+      for (final hook in hooks.beforeHooks) {
+        await hook.beforeHandle(
+          context
+        );
       }
       try {
-        await gatewayScope.gateway.onMessage(message, context);
+        await gatewayScope.gateway.onMessage(message, wsContext);
       } on SerinusException catch (e) {
-        for (final hook in hooks.wsExceptionHooks) {
-          await hook.onWsException(context, e);
+        for (final hook in hooks.exceptionHooks) {
+          await hook.onException(context, e);
         }
       }
     });

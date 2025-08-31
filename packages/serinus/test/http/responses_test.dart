@@ -33,7 +33,7 @@ class TestController extends Controller {
     on(TestRoute(path: '/json'), (context) async => {'message': 'ok!'});
     on(TestRoute(path: '/json-obj'), (context) async => TestJsonObject());
     on(TestRoute(path: '/html'), (context) async {
-      context.res.contentType = ContentType.html;
+      context.response.contentType = ContentType.html;
       return '<h1>ok!</h1>';
     });
     on(
@@ -73,7 +73,7 @@ class TestMiddleware extends Middleware {
   bool hasBeenCalled = false;
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     next();
   }
 }

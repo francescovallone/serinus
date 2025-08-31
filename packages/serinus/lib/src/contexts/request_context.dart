@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import '../core/core.dart';
-import '../enums/enums.dart';
 import '../http/http.dart';
 import 'base_context.dart';
 import 'response_context.dart';
@@ -49,11 +48,7 @@ class RequestContext extends BaseContext {
   Map<String, dynamic> get query => request.query;
 
   /// The constructor of the [RequestContext] class.
-  RequestContext(this.request, super.providers, super.hooksServices) {
-    res = ResponseContext(providers, hooksServices);
-    res.statusCode =
-        request.method == HttpMethod.post ? HttpStatus.created : HttpStatus.ok;
-  }
+  RequestContext(this.request, super.providers, super.hooksServices);
 
   /// The [RequestContext.fromRouteContext] constructor is used to create a new instance of the [RequestContext] class
   /// from a [RouteContext].
@@ -85,7 +80,7 @@ class RequestContext extends BaseContext {
     return metadata.containsKey(name);
   }
 
-  /// The [res] property contains the response properties of the request context.
+  /// The [response] property contains the response properties of the request context.
   ///
   /// The response properties are used to set some properties of the response.
   /// Currently the available properties are:
@@ -96,7 +91,7 @@ class RequestContext extends BaseContext {
   /// - [redirect]
   ///
   /// The [redirect] property uses a [Redirect] class to create the redirect response.
-  late ResponseContext res;
+  late ResponseContext response;
 }
 
 /// The [Redirect] class is used to create the redirect response.

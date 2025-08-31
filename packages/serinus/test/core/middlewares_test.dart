@@ -9,14 +9,14 @@ class TestValueMiddleware extends Middleware {
   TestValueMiddleware();
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     switch (context.params['v']) {
       case '1':
         return next({'id': 'json-obj'});
       case '2':
         return next(Uint8List.fromList('Hello, World!'.codeUnits));
       default:
-        context.res.headers['x-middleware'] = 'ok!';
+        context.response.headers['x-middleware'] = 'ok!';
     }
     return next();
   }
@@ -29,7 +29,7 @@ class TestRequestEvent extends Middleware {
   bool hasException = false;
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     context.request.on(RequestEvent.close, (event, data) async {
       hasClosed = true;
       hasException = data.hasException;
@@ -48,8 +48,8 @@ class TestJsonObject with JsonObject {
 class TestController extends Controller {
   TestController([super.path = '/']) {
     on(Route.get('/middleware'), (RequestContext context) async {
-      context.res.headers['x-middleware'] =
-          context.request.headers['x-middleware'] ?? '';
+      context.response.headers['x-middleware'] =
+          context.headers['x-middleware'] ?? '';
       return 'ok!';
     });
     on(Route.get('/value/<v>'), (context) async => 'Hello, World!');
@@ -93,8 +93,8 @@ class TestModule extends Module {
 
 class TestModuleMiddleware extends Middleware {
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
-    context.request.headers['x-middleware'] = 'ok!';
+  Future<void> use(ExecutionContext context, NextFunction next) async {
+    context.headers['x-middleware'] = 'ok!';
     return next();
   }
 }

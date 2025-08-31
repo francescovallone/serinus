@@ -73,26 +73,29 @@ class RoutesResolver {
     );
     if (route == null) {
       _logger.verbose('No route found for ${request.method} ${request.uri}');
-      final wrappedRequest = Request(request, {});
       final data =
           _container.applicationRef.notFoundHandler?.call(Request(request)) ??
           NotFoundException(
             'Route not found for ${request.method} ${request.uri}',
           );
       final reqHooks = _container.config.globalHooks.reqHooks;
-      final resContext =
-          ResponseContext({}, {})
-            ..statusCode = HttpStatus.notFound
-            ..contentType = ContentType.json;
+      final executionContext = ExecutionContext(
+        HostType.http,
+        {
+          for (var provider in _container.modulesContainer.globalProviders)
+            provider.runtimeType: provider,
+        },
+        _container.config.globalHooks.services,
+        Request(request, {}),
+      );
+      executionContext.response..statusCode = HttpStatus.notFound
+        ..contentType = ContentType.json;
       for (final hook in reqHooks) {
-        await hook.onRequest(wrappedRequest, resContext);
+        await hook.onRequest(executionContext);
       }
       for (final hook in _container.config.globalHooks.exceptionHooks) {
         await hook.onException(
-          RequestContext(wrappedRequest, {
-            for (final provider in _container.modulesContainer.globalProviders)
-              provider.runtimeType: provider,
-          }, _container.config.globalHooks.services),
+          executionContext,
           data,
         );
       }
@@ -101,24 +104,24 @@ class RoutesResolver {
         utf8.encode(jsonEncode(data.toJson())),
       );
       for (final hook in resHooks) {
-        await hook.onResponse(wrappedRequest, wrappedData, resContext);
+        await hook.onResponse(executionContext, wrappedData);
       }
       request.emit(
         RequestEvent.error,
-        EventData(data: data, properties: resContext),
+        EventData(data: data, properties: executionContext.response),
       );
       request.emit(
         RequestEvent.close,
         EventData(
           data: data,
           properties:
-              resContext
+              executionContext.response
                 ..headers.addAll(
                   (response.currentHeaders as HttpHeaders).toMap(),
                 ),
         ),
       );
-      _container.applicationRef.reply(response, wrappedData, resContext);
+      _container.applicationRef.reply(response, wrappedData, executionContext.response);
       return;
     }
     await route.spec?.handler(request, response, route.params);

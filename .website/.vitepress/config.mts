@@ -84,6 +84,7 @@ export default defineConfig({
               { text: 'Providers', link: 'providers' },
               { text: 'Metadata', link: 'metadata' },
               { text: 'Middlewares', link: 'middlewares' },
+              { text: 'Pipes', link: 'pipes' },
               // { text: 'WebSockets', link: 'websockets' },
               { text: 'Hooks', link: 'hooks' },
               // { text: 'Exceptions', link: 'exceptions' },
@@ -114,6 +115,7 @@ export default defineConfig({
               { text: 'Global Prefix', link: 'global_prefix' },
               { text: 'Session', link: 'session' },
               { text: 'Exceptions', link: 'exceptions' },
+              { text: 'Server-Sent Events', link: 'sse'},
             ]
           },
           {

@@ -9,31 +9,33 @@ class HookTest extends Hook
   final Map<String, dynamic> data = {};
 
   @override
-  Future<void> onRequest(Request request, ResponseContext context) async {
+  Future<void> onRequest(ExecutionContext context) async {
     data['onRequest'] = true;
   }
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     data['beforeHandle'] = true;
   }
 
   @override
-  Future<void> afterHandle(RequestContext context, dynamic response) async {
-    data['afterHandle'] = true;
+  Future<void> afterHandle(
+    ExecutionContext context,
+    WrappedResponse data,
+  ) async {
+    this.data['afterHandle'] = true;
   }
 
   @override
   Future<void> onResponse(
-    Request request,
+    ExecutionContext context,
     WrappedResponse data,
-    ResponseContext properties,
   ) async {
     this.data['onResponse'] = true;
   }
 
   @override
-  Future<void> onException(RequestContext request, Exception exception) async {
+  Future<void> onException(ExecutionContext context, Exception exception) async {
     data['onException'] = true;
   }
 
@@ -43,15 +45,14 @@ class HookTest extends Hook
 
 class NoOverrideHook extends Hook with OnRequest, OnResponse {
   @override
-  Future<void> onRequest(Request request, ResponseContext context) async {
+  Future<void> onRequest(ExecutionContext context) async {
     // No-op
   }
 
   @override
   Future<void> onResponse(
-    Request request,
+    ExecutionContext context,
     WrappedResponse data,
-    ResponseContext properties,
   ) async {
     // No-op
   }
@@ -78,12 +79,12 @@ class HookedRoute extends Hook with OnBeforeHandle, OnAfterHandle {
   final Map<String, dynamic> data = {};
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     data['beforeHandle-route'] = true;
   }
 
   @override
-  Future<void> afterHandle(RequestContext context, dynamic response) async {
+  Future<void> afterHandle(ExecutionContext context, WrappedResponse response) async {
     data['afterHandle-route'] = true;
   }
 }
@@ -115,17 +116,21 @@ void main() {
       'if a hook is augmented and the methods are called then the data should be populated',
       () async {
         final hook = HookTest();
-        final context = RequestContext(MockRequest(), {}, {});
-        await hook.onRequest(context.request, ResponseContext({}, {}));
+        final context = ExecutionContext(
+          HostType.http,
+          {},
+          {},
+          MockRequest()
+        );
+        await hook.onRequest(context);
         expect(hook.data['onRequest'], true);
         await hook.beforeHandle(context);
         expect(hook.data['beforeHandle'], true);
-        await hook.afterHandle(context, 'response');
+        await hook.afterHandle(context, WrappedResponse('response'));
         expect(hook.data['afterHandle'], true);
         await hook.onResponse(
-          context.request,
+          context,
           WrappedResponse('data'),
-          ResponseContext({}, {}),
         );
         expect(hook.data['onResponse'], true);
       },
