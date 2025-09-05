@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:stream_channel/stream_channel.dart';
-import 'package:web_socket_channel/status.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../containers/module_container.dart';
 import '../containers/router.dart';
@@ -25,6 +24,14 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   Logger logger = Logger('WsAdapter');
   bool _isOpen = false;
   final Map<String, WebSocketContext> _contexts = {};
+
+  /// The [_signWsKey] method is used to sign the web socket key.
+  /// 
+  /// Details: https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_servers
+  static String _signWsKey(String key) {
+    const wsMagicGUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
+    return base64.encode(sha1.convert((key + wsMagicGUID).codeUnits).bytes);
+  }
 
   /// The [addContext] method is used to add a context to the adapter
   ///
@@ -70,7 +77,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     }
     _isOpen = false;
     for (var key in server!.keys) {
-      server![key]?.close(normalClosure);
+      server![key]?.close(_WsStatus.normalClosure);
     }
   }
 
@@ -93,7 +100,7 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     sink.add('HTTP/1.1 101 Switching Protocols\r\n'
         'Upgrade: websocket\r\n'
         'Connection: Upgrade\r\n'
-        'Sec-WebSocket-Accept: ${WebSocketChannel.signKey(request.webSocketKey)}\r\n');
+        'Sec-WebSocket-Accept: ${WsAdapter._signWsKey(request.webSocketKey)}\r\n');
     sink.add('\r\n');
     if (channel.sink is! Socket) {
       throw ArgumentError('channel.sink must be a dart:io `Socket`.');
@@ -126,4 +133,9 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
       ModulesContainer container, ApplicationConfig config, Router router) {
     return WebSocketHandler(router, container, config);
   }
+}
+
+/// Helper class to map web socket status codes
+class _WsStatus {
+  static const normalClosure = 1000;
 }
