@@ -1,6 +1,13 @@
 name: my_project
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-dev_dependencies:
-  melos: ^6.1.0
+  sdk: '>=3.6.0 <4.0.0'
+
+workspace:
+  - packages/serinus
+  - packages/serinus_cli
+  - packages/serinus_config
+  - packages/serinus_frontier
+  - packages/serinus_swagger
+  - packages/serve_static
+  - packages/serinus_microservices

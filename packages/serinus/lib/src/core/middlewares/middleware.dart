@@ -45,11 +45,15 @@ class _ShelfMiddleware extends Middleware {
   /// Let's thank [codekeyz](https://github.com/codekeyz) for his work.
   @override
   Future<void> use(ExecutionContext context, NextFunction next) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return next();
+    }
     final shelf.Request request = _createShelfRequest(context);
     late shelf.Response shelfResponse;
     if (_handler is shelf.Middleware) {
       shelfResponse = await _handler(
-        (req) => shelf.Response.ok(context.body.toString()),
+        (req) => shelf.Response.ok((argsHost as dynamic).body.toString()),
       )(request);
     } else if (_handler is shelf.Handler) {
       shelfResponse = await _handler.call(request);
@@ -84,12 +88,16 @@ class _ShelfMiddleware extends Middleware {
   }
 
   shelf.Request _createShelfRequest(ExecutionContext context) {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      throw StateError('The current context is not an HTTP context');
+    }
     return shelf.Request(
-      context.request.method.toString(),
-      context.request.uri,
-      body: context.request.body.toString(),
-      headers: Map<String, Object>.from(context.request.headers.values),
-      context: {'shelf.io.connection_info': context.request.clientInfo!},
+      argsHost.request.method.toString(),
+      argsHost.request.uri,
+      body: argsHost.request.body.toString(),
+      headers: Map<String, Object>.from(argsHost.request.headers.values),
+      context: {'shelf.io.connection_info': argsHost.request.clientInfo!},
     );
   }
 }

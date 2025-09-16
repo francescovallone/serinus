@@ -1,5 +1,4 @@
 import '../core/hook.dart';
-import '../mixins/hooks_mixins.dart';
 
 /// The [HooksContainer] class is used to manage hooks in the application.
 final class HooksContainer {
@@ -21,9 +20,6 @@ final class HooksContainer {
   /// The after hooks for the container
   final Set<OnAfterHandle> afterHooks = {};
 
-  /// The exception hooks for the container
-  final Set<OnException> exceptionHooks = {};
-
   /// The services exposed by the hooks
   final Map<Type, Object> services = {};
 
@@ -37,9 +33,6 @@ final class HooksContainer {
     }
     if (hook is OnAfterHandle) {
       afterHooks.add(hook as OnAfterHandle);
-    }
-    if (hook is OnException) {
-      exceptionHooks.add(hook);
     }
     if (hook is OnResponse) {
       resHooks.add(hook);
@@ -72,11 +65,6 @@ final class HooksContainer {
       );
       merged.afterHooks.addAll(
         container.afterHooks.where(
-          (e) => !merged.registeredHooks.contains(e.runtimeType),
-        ),
-      );
-      merged.exceptionHooks.addAll(
-        container.exceptionHooks.where(
           (e) => !merged.registeredHooks.contains(e.runtimeType),
         ),
       );

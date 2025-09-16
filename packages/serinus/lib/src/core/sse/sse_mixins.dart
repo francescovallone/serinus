@@ -41,7 +41,6 @@ mixin SseController on Controller {
       route: route,
       schema: null,
       body: null,
-      pipes: pipes,
     );
   }
 }

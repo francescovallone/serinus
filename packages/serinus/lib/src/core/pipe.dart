@@ -19,6 +19,7 @@ class BodySchemaValidationPipe<T extends Body> extends Pipe {
   /// The schema to validate against.
   final AcanthisType schema;
 
+  /// Function to handle validation errors.
   final SerinusException Function(String key, ValidationError error)? onError;
 
   /// Creates a new instance of [BodySchemaValidationPipe].
@@ -26,12 +27,13 @@ class BodySchemaValidationPipe<T extends Body> extends Pipe {
 
   @override
   Future<void> transform(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! HttpArgumentsHost) {
+      return;
+    }
     try {
-      if(context.hostType != HostType.http) {
-        return;
-      }
       final reqContext = context.switchToHttp();
-      final result = schema.parse(context.body.value);
+      final result = schema.parse(reqContext.body.value);
       switch (schema) {
         case AcanthisMap():
           reqContext.body = JsonBody.fromJson(
@@ -45,181 +47,205 @@ class BodySchemaValidationPipe<T extends Body> extends Pipe {
           reqContext.body = TextBody(result.value.toString());
       }
     } on ValidationError catch (e) {
-      throw onError?.call(e.key, e) ?? BadRequestException('Body validation failed: $e');
+      throw onError?.call(e.key, e) ??
+          BadRequestException('Body validation failed: $e');
     }
   }
 }
 
+/// Enum representing the type of binding for a pipe.
 enum PipeBindingType {
+  /// Bind to request query parameters.
   query,
+
+  /// Bind to request URL parameters.
   params,
 }
 
+/// Represents a date parsing pipe.
 class ParseDatePipe extends Pipe {
-
+  /// The key to look for in the request.
   final String key;
 
+  /// The binding type of the pipe.
   final PipeBindingType bindingType;
 
+  /// Function to handle errors during parsing.
   final SerinusException Function(String key)? onError;
 
-  ParseDatePipe(
-    this.key,
-    {
-      required this.bindingType,
-      this.onError,
-    }
-  );
+  /// Creates a new instance of [ParseDatePipe].
+  ParseDatePipe(this.key, {required this.bindingType, this.onError});
 
   @override
   Future<void> transform(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
     if (bindingType == PipeBindingType.params) {
-      final dateValue = DateTime.tryParse(context.params[key] ?? '');
+      final dateValue = DateTime.tryParse(argsHost.request.params[key] ?? '');
       if (dateValue == null) {
-        throw onError?.call(key) ?? BadRequestException('Invalid parameter: $key');
+        throw onError?.call(key) ??
+            BadRequestException('Invalid parameter: $key');
       }
-      context.params[key] = dateValue;
+      argsHost.request.params[key] = dateValue;
     }
     if (bindingType == PipeBindingType.query) {
-      final dateValue = DateTime.tryParse(context.query[key]?.toString() ?? '');
+      final dateValue = DateTime.tryParse(
+        argsHost.request.query[key]?.toString() ?? '',
+      );
       if (dateValue == null) {
-        throw onError?.call(key) ?? BadRequestException('Invalid query parameter: $key');
+        throw onError?.call(key) ??
+            BadRequestException('Invalid query parameter: $key');
       }
-      context.query[key] = dateValue;
+      argsHost.request.query[key] = dateValue;
     }
   }
-
 }
 
+/// Represents a double parsing pipe.
 class ParseDoublePipe extends Pipe {
-
+  /// The key to look for in the request.
   final String key;
 
+  /// The binding type of the pipe.
   final PipeBindingType bindingType;
 
+  /// Function to handle errors during parsing.
   final SerinusException Function(String key)? onError;
 
-  ParseDoublePipe(
-    this.key,
-    {
-      required this.bindingType,
-      this.onError,
-    }
-  );
+  /// Creates a new instance of [ParseDoublePipe].
+  ParseDoublePipe(this.key, {required this.bindingType, this.onError});
 
   @override
   Future<void> transform(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
     if (bindingType == PipeBindingType.params) {
-      final doubleValue = double.tryParse(context.params[key] ?? '');
+      final doubleValue = double.tryParse(argsHost.request.params[key] ?? '');
       if (doubleValue == null) {
-        throw onError?.call(key) ?? BadRequestException('Invalid parameter: $key');
+        throw onError?.call(key) ??
+            BadRequestException('Invalid parameter: $key');
       }
-      context.params[key] = doubleValue;
+      argsHost.request.params[key] = doubleValue;
     }
     if (bindingType == PipeBindingType.query) {
-      final doubleValue = double.tryParse(context.query[key]?.toString() ?? '');
+      final doubleValue = double.tryParse(
+        argsHost.request.query[key]?.toString() ?? '',
+      );
       if (doubleValue == null) {
-        throw onError?.call(key) ?? BadRequestException('Invalid query parameter: $key');
+        throw onError?.call(key) ??
+            BadRequestException('Invalid query parameter: $key');
       }
-      context.query[key] = doubleValue;
+      argsHost.request.query[key] = doubleValue;
     }
   }
-
 }
 
-
+/// Represents an integer parsing pipe.
 class ParseIntPipe extends Pipe {
-
+  /// The key to look for in the request.
   final String key;
 
+  /// The binding type of the pipe.
   final PipeBindingType bindingType;
 
+  /// Function to handle errors during parsing.
   final SerinusException Function(String key)? onError;
 
-  ParseIntPipe(
-    this.key,
-    {
-      required this.bindingType,
-      this.onError,
-    }
-  );
+  /// Creates a new instance of [ParseIntPipe].
+  ParseIntPipe(this.key, {required this.bindingType, this.onError});
 
   @override
   Future<void> transform(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
     if (bindingType == PipeBindingType.params) {
-      final value = int.tryParse(context.params[key] ?? '');
+      final value = int.tryParse(argsHost.request.params[key] ?? '');
       if (value == null) {
-        throw onError?.call(key) ?? BadRequestException('Invalid parameter: $key');
+        throw onError?.call(key) ??
+            BadRequestException('Invalid parameter: $key');
       }
-      context.params[key] = value;
+      argsHost.request.params[key] = value;
     }
     if (bindingType == PipeBindingType.query) {
-      final intValue = int.tryParse(context.query[key]?.toString() ?? '');
+      final intValue = int.tryParse(
+        argsHost.request.query[key]?.toString() ?? '',
+      );
       if (intValue == null) {
-        throw onError?.call(key) ?? BadRequestException('Invalid query parameter: $key');
+        throw onError?.call(key) ??
+            BadRequestException('Invalid query parameter: $key');
       }
-      context.query[key] = intValue;
+      argsHost.request.query[key] = intValue;
     }
-    
   }
-
 }
 
+/// Represents a boolean parsing pipe.
 class ParseBoolPipe extends Pipe {
-
+  /// The key to look for in the request.
   final String key;
 
+  /// The binding type of the pipe.
   final PipeBindingType bindingType;
 
+  /// Function to handle errors during parsing.
   final SerinusException Function(String key)? onError;
 
-  ParseBoolPipe(
-    this.key,
-    {
-      required this.bindingType,
-      this.onError,
-    }
-  );
+  /// Creates a new instance of [ParseBoolPipe].
+  ParseBoolPipe(this.key, {required this.bindingType, this.onError});
 
   @override
   Future<void> transform(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
     if (bindingType == PipeBindingType.params) {
-      final boolValue = context.params[key]?.toString().toLowerCase() == 'true';
-      context.params[key] = boolValue;
+      final boolValue =
+          argsHost.request.params[key]?.toString().toLowerCase() == 'true';
+      argsHost.request.params[key] = boolValue;
     }
     if (bindingType == PipeBindingType.query) {
-      final boolValue = context.query[key]?.toString().toLowerCase() == 'true';
-      context.query[key] = boolValue;
+      final boolValue =
+          argsHost.request.query[key]?.toString().toLowerCase() == 'true';
+      argsHost.request.query[key] = boolValue;
     }
   }
-
 }
 
+/// Represents a default value pipe.
 class DefaultValuePipe<T> extends Pipe {
-
+  /// The default value to be set if the key is not present in the request.
   final T value;
 
+  /// The key to look for in the request.
   final String key;
 
+  /// The binding type of the pipe.
   final PipeBindingType bindingType;
 
-  DefaultValuePipe(
-    this.value,
-    {
-      required this.key,
-      required this.bindingType,
-    }
-  ) {
+  /// Creates a new instance of [DefaultValuePipe].
+  DefaultValuePipe(this.value, {required this.key, required this.bindingType}) {
     if (bindingType == PipeBindingType.params) {
-      throw ArgumentError('Params binding type cannot be used with DefaultValuePipe.');
+      throw ArgumentError(
+        'Params binding type cannot be used with DefaultValuePipe.',
+      );
     }
   }
 
   @override
   Future<void> transform(ExecutionContext context) async {
-    context.query[key] ??= value;
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
+    argsHost.request.query[key] ??= value;
   }
-
 }
 
 /// Represents a transformation pipe.

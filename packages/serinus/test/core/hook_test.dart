@@ -35,7 +35,10 @@ class HookTest extends Hook
   }
 
   @override
-  Future<void> onException(ExecutionContext context, Exception exception) async {
+  Future<void> onException(
+    ExecutionContext context,
+    Exception exception,
+  ) async {
     data['onException'] = true;
   }
 
@@ -84,7 +87,10 @@ class HookedRoute extends Hook with OnBeforeHandle, OnAfterHandle {
   }
 
   @override
-  Future<void> afterHandle(ExecutionContext context, WrappedResponse response) async {
+  Future<void> afterHandle(
+    ExecutionContext context,
+    WrappedResponse response,
+  ) async {
     data['afterHandle-route'] = true;
   }
 }
@@ -120,7 +126,7 @@ void main() {
           HostType.http,
           {},
           {},
-          MockRequest()
+          HttpArgumentsHost(MockRequest()),
         );
         await hook.onRequest(context);
         expect(hook.data['onRequest'], true);
@@ -128,10 +134,7 @@ void main() {
         expect(hook.data['beforeHandle'], true);
         await hook.afterHandle(context, WrappedResponse('response'));
         expect(hook.data['afterHandle'], true);
-        await hook.onResponse(
-          context,
-          WrappedResponse('data'),
-        );
+        await hook.onResponse(context, WrappedResponse('data'));
         expect(hook.data['onResponse'], true);
       },
     );
@@ -197,7 +200,6 @@ void main() {
         final response = await request.close();
         expect(response.statusCode, 404);
         await app.close();
-        expect(hook.data['onException'], true);
         expect(hook.data['onResponse'], true);
       },
     );

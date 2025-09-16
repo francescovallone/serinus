@@ -153,13 +153,13 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       HostType.sse,
       currentScope.providers,
       currentScope.hooks.services,
-      wrappedRequest
+      SseArgumentsHost(wrappedRequest, clientId),
     );
     for (final hook in currentScope.hooks.reqHooks) {
       await hook.onRequest(executionContext);
     }
     executionContext.metadata.addAll(
-      await initMetadata(executionContext, currentScope.metadata)
+      await initMetadata(executionContext, currentScope.metadata),
     );
     final middlewares = currentScope.middlewares(request);
     if (middlewares.isNotEmpty) {
@@ -185,9 +185,8 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     final sseContext = executionContext.switchToSse();
     if (_connections.containsKey(clientId)) {
       await acceptReconnection(clientId, sink);
-      final result = currentScope.sseRouteSpec.handler.call(
-        sseContext
-      ) as Stream;
+      final result =
+          currentScope.sseRouteSpec.handler.call(sseContext) as Stream;
       final connection = _connections[clientId];
       result.listen((data) {
         connection!.sink.add(data);
@@ -207,10 +206,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
         await hook.afterHandle(executionContext, WrappedResponse(null));
       }
       for (final hook in currentScope.hooks.resHooks) {
-        await hook.onResponse(
-          executionContext,
-          WrappedResponse(null),
-        );
+        await hook.onResponse(executionContext, WrappedResponse(null));
       }
     });
   }

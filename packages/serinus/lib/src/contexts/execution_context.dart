@@ -1,97 +1,184 @@
-import 'dart:io';
-
 import '../adapters/ws_adapter.dart';
 import '../core/core.dart';
 import '../enums/http_method.dart';
 import '../http/http.dart';
+import '../microservices/transports/transports.dart';
 import 'contexts.dart';
 
 /// The type of host for the request.
 enum HostType {
   /// HTTP host
   http,
+
   /// WebSocket host
   websocket,
+
   /// Server-Sent Events host
   sse,
+
   /// RPC Based Events or Message
-  rpc
+  rpc,
 }
 
-final class ExecutionContext extends BaseContext {
+/// The base class for all argument hosts.
+abstract class ArgumentsHost {
+  /// The [ArgumentsHost] constructor is used to create a new instance of the [ArgumentsHost] class.
+  const ArgumentsHost();
+}
 
+/// The base class for request-based argument hosts.
+abstract class RequestArgumentsHost extends ArgumentsHost {
+  /// The HTTP request object.
+  final Request request;
+
+  /// The headers of the request.
+  SerinusHeaders get headers => request.headers;
+
+  /// The URL of the request.
+  Map<String, dynamic> get params => request.params;
+
+  /// The query parameters of the request.
+  Map<String, dynamic> get query => request.query;
+
+  /// The body of the request.
+  Body? get body => request.body;
+
+  /// The [RequestArgumentsHost] constructor is used to create a new instance of the [RequestArgumentsHost] class.
+  const RequestArgumentsHost(this.request);
+}
+
+/// The base class for response-based argument hosts.
+final class HttpArgumentsHost extends RequestArgumentsHost {
+  /// The [HttpArgumentsHost] constructor is used to create a new instance of the [HttpArgumentsHost] class.
+  const HttpArgumentsHost(super.request);
+}
+
+/// The base class for WebSocket-based argument hosts.
+final class WsArgumentsHost extends RequestArgumentsHost {
+  /// The [WsArgumentsHost] constructor is used to create a new instance of the [WsArgumentsHost] class.
+  const WsArgumentsHost(super.request, this.wsAdapter, this.clientId);
+
+  /// The WebSocket adapter instance.
+  final WsAdapter wsAdapter;
+
+  /// The client ID of the WebSocket connection.
+  final String clientId;
+}
+
+/// The base class for Server-Sent Events-based argument hosts.
+final class SseArgumentsHost extends RequestArgumentsHost {
+  /// The [SseArgumentsHost] constructor is used to create a new instance of the [SseArgumentsHost] class.
+  const SseArgumentsHost(super.request, this.clientId);
+
+  /// The client ID of the SSE connection.
+  final String clientId;
+}
+
+/// The base class for RPC-based argument hosts.
+final class RpcArgumentsHost extends ArgumentsHost {
+  /// The [RpcArgumentsHost] constructor is used to create a new instance of the [RpcArgumentsHost] class.
+  RpcArgumentsHost(this.packet);
+
+  /// The underlying message packet (either a request or an event).
+  final MessagePacket packet;
+}
+
+/// The execution context for a request, WebSocket message, SSE message, or RPC message.
+final class ExecutionContext extends BaseContext {
+  /// The [ExecutionContext] constructor is used to create a new instance of the [ExecutionContext] class.
   ExecutionContext(
     this.hostType,
     super.providers,
     super.hooksServices,
-    this.request,
-    [this._wsAdapter]
-  ): response = ResponseContext(providers, hooksServices) {
-    response.statusCode =
-        request.method == HttpMethod.post ? HttpStatus.created : HttpStatus.ok;
+    this.argumentsHost,
+  ) : response = ResponseContext(providers, hooksServices) {
+    if (argumentsHost is RequestArgumentsHost) {
+      response.statusCode =
+          (argumentsHost as RequestArgumentsHost).request.method ==
+                  HttpMethod.post
+              ? 201
+              : 200;
+    }
   }
 
+  /// The underlying arguments host (either HTTP, WebSocket, SSE, or RPC).
+  final ArgumentsHost argumentsHost;
+
+  /// Metadata associated with the current context.
   final Map<String, Metadata> metadata = {};
 
-  final WsAdapter? _wsAdapter;
-
-  final Request request;
-  
+  /// The response context associated with the current context.
   final ResponseContext response;
 
-  /// The [body] property contains the body of the context.
-  Body get body => request.body ?? Body.empty();
-
-  /// The [path] property contains the path of the request.
-  String get path => request.path;
-
-  /// The [method] property contains the method of the request.
-  SerinusHeaders get headers => request.headers;
-
-  /// The [operator []] is used to get data from the request.
-  dynamic operator [](String key) => request[key];
-
-  /// The [operator []=] is used to set data to the request.
-  void operator []=(String key, dynamic value) {
-    request[key] = value;
-  }
-
-  /// The [params] property contains the path parameters of the request.
-  Map<String, dynamic> get params => request.params;
-
-  /// The [queryParameters] property contains the query parameters of the request.
-  Map<String, dynamic> get query => request.query;
-
+  /// The type of host for the request.
   final HostType hostType;
 
   RequestContext? _requestContext;
 
+  /// Switch to the HTTP context.
   RequestContext switchToHttp() {
-    if(_requestContext != null) {
-      return _requestContext!;
+    if (argumentsHost is! HttpArgumentsHost) {
+      throw StateError('The current context is not an HTTP context');
     }
-    return RequestContext(request, providers, hooksServices)..metadata = metadata..response = response;
+    _requestContext ??=
+        RequestContext(
+            (argumentsHost as HttpArgumentsHost).request,
+            providers,
+            hooksServices,
+          )
+          ..metadata = metadata
+          ..response = response;
+    return _requestContext!;
   }
 
   WebSocketContext? _webSocketContext;
 
+  /// Switch to the WebSocket context.
   WebSocketContext switchToWs() {
-    if(_wsAdapter == null) {
-      throw StateError('WebSocket adapter is not available in this context');
+    if (argumentsHost is! WsArgumentsHost) {
+      throw StateError('The current context is not a WebSocket context');
     }
-    final clientId = request.headers['sec-websocket-key'];
-    if(clientId == null) {
-      throw StateError('The request is not a valid WebSocket request');
-    }
-    _webSocketContext ??= WebSocketContext(request, clientId, providers, hooksServices, _wsAdapter);
+    final wsHost = argumentsHost as WsArgumentsHost;
+    _webSocketContext ??=
+        WebSocketContext(
+            wsHost.request,
+            wsHost.clientId,
+            providers,
+            hooksServices,
+            wsHost.wsAdapter,
+          )
+          ..metadata = metadata
+          ..response = response;
     return _webSocketContext!;
   }
 
   SseContext? _sseContext;
 
+  /// Switch to the SSE context.
   SseContext switchToSse() {
-    _sseContext ??= SseContext(request, providers, hooksServices, request.query['sseClientId']!);
+    if (argumentsHost is! SseArgumentsHost) {
+      throw StateError('The current context is not an SSE context');
+    }
+    final sseHost = argumentsHost as SseArgumentsHost;
+    _sseContext ??=
+        SseContext(sseHost.request, providers, hooksServices, sseHost.clientId)
+          ..metadata = metadata
+          ..response = response;
     return _sseContext!;
   }
 
+  RpcContext? _rpcContext;
+
+  /// Switch to the RPC context.
+  RpcContext switchToRpc() {
+    if (argumentsHost is! RpcArgumentsHost) {
+      throw StateError('The current context is not an RPC context');
+    }
+    _rpcContext ??= RpcContext(
+      providers,
+      hooksServices,
+      (argumentsHost as RpcArgumentsHost).packet,
+    );
+    return _rpcContext!;
+  }
 }

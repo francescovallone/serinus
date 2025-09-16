@@ -17,9 +17,9 @@ class FrontierModule extends Module {
   FrontierModule(this.strategies, {this.onError});
 
   @override
-  Future<Module> registerAsync(ApplicationConfig config) async {
-    config.addHook(FrontierHook(strategies, onError: onError));
-    return this;
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
+    config.globalHooks.addHook(FrontierHook(strategies, onError: onError));
+    return DynamicModule();
   }
 }
 
@@ -44,7 +44,7 @@ class FrontierHook extends Hook with OnBeforeHandle {
   Frontier get service => _frontier;
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     final hasStrategy = context.canStat('GuardMeta');
     if (!hasStrategy) {
       return;
@@ -76,8 +76,7 @@ class FrontierHook extends Hook with OnBeforeHandle {
         onError!.call(value);
         return;
       }
-      throw UnauthorizedException(
-          message: 'Unauthorized! - ${value.toString()}');
+      throw UnauthorizedException('Unauthorized! - ${value.toString()}');
     }
     context['frontier_response'] = value;
   }

@@ -8,7 +8,7 @@ import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../extensions/string_extensions.dart';
 import '../global_prefix.dart';
-import '../injector/internal_core_module.dart';
+import '../microservices/microservices.dart';
 import '../mixins/mixins.dart';
 import '../routes/routes_resolver.dart';
 import '../services/logger_service.dart';
@@ -99,9 +99,91 @@ abstract class Application {
   Future<void> close();
 }
 
+/// The [MicroserviceApplication] class is used to create a new instance of the [Application] class.
+class MicroserviceApplication extends Application {
+  final Logger _logger = Logger('MicroserviceApplication');
+
+  /// The [MicroserviceApplication] constructor is used to create a new instance of the [MicroserviceApplication] class.
+  MicroserviceApplication({
+    required super.entrypoint,
+    required super.config,
+    super.levels,
+    super.logger,
+  });
+
+  @override
+  String get url => 'microservice';
+
+  bool _isInizialized = false;
+
+  @override
+  Future<void> serve() async {
+    try {
+      _logger.info('Starting microservices');
+      for (final microservice in config.microservices) {
+        await microservice.init(config);
+      }
+      await initialize();
+      await _container.emitHook<OnApplicationReady>();
+    } catch (e) {
+      if (abortOnError) {
+        rethrow;
+      }
+      _logger.severe(
+        'Error occurred while starting microservices',
+        OptionalParameters(error: e, stackTrace: StackTrace.current),
+      );
+    }
+  }
+
+  @override
+  Future<void> close() async {
+    for (final adapter in config.adapters.values) {
+      await adapter.close();
+    }
+    for (final microservice in config.microservices) {
+      await microservice.close();
+    }
+    await config.serverAdapter.close();
+    await shutdown();
+  }
+
+  @override
+  Future<void> initialize() async {
+    try {
+      if (_isInizialized) {
+        return;
+      }
+      _isInizialized = true;
+      await _container.init(entrypoint, _routesResolver);
+    } catch (e) {
+      if (abortOnError) {
+        rethrow;
+      }
+      _logger.severe(
+        'Error occurred while initializing application',
+        OptionalParameters(error: e, stackTrace: StackTrace.current),
+      );
+    }
+  }
+
+  @override
+  Future<void> shutdown() async {
+    _logger.info('Shutting down microservices');
+    await _container.emitHook<OnApplicationShutdown>();
+  }
+
+  @override
+  Future<void> register() {
+    return _container.modulesContainer.registerModules(entrypoint);
+  }
+}
+
 /// The [SerinusApplication] class is used to create a new instance of the [Application] class.
 class SerinusApplication extends Application {
   final Logger _logger = Logger('SerinusApplication');
+
+  final List<TransportAdapter> _microservices = [];
 
   /// The [SerinusApplication] constructor is used to create a new instance of the [SerinusApplication] class.
   SerinusApplication({
@@ -113,6 +195,8 @@ class SerinusApplication extends Application {
 
   @override
   String get url => config.baseUrl;
+
+  bool _isInizialized = false;
 
   /// The [viewEngine] method is used to set the view engine of the application.
   set viewEngine(ViewEngine viewEngine) {
@@ -137,6 +221,12 @@ class SerinusApplication extends Application {
   @override
   Future<void> serve() async {
     try {
+      if (config.microservices.isNotEmpty) {
+        _logger.info('Starting microservices');
+        for (final microservice in config.microservices) {
+          await microservice.init(config);
+        }
+      }
       await initialize();
       _logger.info('Starting server on $url');
       server.listen(
@@ -173,6 +263,9 @@ class SerinusApplication extends Application {
     for (final adapter in config.adapters.values) {
       await adapter.close();
     }
+    for (final microservice in config.microservices) {
+      await microservice.close();
+    }
     await config.serverAdapter.close();
     await shutdown();
   }
@@ -180,18 +273,11 @@ class SerinusApplication extends Application {
   @override
   Future<void> initialize() async {
     try {
-      final modulesContainer = _container.modulesContainer;
-      if (!modulesContainer.isInitialized) {
-        await modulesContainer.registerModules(
-          InternalCoreModule(_container.inspector),
-          internal: true,
-        );
-        await modulesContainer.registerModules(entrypoint);
+      if (_isInizialized) {
+        return;
       }
-      _routesResolver?.resolve();
-      await modulesContainer.finalize(entrypoint);
-      _container.inspector.inspectModules(modulesContainer.scopes);
-      await _container.emitHook<OnApplicationBootstrap>();
+      _isInizialized = true;
+      await _container.init(entrypoint, _routesResolver);
     } catch (e) {
       if (abortOnError) {
         rethrow;
@@ -201,6 +287,34 @@ class SerinusApplication extends Application {
         OptionalParameters(error: e, stackTrace: StackTrace.current),
       );
     }
+  }
+
+  /// The [connectMicroservice] method is used to connect a microservice to the application.
+  /// It takes a [TransportAdapter] as a parameter and adds it to the list of microservices.
+  /// It also checks if the port of the microservice is already in use by another microservice or the main application.
+  TransportInstance connectMicroservice(TransportAdapter adapter) {
+    final allPorts = [
+      config.port,
+      ..._microservices.map((e) => e.options.port),
+    ];
+    if (allPorts.contains(adapter.options.port)) {
+      throw ArgumentError(
+        'Microservice port (${adapter.options.port}) is already in use by another microservice or the main application',
+      );
+    }
+    config.microservices.add(adapter);
+    return TransportInstance(adapter);
+  }
+
+  /// The [startAllMicroservices] method is used to start all microservices.
+  Future<void> startAllMicroservices() async {
+    for (final microservice in config.microservices) {
+      await microservice.init(config);
+    }
+    if (!_isInizialized) {
+      await initialize();
+    }
+    _isInizialized = true;
   }
 
   @override
@@ -232,11 +346,11 @@ class SerinusApplication extends Application {
     }
   }
 
-  /// The [trace] method is used to add a tracer to the application.
-  void trace(Tracer tracer) {
-    config.registerTracer(tracer);
-    _logger.info(
-      'Tracer ${tracer.name}(${tracer.runtimeType}) added to application',
-    );
-  }
+  // /// The [trace] method is used to add a tracer to the application.
+  // void trace(Tracer tracer) {
+  //   config.registerTracer(tracer);
+  //   _logger.info(
+  //     'Tracer ${tracer.name}(${tracer.runtimeType}) added to application',
+  //   );
+  // }
 }

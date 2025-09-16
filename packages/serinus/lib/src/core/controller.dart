@@ -7,6 +7,7 @@ import 'package:uuid/v4.dart';
 import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import 'core.dart';
+import 'exception_filter.dart';
 
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
 typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
@@ -16,13 +17,7 @@ typedef SyncReqResHandler<T> = T Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
 typedef RouteHandler =
-    ({
-      Route route,
-      dynamic handler,
-      ParseSchema? schema,
-      Type? body,
-      List<Pipe> pipes,
-    });
+    ({Route route, dynamic handler, ParseSchema? schema, Type? body});
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
@@ -50,6 +45,9 @@ abstract class Controller {
 
   /// The [hooksContainer] property contains the hooks container of the controller.
   final HooksContainer hooks = HooksContainer();
+
+  /// The [exceptionFilters] property contains the exception filters of the controller.
+  Set<ExceptionFilter> get exceptionFilters => {};
 
   /// The [metadata] property contains the metadata of the controller.
   List<Metadata> get metadata => [];
@@ -81,7 +79,6 @@ abstract class Controller {
       route: route,
       schema: schema,
       body: body,
-      pipes: pipes,
     );
   }
 
@@ -108,7 +105,6 @@ abstract class Controller {
       route: route,
       schema: null,
       body: null,
-      pipes: const [],
     );
   }
 }

@@ -9,7 +9,7 @@ class WebSocketContext extends RequestContext {
   final String clientId;
 
   final WsAdapter _adapter;
-  
+
   /// The current message sent by the user.
   String currentMessage = '';
 

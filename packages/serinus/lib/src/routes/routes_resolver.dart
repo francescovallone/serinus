@@ -86,18 +86,19 @@ class RoutesResolver {
             provider.runtimeType: provider,
         },
         _container.config.globalHooks.services,
-        Request(request, {}),
+        HttpArgumentsHost(Request(request, {})),
       );
-      executionContext.response..statusCode = HttpStatus.notFound
+      executionContext.response
+        ..statusCode = HttpStatus.notFound
         ..contentType = ContentType.json;
       for (final hook in reqHooks) {
         await hook.onRequest(executionContext);
       }
-      for (final hook in _container.config.globalHooks.exceptionHooks) {
-        await hook.onException(
-          executionContext,
-          data,
-        );
+      for (final filter in _container.config.exceptionFilters) {
+        if (filter.catchTargets.contains(data.runtimeType) ||
+            filter.catchTargets.isEmpty) {
+          await filter.onException(executionContext, data);
+        }
       }
       final resHooks = _container.config.globalHooks.resHooks;
       final wrappedData = WrappedResponse(
@@ -121,7 +122,11 @@ class RoutesResolver {
                 ),
         ),
       );
-      _container.applicationRef.reply(response, wrappedData, executionContext.response);
+      _container.applicationRef.reply(
+        response,
+        wrappedData,
+        executionContext.response,
+      );
       return;
     }
     await route.spec?.handler(request, response, route.params);

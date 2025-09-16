@@ -6,6 +6,7 @@ import '../../adapters/ws_adapter.dart';
 import '../../containers/hooks_container.dart';
 import '../../contexts/contexts.dart';
 import '../core.dart';
+import '../exception_filter.dart';
 
 /// The [WebSocketContext] class is used to define the context of the WebSocket.
 abstract class MessageSerializer<TInput> {
@@ -70,4 +71,8 @@ abstract class WebSocketGateway extends Provider {
   /// The [Hook]s of the WebSocketGateway.
   /// This is a list of hooks that will be executed when the WebSocketGateway is initialized
   final HooksContainer hooks = HooksContainer();
+
+  /// The [exceptionFilters] of the WebSocketGateway.
+  /// This is a list of exception filters that will be used to handle exceptions thrown in the WebSocketGateway
+  final Set<ExceptionFilter> exceptionFilters = {};
 }

@@ -10,14 +10,18 @@ class TestValueMiddleware extends Middleware {
 
   @override
   Future<void> use(ExecutionContext context, NextFunction next) async {
-    switch (context.params['v']) {
-      case '1':
-        return next({'id': 'json-obj'});
-      case '2':
-        return next(Uint8List.fromList('Hello, World!'.codeUnits));
-      default:
-        context.response.headers['x-middleware'] = 'ok!';
+    final argumentsHost = context.argumentsHost;
+    if (argumentsHost is RequestArgumentsHost) {
+      switch (argumentsHost.params['v']) {
+        case '1':
+          return next({'id': 'json-obj'});
+        case '2':
+          return next(Uint8List.fromList('Hello, World!'.codeUnits));
+        default:
+          context.response.headers['x-middleware'] = 'ok!';
+      }
     }
+
     return next();
   }
 }
@@ -30,10 +34,13 @@ class TestRequestEvent extends Middleware {
 
   @override
   Future<void> use(ExecutionContext context, NextFunction next) async {
-    context.request.on(RequestEvent.close, (event, data) async {
-      hasClosed = true;
-      hasException = data.hasException;
-    });
+    final argumentsHost = context.argumentsHost;
+    if (argumentsHost is RequestArgumentsHost) {
+      argumentsHost.request.on(RequestEvent.close, (event, data) async {
+        hasClosed = true;
+        hasException = data.hasException;
+      });
+    }
     return next();
   }
 }
@@ -94,7 +101,10 @@ class TestModule extends Module {
 class TestModuleMiddleware extends Middleware {
   @override
   Future<void> use(ExecutionContext context, NextFunction next) async {
-    context.headers['x-middleware'] = 'ok!';
+    final argumentsHost = context.argumentsHost;
+    if (argumentsHost is RequestArgumentsHost) {
+      argumentsHost.headers['x-middleware'] = 'ok!';
+    }
     return next();
   }
 }

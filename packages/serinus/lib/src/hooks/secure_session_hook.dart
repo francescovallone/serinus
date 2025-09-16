@@ -5,7 +5,6 @@ import 'package:secure_session/secure_session.dart';
 
 import '../contexts/contexts.dart';
 import '../core/hook.dart';
-import '../mixins/mixins.dart';
 import '../utils/wrapped_response.dart';
 
 /// The [SecureSessionHook] class is used to create a hook that can be used to secure the session of the request.
@@ -22,8 +21,12 @@ class SecureSessionHook extends Hook with OnRequest, OnResponse {
 
   @override
   Future<void> onRequest(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
     _secureSession.clear();
-    _secureSession.init(context.request.cookies);
+    _secureSession.init(argsHost.request.cookies);
   }
 
   @override

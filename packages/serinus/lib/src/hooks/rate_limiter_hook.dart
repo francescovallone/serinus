@@ -4,7 +4,6 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
-import '../mixins/mixins.dart';
 import '../utils/wrapped_response.dart';
 
 /// The [RateLimiterHook] class is a hook that limits the number of requests a client can make.
@@ -35,7 +34,12 @@ class RateLimiterHook extends Hook with OnBeforeHandle, OnResponse {
     if (shouldSkip) {
       return;
     }
-    final key = getKey(context.request);
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
+    final request = argsHost.request;
+    final key = getKey(request);
     if (key == null) {
       throw InternalServerErrorException();
     }

@@ -39,10 +39,11 @@ final class Router {
         );
       }
     }
-    _routeTree.addRoute(HttpMethod.toSpanner(context.method), path, (
-      context,
-      handler,
-    ));
+    _routeTree.addRoute(
+      HttpMethod.toSpanner(context.method),
+      path.stripEndSlash(),
+      (context, handler),
+    );
   }
 
   /// The [getRouteByPathAndMethod] method is used to get the route by path and method.

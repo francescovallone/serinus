@@ -57,6 +57,12 @@ class SseRegistry extends Provider
           moduleScope: currentModuleScope,
           hooksContainer: hooks,
           hooksServices: hooks.services,
+          pipes: [...controller.pipes, ...route.pipes, ..._config.globalPipes],
+          exceptionFilters: {
+            ...controller.exceptionFilters,
+            ...route.exceptionFilters,
+            ..._config.exceptionFilters,
+          },
         );
         router.addRoute(
           HttpMethod.toSpanner(route.method),

@@ -9,8 +9,10 @@ import '../containers/model_provider.dart';
 import '../containers/module_container.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
+import '../microservices/transports/transports.dart';
 import '../services/tracers_service.dart';
 import '../versioning.dart';
+import 'exception_filter.dart';
 import 'pipe.dart' as s;
 import 'tracer.dart';
 
@@ -41,6 +43,9 @@ final class ApplicationConfig {
 
   /// The applicationId, every application has a unique id
   final String applicationId = UuidV4().generate();
+
+  /// The list of microservices in the application.
+  final List<TransportAdapter> microservices = [];
 
   /// The versioning options for the application
   /// This can be set using the [versioning] method
@@ -128,6 +133,9 @@ final class ApplicationConfig {
 
   /// The tracer for the application
   final TracersService tracerService = TracersService();
+
+  /// The set of exception filters to be applied globally
+  final Set<ExceptionFilter> exceptionFilters = {};
 
   /// Register a tracer to the application
   void registerTracer(Tracer tracer) {

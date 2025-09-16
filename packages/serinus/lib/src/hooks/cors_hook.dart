@@ -1,7 +1,6 @@
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
-import '../mixins/mixins.dart';
 import '../utils/wrapped_response.dart';
 
 /// The [CorsHook] class is a hook that adds CORS headers to the response.
@@ -54,8 +53,14 @@ class CorsHook extends Hook with OnRequest, OnResponse, OnBeforeHandle {
 
   @override
   Future<void> beforeHandle(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
+    final request = argsHost.request;
+
     /// Get the origin from the request headers.
-    final origin = context.headers['origin'];
+    final origin = request.headers['origin'];
 
     /// Check if the origin is allowed.
     if ((origin == null ||
@@ -89,7 +94,12 @@ class CorsHook extends Hook with OnRequest, OnResponse, OnBeforeHandle {
 
   @override
   Future<void> onRequest(ExecutionContext context) async {
-    if (context.request.method == HttpMethod.options) {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! RequestArgumentsHost) {
+      return;
+    }
+    final request = argsHost.request;
+    if (request.method == HttpMethod.options) {
       context.response.headers.addAll({
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',

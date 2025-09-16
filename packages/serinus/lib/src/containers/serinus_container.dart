@@ -1,7 +1,9 @@
 import '../adapters/http_adapter.dart';
 import '../core/core.dart';
+import '../injector/internal_core_module.dart';
 import '../inspector/inspector.dart';
 import '../mixins/provider_mixins.dart';
+import '../routes/routes_resolver.dart';
 import 'module_container.dart';
 
 /// The [SerinusContainer] is the main container of the Serinus Framework.
@@ -27,6 +29,9 @@ class SerinusContainer {
     inspector = GraphInspector(SerializedGraph(), modulesContainer);
   }
 
+  /// The [isInitialized] property is used to check if the modules container is initialized.
+  bool get isInitialized => modulesContainer.isInitialized;
+
   /// The [applicationRef] is the reference to the application default http adapter.
   final HttpAdapter applicationRef;
 
@@ -51,5 +56,23 @@ class SerinusContainer {
         await (provider as OnApplicationInit).onApplicationInit();
       }
     }
+  }
+
+  /// The [init] method is used to initialize the modules container.
+  /// It takes a [Module] as the entrypoint of the application and an optional
+  /// [RoutesResolver] to resolve the routes of the application.
+  /// It registers the modules and finalizes the container.
+  Future<void> init(Module entrypoint, RoutesResolver? routesResolver) async {
+    if (!modulesContainer.isInitialized) {
+      await modulesContainer.registerModules(
+        InternalCoreModule(inspector, config.microservices.isNotEmpty),
+        internal: true,
+      );
+      await modulesContainer.registerModules(entrypoint);
+    }
+    routesResolver?.resolve();
+    await modulesContainer.finalize(entrypoint);
+    inspector.inspectModules(modulesContainer.scopes);
+    await emitHook<OnApplicationBootstrap>();
   }
 }

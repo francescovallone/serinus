@@ -97,9 +97,14 @@ final class RoutesExplorer {
         hooksContainer: mergedContainer,
         pipes: [
           ...controller.pipes,
-          ...spec.pipes,
+          ...spec.route.pipes,
           ..._container.config.globalPipes,
         ],
+        exceptionFilters: {
+          ...controller.exceptionFilters,
+          ...spec.route.exceptionFilters,
+          ..._container.config.exceptionFilters,
+        },
       );
       _router.registerRoute(
         context: context,

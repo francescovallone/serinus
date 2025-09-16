@@ -66,9 +66,9 @@ class RouteExecutionContext {
           {
             for (var provider in context.moduleScope.unifiedProviders)
               provider.runtimeType: provider,
-          }, 
+          },
           context.hooksServices,
-          wrappedRequest
+          HttpArgumentsHost(wrappedRequest),
         );
         for (final hook in context.hooksContainer.reqHooks) {
           await hook.onRequest(executionContext);
@@ -82,7 +82,9 @@ class RouteExecutionContext {
             return;
           }
         }
-        executionContext.metadata.addAll(await context.initMetadata(executionContext));
+        executionContext.metadata.addAll(
+          await context.initMetadata(executionContext),
+        );
         final requestContext = executionContext.switchToHttp();
         if (context.schema != null) {
           final schema = context.schema!;
@@ -258,18 +260,14 @@ class RouteExecutionContext {
           {
             for (var provider in context.moduleScope.unifiedProviders)
               provider.runtimeType: provider,
-          }, 
+          },
           context.hooksServices,
-          Request(request, params)
+          HttpArgumentsHost(Request(request, params)),
         );
         executionContext.response.statusCode = e.statusCode;
         executionContext.response.contentType ??= ContentType.json;
         await _executeOnException(executionContext, context, e);
-        await _executeOnResponse(
-          context,
-          executionContext,
-          WrappedResponse(e),
-        );
+        await _executeOnResponse(context, executionContext, WrappedResponse(e));
         if (errorHandler != null) {
           final errorResponse = errorHandler(e, stackTrace);
           if (errorResponse != null) {
@@ -297,10 +295,10 @@ class RouteExecutionContext {
     RouteContext context,
     SerinusException exception,
   ) async {
-    for (final hook in context.hooksContainer.exceptionHooks) {
-      if (hook.exceptionTypes.contains(exception.runtimeType) ||
-          hook.exceptionTypes.isEmpty) {
-        await hook.onException(executionContext, exception);
+    for (final filter in context.exceptionFilters) {
+      if (filter.catchTargets.contains(exception.runtimeType) ||
+          filter.catchTargets.isEmpty) {
+        await filter.onException(executionContext, exception);
       }
     }
   }
@@ -356,10 +354,7 @@ class RouteExecutionContext {
     WrappedResponse responseData,
   ) async {
     for (final hook in context.hooksContainer.resHooks) {
-      await hook.onResponse(
-        executionContext,
-        responseData,
-      );
+      await hook.onResponse(executionContext, responseData);
     }
   }
 

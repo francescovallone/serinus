@@ -48,11 +48,16 @@ class WebsocketRegistry extends Provider
         router.addRoute(
           HTTPMethod.ALL,
           gateway.path ?? '/',
-          GatewayScope(gateway, {
-            for (final provider in gatewayScope.unifiedProviders)
-              if (provider.runtimeType != gateway.runtimeType)
-                provider.runtimeType: provider,
-          }, gateway.hooks.merge([_config.globalHooks])),
+          GatewayScope(
+            gateway,
+            {
+              for (final provider in gatewayScope.unifiedProviders)
+                if (provider.runtimeType != gateway.runtimeType)
+                  provider.runtimeType: provider,
+            },
+            gateway.hooks.merge([_config.globalHooks]),
+            gateway.exceptionFilters,
+          ),
         );
         wsAdapter.router ??= router;
       } else {
@@ -100,11 +105,16 @@ class WebsocketRegistry extends Provider
         router.addRoute(
           HTTPMethod.ALL,
           gateway.path ?? '/',
-          GatewayScope(gateway, {
-            for (final provider in gatewayScope.unifiedProviders)
-              if (provider.runtimeType != gateway.runtimeType)
-                provider.runtimeType: provider,
-          }, gateway.hooks.merge([_config.globalHooks])),
+          GatewayScope(
+            gateway,
+            {
+              for (final provider in gatewayScope.unifiedProviders)
+                if (provider.runtimeType != gateway.runtimeType)
+                  provider.runtimeType: provider,
+            },
+            gateway.hooks.merge([_config.globalHooks]),
+            gateway.exceptionFilters,
+          ),
         );
         customWsAdapter.router ??= router;
       }

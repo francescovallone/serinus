@@ -1,6 +1,7 @@
 import '../../serinus.dart';
 import '../containers/hooks_container.dart';
 import '../containers/injection_token.dart';
+import '../core/exception_filter.dart';
 
 /// The [HandlerFunction] is a function that handles the incoming request and returns a response.
 typedef HandlerFunction =
@@ -51,6 +52,9 @@ class RouteContext {
     ...spec.route.metadata,
   ];
 
+  /// The [exceptionFilters] of the route.
+  final Set<ExceptionFilter> exceptionFilters;
+
   /// The list of pipes to be applied.
   final List<Pipe> pipes;
 
@@ -75,6 +79,7 @@ class RouteContext {
     this.pipes = const [],
     this.queryParameters = const {},
     this.hooksServices = const {},
+    this.exceptionFilters = const {},
   });
 
   /// Initializes the metadata for the route context.

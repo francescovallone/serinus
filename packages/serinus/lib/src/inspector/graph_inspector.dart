@@ -1,7 +1,6 @@
 import '../containers/injection_token.dart';
 import '../containers/module_container.dart';
 import '../core/core.dart';
-import '../mixins/mixins.dart';
 import 'edge.dart';
 import 'entrypoint.dart';
 import 'inspector_module.dart';

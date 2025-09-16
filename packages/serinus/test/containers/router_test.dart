@@ -58,7 +58,6 @@ void main() async {
             schema: null,
             handler: 'hi',
             route: Route.get('/test'),
-            pipes: [],
           ),
         );
         router.registerRoute(
@@ -97,7 +96,6 @@ void main() async {
             schema: null,
             handler: 'hi',
             route: Route.get('/test'),
-            pipes: [],
           ),
         );
         router.registerRoute(
@@ -141,7 +139,6 @@ void main() async {
             schema: null,
             handler: 'hi',
             route: Route.get('/test'),
-            pipes: [],
           ),
         );
         router.registerRoute(

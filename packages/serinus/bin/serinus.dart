@@ -106,7 +106,11 @@ class AnotherController extends Controller {
           ]);
         }),
         TransformPipe((context) async {
-          context.query['transform'] = 'true';
+          final argsHost = context.argumentsHost;
+          if (argsHost is! RequestArgumentsHost) {
+            return;
+          }
+          argsHost.request.query['transform'] = 'true';
         }),
       ],
     );
@@ -208,18 +212,21 @@ class LogMiddleware extends Middleware {
 
   @override
   Future<void> use(ExecutionContext context, NextFunction next) {
-    context.request.on(RequestEvent.error, (event, data) async {
-      logger.severe(
-        'Error occurred',
-        OptionalParameters(
-          error: data.exception,
-          stackTrace: StackTrace.current,
-        ),
+    if (context.hostType == HostType.http) {
+      final requestContext = context.switchToHttp();
+      requestContext.request.on(RequestEvent.error, (event, data) async {
+        logger.severe(
+          'Error occurred',
+          OptionalParameters(
+            error: data.exception,
+            stackTrace: StackTrace.current,
+          ),
+        );
+      });
+      logger.info(
+        'Request received: ${requestContext.request.method} ${requestContext.request.path}',
       );
-    });
-    logger.info(
-      'Request received: ${context.request.method} ${context.request.path}',
-    );
+    }
     return next();
   }
 }
@@ -229,18 +236,21 @@ class Log2Middleware extends Middleware {
 
   @override
   Future<void> use(ExecutionContext context, NextFunction next) {
-    context.request.on(RequestEvent.error, (event, data) async {
-      logger.severe(
-        'Error occurred',
-        OptionalParameters(
-          error: data.exception,
-          stackTrace: StackTrace.current,
-        ),
+    if (context.hostType == HostType.http) {
+      final requestContext = context.switchToHttp();
+      requestContext.request.on(RequestEvent.error, (event, data) async {
+        logger.severe(
+          'Error occurred in Log2Middleware',
+          OptionalParameters(
+            error: data.exception,
+            stackTrace: StackTrace.current,
+          ),
+        );
+      });
+      logger.info(
+        'Request received in Log2Middleware: ${requestContext.request.method} ${requestContext.request.path}',
       );
-    });
-    logger.info(
-      'Request received: ${context.request.method} ${context.request.path}',
-    );
+    }
     return next();
   }
 }

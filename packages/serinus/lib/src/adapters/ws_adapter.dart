@@ -10,9 +10,10 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
+import '../core/exception_filter.dart';
 import '../core/middlewares/middleware_executor.dart';
 import '../core/middlewares/middleware_registry.dart';
-import '../exceptions/exceptions.dart';
+import '../core/websockets/ws_exceptions.dart';
 import '../http/http.dart';
 import 'adapters.dart';
 
@@ -32,8 +33,16 @@ class GatewayScope {
   /// The [hooks] property contains the hooks of the WebSocket gateway.
   final HooksContainer hooks;
 
+  /// The [exceptionFilters] property contains the exception filters of the WebSocket gateway.
+  final Set<ExceptionFilter> exceptionFilters;
+
   /// The [GatewayScope] constructor is used to create a new instance of the [GatewayScope] class.
-  const GatewayScope(this.gateway, this.providers, this.hooks);
+  const GatewayScope(
+    this.gateway,
+    this.providers,
+    this.hooks,
+    this.exceptionFilters,
+  );
 
   @override
   String toString() {
@@ -238,8 +247,7 @@ class WebSocketAdapter extends WsAdapter {
       HostType.websocket,
       gatewayScope.providers,
       gatewayScope.hooks.services,
-      Request(request),
-      this
+      WsArgumentsHost(Request(request), this, clientId),
     );
     final middlewares = context.use<MiddlewareRegistry>().getRouteMiddlewares(
       gatewayScope.gateway.path ?? '/',
@@ -264,15 +272,16 @@ class WebSocketAdapter extends WsAdapter {
       final message = data is String ? data : utf8.decode(data);
       wsContext.currentMessage = message;
       for (final hook in hooks.beforeHooks) {
-        await hook.beforeHandle(
-          context
-        );
+        await hook.beforeHandle(context);
       }
       try {
         await gatewayScope.gateway.onMessage(message, wsContext);
-      } on SerinusException catch (e) {
-        for (final hook in hooks.exceptionHooks) {
-          await hook.onException(context, e);
+      } on WsExceptions catch (e) {
+        for (final filter in gatewayScope.exceptionFilters) {
+          if (filter.catchTargets.contains(e.runtimeType) ||
+              filter.catchTargets.isEmpty) {
+            await filter.onException(context, e);
+          }
         }
       }
     });
