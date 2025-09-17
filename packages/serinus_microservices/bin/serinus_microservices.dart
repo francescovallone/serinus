@@ -131,7 +131,12 @@ class AnotherController extends Controller with RpcController {
 class AnotherModule extends Module {
   AnotherModule()
       : super(
-          imports: [CircularDependencyModule()],
+          imports: [CircularDependencyModule(), ClientsModule([
+            TcpTransportClient(TcpTransportClientOptions(
+              host: InternetAddress.loopbackIPv4,
+              port: 3001,
+            ))
+          ])],
           controllers: [AnotherController()],
           providers: [
             Provider.composed(
@@ -274,7 +279,7 @@ void main(List<String> arguments) async {
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
   );
   application.enableShutdownHooks();
-  application.connectMicroservice(TcpTransport(TcpOptions(port: 3001)));
+  // application.connectMicroservice(TcpTransport(TcpOptions(port: 3001)));
   await application.startAllMicroservices();
   // application.trace(ServerTimingTracer());
   await application.serve();

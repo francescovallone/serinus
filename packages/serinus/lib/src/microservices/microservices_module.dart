@@ -52,8 +52,33 @@ class MessageContext {
 }
 
 /// The [MessagesResolver] class is used to resolve the message routes of the application.
-class MessagesResolver {
-  final ApplicationConfig _config;
+abstract class MessagesResolver {
+
+  /// The [config] property contains the application configuration.
+  final ApplicationConfig config;
+
+  /// The [MessagesResolver] constructor is used to create a new instance of the [MessagesResolver] class.
+  const MessagesResolver(this.config);
+
+  /// Resolve the incoming message packet.
+  void resolve();
+
+  /// Handle an incoming message packet and return a response packet if applicable.
+  Future<ResponsePacket?> handleMessage(
+    MessagePacket packet,
+    TransportAdapter adapter,
+  );
+
+  /// Handle an incoming event packet.
+  /// It does not return a response packet.
+  Future<void> handleEvent(
+    MessagePacket packet,
+    TransportAdapter<dynamic, TransportOptions> adapter,
+  );
+
+}
+
+class DefaultMessagesResolver extends MessagesResolver {
 
   /// The [resolvedMessageRoutes] property contains the resolved message routes of the application.
   final Map<String, MessageContext> resolvedMessageRoutes = {};
@@ -67,12 +92,20 @@ class MessagesResolver {
   /// The [filteredEventRoutes] property contains the filtered event routes of the application, based on transporter type.
   final Map<Type, Map<String, List<MessageContext>>> filteredEventRoutes = {};
 
-  /// The [MessagesResolver] constructor is used to create a new instance of the [MessagesResolver] class.
-  MessagesResolver(this._config);
+  /// The [resolvedAlready] property is used to check if the routes have been resolved already.
+  bool resolvedAlready = false;
 
-  /// Resolve the incoming message packet.
+  /// The [MessagesResolver] constructor is used to create a new instance of the [MessagesResolver] class.
+  DefaultMessagesResolver(super.config);
+
+  @override
   void resolve() {
-    for (final module in _config.modulesContainer.scopes) {
+    print('Starting to resolve message routes...');
+    if (resolvedAlready) {
+      return;
+    }
+    print('Resolving message routes...');
+    for (final module in config.modulesContainer.scopes) {
       for (final controllerEntry
           in module.controllers.whereType<RpcController>()) {
         for (final entry in controllerEntry.messageRoutes.entries) {
@@ -90,17 +123,17 @@ class MessagesResolver {
             },
             hooks: entry.value.route.hooks.merge([
               controllerEntry.hooks,
-              _config.globalHooks,
+              config.globalHooks,
             ]),
             pipes: {
               ...entry.value.route.pipes,
               ...controllerEntry.pipes,
-              ..._config.globalPipes,
+              ...config.globalPipes,
             },
             exceptionFilters: {
               ...entry.value.route.exceptionFilters,
               ...controllerEntry.exceptionFilters,
-              ..._config.exceptionFilters,
+              ...config.exceptionFilters,
             },
           );
           if (entry.value.route.transporter != null) {
@@ -136,17 +169,17 @@ class MessagesResolver {
             },
             hooks: entry.value.route.hooks.merge([
               controllerEntry.hooks,
-              _config.globalHooks,
+              config.globalHooks,
             ]),
             pipes: {
               ...entry.value.route.pipes,
               ...controllerEntry.pipes,
-              ..._config.globalPipes,
+              ...config.globalPipes,
             },
             exceptionFilters: {
               ...entry.value.route.exceptionFilters,
               ...controllerEntry.exceptionFilters,
-              ..._config.exceptionFilters,
+              ...config.exceptionFilters,
             },
           );
           if (entry.value.route.transporter != null) {
@@ -164,7 +197,7 @@ class MessagesResolver {
     }
   }
 
-  /// Handle an incoming message packet and return a response packet if applicable.
+  @override
   Future<ResponsePacket?> handleMessage(
     MessagePacket packet,
     TransportAdapter adapter,
@@ -189,10 +222,7 @@ class MessagesResolver {
         },
         RpcArgumentsHost(packet),
       );
-      for (final pipe in routeContext.routeMessageHandler!.route.pipes) {
-        await pipe.transform(executionContext);
-      }
-      for (final pipe in _config.globalPipes) {
+      for (final pipe in routeContext.pipes) {
         await pipe.transform(executionContext);
       }
       final result = await routeContext.routeMessageHandler!.handler(
@@ -232,7 +262,7 @@ class MessagesResolver {
     return null;
   }
 
-  /// Handle an incoming event packet.
+  @override
   Future<void> handleEvent(
     MessagePacket packet,
     TransportAdapter<dynamic, TransportOptions> adapter,
@@ -241,6 +271,7 @@ class MessagesResolver {
       ...?filteredEventRoutes[adapter.runtimeType]?[packet.pattern],
       ...?resolvedEventRoutes[packet.pattern],
     ];
+    print('Handling event for pattern: ${packet.pattern}');
     if (routeContexts.isEmpty) {
       throw RpcException(
         'No message route found for pattern "${packet.pattern}"',
@@ -262,10 +293,7 @@ class MessagesResolver {
           },
           RpcArgumentsHost(packet),
         );
-        for (final pipe in routeContext.routeEventHandler!.route.pipes) {
-          await pipe.transform(executionContext);
-        }
-        for (final pipe in _config.globalPipes) {
+        for (final pipe in routeContext.pipes) {
           await pipe.transform(executionContext);
         }
         await routeContext.routeEventHandler!.handler(
@@ -299,29 +327,10 @@ class MicroservicesRegistry extends Provider with OnApplicationBootstrap {
 
   @override
   Future<void> onApplicationBootstrap() async {
-    final resolver = MessagesResolver(_config);
-    resolver.resolve();
     for (final adapter in _config.microservices) {
-      adapter.listen((data) async {
-        try {
-          if (data.id != null) {
-            final response = await resolver.handleMessage(data, adapter);
-            if (response != null) {
-              return response;
-            }
-          } else {
-            await resolver.handleEvent(data, adapter);
-          }
-          return null;
-        } on RpcException catch (e) {
-          return ResponsePacket(
-            pattern: data.pattern,
-            id: data.id,
-            isError: true,
-            payload: {'error': e.message},
-          );
-        }
-      });
+      final defaultResolver = adapter.getResolver(_config);
+      defaultResolver.resolve();
+      adapter.listen();
     }
   }
 }

@@ -163,7 +163,7 @@ class WsGateway extends WebSocketGateway {
   WsGateway({super.path});
 
   @override
-  int? get port => 3001;
+  int? get port => 3002;
 
   @override
   Future<void> onMessage(dynamic data, WebSocketContext context) async {
@@ -190,6 +190,8 @@ class AppModule extends Module {
           SseModule(),
           GlobalModule(),
           CircularDependencyModule(),
+          ClientsModule([
+          ])
         ],
         controllers: [AppController()],
         providers: [WsGateway()],
@@ -259,8 +261,8 @@ class AppController extends Controller with SseController {
   final logger = Logger('AppController');
 
   AppController([super.path = '/']) {
-    on(Route.get('/'), (RequestContext context) {
-      context.use<SseDispatcher>().send('Hello world');
+    on(Route.get('/'), (RequestContext context) async {
+      logger.info('Emitted event to TCP transport for pattern "*"');
       return 'Hello world!';
     });
     onSse(Route.get('/sse'), (SseContext context) async* {
@@ -275,6 +277,7 @@ void main(List<String> arguments) async {
   final application = await serinus.createApplication(
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
+    port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
   );
   application.enableShutdownHooks();

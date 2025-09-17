@@ -103,6 +103,19 @@ final class ResponsePacket extends MessagePacket {
       'timestamp': timestamp,
     };
   }
+
+  /// Create a [ResponsePacket] instance from a JSON representation.
+  factory ResponsePacket.fromJson(Map<String, dynamic> json) {
+    return ResponsePacket(
+      pattern: json['pattern'],
+      id: json['id'],
+      payload: json.containsKey('error') ? json['error'] : json['payload'],
+      headers: Map<String, String>.from(json['headers'] ?? {}),
+      timestamp: json['timestamp'],
+      isError: json.containsKey('error'),
+    );
+  }
+
 }
 
 /// Fire-and-forget event.

@@ -117,8 +117,11 @@ final class ModulesContainer {
         continue;
       }
       subModuleScope.importedBy.add(token);
-      currentScope.extend(providers: subModule.exportedProviders);
-      for (final provider in subModule.exportedProviders) {
+      final exportedProviders = subModuleScope.providers.where(
+        (provider) => subModuleScope.exports.contains(provider.runtimeType),
+      );
+      currentScope.extend(providers: exportedProviders);
+      for (final provider in exportedProviders) {
         final exportedProviderToken = InjectionToken.fromType(
           provider.runtimeType,
         );

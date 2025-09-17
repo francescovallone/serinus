@@ -14,6 +14,7 @@ import '../routes/routes_resolver.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
 import 'core.dart';
+import 'exception_filter.dart';
 
 /// The [Application] class is used to create an application.
 abstract class Application {
@@ -333,10 +334,15 @@ class SerinusApplication extends Application {
     switch (processable) {
       case Hook():
         _container.config.globalHooks.addHook(processable);
-        _logger.verbose('Hook ${processable.runtimeType} added to application');
+        _logger.verbose('Global Hook ${processable.runtimeType} added to application');
         break;
       case Pipe():
         _container.config.globalPipes.add(processable);
+        _logger.verbose('Global Pipe ${processable.runtimeType} added to application');
+        break;
+      case ExceptionFilter():
+        _container.config.exceptionFilters.add(processable);
+        _logger.verbose('Global ExceptionFilter ${processable.runtimeType} added to application');
         break;
       case Middleware():
       default:

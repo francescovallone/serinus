@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import '../../adapters/adapters.dart';
 import '../../contexts/contexts.dart';
 import '../../core/core.dart';
+import '../microservices_module.dart';
 import 'transports.dart';
 
 /// Base class for transport options.
@@ -37,9 +40,7 @@ abstract class TransportAdapter<TDriver, TOptions extends TransportOptions>
   Future<void> init(ApplicationConfig config);
 
   /// Listen to the incoming packets and route them to the appropriate handlers.
-  Future<void> listen(
-    Future<ResponsePacket?> Function(MessagePacket packet) onData,
-  );
+  Future<void> listen();
 
   /// Send a fire-and-forget event.
   Future<void> emit(RpcContext context);
@@ -49,6 +50,17 @@ abstract class TransportAdapter<TDriver, TOptions extends TransportOptions>
 
   /// Stream of transport status events (e.g. connected, disconnected, error).
   Stream<TransportEvent> get status;
+
+  /// Messages resolver instance for this transport.
+  /// It will be initialized after the bootstrap phase.
+  MessagesResolver? messagesResolver;
+  
+  /// Get the messages resolver for this transport.
+  MessagesResolver getResolver(ApplicationConfig config) {
+    messagesResolver ??= DefaultMessagesResolver(config);
+    return messagesResolver!;
+  }
+
 }
 
 /// Wrapper class for a transport adapter instance.
@@ -61,4 +73,26 @@ class TransportInstance {
 
   /// Stream of events from the underlying transport adapter.
   Stream<E> status<E extends TransportEvent>() => _adapter.status as Stream<E>;
+}
+
+abstract class TransportClientOptions {}
+
+abstract class TransportClient<T extends TransportClientOptions> extends Provider {
+  final T options;
+
+  TransportClient(this.options);
+
+  Future<void> connect();
+
+  Future<ResponsePacket?> send({
+    required String pattern,
+    required String id,
+    Uint8List? payload,
+  });
+
+  Future<void> emit({
+    required String pattern,
+    Uint8List? payload,
+  });
+
 }
