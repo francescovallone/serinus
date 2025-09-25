@@ -79,20 +79,20 @@ class ParseDatePipe extends Pipe {
   @override
   Future<void> transform(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
     if (bindingType == PipeBindingType.params) {
-      final dateValue = DateTime.tryParse(argsHost.request.params[key] ?? '');
+      final dateValue = DateTime.tryParse(argsHost.params[key] ?? '');
       if (dateValue == null) {
         throw onError?.call(key) ??
             BadRequestException('Invalid parameter: $key');
       }
-      argsHost.request.params[key] = dateValue;
+      argsHost.params[key] = dateValue;
     }
     if (bindingType == PipeBindingType.query) {
       final dateValue = DateTime.tryParse(
-        argsHost.request.query[key]?.toString() ?? '',
+        argsHost.query[key]?.toString() ?? '',
       );
       if (dateValue == null) {
         throw onError?.call(key) ??
@@ -120,26 +120,26 @@ class ParseDoublePipe extends Pipe {
   @override
   Future<void> transform(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
     if (bindingType == PipeBindingType.params) {
-      final doubleValue = double.tryParse(argsHost.request.params[key] ?? '');
+      final doubleValue = double.tryParse(argsHost.params[key] ?? '');
       if (doubleValue == null) {
         throw onError?.call(key) ??
             BadRequestException('Invalid parameter: $key');
       }
-      argsHost.request.params[key] = doubleValue;
+      argsHost.params[key] = doubleValue;
     }
     if (bindingType == PipeBindingType.query) {
       final doubleValue = double.tryParse(
-        argsHost.request.query[key]?.toString() ?? '',
+        argsHost.query[key]?.toString() ?? '',
       );
       if (doubleValue == null) {
         throw onError?.call(key) ??
             BadRequestException('Invalid query parameter: $key');
       }
-      argsHost.request.query[key] = doubleValue;
+      argsHost.query[key] = doubleValue;
     }
   }
 }
@@ -161,26 +161,26 @@ class ParseIntPipe extends Pipe {
   @override
   Future<void> transform(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
     if (bindingType == PipeBindingType.params) {
-      final value = int.tryParse(argsHost.request.params[key] ?? '');
+      final value = int.tryParse(argsHost.params[key] ?? '');
       if (value == null) {
         throw onError?.call(key) ??
             BadRequestException('Invalid parameter: $key');
       }
-      argsHost.request.params[key] = value;
+      argsHost.params[key] = value;
     }
     if (bindingType == PipeBindingType.query) {
       final intValue = int.tryParse(
-        argsHost.request.query[key]?.toString() ?? '',
+        argsHost.query[key]?.toString() ?? '',
       );
       if (intValue == null) {
         throw onError?.call(key) ??
             BadRequestException('Invalid query parameter: $key');
       }
-      argsHost.request.query[key] = intValue;
+      argsHost.query[key] = intValue;
     }
   }
 }
@@ -202,18 +202,18 @@ class ParseBoolPipe extends Pipe {
   @override
   Future<void> transform(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
     if (bindingType == PipeBindingType.params) {
       final boolValue =
-          argsHost.request.params[key]?.toString().toLowerCase() == 'true';
-      argsHost.request.params[key] = boolValue;
+          argsHost.params[key]?.toString().toLowerCase() == 'true';
+      argsHost.params[key] = boolValue;
     }
     if (bindingType == PipeBindingType.query) {
       final boolValue =
-          argsHost.request.query[key]?.toString().toLowerCase() == 'true';
-      argsHost.request.query[key] = boolValue;
+          argsHost.query[key]?.toString().toLowerCase() == 'true';
+      argsHost.query[key] = boolValue;
     }
   }
 }
@@ -241,10 +241,10 @@ class DefaultValuePipe<T> extends Pipe {
   @override
   Future<void> transform(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
-    argsHost.request.query[key] ??= value;
+    argsHost.query[key] ??= value;
   }
 }
 

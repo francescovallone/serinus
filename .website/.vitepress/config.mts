@@ -29,7 +29,7 @@ export default defineConfig({
     hostname: 'https://serinus.app'
   },
   lastUpdated: true,
-  appearance: 'force-dark',
+  appearance: false,
   themeConfig: {
     footer: {
       copyright: 'Copyright © 2024 Francesco Vallone',
@@ -40,6 +40,7 @@ export default defineConfig({
     search: {
       provider: 'local'
     },
+    siteTitle: false,
     nav: [
       {
         text: 'Documentation',
@@ -84,9 +85,10 @@ export default defineConfig({
               { text: 'Providers', link: 'providers' },
               { text: 'Metadata', link: 'metadata' },
               { text: 'Middlewares', link: 'middlewares' },
-              { text: 'Pipes', link: 'pipes' },
-              // { text: 'WebSockets', link: 'websockets' },
               { text: 'Hooks', link: 'hooks' },
+              { text: 'Pipes', link: 'pipes' },
+              { text: 'Exception Filters', link: 'exception_filters' },
+              // { text: 'WebSockets', link: 'websockets' },
               // { text: 'Exceptions', link: 'exceptions' },
               // { text: 'Tracer', link: 'tracer' },
             ]

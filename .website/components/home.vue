@@ -11,11 +11,17 @@ import Cli from './cli.vue'
 
 <template>
 	<div class="flex flex-col gap-16">
-		<Hero class="h-screen" />
+		<Hero>
+			<slot name="start"></slot>
+		</Hero>
 		<Highlights />
+		<Ecosystem>
+			<slot name="configuration" slot="configuration"></slot>
+			<slot name="openapi" slot="openapi"></slot>
+			<slot name="authentication" slot="authentication"></slot>
+			<slot name="cron_jobs" slot="cron_jobs"></slot>
+		</Ecosystem>
 		<Spotlights :spotlights="spotlights" />
-		<Cli />
-		<Ecosystem />
 	</div>
 </template>
 

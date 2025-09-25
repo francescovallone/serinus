@@ -46,7 +46,7 @@ class _ShelfMiddleware extends Middleware {
   @override
   Future<void> use(ExecutionContext context, NextFunction next) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return next();
     }
     final shelf.Request request = _createShelfRequest(context);
@@ -89,7 +89,7 @@ class _ShelfMiddleware extends Middleware {
 
   shelf.Request _createShelfRequest(ExecutionContext context) {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       throw StateError('The current context is not an HTTP context');
     }
     return shelf.Request(

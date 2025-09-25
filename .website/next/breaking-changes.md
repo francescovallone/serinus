@@ -249,6 +249,33 @@ class TestModule extends Module {
 Hooks, Pipes and Middlewares now receive an `ExecutionContext` as their first argument. This context contains information about the current request, response, and other relevant data.
 The reason behind this abstraction is to provide an unified API for these components for common requests, websockets, and other types of interactions.
 
+`ExecutionContext` exposes the properties of the current processing context by using a `ArgumentsHost`. The `ArgumentsHost` is an interface that contains the current internals objects for the current context.
+
+Currently the available sub-classes of `ArgumentsHost` are:
+
+- `HttpArgumentsHost`: for HTTP requests.
+- `WsArgumentsHost`: for WebSocket requests.
+- `SseArgumentsHost`: for Server-Sent Events requests.
+- `RpcArgumentsHost`: for RPC requests.
+
+This change unify the way to access the current request and response objects across different types of interactions.
+
+```dart
+class TestMiddleware extends Middleware {
+
+    @override
+    Future<void> use(ExecutionContext context, NextFunction next) async {
+        final argumentsHost = context.argumentsHost;
+        if (argumentsHost is HttpArgumentsHost) {
+            final request = argumentsHost.request;
+            // You can also use context.getType() to know the current context type
+            await next();
+        }
+    }
+
+}
+```
+
 ## Other Changes
 
 ### a. Headers are now a separate class
@@ -270,3 +297,5 @@ In the 2.0.1 the ParseSchema class will be removed in favor of the new validatio
 ### c. Default Status Code
 
 Serinus now set the status code to 201 for POST requests by default and 200 for all other requests.
+
+### d. 

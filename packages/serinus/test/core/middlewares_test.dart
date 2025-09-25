@@ -11,7 +11,7 @@ class TestValueMiddleware extends Middleware {
   @override
   Future<void> use(ExecutionContext context, NextFunction next) async {
     final argumentsHost = context.argumentsHost;
-    if (argumentsHost is RequestArgumentsHost) {
+    if (argumentsHost is HttpArgumentsHost) {
       switch (argumentsHost.params['v']) {
         case '1':
           return next({'id': 'json-obj'});
@@ -35,7 +35,7 @@ class TestRequestEvent extends Middleware {
   @override
   Future<void> use(ExecutionContext context, NextFunction next) async {
     final argumentsHost = context.argumentsHost;
-    if (argumentsHost is RequestArgumentsHost) {
+    if (argumentsHost is HttpArgumentsHost) {
       argumentsHost.request.on(RequestEvent.close, (event, data) async {
         hasClosed = true;
         hasException = data.hasException;
@@ -102,7 +102,7 @@ class TestModuleMiddleware extends Middleware {
   @override
   Future<void> use(ExecutionContext context, NextFunction next) async {
     final argumentsHost = context.argumentsHost;
-    if (argumentsHost is RequestArgumentsHost) {
+    if (argumentsHost is HttpArgumentsHost) {
       argumentsHost.headers['x-middleware'] = 'ok!';
     }
     return next();

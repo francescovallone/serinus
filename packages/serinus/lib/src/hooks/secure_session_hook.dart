@@ -22,7 +22,7 @@ class SecureSessionHook extends Hook with OnRequest, OnResponse {
   @override
   Future<void> onRequest(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
     _secureSession.clear();

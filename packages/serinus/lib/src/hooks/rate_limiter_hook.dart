@@ -35,7 +35,7 @@ class RateLimiterHook extends Hook with OnBeforeHandle, OnResponse {
       return;
     }
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
     final request = argsHost.request;

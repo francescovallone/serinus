@@ -13,7 +13,7 @@ class BodySizeLimitHook extends Hook with OnRequest {
   @override
   Future<void> onRequest(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is RequestArgumentsHost) {
+    if (argsHost is HttpArgumentsHost) {
       final request = argsHost.request;
       await request.parseBody();
       if (request.contentLength > maxSize) {

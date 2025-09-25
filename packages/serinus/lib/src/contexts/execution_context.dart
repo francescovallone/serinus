@@ -26,8 +26,9 @@ abstract class ArgumentsHost {
   const ArgumentsHost();
 }
 
-/// The base class for request-based argument hosts.
-abstract class RequestArgumentsHost extends ArgumentsHost {
+/// The base class for response-based argument hosts.
+final class HttpArgumentsHost extends ArgumentsHost {
+
   /// The HTTP request object.
   final Request request;
 
@@ -43,18 +44,12 @@ abstract class RequestArgumentsHost extends ArgumentsHost {
   /// The body of the request.
   Body? get body => request.body;
 
-  /// The [RequestArgumentsHost] constructor is used to create a new instance of the [RequestArgumentsHost] class.
-  const RequestArgumentsHost(this.request);
-}
-
-/// The base class for response-based argument hosts.
-final class HttpArgumentsHost extends RequestArgumentsHost {
   /// The [HttpArgumentsHost] constructor is used to create a new instance of the [HttpArgumentsHost] class.
-  const HttpArgumentsHost(super.request);
+  const HttpArgumentsHost(this.request);
 }
 
 /// The base class for WebSocket-based argument hosts.
-final class WsArgumentsHost extends RequestArgumentsHost {
+final class WsArgumentsHost extends HttpArgumentsHost {
   /// The [WsArgumentsHost] constructor is used to create a new instance of the [WsArgumentsHost] class.
   const WsArgumentsHost(super.request, this.wsAdapter, this.clientId);
 
@@ -66,7 +61,7 @@ final class WsArgumentsHost extends RequestArgumentsHost {
 }
 
 /// The base class for Server-Sent Events-based argument hosts.
-final class SseArgumentsHost extends RequestArgumentsHost {
+final class SseArgumentsHost extends HttpArgumentsHost {
   /// The [SseArgumentsHost] constructor is used to create a new instance of the [SseArgumentsHost] class.
   const SseArgumentsHost(super.request, this.clientId);
 

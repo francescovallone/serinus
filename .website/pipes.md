@@ -1,13 +1,24 @@
 # Pipes
 
-A pipe is a class annotated which extends the `Pipe` abstract class and override the `transform` method. 
+A pipe is a class annotated which extends the `Pipe` abstract class and override the `transform` method.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyPipe extends Pipe {
+  @override
+  Future<void> transform(ExecutionContext context) async {
+    // Transform the data here
+  }
+}
+```
 
 Pipes have two typical use cases:
 
 1. **Data Transformation**: Pipes can be used to transform the input data before it reaches the route handler.
 2. **Data Validation**: Pipes can also be used to validate the incoming data by checking its structure, types, or values.
 
-In both cases pipes operate on the `RequestContext` before it reaches the route handler, allowing for a centralized way to manage and manipulate request data.
+In both cases pipes operate on the `ExecutionContext` before it reaches the route handler, allowing for a centralized way to manage and manipulate request data.
 
 Serinus comes with a number of built-in pipes that you can use out-of-the-box. You can also build your own custom pipes. In this chapter, we'll introduce the built-in pipes and show how to bind them to route handlers. We'll then examine several custom-built pipes to show how you can build one from scratch.
 

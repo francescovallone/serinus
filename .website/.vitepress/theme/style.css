@@ -12,7 +12,7 @@
  
 
 :root {
-	--vp-c-brand-1: #FF9800;
+	--vp-c-brand-1: #ff8904;
 	--vp-c-brand-2: #FFB74D;
 	--vp-c-brand-light: #FFA726;
 	--vp-c-brand-lighter: #FFB74D;
@@ -26,6 +26,22 @@
 
 .VPNavBar:not(.home.top) .divider-line, .VPNavBar:not(.has-sidebar):not(.home.top) .divider {
 	background-color: transparent !important;
+}
+.VPNavBar:not(.has-sidebar) > .wrapper {
+	padding: 0 16rem !important;
+}
+.VPNavBar:not(.has-sidebar) > .wrapper > .container {
+	margin: unset !important;
+	max-width: 100% !important;
+}
+.text-serinus {
+	color: var(--vp-c-brand-1) !important;
+}
+.bg-serinus {
+	background-color: var(--vp-c-brand-1) !important;
+}
+.border-color-serinus {
+	border-color: var(--vp-c-brand-1) !important;
 }
 .VPNavBar:not(.has-sidebar):not(.home) {
 	background-color: var(--vp-nav-bg-color) !important;

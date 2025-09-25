@@ -54,7 +54,7 @@ class CorsHook extends Hook with OnRequest, OnResponse, OnBeforeHandle {
   @override
   Future<void> beforeHandle(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
     final request = argsHost.request;
@@ -95,7 +95,7 @@ class CorsHook extends Hook with OnRequest, OnResponse, OnBeforeHandle {
   @override
   Future<void> onRequest(ExecutionContext context) async {
     final argsHost = context.argumentsHost;
-    if (argsHost is! RequestArgumentsHost) {
+    if (argsHost is! HttpArgumentsHost) {
       return;
     }
     final request = argsHost.request;

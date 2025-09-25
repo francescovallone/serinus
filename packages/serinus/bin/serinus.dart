@@ -107,7 +107,7 @@ class AnotherController extends Controller {
         }),
         TransformPipe((context) async {
           final argsHost = context.argumentsHost;
-          if (argsHost is! RequestArgumentsHost) {
+          if (argsHost is! HttpArgumentsHost) {
             return;
           }
           argsHost.request.query['transform'] = 'true';
