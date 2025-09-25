@@ -126,6 +126,7 @@ void main(List<String> args) async {
   final app = await serinus.createApplication(
     entrypoint: AppModule(),
   );
+  app.globalPrefix = '/rest';
   final swagger = await SwaggerModule.create(app, document, components: [
     Component<SchemaObject>(
         name: 'User',
