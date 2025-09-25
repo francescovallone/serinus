@@ -11,7 +11,7 @@ info:
     name: 'MIT'
     url: 'https://opensource.org/licenses/MIT'
 paths: 
-  /: 
+  /rest/: 
     get: 
       tags: 
         - 'AppController'
@@ -29,7 +29,7 @@ paths:
         schema: {}
         required: false
         deprecated: false
-  /post/{data}: 
+  /rest/post/{data}: 
     post: 
       tags: 
         - 'AppController'
@@ -68,7 +68,7 @@ paths:
         schema: {}
         required: true
         deprecated: false
-  /a/: 
+  /rest/a/: 
     get: 
       tags: 
         - 'App2Controller'
@@ -86,7 +86,7 @@ paths:
         schema: {}
         required: false
         deprecated: false
-  /a/post: 
+  /rest/a/post: 
     post: 
       tags: 
         - 'App2Controller'

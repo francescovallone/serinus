@@ -73,7 +73,7 @@ class SwaggerModule {
         final routeMethod = route.route.method;
         StringBuffer sb = StringBuffer();
         if (globalPrefix != null) {
-          sb.write('/$globalPrefix');
+          sb.write('/${globalPrefix.prefix}');
         }
         if (versioning != null && versioning.type == VersioningType.uri) {
           sb.write('/v${versioning.version}');
@@ -87,7 +87,8 @@ class SwaggerModule {
           final apiSpec = (route.route as ApiRoute).apiSpec;
           final parameters = [
             ...apiSpec.parameters,
-            ...apiSpec.intersectQueryParameters((route.route as ApiRoute).queryParameters),
+            ...apiSpec.intersectQueryParameters(
+                (route.route as ApiRoute).queryParameters),
             ...pathParameters
           ];
           pathObj.methods.add(PathMethod(
@@ -162,7 +163,7 @@ class SwaggerModule {
     await File('swagger.yaml').writeAsString(_swaggerYamlSpec!());
     StringBuffer sb = StringBuffer();
     if (globalPrefix != null) {
-      sb.write('/$globalPrefix');
+      sb.write('/${globalPrefix.prefix}');
     }
     if (versioning != null && versioning.type == VersioningType.uri) {
       sb.write('/v${versioning.version}');
