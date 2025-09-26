@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- fix: reinstantiate module providers on deferred provider add to it
+
 ## 1.0.4
 
 - fix(#172): fix the issue with the `UploadFile` method to correctly handle the file upload in the request body. [#173](https://github.com/francescovallone/serinus/pulls/173)
