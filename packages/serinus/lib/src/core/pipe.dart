@@ -173,9 +173,7 @@ class ParseIntPipe extends Pipe {
       argsHost.params[key] = value;
     }
     if (bindingType == PipeBindingType.query) {
-      final intValue = int.tryParse(
-        argsHost.query[key]?.toString() ?? '',
-      );
+      final intValue = int.tryParse(argsHost.query[key]?.toString() ?? '');
       if (intValue == null) {
         throw onError?.call(key) ??
             BadRequestException('Invalid query parameter: $key');
@@ -211,8 +209,7 @@ class ParseBoolPipe extends Pipe {
       argsHost.params[key] = boolValue;
     }
     if (bindingType == PipeBindingType.query) {
-      final boolValue =
-          argsHost.query[key]?.toString().toLowerCase() == 'true';
+      final boolValue = argsHost.query[key]?.toString().toLowerCase() == 'true';
       argsHost.query[key] = boolValue;
     }
   }

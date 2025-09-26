@@ -54,13 +54,12 @@ abstract class TransportAdapter<TDriver, TOptions extends TransportOptions>
   /// Messages resolver instance for this transport.
   /// It will be initialized after the bootstrap phase.
   MessagesResolver? messagesResolver;
-  
+
   /// Get the messages resolver for this transport.
   MessagesResolver getResolver(ApplicationConfig config) {
     messagesResolver ??= DefaultMessagesResolver(config);
     return messagesResolver!;
   }
-
 }
 
 /// Wrapper class for a transport adapter instance.
@@ -75,24 +74,28 @@ class TransportInstance {
   Stream<E> status<E extends TransportEvent>() => _adapter.status as Stream<E>;
 }
 
+/// Base class for transport client options.
 abstract class TransportClientOptions {}
 
-abstract class TransportClient<T extends TransportClientOptions> extends Provider {
+/// Base class for a transport client (e.g. in-memory, Redis, NATS, etc.).
+abstract class TransportClient<T extends TransportClientOptions>
+    extends Provider {
+  /// The transport client options.
   final T options;
 
+  /// Constructor for the transport client.
   TransportClient(this.options);
 
+  /// Connect to the underlying transport.
   Future<void> connect();
 
+  /// Disconnect from the underlying transport.
   Future<ResponsePacket?> send({
     required String pattern,
     required String id,
     Uint8List? payload,
   });
 
-  Future<void> emit({
-    required String pattern,
-    Uint8List? payload,
-  });
-
+  /// Emit a fire-and-forget event.
+  Future<void> emit({required String pattern, Uint8List? payload});
 }

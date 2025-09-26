@@ -115,7 +115,6 @@ final class ResponsePacket extends MessagePacket {
       isError: json.containsKey('error'),
     );
   }
-
 }
 
 /// Fire-and-forget event.

@@ -28,7 +28,6 @@ abstract class ArgumentsHost {
 
 /// The base class for response-based argument hosts.
 final class HttpArgumentsHost extends ArgumentsHost {
-
   /// The HTTP request object.
   final Request request;
 
@@ -87,10 +86,9 @@ final class ExecutionContext extends BaseContext {
     super.hooksServices,
     this.argumentsHost,
   ) : response = ResponseContext(providers, hooksServices) {
-    if (argumentsHost is RequestArgumentsHost) {
+    if (argumentsHost is HttpArgumentsHost) {
       response.statusCode =
-          (argumentsHost as RequestArgumentsHost).request.method ==
-                  HttpMethod.post
+          (argumentsHost as HttpArgumentsHost).request.method == HttpMethod.post
               ? 201
               : 200;
     }

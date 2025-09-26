@@ -8,7 +8,8 @@ class SwaggerController extends Controller {
   final String swaggerHtml;
 
   /// Constructor
-  SwaggerController({required this.swaggerHtml, required super.path}) {
+  SwaggerController({required this.swaggerHtml , required String path})
+      : super(path) {
     on(Route.get('/'), (context) async {
       context.res.contentType = ContentType.html;
       return swaggerHtml;
@@ -16,7 +17,7 @@ class SwaggerController extends Controller {
     on(Route.get('/swagger.yaml'), (context) async {
       final file = File('swagger.yaml');
       if (!file.existsSync()) {
-        throw NotFoundException(message: 'Swagger file not found');
+        throw NotFoundException('Swagger file not found');
       }
       return file;
     });

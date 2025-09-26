@@ -53,7 +53,6 @@ class MessageContext {
 
 /// The [MessagesResolver] class is used to resolve the message routes of the application.
 abstract class MessagesResolver {
-
   /// The [config] property contains the application configuration.
   final ApplicationConfig config;
 
@@ -75,11 +74,10 @@ abstract class MessagesResolver {
     MessagePacket packet,
     TransportAdapter<dynamic, TransportOptions> adapter,
   );
-
 }
 
+/// The [DefaultMessagesResolver] class is the default implementation of the [MessagesResolver] class.
 class DefaultMessagesResolver extends MessagesResolver {
-
   /// The [resolvedMessageRoutes] property contains the resolved message routes of the application.
   final Map<String, MessageContext> resolvedMessageRoutes = {};
 
@@ -100,11 +98,9 @@ class DefaultMessagesResolver extends MessagesResolver {
 
   @override
   void resolve() {
-    print('Starting to resolve message routes...');
     if (resolvedAlready) {
       return;
     }
-    print('Resolving message routes...');
     for (final module in config.modulesContainer.scopes) {
       for (final controllerEntry
           in module.controllers.whereType<RpcController>()) {
@@ -271,7 +267,6 @@ class DefaultMessagesResolver extends MessagesResolver {
       ...?filteredEventRoutes[adapter.runtimeType]?[packet.pattern],
       ...?resolvedEventRoutes[packet.pattern],
     ];
-    print('Handling event for pattern: ${packet.pattern}');
     if (routeContexts.isEmpty) {
       throw RpcException(
         'No message route found for pattern "${packet.pattern}"',

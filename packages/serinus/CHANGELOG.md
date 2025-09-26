@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.0-rc.1
+
+- feat!: change `Provider.deferred` to `Provider.composed` to better reflect its purpose.
+- ref!: Controller path is now a required parameter.
+- ref!: View Engine now has just a single method for rendering templates.
+- ref!: View and ViewString are now one single class with two factory constructors.
+- ref!: Middlewares are now registered using a fluent API.
+- ref!: The `Module#registerAsync` method now must return a DynamicModule
+- ref!: Each body type is now a separate class
+- ref!: Request and Response Hooks are now divided.
+- ref!: Some Hooks have now different method signatures.
+- ref!: Renamed ResponseProperties to ResponseContext
+- ref!: The Logger has been refactored to allow for more flexibility in the implementation.
+- ref!: SerinusExceptions message is now a required parameter.
+- ref!: Global definitions are now module-scoped.
+
 ## 1.0.4
 
 - fix(#172): fix the issue with the `UploadFile` method to correctly handle the file upload in the request body. [#173](https://github.com/francescovallone/serinus/pulls/173)

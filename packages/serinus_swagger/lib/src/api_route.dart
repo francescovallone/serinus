@@ -9,7 +9,7 @@ class ApiRoute extends Route {
   final ApiSpec apiSpec;
 
   /// The [ApiRoute] constructor is used to create a new instance of the [ApiRoute] class.
-  const ApiRoute({
+  ApiRoute({
     required super.path,
     required this.apiSpec,
     super.method = HttpMethod.get,

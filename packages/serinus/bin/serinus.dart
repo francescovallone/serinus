@@ -190,8 +190,7 @@ class AppModule extends Module {
           SseModule(),
           GlobalModule(),
           CircularDependencyModule(),
-          ClientsModule([
-          ])
+          ClientsModule([]),
         ],
         controllers: [AppController()],
         providers: [WsGateway()],
