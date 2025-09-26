@@ -280,7 +280,7 @@ final class ModulesContainer {
             provider.inject.map((e) => dependenciesMap[e]).toList());
         checkResultType(provider, result, module);
         await initIfUnregistered(result);
-        module.providers.add(result);
+        module.providers = [...module.providers, result];
         if (result.isGlobal) {
           globalProviders.add(result);
           globalInstances[result.runtimeType] = InstanceWrapper(
