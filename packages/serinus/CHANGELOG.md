@@ -3,7 +3,7 @@
 ## 2.0.0-rc.2
 
 - fix: reinstantiate module providers on deferred provider add to it
-- fix: global prefix and versionsing are now applied correctly to all routes
+- fix: global prefix and versioning are now applied correctly to all routes
 
 ## 2.0.0-rc.1
 
