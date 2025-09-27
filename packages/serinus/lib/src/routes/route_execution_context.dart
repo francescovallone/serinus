@@ -281,7 +281,7 @@ class RouteExecutionContext {
         } else {
           await _responseController.sendResponse(
             response,
-            WrappedResponse(e.message),
+            WrappedResponse(jsonEncode(e.toJson())),
             executionContext.response,
             viewEngine: viewEngine,
           );

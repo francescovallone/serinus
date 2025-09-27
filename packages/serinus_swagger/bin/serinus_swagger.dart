@@ -74,7 +74,7 @@ class PostRoute extends ApiRoute {
 }
 
 class AppController extends Controller {
-  AppController(): super('/') {
+  AppController() : super('/') {
     on(
         HelloWorldRoute(queryParameters: {
           'name': String,
@@ -90,7 +90,7 @@ class AppController extends Controller {
 }
 
 class App2Controller extends Controller {
-  App2Controller(): super('/a') {
+  App2Controller() : super('/a') {
     on(HelloWorldRoute(), _handleHelloWorld);
     on(PostRoute(path: '/post'), (context) async => {'message': 'Post route'});
   }

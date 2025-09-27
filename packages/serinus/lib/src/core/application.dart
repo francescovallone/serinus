@@ -206,7 +206,7 @@ class SerinusApplication extends Application {
 
   /// The [versioning] setter is used to enable versioning.
   set versioning(VersioningOptions options) {
-    config.versioningOptions = options;
+    _container.config.versioningOptions = options;
   }
 
   /// The [globalPrefix] setter is used to set the global prefix of the application.
@@ -214,7 +214,7 @@ class SerinusApplication extends Application {
     if (prefix == '/') {
       return;
     }
-    config.globalPrefix = GlobalPrefix(
+    _container.config.globalPrefix = GlobalPrefix(
       prefix: prefix.addLeadingSlash().stripEndSlash(),
     );
   }

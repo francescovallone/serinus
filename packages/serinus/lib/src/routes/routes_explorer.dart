@@ -5,9 +5,7 @@ import '../contexts/route_context.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
 import '../extensions/string_extensions.dart';
-import '../global_prefix.dart';
 import '../services/logger_service.dart';
-import '../versioning.dart';
 import 'route_execution_context.dart';
 import 'router.dart';
 
@@ -16,10 +14,6 @@ final class RoutesExplorer {
   final SerinusContainer _container;
 
   final Router _router;
-
-  final VersioningOptions? _versioningOptions;
-
-  final GlobalPrefix? _globalPrefix;
 
   final RouteExecutionContext _routeExecutionContext;
 
@@ -30,10 +24,8 @@ final class RoutesExplorer {
   const RoutesExplorer(
     this._container,
     this._router,
-    this._routeExecutionContext, [
-    this._versioningOptions,
-    this._globalPrefix,
-  ]);
+    this._routeExecutionContext,
+  );
 
   /// The [resolveRoutes] method is used to resolve the routes of the application.
   ///
@@ -63,16 +55,18 @@ final class RoutesExplorer {
   void explore(Controller controller, Module module, String controllerPath) {
     final logger = Logger('RoutesExplorer');
     final routes = controller.routes;
-    final versioningEnabled = _versioningOptions?.type == VersioningType.uri;
+    final versioningOptions = _container.config.versioningOptions;
+    final versioningEnabled =
+        _container.config.versioningOptions?.type == VersioningType.uri;
     for (var entry in routes.entries) {
       final spec = entry.value;
       String routePath = '$controllerPath${spec.route.path}';
       if (versioningEnabled) {
         routePath =
-            '${_versioningOptions?.versionPrefix}${spec.route.version ?? controller.version ?? _versioningOptions?.version}/$routePath';
+            '${versioningOptions?.versionPrefix}${spec.route.version ?? controller.version ?? versioningOptions?.version}/$routePath';
       }
-      if (_globalPrefix != null) {
-        routePath = '${_globalPrefix.prefix}/$routePath';
+      if (_container.config.globalPrefix != null) {
+        routePath = '${_container.config.globalPrefix!.prefix}/$routePath';
       }
       routePath = normalizePath(routePath);
       final moduleToken = InjectionToken.fromModule(module);

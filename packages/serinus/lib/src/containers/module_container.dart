@@ -292,7 +292,7 @@ final class ModulesContainer {
         );
         checkResultType(provider, result, module);
         await initIfUnregistered(result);
-        module.providers.add(result);
+        module.providers = [...module.providers, result];
         final providerToken = InjectionToken.fromType(result.runtimeType);
         _providers[result.runtimeType] = result;
         _scopedProviders[result.runtimeType] = currentScope;

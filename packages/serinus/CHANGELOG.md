@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0-rc.2
+
+- fix: reinstantiate module providers on deferred provider add to it
+- fix: global prefix and versionsing are now applied correctly to all routes
+
 ## 2.0.0-rc.1
 
 - feat!: change `Provider.deferred` to `Provider.composed` to better reflect its purpose.

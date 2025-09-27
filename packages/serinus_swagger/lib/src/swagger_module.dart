@@ -87,7 +87,8 @@ class SwaggerModule {
           final apiSpec = (route.route as ApiRoute).apiSpec;
           final parameters = [
             ...apiSpec.parameters,
-            ...apiSpec.intersectQueryParameters((route.route as ApiRoute).queryParameters),
+            ...apiSpec.intersectQueryParameters(
+                (route.route as ApiRoute).queryParameters),
             ...pathParameters
           ];
           pathObj.methods.add(PathMethod(
@@ -180,8 +181,7 @@ class SwaggerModule {
         url: _swaggerUrl!
             .replaceAll('{{endpoint}}', endpoint.replaceAll('/', '')));
     _swaggerUiModule = SwaggerUiModule(endpoint, swaggerHtml());
-    await app.config.modulesContainer.registerModules(
-        _swaggerUiModule!);
+    await app.config.modulesContainer.registerModules(_swaggerUiModule!);
   }
 
   /// The [normalizePath] method is used to normalize the path.

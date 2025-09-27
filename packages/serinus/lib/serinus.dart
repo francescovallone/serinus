@@ -13,7 +13,6 @@ export 'src/exceptions/exceptions.dart';
 export 'src/extensions/content_type_extensions.dart';
 export 'src/extensions/iterable_extansions.dart';
 export 'src/global_prefix.dart';
-export 'src/handlers/handlers.dart';
 export 'src/hooks/hooks.dart';
 export 'src/http/http.dart';
 export 'src/inspector/inspector.dart';

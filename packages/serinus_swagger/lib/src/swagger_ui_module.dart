@@ -8,7 +8,7 @@ class SwaggerController extends Controller {
   final String swaggerHtml;
 
   /// Constructor
-  SwaggerController({required this.swaggerHtml , required String path})
+  SwaggerController({required this.swaggerHtml, required String path})
       : super(path) {
     on(Route.get('/'), (context) async {
       context.res.contentType = ContentType.html;

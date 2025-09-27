@@ -45,8 +45,6 @@ void main() {
           container,
           router,
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
-          config.versioningOptions,
-          config.globalPrefix,
         );
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
@@ -71,8 +69,6 @@ void main() {
           container,
           router,
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
-          config.versioningOptions,
-          config.globalPrefix,
         );
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
@@ -97,8 +93,6 @@ void main() {
           container,
           router,
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
-          config.versioningOptions,
-          config.globalPrefix,
         );
         final path = 'test';
         final normalizedPath = explorer.normalizePath(path);
@@ -122,8 +116,6 @@ void main() {
           container,
           router,
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
-          config.versioningOptions,
-          config.globalPrefix,
         );
         final path = '/test//test';
         final normalizedPath = explorer.normalizePath(path);
@@ -154,8 +146,6 @@ void main() {
           container,
           router,
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
-          config.versioningOptions,
-          config.globalPrefix,
         );
         explorer.resolveRoutes();
         final result = router.checkRouteByPathAndMethod('/v1', HttpMethod.get);
@@ -183,8 +173,6 @@ void main() {
           container,
           router,
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
-          config.versioningOptions,
-          config.globalPrefix,
         );
         explorer.resolveRoutes();
         final result = router.checkRouteByPathAndMethod('/api', HttpMethod.get);
@@ -276,8 +264,6 @@ void main() {
           container,
           router,
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
-          config.versioningOptions,
-          config.globalPrefix,
         );
         explorer.resolveRoutes();
         final result = router.checkRouteByPathAndMethod(

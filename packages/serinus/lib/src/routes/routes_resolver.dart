@@ -37,8 +37,6 @@ class RoutesResolver {
       _container,
       Router(_container.config.versioningOptions),
       _routeExecutionContext,
-      _container.config.versioningOptions,
-      _container.config.globalPrefix,
     );
   }
 

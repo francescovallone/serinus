@@ -63,7 +63,6 @@ abstract class Controller {
     Function handler, {
     ParseSchema? schema,
     Type? body,
-    List<Pipe> pipes = const [],
   }) {
     final routeExists = _routes.values.any(
       (r) => r.route.path == route.path && r.route.method == route.method,

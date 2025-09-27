@@ -47,8 +47,7 @@ class BodySchemaValidationPipe<T extends Body> extends Pipe {
           reqContext.body = TextBody(result.value.toString());
       }
     } on ValidationError catch (e) {
-      throw onError?.call(e.key, e) ??
-          BadRequestException('Body validation failed: $e');
+      throw onError?.call(e.key, e) ?? BadRequestException('$e');
     }
   }
 }
