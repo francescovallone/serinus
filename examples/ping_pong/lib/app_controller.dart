@@ -2,7 +2,7 @@ import 'package:serinus/serinus.dart';
 
 class AppController extends Controller {
 
-  AppController({super.path = '/'}) {
+  AppController(): super('/') {
     on(Route.get('/'), _handleHelloWorld);
   }
 

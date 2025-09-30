@@ -8,8 +8,8 @@ Future<void> bootstrap() async {
     entrypoint: AppModule(),
     host: 'localhost',
     port: 3000,
-    loggingLevel: LogLevel.errors,
-    loggerService: LoggerService()
+    logLevels: {LogLevel.debug},
+    logger: ConsoleLogger(),
   );
   app.viewEngine = MustacheViewEngine(viewFolder: 'views');
   app.use(BodySizeLimitHook());

@@ -9,5 +9,6 @@ environment:
 
 dependencies:
   mustachex: ^1.0.0
-  serinus: ^1.0.0
+  serinus:
+    path: ../../packages/serinus
   

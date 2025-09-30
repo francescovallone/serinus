@@ -45,24 +45,39 @@ class FrontierHook extends Hook with OnBeforeHandle {
 
   @override
   Future<void> beforeHandle(ExecutionContext context) async {
-    final hasStrategy = context.canStat('GuardMeta');
+    if (context.hostType != HostType.http) {
+      return;
+    }
+    final requestContext = context.switchToHttp();
+    final hasStrategy = requestContext.canStat('GuardMeta');
     if (!hasStrategy) {
       return;
     }
-    final stringHeaders = Map<String, String>.fromEntries(context
-        .headers.entries
-        .map((e) => MapEntry(e.key, e.value.toString())));
-    final stringQuery = Map<String, String>.fromEntries(
-        context.query.entries.map((e) => MapEntry(e.key, e.value.join(','))));
-    final stringCookies = Map<String, String>.fromEntries(context
-        .request.session.all.entries
-        .map((e) => MapEntry(e.key, e.value.join(','))));
+    final stringHeaders = Map<String, String>.fromEntries(
+      requestContext.headers.asMap().entries.map(
+        (e) => MapEntry(e.key, e.value.toString()),
+      ),
+    );
+    final stringQuery = <String, String>{
+      for (final entry in requestContext.query.entries)
+        entry.key: switch (entry.value) {
+          Iterable<dynamic> iterable => iterable.join(','),
+          null => '',
+          _ => entry.value.toString(),
+        },
+    };
+    final stringCookies = Map<String, String>.fromEntries(
+      requestContext.request.session.all.entries.map(
+        (e) => MapEntry(e.key, e.value.join(',')),
+      ),
+    );
     final strategyRequest = StrategyRequest(
-        headers: stringHeaders,
-        body: context.body.value,
-        query: stringQuery,
-        cookies: stringCookies);
-    final strategyName = context.stat<String>('GuardMeta');
+      headers: stringHeaders,
+      body: requestContext.body,
+      query: stringQuery,
+      cookies: stringCookies,
+    );
+    final strategyName = requestContext.stat<String>('GuardMeta');
     final value = await service.authenticate(strategyName, strategyRequest);
     if (value == null) {
       if (onError != null) {
@@ -78,7 +93,7 @@ class FrontierHook extends Hook with OnBeforeHandle {
       }
       throw UnauthorizedException('Unauthorized! - ${value.toString()}');
     }
-    context['frontier_response'] = value;
+    requestContext['frontier_response'] = value;
   }
 }
 

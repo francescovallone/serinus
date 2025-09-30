@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import '../enums/enums.dart';
 import '../extensions/content_type_extensions.dart';
@@ -103,66 +105,108 @@ class Request {
   }
 
   /// The body of the request.
-  Body? body;
+  Object? body;
+
+  bool _bodyParsed = false;
 
   /// The content type of the request.
   int get contentLength =>
       _original.contentLength > -1
           ? _original.contentLength
-          : body?.length ?? 0;
+          : _bodyLength;
+
+  int get _bodyLength {
+    final currentBody = body;
+    if (currentBody == null) {
+      return 0;
+    }
+    if (currentBody is String) {
+      return currentBody.length;
+    }
+    if (currentBody is Uint8List) {
+      return currentBody.length;
+    }
+    if (currentBody is List<int>) {
+      return currentBody.length;
+    }
+    if (currentBody is FormData) {
+      return currentBody.length;
+    }
+    return utf8.encode(currentBody.toString()).length;
+  }
 
   /// This method is used to parse the body of the request.
   ///
   /// It will try to parse the body of the request to the correct type.
-  Future<void> parseBody([bool rawBody = false]) async {
-    /// If the body is already parsed, it will return.
-    if (body != null) {
-      return;
+  Future<Object?> parseBody({bool rawBody = false}) async {
+    if (_bodyParsed) {
+      return body;
     }
+
     if (contentType.isMultipart) {
       final formData = await _original.formData();
-      body = FormDataBody(formData);
-      return;
+      _setBody(formData);
+      return body;
     }
+
     final bytes = await _original.bytes();
     if (rawBody) {
-      body = RawBody(bytes);
-      return;
+      _setBody(Uint8List.fromList(bytes));
+      return body;
     }
 
-    /// If the body is empty, it will return an empty body.
+    if (bytes.isEmpty) {
+      _setBody(null);
+      return body;
+    }
+
     final parsedBody = _original.body();
-    if (parsedBody.isEmpty) {
-      body = Body.empty();
-      return;
-    }
 
-    /// If the content type is url encoded, it will parse the body as a url encoded form data.
     if (contentType.isUrlEncoded) {
       final formData = FormData.parseUrlEncoded(parsedBody);
-      body = FormDataBody(formData);
-      return;
+      _setBody(formData);
+      return body;
     }
 
-    /// If the content type is json, it will parse the body as a json object.
-    final jsonPred = parsedBody.codeUnitAt(0);
-    if (jsonPred == 123 || jsonPred == 91) {
+    if (contentType.isJson) {
       final parsedJson = _original.json();
-      if ((parsedJson != null && contentType == ContentType.json) ||
-          parsedJson != null) {
-        body = JsonBody.fromJson(parsedJson);
-        return;
+      if (parsedJson != null) {
+        _setBody(parsedJson);
+        return body;
       }
     }
 
-    /// If the content type is binary, it will parse the body as a binary data.
-    if (contentType == ContentType.binary) {
-      body = RawBody(bytes);
-      return;
+    final trimmed = parsedBody.trimLeft();
+    if (trimmed.isNotEmpty) {
+      final firstChar = trimmed.codeUnitAt(0);
+      if (firstChar == 123 || firstChar == 91) {
+        try {
+          final decoded = jsonDecode(trimmed);
+          _setBody(decoded);
+          return body;
+        } catch (_) {
+          // fall through to other parsers
+        }
+      }
     }
 
-    /// If the content type is text, it will parse the body as a text data.
-    body = TextBody(parsedBody);
+    if (contentType == ContentType.binary) {
+      _setBody(Uint8List.fromList(bytes));
+      return body;
+    }
+
+    if (contentType.mimeType.startsWith('text/')) {
+      _setBody(parsedBody);
+      return body;
+    }
+
+    _setBody(parsedBody);
+    return body;
+  }
+
+  void _setBody(Object? value) {
+    body = value;
+    _bodyParsed = true;
   }
 
   /// This method is used to add data to the request.

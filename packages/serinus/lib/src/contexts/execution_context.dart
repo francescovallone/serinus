@@ -41,7 +41,7 @@ final class HttpArgumentsHost extends ArgumentsHost {
   Map<String, dynamic> get query => request.query;
 
   /// The body of the request.
-  Body? get body => request.body;
+  Object? get body => request.body;
 
   /// The [HttpArgumentsHost] constructor is used to create a new instance of the [HttpArgumentsHost] class.
   const HttpArgumentsHost(this.request);
@@ -113,15 +113,21 @@ final class ExecutionContext extends BaseContext {
     if (argumentsHost is! HttpArgumentsHost) {
       throw StateError('The current context is not an HTTP context');
     }
-    _requestContext ??=
-        RequestContext(
-            (argumentsHost as HttpArgumentsHost).request,
-            providers,
-            hooksServices,
-          )
-          ..metadata = metadata
-          ..response = response;
-    return _requestContext!;
+    final context = _requestContext;
+    if (context == null) {
+      throw StateError('The HTTP context has not been initialized');
+    }
+    return context;
+  }
+
+  /// Attaches a pre-built [RequestContext] to the current execution context.
+  void attachHttpContext(RequestContext context) {
+    if (argumentsHost is! HttpArgumentsHost) {
+      throw StateError('Cannot attach an HTTP context to a non-HTTP host');
+    }
+    _requestContext = context
+      ..metadata = metadata
+      ..response = response;
   }
 
   WebSocketContext? _webSocketContext;

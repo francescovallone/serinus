@@ -1,10 +1,12 @@
 import 'dart:typed_data';
 
 import '../adapters/adapters.dart';
+import '../core/core.dart';
+import '../http/http.dart';
 import 'request_context.dart';
 
 /// The [WebSocketContext] class is used to create a new web socket context.
-class WebSocketContext extends RequestContext {
+class WebSocketContext extends RequestContext<dynamic> {
   /// The [clientId] property contains the client ID of the WebSocket.
   final String clientId;
 
@@ -15,12 +17,12 @@ class WebSocketContext extends RequestContext {
 
   /// The [WebSocketContext] constructor is used to create a new instance of the [WebSocketContext] class.
   WebSocketContext(
-    super.request,
+    Request httpRequest,
     this.clientId,
-    super.providers,
-    super.hooksServices,
+    Map<Type, Provider> providers,
+    Map<Type, Object> hooksServices,
     this._adapter,
-  );
+  ) : super.withBody(httpRequest, httpRequest.body, providers, hooksServices);
 
   /// The [sendText] method is used to send a text message to the client.
   /// The [data] parameter is the text message to be sent.

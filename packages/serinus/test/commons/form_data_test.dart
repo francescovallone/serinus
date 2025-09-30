@@ -13,9 +13,20 @@ class TestController extends Controller {
     on(TestRoute(path: '/form', method: HttpMethod.post), (
       RequestContext context,
     ) async {
-      if (context.body is FormDataBody) {
-        final formData = context.body as FormDataBody;
-        return formData.asMap();
+      if (context.body is FormData) {
+        final formData = context.body as FormData;
+        return {
+          'fields': formData.fields,
+          'files': {
+            for (final entry in formData.files.entries)
+              entry.key: {
+                'name': entry.value.name,
+                'contentType': entry.value.contentType.toString(),
+                'data': entry.value.data,
+                'buffer': entry.value.buffer,
+              },
+          },
+        };
       }
     });
   }

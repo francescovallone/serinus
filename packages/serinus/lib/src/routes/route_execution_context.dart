@@ -60,16 +60,25 @@ class RouteExecutionContext {
       ExecutionContext? executionContext;
       try {
         final wrappedRequest = Request(request, params);
-        await wrappedRequest.parseBody(rawBody);
+        final providers = {
+          for (var provider in context.moduleScope.unifiedProviders)
+            provider.runtimeType: provider,
+        };
         executionContext = ExecutionContext(
           HostType.http,
-          {
-            for (var provider in context.moduleScope.unifiedProviders)
-              provider.runtimeType: provider,
-          },
+          providers,
           context.hooksServices,
           HttpArgumentsHost(wrappedRequest),
         );
+        final requestContext = await RequestContext.create<dynamic>(
+          request: wrappedRequest,
+          providers: providers,
+          hooksServices: context.hooksServices,
+          modelProvider: modelProvider,
+          rawBody: rawBody,
+          explicitType: context.spec.body,
+        );
+        executionContext.attachHttpContext(requestContext);
         for (final hook in context.hooksContainer.reqHooks) {
           await hook.onRequest(executionContext);
           if (executionContext.response.closed) {
@@ -85,12 +94,11 @@ class RouteExecutionContext {
         executionContext.metadata.addAll(
           await context.initMetadata(executionContext),
         );
-        final requestContext = executionContext.switchToHttp();
         if (context.schema != null) {
           final schema = context.schema!;
           final Map<String, dynamic> toParse = {};
           if (schema.body != null) {
-            toParse['body'] = requestContext.body.value;
+            toParse['body'] = requestContext.body;
           }
           if (schema.query != null) {
             toParse['query'] = requestContext.query;
@@ -119,20 +127,14 @@ class RouteExecutionContext {
           );
           requestContext.params.addAll(result['params'] ?? {});
           requestContext.query.addAll(result['query'] ?? {});
-          requestContext.body =
-              result.containsKey('body') && result['body'] != null
-                  ? JsonBody.fromJson(result['body'] ?? {})
-                  : requestContext.body;
+          if (result.containsKey('body')) {
+            requestContext.body = result['body'];
+          }
         }
         if (context.pipes.isNotEmpty) {
           for (final pipe in context.pipes) {
             await pipe.transform(executionContext);
           }
-        }
-        if (!rawBody) {
-          requestContext.body =
-              resolveBody(context.spec.body, requestContext) ??
-              requestContext.body;
         }
         final middlewares = context.getMiddlewares(request);
         if (middlewares.isNotEmpty) {
@@ -188,7 +190,7 @@ class RouteExecutionContext {
           } else {
             handlerResult = Function.apply(handler, [
               requestContext,
-              if (context.spec.body != null) requestContext.body.value,
+              if (context.spec.body != null) requestContext.body,
               ...requestContext.params.values,
             ]);
             if (handlerResult is Future) {
@@ -358,68 +360,4 @@ class RouteExecutionContext {
     }
   }
 
-  /// The [resolveBody] method is used to resolve the body of the request based on the expected type.
-  /// It checks the type of the body and returns the appropriate value.
-  dynamic resolveBody(dynamic body, RequestContext context) {
-    if (body == null) {
-      return null;
-    }
-    if (body == String) {
-      if (context.body is! TextBody) {
-        throw PreconditionFailedException('The body is not a string');
-      }
-      return context.body.value;
-    }
-    if ((('$body'.startsWith('Map') || '$body'.contains('List<')) &&
-            '$body'.endsWith('>')) ||
-        '$body' == 'Map') {
-      if (context.body is! JsonBody && context.body is! FormDataBody) {
-        throw PreconditionFailedException('The body is not a json object');
-      }
-      final requestBody = context.body;
-      if (requestBody is FormDataBody) {
-        return requestBody.asMap();
-      }
-      return requestBody.value;
-    }
-    if (body == Uint8List) {
-      if (context.body is! RawBody) {
-        throw PreconditionFailedException('The body is not a binary');
-      }
-      return context.body.value;
-    }
-    if (body == FormData) {
-      if (context.body is! FormDataBody) {
-        throw PreconditionFailedException('The body is not a form data');
-      }
-      return context.body.value;
-    }
-    if (modelProvider != null) {
-      try {
-        final requestBody = context.body;
-        if (requestBody is FormDataBody) {
-          return modelProvider!.from(body, {
-            ...requestBody.asMap(),
-            ...Map<String, dynamic>.fromEntries(
-              requestBody.value.files.entries,
-            ),
-          });
-        }
-        if (requestBody is JsonBody) {
-          if (requestBody is JsonList) {
-            return requestBody.value
-                .map((e) => modelProvider!.from(body, e))
-                .toList();
-          } else {
-            return modelProvider!.from(body, requestBody.value);
-          }
-        }
-      } catch (e) {
-        throw PreconditionFailedException(
-          'The body cannot be converted to a valid model',
-        );
-      }
-    }
-    throw PreconditionFailedException('The body type is not supported: $body');
-  }
 }

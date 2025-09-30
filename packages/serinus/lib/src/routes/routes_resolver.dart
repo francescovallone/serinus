@@ -71,21 +71,31 @@ class RoutesResolver {
     );
     if (route == null) {
       _logger.verbose('No route found for ${request.method} ${request.uri}');
+      final wrappedRequest = Request(request, {});
       final data =
-          _container.applicationRef.notFoundHandler?.call(Request(request)) ??
+          _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??
           NotFoundException(
             'Route not found for ${request.method} ${request.uri}',
           );
       final reqHooks = _container.config.globalHooks.reqHooks;
+      final providers = {
+        for (var provider in _container.modulesContainer.globalProviders)
+          provider.runtimeType: provider,
+      };
       final executionContext = ExecutionContext(
         HostType.http,
-        {
-          for (var provider in _container.modulesContainer.globalProviders)
-            provider.runtimeType: provider,
-        },
+        providers,
         _container.config.globalHooks.services,
-        HttpArgumentsHost(Request(request, {})),
+        HttpArgumentsHost(wrappedRequest),
       );
+      final requestContext = await RequestContext.create<dynamic>(
+        request: wrappedRequest,
+        providers: providers,
+        hooksServices: _container.config.globalHooks.services,
+        modelProvider: _container.config.modelProvider,
+        rawBody: _container.applicationRef.rawBody,
+      );
+      executionContext.attachHttpContext(requestContext);
       executionContext.response
         ..statusCode = HttpStatus.notFound
         ..contentType = ContentType.json;

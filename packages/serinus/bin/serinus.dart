@@ -1,6 +1,7 @@
 // coverage:ignore-file
 // ignore_for_file: avoid_print
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
@@ -100,10 +101,11 @@ class AnotherController extends Controller {
           BodySchemaValidationPipe(object({}).passthrough().list()),
           TransformPipe((context) async {
             final requestContext = context.switchToHttp();
-            requestContext.body = JsonBody.fromJson([
-              for (var item in requestContext.bodyAs<JsonList>().value)
-                item..['data'] = 'hello!',
-            ]);
+      final items =
+        requestContext.bodyAs<List<Map<String, dynamic>>>();
+            requestContext.body = [
+              for (final item in items) {...item, 'data': 'hello!'},
+            ];
           }),
           TransformPipe((context) async {
             final argsHost = context.argumentsHost;
@@ -115,12 +117,12 @@ class AnotherController extends Controller {
         },
       ),
       _fallback,
+      body: List<Map<String, dynamic>>,
     );
   }
 
-  String _fallback(RequestContext context) {
-    final body = context.body;
-    return 'Hello ajdaudiha! - $body - ${context.request.query} - ${context.request.params}';
+  String _fallback(RequestContext context, List<Map<String, dynamic>> body) {
+    return 'Hello ajdaudiha! - ${jsonEncode(body)} - ${context.queryAs<bool>('transform')} - ${context.paramAs('data')}';
   }
 }
 
