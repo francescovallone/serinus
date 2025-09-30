@@ -111,9 +111,7 @@ class Request {
 
   /// The content type of the request.
   int get contentLength =>
-      _original.contentLength > -1
-          ? _original.contentLength
-          : _bodyLength;
+      _original.contentLength > -1 ? _original.contentLength : _bodyLength;
 
   int get _bodyLength {
     final currentBody = body;

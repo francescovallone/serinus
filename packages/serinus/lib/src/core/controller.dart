@@ -16,12 +16,8 @@ typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 typedef SyncReqResHandler<T> = T Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
-typedef RouteHandler = ({
-  Route route,
-  dynamic handler,
-  ParseSchema? schema,
-  Type? body,
-});
+typedef RouteHandler =
+    ({Route route, dynamic handler, ParseSchema? schema, Type? body});
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {

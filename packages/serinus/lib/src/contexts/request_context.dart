@@ -21,11 +21,11 @@ class RequestContext<TBody> extends BaseContext {
     Map<Type, Object> hooksServices, {
     ModelProvider? modelProvider,
     Type? explicitType,
-  })  : request = httpRequest,
-        _bodyType = explicitType ?? _typeOf<TBody>(),
-        _converter = _BodyConverter(modelProvider),
-        _body = body,
-        super(providers, hooksServices) {
+  }) : request = httpRequest,
+       _bodyType = explicitType ?? _typeOf<TBody>(),
+       _converter = _BodyConverter(modelProvider),
+       _body = body,
+       super(providers, hooksServices) {
     this.body = body;
   }
 
@@ -36,8 +36,8 @@ class RequestContext<TBody> extends BaseContext {
     TBody body,
     Map<Type, Provider> providers,
     Map<Type, Object> hooksServices,
-  )   : _body = body,
-        super(providers, hooksServices);
+  ) : _body = body,
+      super(providers, hooksServices);
 
   /// Creates a [RequestContext] instance reading and converting the request body to [TBody].
   static Future<RequestContext<TBody>> create<TBody>({
@@ -255,27 +255,21 @@ class _BodyConverter {
 
     if (_isListType(typeName)) {
       if (value is! List) {
-        throw PreconditionFailedException('Element cannot be converted to List');
+        throw PreconditionFailedException(
+          'Element cannot be converted to List',
+        );
       }
       final elementName = _extractListElement(typeName);
       if (elementName == null || _isDynamicLike(elementName)) {
         return value;
       }
-      return value
-          .map((e) => convert(_RuntimeType(elementName), e))
-          .toList();
+      return value.map((e) => convert(_RuntimeType(elementName), e)).toList();
     }
 
     if (modelProvider != null) {
       if (value is FormData) {
-        final map = {
-          ...value.fields,
-          ...value.files,
-        };
-        return modelProvider!.from(
-          targetType,
-          Map<String, dynamic>.from(map),
-        );
+        final map = {...value.fields, ...value.files};
+        return modelProvider!.from(targetType, Map<String, dynamic>.from(map));
       }
       if (value is Map) {
         final mapped = value.map((key, val) => MapEntry('$key', val));
@@ -294,9 +288,7 @@ class _BodyConverter {
       }
     }
 
-    throw PreconditionFailedException(
-      'The type is not supported: $targetType',
-    );
+    throw PreconditionFailedException('The type is not supported: $targetType');
   }
 
   Map<String, dynamic> _convertToMap(Object value) {
@@ -307,10 +299,7 @@ class _BodyConverter {
       return value.map((key, val) => MapEntry('$key', val));
     }
     if (value is FormData) {
-      return {
-        ...value.fields,
-        'files': value.files,
-      };
+      return {...value.fields, 'files': value.files};
     }
     throw PreconditionFailedException('The body is not a map');
   }

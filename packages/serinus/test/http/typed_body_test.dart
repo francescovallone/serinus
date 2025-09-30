@@ -110,11 +110,11 @@ void main() {
         explicitType: List<Map<String, dynamic>>,
       );
 
-  final body = context.body as List;
+      final body = context.body as List;
 
-  expect(body, hasLength(1));
-  expect(body.first, isA<Map<String, dynamic>>());
-  expect((body.first as Map<String, dynamic>)['name'], equals('serinus'));
+      expect(body, hasLength(1));
+      expect(body.first, isA<Map<String, dynamic>>());
+      expect((body.first as Map<String, dynamic>)['name'], equals('serinus'));
     });
 
     test('throws when body cannot be converted to expected type', () {

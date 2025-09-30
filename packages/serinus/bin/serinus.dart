@@ -101,8 +101,7 @@ class AnotherController extends Controller {
           BodySchemaValidationPipe(object({}).passthrough().list()),
           TransformPipe((context) async {
             final requestContext = context.switchToHttp();
-      final items =
-        requestContext.bodyAs<List<Map<String, dynamic>>>();
+            final items = requestContext.bodyAs<List<Map<String, dynamic>>>();
             requestContext.body = [
               for (final item in items) {...item, 'data': 'hello!'},
             ];

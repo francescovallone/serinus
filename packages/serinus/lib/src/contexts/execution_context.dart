@@ -125,9 +125,10 @@ final class ExecutionContext extends BaseContext {
     if (argumentsHost is! HttpArgumentsHost) {
       throw StateError('Cannot attach an HTTP context to a non-HTTP host');
     }
-    _requestContext = context
-      ..metadata = metadata
-      ..response = response;
+    _requestContext =
+        context
+          ..metadata = metadata
+          ..response = response;
   }
 
   WebSocketContext? _webSocketContext;

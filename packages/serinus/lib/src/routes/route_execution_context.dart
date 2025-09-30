@@ -359,5 +359,4 @@ class RouteExecutionContext {
       await hook.onResponse(executionContext, responseData);
     }
   }
-
 }
