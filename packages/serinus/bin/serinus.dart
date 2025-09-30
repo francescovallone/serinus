@@ -121,7 +121,7 @@ class AnotherController extends Controller {
   }
 
   String _fallback(RequestContext context, List<Map<String, dynamic>> body) {
-    return 'Hello ajdaudiha! - ${jsonEncode(body)} - ${context.queryAs<bool>('transform')} - ${context.paramAs('data')}';
+    return 'Hello ajdaudiha! - ${jsonEncode(body)} - ${context.queryAs<Map<String, dynamic>>()} - ${context.paramAs('data')}';
   }
 }
 

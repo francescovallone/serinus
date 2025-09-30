@@ -32,7 +32,7 @@ dependencies:
   web_socket_channel: ^3.0.1
   collection: ^1.19.1
   shelf: ^1.4.2
-  acanthis: ^1.0.0
+  acanthis: ^1.4.4
   secure_session: ^1.0.5
   web_socket: ^1.0.1
 
