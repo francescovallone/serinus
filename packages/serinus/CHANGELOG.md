@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0-rc.3
+
+- feat: improve body parsing to allow for more flexibility in the implementation of custom body types.
+- feat: add utility methods to the RequestContext to simplify the extraction of typed parameters from the request.
+- fix: fix check on WebSocketGateway to prevent wrongful exceptions on sending data.
+
 ## 2.0.0-rc.2
 
 - fix: reinstantiate module providers on deferred provider add to it

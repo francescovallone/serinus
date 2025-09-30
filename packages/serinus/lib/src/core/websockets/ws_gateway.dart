@@ -62,7 +62,7 @@ abstract class WebSocketGateway extends Provider {
     if (serializer != null) {
       data = serializer!.serialize(data);
     }
-    if (serializer == null && (data is! String || data is! Uint8List)) {
+    if (data is! String && data is! Uint8List) {
       throw ArgumentError('The serialized data must be a String or Uint8List');
     }
     server?.send(data, clientId: clientId);
