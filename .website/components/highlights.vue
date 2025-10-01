@@ -18,7 +18,7 @@
 				Designed to make backend development in Dart easy and enjoyable, avoiding unnecessary complexity for you to focus on your application.
 			</div>
 		</div>
-		<div class="container grid lg:justify-between gap-4">
+		<div class="grid lg:justify-between gap-4">
 			<div class="p-4 flex justify-center items-center border border-gray-200 rounded-lg">
 				<div class="flex flex-col gap-4">
 					<div class="flex gap-4 items-center">

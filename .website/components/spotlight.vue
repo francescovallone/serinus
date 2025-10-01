@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { defineProps, onMounted } from 'vue'
-
-const isOdd = props.spotlights.length % 2 !== 0
-console.log(isOdd)
 </script>
 
 <template>

@@ -52,7 +52,7 @@ const currentPlugin = ref(plugins[0]);
 				Designed to make backend development in Dart easy and enjoyable, Serinus offers a range of powerful features to help you build the best possible applications.
 			</div>
 		</div>
-		<div class="container flex">
+		<div class="flex">
 			<div class="selector flex flex-col gap-4 flex-1">
 				<div v-for="plugin in plugins" :key="plugin.title" class="flex flex-col w-full">
 					<div class="text-base text-pretty p-2 border-l-2 border-white" :class="{'border-color-serinus': currentPlugin.title === plugin.title, 'hover:border-gray-300': currentPlugin.title !== plugin.title}" @click="currentPlugin = plugin">
