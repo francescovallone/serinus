@@ -59,6 +59,7 @@ class WebsocketRegistry extends Provider
             gateway.exceptionFilters,
           ),
         );
+        gateway.server = wsAdapter;
         wsAdapter.router ??= router;
       } else {
         final WsAdapter customWsAdapter;
@@ -116,6 +117,7 @@ class WebsocketRegistry extends Provider
             gateway.exceptionFilters,
           ),
         );
+        gateway.server = customWsAdapter;
         customWsAdapter.router ??= router;
       }
     }

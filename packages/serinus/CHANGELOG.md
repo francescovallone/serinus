@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-rc.5
+
+- fix: correct assignment of WsAdapter to the WebSocketGateway to prevent wrongful exceptions on sending data.
+
 ## 2.0.0-rc.4
 
 - ref!: remove ParseSchema completely from Serinus.
