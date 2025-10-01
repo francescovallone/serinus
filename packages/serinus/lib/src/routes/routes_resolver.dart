@@ -123,11 +123,8 @@ class RoutesResolver {
         RequestEvent.close,
         EventData(
           data: data,
-          properties:
-              executionContext.response
-                ..headers.addAll(
-                  (response.currentHeaders as HttpHeaders).toMap(),
-                ),
+          properties: executionContext.response
+            ..headers.addAll((response.currentHeaders as HttpHeaders).toMap()),
         ),
       );
       _container.applicationRef.reply(

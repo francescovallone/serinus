@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:mime/mime.dart';
+
 import '../enums/enums.dart';
 import '../extensions/content_type_extensions.dart';
 import 'http.dart';
@@ -136,25 +138,23 @@ class Request {
   /// This method is used to parse the body of the request.
   ///
   /// It will try to parse the body of the request to the correct type.
-  Future<Object?> parseBody({bool rawBody = false}) async {
+  Future<Object?> parseBody({
+    bool rawBody = false,
+    Future<void> Function(MimeMultipart part)? onPart,
+  }) async {
     if (_bodyParsed) {
       return body;
     }
 
-    if (contentType.isMultipart) {
-      final formData = await _original.formData();
-      _setBody(formData);
-      return body;
-    }
-
-    final bytes = await _original.bytes();
     if (rawBody) {
+      final bytes = await _original.bytes();
       _setBody(Uint8List.fromList(bytes));
       return body;
     }
 
-    if (bytes.isEmpty) {
-      _setBody(null);
+    if (contentType.isMultipart) {
+      final formData = await _original.formData(onPart: onPart);
+      _setBody(formData);
       return body;
     }
 
@@ -189,6 +189,7 @@ class Request {
     }
 
     if (contentType == ContentType.binary) {
+      final bytes = await _original.bytes();
       _setBody(Uint8List.fromList(bytes));
       return body;
     }

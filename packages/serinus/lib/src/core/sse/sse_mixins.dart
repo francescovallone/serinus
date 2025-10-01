@@ -39,8 +39,8 @@ mixin SseController on Controller {
     _sseRoutes[UuidV4().generate()] = (
       handler: handler,
       route: route,
-      schema: null,
       body: null,
+      shouldValidateMultipart: false,
     );
   }
 }

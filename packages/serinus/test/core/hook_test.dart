@@ -5,7 +5,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class HookTest extends Hook
-    with OnRequest, OnResponse, OnBeforeHandle, OnAfterHandle, OnException {
+    with OnRequest, OnResponse, OnBeforeHandle, OnAfterHandle {
   final Map<String, dynamic> data = {};
 
   @override
@@ -33,17 +33,6 @@ class HookTest extends Hook
   ) async {
     this.data['onResponse'] = true;
   }
-
-  @override
-  Future<void> onException(
-    ExecutionContext context,
-    Exception exception,
-  ) async {
-    data['onException'] = true;
-  }
-
-  @override
-  List<Type> get exceptionTypes => [];
 }
 
 class NoOverrideHook extends Hook with OnRequest, OnResponse {

@@ -231,8 +231,8 @@ class SerinusApplication extends Application {
       await initialize();
       _logger.info('Starting server on $url');
       server.listen(
-        onRequest:
-            (request, response) => _routesResolver!.handle(request, response),
+        onRequest: (request, response) =>
+            _routesResolver!.handle(request, response),
         onError: (e, stackTrace) {
           if (abortOnError) {
             throw e;

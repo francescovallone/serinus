@@ -45,15 +45,61 @@ mixin OnAfterHandle on Hookable {
   Future<void> afterHandle(ExecutionContext context, WrappedResponse response);
 }
 
-/// The [OnException] mixin is used to execute code when an exception is thrown
-mixin OnException on Hook {
-  /// The [exceptionTypes] property contains the types of exceptions that this hook can handle
-  /// This is used to filter the exceptions that this hook will handle.
-  List<Type> get exceptionTypes;
+/// A simple hook that executes a function after the request is handled
+class AfterHook extends Hook with OnAfterHandle {
+  final void Function(ExecutionContext context, WrappedResponse response) _fn;
 
-  /// The [onException] method is used to execute code when an exception is thrown
-  Future<void> onException(
-    ExecutionContext request,
-    Exception exception,
-  ) async {}
+  /// The [AfterHook] constructor is used to create a new instance of the [AfterHook] class.
+  const AfterHook(this._fn);
+
+  @override
+  Future<void> afterHandle(
+    ExecutionContext context,
+    WrappedResponse response,
+  ) async {
+    _fn(context, response);
+  }
+}
+
+/// A simple hook that executes a function after the response is sent
+class BeforeHook extends Hook with OnBeforeHandle {
+  final void Function(ExecutionContext context) _fn;
+
+  /// The [BeforeHook] constructor is used to create a new instance of the [BeforeHook] class.
+  const BeforeHook(this._fn);
+
+  @override
+  Future<void> beforeHandle(ExecutionContext context) async {
+    _fn(context);
+  }
+}
+
+/// A simple hook that executes a function when the request is received
+class RequestHook extends Hook with OnRequest {
+  final Future<void> Function(ExecutionContext context) _fn;
+
+  /// The [RequestHook] constructor is used to create a new instance of the [RequestHook] class.
+  const RequestHook(this._fn);
+
+  @override
+  Future<void> onRequest(ExecutionContext context) async {
+    await _fn(context);
+  }
+}
+
+/// A simple hook that executes a function when the response is sent
+class ResponseHook extends Hook with OnResponse {
+  final Future<void> Function(ExecutionContext context, WrappedResponse data)
+  _fn;
+
+  /// The [ResponseHook] constructor is used to create a new instance of the [ResponseHook] class.
+  const ResponseHook(this._fn);
+
+  @override
+  Future<void> onResponse(
+    ExecutionContext context,
+    WrappedResponse data,
+  ) async {
+    await _fn(context, data);
+  }
 }

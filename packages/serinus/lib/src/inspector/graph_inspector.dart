@@ -159,7 +159,6 @@ class GraphInspector extends Provider {
         subTypes: [
           if (hook is OnBeforeHandle) 'beforeHandle',
           if (hook is OnAfterHandle) 'afterHandle',
-          if (hook is OnException) 'onException',
           if (hook is OnRequest) 'onRequest',
           if (hook is OnResponse) 'onResponse',
           if (hook is OnBeforeMessage) 'onBeforeMessage',

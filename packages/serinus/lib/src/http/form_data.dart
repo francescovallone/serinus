@@ -46,7 +46,10 @@ class FormData {
   }
 
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
-  static Future<FormData> parseMultipart({required HttpRequest request}) async {
+  static Future<FormData> parseMultipart({
+    required HttpRequest request,
+    Future<void> Function(MimeMultipart part)? onPart,
+  }) async {
     try {
       final mediaType = MediaType.parse(
         request.headers[HttpHeaders.contentTypeHeader]!.join(';'),
@@ -57,6 +60,7 @@ class FormData {
       final fields = <String, dynamic>{};
       final files = <String, UploadedFile>{};
       await for (MimeMultipart part in parts) {
+        await onPart?.call(part);
         final contentDisposition = part.headers['content-disposition'];
         if (contentDisposition == null ||
             !contentDisposition.startsWith('form-data;')) {

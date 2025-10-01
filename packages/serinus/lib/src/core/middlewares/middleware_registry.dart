@@ -379,8 +379,9 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
     }
     // Check if there's any intersection between the version lists
     final targetVersionNumbers = targetVersions.map((v) => v.version).toSet();
-    final resolverVersionNumbers =
-        resolverVersions.map((v) => v.version).toSet();
+    final resolverVersionNumbers = resolverVersions
+        .map((v) => v.version)
+        .toSet();
 
     return targetVersionNumbers.intersection(resolverVersionNumbers).isNotEmpty;
   }

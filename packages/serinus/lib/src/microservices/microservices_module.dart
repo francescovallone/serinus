@@ -148,10 +148,9 @@ class DefaultMessagesResolver extends MessagesResolver {
               );
             }
             filteredMessageRoutes.putIfAbsent(
-                  entry.value.route.transporter!,
-                  () => {},
-                )[entry.value.route.path] =
-                context;
+              entry.value.route.transporter!,
+              () => {},
+            )[entry.value.route.path] = context;
           } else {
             resolvedMessageRoutes[entry.value.route.path] = context;
           }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-rc.4
+
+- ref!: remove ParseSchema completely from Serinus.
+- feat: add onPart callback to the FormData parsing to allow for custom handling of each part of the multipart/form-data.
+- feat: add simple hooks implementation to simplify the implementation of hooks in routes and controllers.
+- feat: add shouldValidateMultipart to the RouteHandler to allow for manual validation of multipart/form-data requests.
+
 ## 2.0.0-rc.3
 
 - feat: improve body parsing to allow for more flexibility in the implementation of custom body types.

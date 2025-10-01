@@ -300,8 +300,6 @@ void main(List<String> arguments) async {
     port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
   );
-  application.globalPrefix = 'api';
-  application.versioning = VersioningOptions(type: VersioningType.uri);
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());
   await application.serve();

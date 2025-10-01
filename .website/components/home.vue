@@ -21,7 +21,7 @@ import Cli from './cli.vue'
 			<slot name="authentication" slot="authentication"></slot>
 			<slot name="cron_jobs" slot="cron_jobs"></slot>
 		</Ecosystem>
-		<Spotlights :spotlights="spotlights" />
+		<Spotlights />
 	</div>
 </template>
 

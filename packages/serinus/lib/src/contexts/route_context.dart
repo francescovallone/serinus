@@ -43,9 +43,6 @@ class RouteContext {
   /// The [moduleScope] is used to store the scope of the module.
   final ModuleScope moduleScope;
 
-  /// The [schema] is used to store the schema for the route.
-  ParseSchema? get schema => spec.schema;
-
   /// The [metadata] is used to store the metadata for the route.
   List<Metadata> get metadata => [
     ...controller.metadata,

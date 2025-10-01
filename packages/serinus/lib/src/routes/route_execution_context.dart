@@ -77,6 +77,7 @@ class RouteExecutionContext {
           modelProvider: modelProvider,
           rawBody: rawBody,
           explicitType: context.spec.body,
+          shouldValidateMultipart: context.spec.shouldValidateMultipart,
         );
         executionContext.attachHttpContext(requestContext);
         for (final hook in context.hooksContainer.reqHooks) {
@@ -94,43 +95,6 @@ class RouteExecutionContext {
         executionContext.metadata.addAll(
           await context.initMetadata(executionContext),
         );
-        if (context.schema != null) {
-          final schema = context.schema!;
-          final Map<String, dynamic> toParse = {};
-          if (schema.body != null) {
-            toParse['body'] = requestContext.body;
-          }
-          if (schema.query != null) {
-            toParse['query'] = requestContext.query;
-          }
-          if (schema.params != null) {
-            toParse['params'] = requestContext.params;
-          }
-          if (schema.headers != null) {
-            toParse['headers'] = {
-              for (final key in schema.headers!.fields.keys)
-                key: requestContext.headers[key],
-            };
-          }
-          if (schema.session != null) {
-            toParse['session'] = requestContext.request.session.all;
-          }
-          final result = await schema.tryParse(
-            bodyValue: toParse['body'],
-            queryValue: toParse['query'],
-            paramsValue: toParse['params'],
-            headersValue: Map<String, dynamic>.from(toParse['headers'] ?? {}),
-            sessionValue: Map<String, dynamic>.from(toParse['session'] ?? {}),
-          );
-          requestContext.headers.addAll(
-            result['headers'] ?? <String, String>{},
-          );
-          requestContext.params.addAll(result['params'] ?? {});
-          requestContext.query.addAll(result['query'] ?? {});
-          if (result.containsKey('body')) {
-            requestContext.body = result['body'];
-          }
-        }
         if (context.pipes.isNotEmpty) {
           for (final pipe in context.pipes) {
             await pipe.transform(executionContext);
@@ -160,11 +124,10 @@ class RouteExecutionContext {
                 RequestEvent.close,
                 EventData(
                   data: data,
-                  properties:
-                      executionContext.response
-                        ..headers.addAll(
-                          (response.currentHeaders as HttpHeaders).toMap(),
-                        ),
+                  properties: executionContext.response
+                    ..headers.addAll(
+                      (response.currentHeaders as HttpHeaders).toMap(),
+                    ),
                 ),
               );
             },
@@ -211,11 +174,10 @@ class RouteExecutionContext {
             RequestEvent.close,
             EventData(
               data: result.data,
-              properties:
-                  executionContext.response
-                    ..headers.addAll(
-                      (response.currentHeaders as HttpHeaders).toMap(),
-                    ),
+              properties: executionContext.response
+                ..headers.addAll(
+                  (response.currentHeaders as HttpHeaders).toMap(),
+                ),
             ),
           );
           await _responseController.render(
@@ -242,11 +204,10 @@ class RouteExecutionContext {
             RequestEvent.close,
             EventData(
               data: result.data,
-              properties:
-                  executionContext.response
-                    ..headers.addAll(
-                      (response.currentHeaders as HttpHeaders).toMap(),
-                    ),
+              properties: executionContext.response
+                ..headers.addAll(
+                  (response.currentHeaders as HttpHeaders).toMap(),
+                ),
             ),
           );
           await _responseController.sendResponse(

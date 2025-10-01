@@ -22,8 +22,9 @@ class MiddlewareExecutor {
       final middleware = middlewares.elementAt(i);
       await middleware.use(context, ([data]) async {
         if (data != null) {
-          final responseData =
-              data is WrappedResponse ? data : WrappedResponse(data);
+          final responseData = data is WrappedResponse
+              ? data
+              : WrappedResponse(data);
           await onDataReceived(responseData);
           return;
         }

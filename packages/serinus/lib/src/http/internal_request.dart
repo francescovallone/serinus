@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
@@ -75,7 +76,9 @@ abstract class IncomingMessage {
   Stream<List<int>> stream();
 
   /// This method is used to get the body of the request as a [FormData]
-  Future<FormData> formData();
+  Future<FormData> formData({
+    Future<void> Function(MimeMultipart part)? onPart,
+  });
 
   /// The [events] property contains the events of the request
   StreamController<(RequestEvent, EventData)> events =
@@ -267,9 +270,11 @@ class InternalRequest extends IncomingMessage {
   }
 
   @override
-  Future<FormData> formData() async {
+  Future<FormData> formData({
+    Future<void> Function(MimeMultipart part)? onPart,
+  }) async {
     if (contentType.isMultipart) {
-      return FormData.parseMultipart(request: original);
+      return FormData.parseMultipart(request: original, onPart: onPart);
     } else if (contentType.isUrlEncoded) {
       return FormData.parseUrlEncoded(body());
     } else {

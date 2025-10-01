@@ -321,18 +321,17 @@ final class ModulesContainer {
             [];
         currentScope.instanceMetadata[providerToken] = InstanceWrapper(
           name: InjectionToken.fromType(provider.runtimeType),
-          dependencies:
-              provider.inject.map((e) {
-                final providerScope = getScopeByProvider(e);
-                return InstanceWrapper(
-                  metadata: ClassMetadataNode(
-                    type: InjectableType.provider,
-                    sourceModuleName: providerScope.token,
-                  ),
-                  name: InjectionToken.fromType(e),
-                  host: token,
-                );
-              }).toList(),
+          dependencies: provider.inject.map((e) {
+            final providerScope = getScopeByProvider(e);
+            return InstanceWrapper(
+              metadata: ClassMetadataNode(
+                type: InjectableType.provider,
+                sourceModuleName: providerScope.token,
+              ),
+              name: InjectionToken.fromType(e),
+              host: token,
+            );
+          }).toList(),
           metadata: ClassMetadataNode(
             type: InjectableType.provider,
             sourceModuleName: token,
@@ -405,8 +404,9 @@ final class ModulesContainer {
       Map<Type, Provider> dependenciesMap = generateDependenciesMap(
         initializedProviders,
       );
-      final cannotResolveDependencies =
-          !(provider.inject.every((key) => dependenciesMap[key] != null));
+      final cannotResolveDependencies = !(provider.inject.every(
+        (key) => dependenciesMap[key] != null,
+      ));
       if ((initializedProviders.isEmpty && dependencies.isNotEmpty) ||
           cannotResolveDependencies) {
         throw InitializationError(
@@ -433,18 +433,17 @@ final class ModulesContainer {
       currentScope.addToProviders(result);
       currentScope.instanceMetadata[providerToken] = InstanceWrapper(
         name: InjectionToken.fromType(provider.runtimeType),
-        dependencies:
-            provider.inject.map((e) {
-              final providerScope = getScopeByProvider(e);
-              return InstanceWrapper(
-                metadata: ClassMetadataNode(
-                  type: InjectableType.provider,
-                  sourceModuleName: providerScope.token,
-                ),
-                name: InjectionToken.fromType(e),
-                host: token,
-              );
-            }).toList(),
+        dependencies: provider.inject.map((e) {
+          final providerScope = getScopeByProvider(e);
+          return InstanceWrapper(
+            metadata: ClassMetadataNode(
+              type: InjectableType.provider,
+              sourceModuleName: providerScope.token,
+            ),
+            name: InjectionToken.fromType(e),
+            host: token,
+          );
+        }).toList(),
         metadata: ClassMetadataNode(
           type: InjectableType.provider,
           sourceModuleName: token,

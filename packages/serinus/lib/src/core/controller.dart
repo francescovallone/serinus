@@ -16,8 +16,12 @@ typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 typedef SyncReqResHandler<T> = T Function(RequestContext context);
 
 /// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
-typedef RouteHandler =
-    ({Route route, dynamic handler, ParseSchema? schema, Type? body});
+typedef RouteHandler = ({
+  Route route,
+  dynamic handler,
+  Type? body,
+  bool shouldValidateMultipart,
+});
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
@@ -58,11 +62,11 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route, TBody>(
+  void on<R extends Route>(
     R route,
     Function handler, {
-    ParseSchema? schema,
     Type? body,
+    bool shouldValidateMultipart = false,
   }) {
     final routeExists = _routes.values.any(
       (r) => r.route.path == route.path && r.route.method == route.method,
@@ -76,8 +80,8 @@ abstract class Controller {
     _routes[UuidV4().generate()] = (
       handler: handler,
       route: route,
-      schema: schema,
       body: body,
+      shouldValidateMultipart: shouldValidateMultipart,
     );
   }
 
@@ -102,8 +106,8 @@ abstract class Controller {
     _routes[UuidV4().generate()] = (
       handler: handler,
       route: route,
-      schema: null,
       body: null,
+      shouldValidateMultipart: false,
     );
   }
 }

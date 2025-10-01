@@ -219,15 +219,16 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     final socket = await res.detachSocket();
     final channel = StreamChannel<List<int>>(socket, socket);
     final origin = (req.headers['origin'] ?? req.headers['host']);
-    final sink = utf8.encoder.startChunkedConversion(channel.sink)..add(
-      'HTTP/1.1 200 OK\r\n'
-      'Content-Type: text/event-stream\r\n'
-      'Cache-Control: no-cache\r\n'
-      'Connection: keep-alive\r\n'
-      'Access-Control-Allow-Credentials: true\r\n'
-      "${origin != null ? 'Access-Control-Allow-Origin: $origin\r\n' : ''}"
-      '\r\n',
-    );
+    final sink = utf8.encoder.startChunkedConversion(channel.sink)
+      ..add(
+        'HTTP/1.1 200 OK\r\n'
+        'Content-Type: text/event-stream\r\n'
+        'Cache-Control: no-cache\r\n'
+        'Connection: keep-alive\r\n'
+        'Access-Control-Allow-Credentials: true\r\n'
+        "${origin != null ? 'Access-Control-Allow-Origin: $origin\r\n' : ''}"
+        '\r\n',
+      );
     return sink;
   }
 

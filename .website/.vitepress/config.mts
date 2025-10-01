@@ -32,8 +32,8 @@ export default defineConfig({
   appearance: false,
   themeConfig: {
     footer: {
-      copyright: 'Copyright © 2024 Francesco Vallone',
-      message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/avesbox">Avesbox</a>'
+      copyright: 'Copyright © 2025 Francesco Vallone',
+      message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/avesbox">Avesbox</a>',
     },
     // https://vitepress.dev/reference/default-theme-config
     logo: '/serinus-logo.png',

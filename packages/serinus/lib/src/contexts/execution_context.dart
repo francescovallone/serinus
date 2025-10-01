@@ -89,8 +89,8 @@ final class ExecutionContext extends BaseContext {
     if (argumentsHost is HttpArgumentsHost) {
       response.statusCode =
           (argumentsHost as HttpArgumentsHost).request.method == HttpMethod.post
-              ? 201
-              : 200;
+          ? 201
+          : 200;
     }
   }
 
@@ -125,10 +125,9 @@ final class ExecutionContext extends BaseContext {
     if (argumentsHost is! HttpArgumentsHost) {
       throw StateError('Cannot attach an HTTP context to a non-HTTP host');
     }
-    _requestContext =
-        context
-          ..metadata = metadata
-          ..response = response;
+    _requestContext = context
+      ..metadata = metadata
+      ..response = response;
   }
 
   WebSocketContext? _webSocketContext;

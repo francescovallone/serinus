@@ -95,34 +95,31 @@ class ConsoleLogger implements LoggerService {
   void printMessages(logging.LogRecord record, String prefix) {
     final formattedPid = _formatPid(pid, prefix);
     final logLevel = _formatLogLevel(record.level);
-    final formattedTime =
-        json
-            ? record.time.toIso8601String()
-            : DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
+    final formattedTime = json
+        ? record.time.toIso8601String()
+        : DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
     final message = record.object as AugmentedMessage;
     final loggerName = message.params?.context ?? record.loggerName;
-    final formattedMessage =
-        json
-            ? jsonEncode({
-              'prefix': prefix,
-              'pid': formattedPid,
-              'context': loggerName,
-              'level': logLevel,
-              'message': message.message,
-              'time': formattedTime,
-              if (message.params?.metadata != null)
-                'metadata': message.params?.metadata,
-            })
-            : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message}';
+    final formattedMessage = json
+        ? jsonEncode({
+            'prefix': prefix,
+            'pid': formattedPid,
+            'context': loggerName,
+            'level': logLevel,
+            'message': message.message,
+            'time': formattedTime,
+            if (message.params?.metadata != null)
+              'metadata': message.params?.metadata,
+          })
+        : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message}';
     channel.writeln(formattedMessage);
   }
 
   String _formatErrorMessage(String message, Object? error) {
     if (error != null) {
-      final errorString =
-          error is SerinusException
-              ? '${error.statusCode} ${error.message}'
-              : error.toString();
+      final errorString = error is SerinusException
+          ? '${error.statusCode} ${error.message}'
+          : error.toString();
       return '$message - $errorString';
     }
     return message;
@@ -137,18 +134,17 @@ class ConsoleLogger implements LoggerService {
     final formattedTime = DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
     final error = message.params?.error;
     final errorMessage = _formatErrorMessage(message.message.toString(), error);
-    final formattedMessage =
-        json
-            ? jsonEncode({
-              'prefix': prefix,
-              'pid': pid,
-              'context': loggerName,
-              'level': logLevel,
-              'message': errorMessage,
-              'time': formattedTime,
-              'error': error is String ? error : error.runtimeType.toString(),
-            })
-            : '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage ${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
+    final formattedMessage = json
+        ? jsonEncode({
+            'prefix': prefix,
+            'pid': pid,
+            'context': loggerName,
+            'level': logLevel,
+            'message': errorMessage,
+            'time': formattedTime,
+            'error': error is String ? error : error.runtimeType.toString(),
+          })
+        : '$formattedPid$formattedTime\t$logLevel [$loggerName] $errorMessage ${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
     channel.writeln(formattedMessage);
   }
 

@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:mime/mime.dart';
+
 import '../containers/model_provider.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/content_type_extensions.dart';
 import '../http/http.dart';
 import 'base_context.dart';
 import 'response_context.dart';
@@ -16,15 +19,17 @@ class RequestContext<TBody> extends BaseContext {
   /// Creates a [RequestContext] from an already parsed body.
   RequestContext.withBody(
     Request httpRequest,
-    TBody body,
+    TBody? body,
     Map<Type, Provider> providers,
     Map<Type, Object> hooksServices, {
     ModelProvider? modelProvider,
     Type? explicitType,
+    bool shouldValidateMultipart = false,
   }) : request = httpRequest,
        _bodyType = explicitType ?? _typeOf<TBody>(),
        _converter = _BodyConverter(modelProvider),
        _body = body,
+       shouldValidateMultipart = shouldValidateMultipart,
        super(providers, hooksServices) {
     this.body = body;
   }
@@ -33,10 +38,12 @@ class RequestContext<TBody> extends BaseContext {
     this.request,
     this._bodyType,
     this._converter,
-    TBody body,
+    TBody? body,
     Map<Type, Provider> providers,
     Map<Type, Object> hooksServices,
+    bool shouldValidateMultipart,
   ) : _body = body,
+      shouldValidateMultipart = shouldValidateMultipart,
       super(providers, hooksServices);
 
   /// Creates a [RequestContext] instance reading and converting the request body to [TBody].
@@ -47,9 +54,21 @@ class RequestContext<TBody> extends BaseContext {
     required ModelProvider? modelProvider,
     required bool rawBody,
     Type? explicitType,
+    bool shouldValidateMultipart = false,
   }) async {
     final converter = _BodyConverter(modelProvider);
     final targetType = explicitType ?? _typeOf<TBody>();
+    if (shouldValidateMultipart && request.contentType.isMultipart) {
+      return RequestContext._(
+        request,
+        targetType,
+        converter,
+        null,
+        providers,
+        hooksServices,
+        shouldValidateMultipart,
+      );
+    }
     final raw = await request.parseBody(rawBody: rawBody);
     final converted = converter.convert(targetType, raw) as TBody;
     request.body = converted;
@@ -60,6 +79,7 @@ class RequestContext<TBody> extends BaseContext {
       converted,
       providers,
       hooksServices,
+      shouldValidateMultipart,
     );
   }
 
@@ -67,9 +87,13 @@ class RequestContext<TBody> extends BaseContext {
   final Request request;
 
   final Type _bodyType;
+
   final _BodyConverter _converter;
 
-  TBody _body;
+  /// Indicates whether multipart requests should be validated before accessing the body.
+  final bool shouldValidateMultipart;
+
+  TBody? _body;
 
   /// Returns the request path.
   String get path => request.path;
@@ -84,7 +108,30 @@ class RequestContext<TBody> extends BaseContext {
   Map<String, dynamic> get query => request.query;
 
   /// Returns the strongly typed body.
-  TBody get body => _body;
+  TBody get body {
+    if (_body == null) {
+      if (shouldValidateMultipart && request.contentType.isMultipart) {
+        throw StateError(
+          'The route has been marked with shouldValidateMultipart, use validateMultipartPart<T> before.',
+        );
+      }
+    }
+    return _body as TBody;
+  }
+
+  /// Access the next part of a multipart request, validating and converting the entire body to [TBody].
+  Future<T> validateMultipartPart<T>(
+    Future<void> Function(MimeMultipart part)? onPart,
+  ) async {
+    if (!shouldValidateMultipart || !request.contentType.isMultipart) {
+      return bodyAs<T>();
+    }
+    final formData = await request.parseBody(rawBody: false, onPart: onPart);
+    final converted = _converter.convert(_bodyType, formData) as T;
+    body = converted;
+    request.body = converted;
+    return converted;
+  }
 
   /// Replaces the body value ensuring it conforms to [TBody].
   set body(Object? value) {

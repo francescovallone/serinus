@@ -55,9 +55,9 @@ void main() async {
           moduleToken: InjectionToken('moduleToken'),
           spec: (
             body: null,
-            schema: null,
             handler: 'hi',
             route: Route.get('/test'),
+            shouldValidateMultipart: false,
           ),
         );
         router.registerRoute(
@@ -93,9 +93,9 @@ void main() async {
           moduleToken: InjectionToken('moduleToken'),
           spec: (
             body: null,
-            schema: null,
             handler: 'hi',
             route: Route.get('/test'),
+            shouldValidateMultipart: false,
           ),
         );
         router.registerRoute(
@@ -136,9 +136,9 @@ void main() async {
           moduleToken: InjectionToken('moduleToken'),
           spec: (
             body: null,
-            schema: null,
             handler: 'hi',
             route: Route.get('/test'),
+            shouldValidateMultipart: false,
           ),
         );
         router.registerRoute(

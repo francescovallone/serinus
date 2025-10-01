@@ -133,32 +133,31 @@ class AppModule extends Module {
 }
 ```
 
-## 7. Each body type is now a separate class
+## 7. Body parsing has been reworked
 
-The body types in the framework have been refactored into separate classes. This change improves type safety and makes it easier to work with different body types.
+Body handling has always been a complex topic in Serinus because of the many different types of bodies that can be handled.
+To improve type safety, clarity, and maintainability, the definition of the body types has been completely reworked.
+
+As before you can still use the body parameter in your route handler to get directly the body of the request as argument for the handler function.
+
+But you can also ask the request context to parse the body in a specific way.
 
 ```dart
-// Before
-context.body.json
-context.body.text
-context.body.formData
-context.body.bytes
-
-// After
-class JsonList {}
-class JsonBodyObject {}
-class TextBody {}
-class FormDataBody {}
-class RawBody {}
-class EmptyBody {}
-class CustomBody {}
+on(Route.post('/json'), (context) async {
+    final body = await context.bodyAs<Map<String, dynamic>>(); // to parse the body as JSON
+    return body;
+});
+on(Route.post('/text'), (context) async {
+    final body = await context.bodyAs<String>(); // to parse the body as plain text
+    return body;
+});
+on(Route.post('/form'), (context) async {
+    final body = await context.bodyAs<FormData>(); // to parse the body as form data
+    return body;
+});
 ```
 
-::: info
-You can check more about the new body classes in the [documentation](/foundations/body) page.
-:::
-
-## 8. Request and Response Hooks are now divided.
+## 8. Request and Response Hooks are now divided
 
 To improve clarity and separation of concerns, the request and response hooks have been divided into distinct mixins.
 
@@ -172,19 +171,22 @@ class TestHook with
     }
 ```
 
-## 9. Some Hooks have now different method signatures.
+## 9. All Hooks have different method signatures now
 
 Some hooks have their method signatures changed to improve consistency and clarity. In the case of the `onResponse` and `afterHandle` the data value has been changed with an utility class called `WrappedResponse` that can be used to change the response dynamically from the hook if it is required.
 
 ```dart
 Future<void> onRequest(Request request, InternalResponse response); // [!code --]
-Future<void> onRequest(Request request, ResponseContext properties); // [!code ++]
+Future<void> onRequest(ExecutionContext context); // [!code ++]
 
 Future<void> onResponse(Request request, dynamic data, ResponseProperties properties); // [!code --]
-Future<void> onResponse(Request request, WrappedResponse data, ResponseContext properties); // [!code ++]
+Future<void> onResponse(ExecutionContext context, WrappedResponse data); // [!code ++]
 
 Future<void> afterHandle(RequestContext context, dynamic response); // [!code --]
-Future<void> afterHandle(RequestContext context, WrappedResponse response) // [!code ++]
+Future<void> afterHandle(ExecutionContext context, WrappedResponse response); // [!code ++]
+
+Future<void> beforeHandle(RequestContext context); // [!code --]
+Future<void> beforeHandle(ExecutionContext context); // [!code ++]
 ```
 
 ## 10. Renamed `ResponseProperties` to `ResponseContext`
@@ -276,6 +278,41 @@ class TestMiddleware extends Middleware {
 }
 ```
 
+## 15. Routes does not have lifecycle hooks anymore
+
+Routes does not have lifecycle hooks anymore. Instead they have access to route-scoped hooks, that can be used to apply hooks to specific routes.
+
+```dart
+class HookedRoute extends Route {
+
+    HookedRoute() {
+        hooks.add(TestHook());
+    }
+    
+}
+```
+
+## 16. ParseSchema has been removed
+
+Although the `ParseSchema` pipe was a useful tool for validating and parsing request bodies, it had some limitations and its usability could be improved.
+
+To address these issues, the `ParseSchema` has been removed and replaced with a more flexible and powerful approach to schema validation.
+
+```dart
+on(
+    Route.post(
+        '/data', 
+        pipes: {} // [!code ++]
+    ),
+    schema: AcanthisParseSchema(), // [!code --]
+    (context) async {
+        return data;
+    }
+);
+```
+
+Now you can use any pipe to validate and parse request bodies, query parameters, path parameters and whatever you like, giving you more control over the validation process and allowing you to use different validation libraries or custom logic as needed.
+
 ## Other Changes
 
 ### a. Headers are now a separate class
@@ -284,18 +321,7 @@ The headers in the framework have been refactored into a separate class. This ch
 
 It shouldn't change the way you access headers in your application but it does provide a more structured way to work with them.
 
-### b. ParseSchema is now deprecated
-
-As part of the ongoing efforts to improve the framework, the `ParseSchema` class has been deprecated. This change is intended to simplify the parsing process and encourage the use of the `Pipe`s. That should offer the same functionality in a more streamlined and composable way.
-
-You can read more in the ["Validation"](/techniques/validation) chapter of the documentation.
-
-::: warning
-In the 2.0.1 the ParseSchema class will be removed in favor of the new validation approach.
-:::
-
 ### c. Default Status Code
 
 Serinus now set the status code to 201 for POST requests by default and 200 for all other requests.
-
-### d. 
+This change aligns with common RESTful API practices and improves the clarity of responses.

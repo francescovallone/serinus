@@ -18,9 +18,9 @@ resolution: workspace
 
 # Add regular dependencies here.
 dependencies:
-  serinus: ^2.0.0-rc.1
+  serinus: ^2.0.0-rc.4
   frontier: ^1.0.0
 
 dev_dependencies:
   lints: "^6.0.0"
-  test: ^1.24.0
+  test: ^1.26.3
