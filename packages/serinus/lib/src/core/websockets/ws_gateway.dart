@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
@@ -64,6 +65,9 @@ abstract class WebSocketGateway extends Provider {
     }
     if (data is! String && data is! Uint8List) {
       throw ArgumentError('The serialized data must be a String or Uint8List');
+    }
+    if (data is String) {
+      data = utf8.encode(data);
     }
     server?.send(data, clientId: clientId);
   }

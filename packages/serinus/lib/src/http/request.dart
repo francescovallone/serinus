@@ -157,7 +157,7 @@ class Request {
       _setBody(formData);
       return body;
     }
-
+    await _original.bytes();
     final parsedBody = _original.body();
 
     if (contentType.isUrlEncoded) {

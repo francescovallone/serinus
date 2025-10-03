@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0-rc.6
+
+- fix: WebSocketGateway now correctly converts data before sending it.
+- fix: correct handling of request body from previous erroneous implementation in 2.0.0-rc.5.
+
 ## 2.0.0-rc.5
 
 - fix: correct assignment of WsAdapter to the WebSocketGateway to prevent wrongful exceptions on sending data.
