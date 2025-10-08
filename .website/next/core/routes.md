@@ -112,4 +112,4 @@ class GetRoute extends Route with OnBeforeHandle, OnAfterHandle {
 }
 ```
 
-These two methods are actually local hooks. You can check when they will be executed in the [Request Lifecycle](/next/foundations/request_lifecycle) section.
+These two methods are actually local hooks.
