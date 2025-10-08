@@ -103,3 +103,35 @@ Future<void> main() async {
 ```
 
 And that's it! Now the `LogHook` is added to the application and will be executed at the specified points in the request lifecycle.
+
+## Add a Hook to the Controller
+
+You can also add hooks to a specific controller using the `hooks` property of the `Controller` class.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class TestController extends Controller {
+  TestController() {
+    hooks.add(LogHook());
+  }
+}
+```
+
+## Add a Hook to a Route
+
+You can also add hooks to a specific route using the `hooks` property of the `Route` class.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class TestController extends Controller {
+  TestController() : super('/test') {
+    on(Route.get('/', getTest)..hooks.add(LogHook()));
+  }
+
+  Future<String> getTest(RequestContext context) async {
+    return 'Test';
+  }
+}
+```

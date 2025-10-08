@@ -38,37 +38,39 @@ const topics = computed(() => {
 <template>
 
 	<div>
-		<header class="flex flex-col justify-center container gap-2 w-full mx-auto pt-20 p-4">
-			<h1 class="text-3xl font-semibold text-white">
+		<header class="flex flex-col justify-center container gap-4 w-full mx-auto pt-20 p-4">
+			<h1 class="text-6xl font-semibold">
 				{{title ?? 'Blog'}}
 			</h1>
-			<p class="text-white text-md">
-				{{desc ?? 'Updates, tutorials, and more from the Serinus team.'}}
+			<p class="text-md">
+				{{desc ?? 'Read the latest articles on Serinus and related topics.'}}
 			</p>
 			<div v-if="blog" class="flex gap-4 my-2">
-				<button @click="changeTopic('')" class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg" :class="currentTopic === '' ? '' : 'inactive'">All</button>
-				<button 
+				<div @click="changeTopic('')" class="px-4 py-2 hover:shadow-md transition-shadow font-semibold rounded-md capitalize cursor-pointer" :class="currentTopic === '' ? 'bg-serinus text-white' : 'border border-gray-300'">All</div>
+				<div 
 					v-for="topic in topics" 
 					@click="changeTopic(topic)" 
 					:key="topic" 
-					class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg"
-					:class="currentTopic === topic ? '' : 'inactive'"
+					class="px-4 py-2 hover:shadow-md transition-shadow font-semibold rounded-md capitalize cursor-pointer"
+					:class="currentTopic === topic ? 'bg-serinus text-white' : 'border border-gray-300'"
 				>
 					{{ topic }}
-				</button>
+				</div>
 			</div>
 		</header>
 		<main class="grid grid-cols-6 gap-8 container mx-auto my-8">
 			<a v-for="post in filteredPosts"
-				class="p-4 rounded-lg hover:bg-orange-500/25 focus:bg-orange-500/25 transition-colors cursor-pointer flex flex-col gap-2 md:col-span-3 col-span-6"
+				class="p-4 rounded-lg hover:shadow-md transition-shadow cursor-pointer flex flex-col gap-2 md:col-span-2 col-span-6 border-dashed border-2 border-gray-300"
 				:href="post.href" :key="post.date + post.href">
-				<article class="flex flex-col gap-4">
-					<img :src="post.src" :alt="post.alt" class="rounded-lg" />
-					<h2 class="text-2xl font-bold">
-						{{ post.title }}
-					</h2>
-					<div class="flex justify-between">
-						<p v-for="tag in post.tags" :key="tag" class="tag text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg">
+				<article class="flex flex-col gap-4 h-full justify-between">
+					<div class="flex flex-col gap-2">
+						<img :src="post.src" :alt="post.alt" class="rounded-lg" />
+						<h2 class="text-2xl font-bold">
+							{{ post.title }}
+						</h2>
+					</div>
+					<div class="flex justify-between items-end">
+						<p v-for="tag in post.tags" :key="tag" class="text-xs font-medium tracking-wide uppercase text-serinus">
 							{{ tag }}
 						</p>
 						<h3 class="text-sm text-gray-400"> {{ post.date }}</h3>

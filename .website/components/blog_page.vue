@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { defineProps, onMounted, onUnmounted, ref } from 'vue'
 import { authors, Authors } from './data/blog'
+import ShareRow from './share_row.vue'
 
 const props = defineProps<{
     title: string
@@ -29,6 +30,10 @@ onMounted(() => {
     console.log(props.tags)
 })
 
+function goBack() {
+    history.back()
+}
+
 onUnmounted(() => {
     mutated.forEach((selector) => {
         document.querySelector(selector)?.classList.remove('blog')
@@ -43,11 +48,19 @@ function calculateReadingTime(text: string): string {
 </script>
 
 <template>
-    <article id="blog" class="flex flex-col max-w-3xl w-full mx-auto mt-8">
-        <p v-for="tag in props.tags" :key="tag" style="margin-bottom: 0; line-height: 1rem;" class="tag flex gap-2 mb-0 text-xs font-medium tracking-wide uppercase max-w-fit p-2 rounded-lg">
-			{{ tag }}
-		</p>
-        <h1 class="!text-3xl !md:text-4xl font-medium">
+    <article id="blog" class="flex flex-col max-w-5xl w-full mx-auto mt-8">
+        <div class="flex items-center gap-4 mb-4 justify-between">
+            <div @click="goBack()" class="cursor-pointer text-serinus hover:underline m-0 flex items-center gap-2 text-xs font-medium tracking-wide uppercase">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Back
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <p v-for="tag in props.tags" :key="tag" style="margin-bottom: 0; line-height: 1rem;" class="flex gap-2 m-0 text-xs font-medium tracking-wide uppercase max-w-fit rounded-lg">
+                    {{ tag }}
+                </p>
+            </div>
+        </div>
+        <h1 class="text-5xl font-medium">
             {{ props.title }}
         </h1>
         <div class="flex gap-3 mt-4 justify-between">
@@ -73,8 +86,9 @@ function calculateReadingTime(text: string): string {
         </div>
         <img :src="props.src" :alt="props.alt" class="w-full mt-6 mb-2" :class="props.shadow ? 'shadow-xl' : 'border'" />
         <main id="blog-content">
-            <slot />
+            <slot key="blog-content" />
         </main>
+        <ShareRow />
     </article>
 </template>
 

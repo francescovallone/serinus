@@ -94,15 +94,6 @@ export default defineConfig({
             ]
           },
           {
-            text: 'Foundations',
-            base: '/foundations/',
-            collapsed: true,
-            items: [
-              { text: 'Body', link: 'body' },
-              { text: 'Request Lifecycle', link: 'request_lifecycle' },
-            ]
-          },
-          {
             text: 'Techniques',
             base: '/techniques/',
             collapsed: true,

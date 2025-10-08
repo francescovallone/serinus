@@ -50,11 +50,13 @@ class AppController extends Controller {
 
     AppController(): super('/') {
         on(
-            Route.get('/<id>'), 
-            pipes: [
-                ParseIntPipe('id', bindingType: PipeBindingType.params)
-            ],
-            (context) async {
+            Route.get(
+                '/<id>',
+                pipes: {
+                    ParseIntPipe('id', bindingType: PipeBindingType.params)
+                }
+            ), 
+            (RequestContext context) async {
                 // Handle the request
             }
         );

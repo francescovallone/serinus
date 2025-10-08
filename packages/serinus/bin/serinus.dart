@@ -298,7 +298,10 @@ void main(List<String> arguments) async {
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
-    logger: ConsoleLogger(prefix: 'Serinus New Logger'),
+    logger: ConsoleLogger(
+      prefix: 'Serinus New Logger',
+      
+    ),
   );
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());

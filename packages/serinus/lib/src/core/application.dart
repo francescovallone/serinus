@@ -57,11 +57,11 @@ abstract class Application {
     LoggerService? logger,
   }) : _container = SerinusContainer(config, config.serverAdapter) {
     _routesResolver = RoutesResolver(_container);
-    if (logger != null) {
-      Logger.overrideLogger(logger);
-    }
     if (levels != null) {
       Logger.setLogLevels(levels);
+    }
+    if (logger != null) {
+      Logger.overrideLogger(logger);
     }
   }
 

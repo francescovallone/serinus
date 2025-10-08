@@ -51,11 +51,14 @@ The `RequestContext` object is also used to access all the providers in the modu
 | Property | Description |
 | -------- | ----------- |
 | `request` | The `Request` object of the current request. |
-| `body` | The `Body` object of the current request. |
+| `body` | The body of the current request. |
+| `bodyAs` | The method to parse the body as a specific type. |
 | `path` | The path of the current request. |
 | `headers` | The headers of the current request. |
 | `params` | The path parameters of the current request. |
+| `paramAs` | The method to parse a path parameter as a specific type. |
 | `query` | The query parameters of the current request. |
+| `queryAs` | The method to parse a query parameter as a specific type. |
 | `metadata` | The metadata of the current request. |
 | `res` | The `ResponseContext` of the current request. |
 | `stream` | The method to stream data to the response. |
@@ -131,54 +134,32 @@ Future<User> getUser(RequestContext context) async {
 
 ## Redirects
 
-You can redirect the client to another URL by setting the `res.redirect` property of the `RequestContext` object.
+You can redirect the client to another URL by returning a `Redirect` object as the response.
 
 ```dart
-Future<void> redirect(RequestContext context) async {
-  context.res.redirect('/users');
+Future<Redirect> redirect(RequestContext context) async {
+  return Redirect('/users');
 }
 ```
-
-::: warning
-The `res.redirect` property will take precedence over everything else. If you set the `res.redirect` property, the response will be redirected to the specified URL and the response will be closed.
-:::
 
 ## Typed Request Body
 
-You can define a type for the request payload by setting the `body` name parameter in the handler definition.
+You can define the type of the request body by using the `bodyAs<T>()` method of the `RequestContext` object. This method will parse the body of the request and return an instance of the specified type.
 
-::: info
-To enable this feature with your custom class please refer to the [ModelProvider](/techniques/model_provider) page.
-:::
+If you have defined the `ModelProvider` to handle the serialization and deserialization of your models, you can use this method to get the body as an instance of your model. 
 
 ```dart
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
   UserController(): super('/users') {
-    on(Route.post('/', body: User), createUser);
+    on(Route.post('/'), createUser);
   }
 
-  Future<User> createUser(RequestContext context, User body) async {
+  Future<User> createUser(RequestContext context) async {
+    final body = context.bodyAs<UserCreate>();
     final newUser = await context.use<UsersService>().createUser(body);
     return newUser;
-  }
-}
-```
-
-The body parameter must always be the **second** parameter of the handler method immediately after the `RequestContext` object.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-class UserController extends Controller {
-  UserController(): super('/users') {
-    on(Route.put('/<id>', body: UserUpdate), updateUser);
-  }
-
-  Future<User> updateUser(RequestContext context, UserUpdate body, String id) async {
-    final updatedUser = await context.use<UsersService>().updateUser(body);
-    return updatedUser;
   }
 }
 ```
@@ -203,7 +184,7 @@ class UserController extends Controller {
 ```
 
 ::: warning
-The path parameters cannot be used inside the Controller path.
+The path parameters cannot be used inside the `Controller` path.
 :::
 
 The path parameters must always be after the `RequestContext` object and the (optional) body parameter.

@@ -39,6 +39,7 @@ class MyController extends Controller {
 | `Route.put` | PUT | Defines a route that only accepts PUT requests. |
 | `Route.delete` | DELETE | Defines a route that only accepts DELETE requests. |
 | `Route.patch` | PATCH | Defines a route that only accepts PATCH requests. |
+| `Route.all` | ALL | Defines a route that accepts all HTTP methods. (Usually used as a fallback route) |
 
 ## Create a custom route
 
