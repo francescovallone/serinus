@@ -116,7 +116,7 @@ Future<User> createUser(RequestContext context) async {
 ```
 
 ::: info
-If you wish to return an error status code, you should throw an exception. Serinus will catch the [exception](/techniques/exceptions) and return the appropriate status code.
+If you wish to return an error status code, you should throw an exception. Serinus will catch the [exception](/exception_filters) and return the appropriate status code.
 :::
 
 ## Response Headers
