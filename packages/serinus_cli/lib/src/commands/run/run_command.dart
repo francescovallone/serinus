@@ -55,6 +55,8 @@ class RunCommand extends Command<int> {
   StreamSubscription<String>? stderrSubscription;
   StreamSubscription<String>? stdoutSubscription;
 
+  StreamSubscription<ProcessSignal>? _sigtermSubscription;
+
   @override
   Future<int> run() async {
     final Config config;
@@ -66,11 +68,39 @@ class RunCommand extends Command<int> {
     }
     final entrypoint = config.entrypoint ?? 'bin/main.dart';
     var process = await serve(entrypoint);
-    if (_isWindows) {
-      signalSubscription = ProcessSignal.sigint.watch().listen((event) {
-        _killProcess(process);
-        signalSubscription?.cancel();
+    // Install signal handlers on all platforms to ensure child process is killed
+    // and cleaned up when the user presses Ctrl+C or the process receives SIGTERM.
+    signalSubscription = ProcessSignal.sigint.watch().listen((event) async {
+      try {
+        await _killProcess(process);
+        await signalSubscription?.cancel();
+        await _sigtermSubscription?.cancel();
+      } catch (e) {
+        // If killing fails, log and force exit
+        try {
+          _logger?.err('Failed to kill process on SIGINT: $e');
+        } catch (_) {}
+        exit(1);
+      }
+    });
+    // Also handle SIGTERM where available
+    try {
+      _sigtermSubscription =
+          ProcessSignal.sigterm.watch().listen((event) async {
+        try {
+          await _killProcess(process);
+          await signalSubscription?.cancel();
+          await _sigtermSubscription?.cancel();
+        } catch (e) {
+          // If killing fails, log and force exit
+          try {
+            _logger?.err('Failed to kill process on SIGTERM: $e');
+          } catch (_) {}
+          exit(1);
+        }
       });
+    } catch (_) {
+      // SIGTERM not supported, continue without it
     }
     var restarting = false;
     final restartQueue = Queue<WatchEvent>();
@@ -79,10 +109,14 @@ class RunCommand extends Command<int> {
         _watcher.events.where((_) => _developmentMode).listen((event) async {
       final shouldRestart = event.path.endsWith('.dart') ||
           watcherPaths.any((path) {
-            final entity = FileSystemEntity.isDirectorySync(path) ? Directory(path) : File(path);
-            return entity.existsSync() && FileSystemEntity.identicalSync(event.path, entity.absolute.path);
+            final entity = FileSystemEntity.isDirectorySync(path)
+                ? Directory(path)
+                : File(path);
+            return entity.existsSync() &&
+                FileSystemEntity.identicalSync(
+                    event.path, entity.absolute.path);
           });
-      if(!shouldRestart) {
+      if (!shouldRestart) {
         return;
       }
       if (restarting) {
@@ -149,17 +183,52 @@ class RunCommand extends Command<int> {
   }
 
   Future<void> _killProcess(Process process, {bool restarting = false}) async {
+    // Cancel watcher subscriptions first to avoid racing restarts
+    try {
+      await stderrSubscription?.cancel();
+    } catch (_) {}
+    try {
+      await stdoutSubscription?.cancel();
+    } catch (_) {}
+
     if (_isWindows) {
-      await Process.run('taskkill', ['/F', '/T', '/PID', '${process.pid}']);
-      if (!restarting) {
-        exit(0);
+      // taskkill ensures the child process tree is terminated on Windows
+      try {
+        await Process.run('taskkill', ['/F', '/T', '/PID', '${process.pid}']);
+      } catch (e) {
+        // If taskkill fails, try to kill the process directly
+        try {
+          process.kill();
+        } catch (_) {}
       }
     } else {
-      process.kill();
+      try {
+        process.kill(ProcessSignal.sigterm);
+      } catch (_) {
+        try {
+          process.kill();
+        } catch (_) {}
+      }
+      // Wait for the process to exit, but don't wait forever
+      try {
+        final exitFuture = process.exitCode;
+        await exitFuture.timeout(const Duration(seconds: 5));
+      } catch (_) {
+        // If process didn't exit, try to force kill
+        try {
+          process.kill(ProcessSignal.sigkill);
+        } catch (_) {}
+      }
+    }
+
+    try {
       await signalSubscription?.cancel();
-      await stderrSubscription?.cancel();
-      await stdoutSubscription?.cancel();
-      await process.exitCode;
+    } catch (_) {}
+    try {
+      await _sigtermSubscription?.cancel();
+    } catch (_) {}
+    if (!restarting) {
+      exit(0);
     }
   }
 

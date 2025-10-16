@@ -175,7 +175,7 @@ packages:
       path: "../../serinus"
       relative: true
     source: path
-    version: "1.0.4"
+    version: "1.0.5"
   serinus_config:
     dependency: "direct main"
     description:
