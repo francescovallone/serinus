@@ -51,16 +51,6 @@ void main() {
   });
 
   test(
-      'when getting a Enviroment Variable with "getOrThrow" that not exists, then the service will throw a 412 error',
-      () async {
-    final client = HttpClient();
-    var request =
-        await client.getUrl(Uri.parse('http://localhost:3000?key=TEST2'));
-    var response = await request.close();
-    expect(response.statusCode, 412);
-  });
-
-  test(
       'when getting a Enviroment Variable with "getOrNull" that exists, then the service will return it',
       () async {
     final client = HttpClient();

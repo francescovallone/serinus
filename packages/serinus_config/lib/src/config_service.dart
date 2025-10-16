@@ -23,7 +23,7 @@ class ConfigService extends Provider {
   String getOrThrow(String key) {
     return _dotEnv.getOrElse(
         key,
-        () => throw PreconditionFailedException('Missing environment variable: $key'));
+        () => throw ArgumentError('Missing environment variable: $key'));
   }
 
   /// Get the value of an environment variable or return `null` if it is not set.
