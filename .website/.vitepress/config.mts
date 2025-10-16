@@ -99,7 +99,6 @@ export default defineConfig({
             items: [
               { text: 'Configuration', link: 'configuration' },
               { text: 'Logging', link: 'logging' },
-              { text: 'Validation', link: 'validation' },
               { text: 'Model Provider', link: 'model_provider' },
               { text: 'Model View Controller', link: 'mvc' },
               { text: 'Task Scheduling', link: 'task_scheduling' },
@@ -126,6 +125,8 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Gateways', link: 'gateways' },
+              { text: 'Pipes', link: 'pipes' },
+              { text: 'Exception Filters', link: 'exception_filters' },
               // { text: 'Adapters', link: 'adapters' },
               // { text: 'Client', link: 'client' },
             ]
