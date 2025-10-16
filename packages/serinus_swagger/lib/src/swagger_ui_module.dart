@@ -10,8 +10,8 @@ class SwaggerController extends Controller {
   /// Constructor
   SwaggerController({required this.swaggerHtml, required String path})
       : super(path) {
-    on(Route.get('/'), (context) async {
-      context.res.contentType = ContentType.html;
+    on(Route.get('/'), (RequestContext context) async {
+      context.response.contentType = ContentType.html;
       return swaggerHtml;
     });
     on(Route.get('/swagger.yaml'), (context) async {

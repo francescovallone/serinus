@@ -1,166 +1,69 @@
-openapi: '3.0.0'
-info: 
-  title: 'Serinus Test Swagger'
-  version: '1.0'
-  description: 'API documentation for the Serinus project'
-  contact: 
-    name: 'Serinus'
-    url: 'https://serinus.dev'
-    email: ''
-  license: 
-    name: 'MIT'
-    url: 'https://opensource.org/licenses/MIT'
-paths: 
-  /: 
-    get: 
-      tags: 
-        - 'AppController'
-      responses: 
-        200: 
-          description: 'Success response'
-          headers: {}
-          content: 
-            text/plain: 
-              schema: 
-                $ref: '#/components/responses/SuccessResponse'
-    parameters: 
-      - name: 'name'
-        in: 'query'
-        schema: {}
-        required: false
-        deprecated: false
-  /post/{data}: 
-    post: 
-      tags: 
-        - 'AppController'
-      requestBody: 
-        required: false
-        content: 
-          application/json: 
-            schema: 
-              type: 'string'
-              example: 'John Doe'
-      responses: 
-        200: 
-          description: 'Success response'
-          headers: 
-            sec: 
-              description: 'Security header'
-              schema: 
-                type: 'string'
-              required: false
-              deprecated: false
-          content: 
-            application/json: 
-              schema: 
-                type: 'object'
-                properties: 
-                  message: 
-                    type: 'string'
-                    example: 'Post route'
-            text/plain: 
-              schema: 
-                type: 'string'
-                example: 'Post route'
-    parameters: 
-      - name: 'data'
-        in: 'path'
-        schema: {}
-        required: true
-        deprecated: false
-  /a/: 
-    get: 
-      tags: 
-        - 'App2Controller'
-      responses: 
-        200: 
-          description: 'Success response'
-          headers: {}
-          content: 
-            text/plain: 
-              schema: 
-                $ref: '#/components/responses/SuccessResponse'
-    parameters: 
-      - name: 'name'
-        in: 'query'
-        schema: {}
-        required: false
-        deprecated: false
-  /a/post: 
-    post: 
-      tags: 
-        - 'App2Controller'
-      requestBody: 
-        required: false
-        content: 
-          application/json: 
-            schema: 
-              type: 'string'
-              example: 'John Doe'
-      responses: 
-        200: 
-          description: 'Success response'
-          headers: 
-            sec: 
-              description: 'Security header'
-              schema: 
-                type: 'string'
-              required: false
-              deprecated: false
-          content: 
-            application/json: 
-              schema: 
-                type: 'object'
-                properties: 
-                  message: 
-                    type: 'string'
-                    example: 'Post route'
-            text/plain: 
-              schema: 
-                type: 'string'
-                example: 'Post route'
-    parameters: []
-components: 
-  schemas: 
-    User: 
-      type: 'object'
-      properties: 
-        name: 
-          type: 'string'
-        age: 
-          type: 'integer'
-        email: 
-          type: 'string'
-  securitySchemes: 
-    basicAuth: 
-      type: 'http'
-      scheme: 'basic'
-  responses: 
-    SuccessResponse: 
-      description: 'Success response'
-      headers: {}
-      content: 
-        text/plain: 
-          schema: 
-            type: 'string'
-          examples: {}
-  parameters: 
-    NameParam: 
-      name: 'name'
-      in: 'query'
-      schema: {}
-      required: false
-      deprecated: false
-  requestBodies: 
-    DataBody: 
-      data: 
-        name: 
-          application/json: 
-            schema: 
-              type: 'string'
-            examples: {}
-      required: true
-  headers: {}
-  examples: {}
-security: 
-  - basicAuth: []
+openapi: "3.1.0"
+paths:
+  /:
+    get:
+      tags:
+        - "AppController"
+      parameters: []
+      responses:
+        200:
+          description: "Success response"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+  /post/<data>:
+    post:
+      tags:
+        - "AppController"
+      parameters:
+        - name: "data"
+          in: "path"
+          required: true
+      responses:
+        201:
+          description: "Success response"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+  /a/:
+    get:
+      tags:
+        - "App2Controller"
+      parameters: []
+      responses:
+        200:
+          description: "Success response"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+  /a/post:
+    post:
+      tags:
+        - "App2Controller"
+      parameters: []
+      responses:
+        201:
+          description: "Success response"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+info:
+  title: "My API"
+  description: "This is my API"
+  version: "1.0.0"

@@ -26,7 +26,7 @@ function copyCreateProjectCommand() {
                     Serinus provides a powerful and flexible framework for building server-side applications in Dart. Our open-source Dart framework, packages, and tools make it easy to create high-performance, scalable, and maintainable applications. 
                 </div>
                 <div class="flex flex-col lg:flex-row justify-center items-center gap-2 border-dashed border-2 border-gray-300 rounded-lg p-4 relative">
-                    <div class="absolute -top-2 left-2 bg-white px-2 text-xs text-gray-400 rounded-md font-mono text-sm tracking-widest">HeroController()</div>
+                    <div class="absolute -top-2 left-2 px-2 bg text-xs text-gray-400 rounded-md font-mono text-sm tracking-widest">HeroController()</div>
                     <a href="/introduction.html" class="bg-serinus hover:shadow-md transition-shadow px-8 py-4 rounded-md text-white font-semibold">Get Started</a>
                     <a href="/discord.html" class="px-8 py-4 hover:shadow-md transition-shadow font-semibold border border-gray-300 rounded-md">Join the community</a>
                 </div>
@@ -49,7 +49,7 @@ function copyCreateProjectCommand() {
             <div class="text-gray-400 text-xs font-mono tracking-widest">
                 CodeProvider()
             </div>
-            <div class="w-full flex items-center justify-center starting-hero border border-gray-200 rounded-lg overflow-hidden">
+            <div class="w-full flex items-center justify-center starting-hero rounded-lg overflow-hidden">
                 <slot></slot>
             </div>
         </div>
@@ -79,44 +79,6 @@ ol {
 </style>
 
 <style>
-
-.starting-hero > .vp-code-group > .tabs {
-    background-color: transparent !important;
-    box-shadow: unset !important;
-    border-radius: 0 !important;
-    padding: 8px !important;
-    display: flex !important;
-    gap: 8px !important;
-    border-bottom: 1px solid #e5e7eb !important;
-}
-.starting-hero > .vp-code-group input:checked + label {
-    border: 1px solid var(--vp-c-brand-1) !important;
-    border-radius: 4px !important;
-}
-.starting-hero > .vp-code-group input + label {
-    font-family: monospace !important;
-    border: 1px solid transparent !important;
-}
-.starting-hero > .vp-code-group label:hover {
-    border: 1px solid rgba(255, 137, 4, 0.5) !important;
-    border-radius: 4px !important;
-}
-.starting-hero > .vp-code-group input:checked + label::after {
-    background-color: unset !important;
-}
-
-.starting-hero > .vp-code-group {
-    margin-top: 0 !important;
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
-.starting-hero > .vp-code-group div[class*="language-"] {
-    padding: 8px !important;
-}
-.starting-hero > .vp-code-group div[class*="language-"] > .token.string {
-    color: #d69d85 !important;
-}
 .starting-hero > .vp-code-group div[class*="language-"] .lang {
     display: none;
 }

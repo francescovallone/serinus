@@ -4,9 +4,8 @@ import Hero from './hero.vue'
 import Partners from './partners.vue'
 import Highlights from './highlights.vue'
 import Features from './features.vue'
-import { spotlights } from './data/spotlights'
 import Spotlights from './spotlight.vue'
-import Cli from './cli.vue'
+import { plugins } from './data/ecosystem';
 </script>
 
 <template>
@@ -16,10 +15,21 @@ import Cli from './cli.vue'
 		</Hero>
 		<Highlights />
 		<Ecosystem>
-			<slot name="configuration" slot="configuration"></slot>
-			<slot name="openapi" slot="openapi"></slot>
-			<slot name="authentication" slot="authentication"></slot>
-			<slot name="cron_jobs" slot="cron_jobs"></slot>
+			<template #openapi>
+				<slot name="openapi"></slot>
+			</template>
+			<template #configuration>
+				<slot name="configuration"></slot>
+			</template>
+			<template #authentication>
+				<slot name="authentication"></slot>
+			</template>
+			<template #cron_jobs>
+				<slot name="cron_jobs"></slot>
+			</template>
+			<template #websockets>
+				<slot name="websockets"></slot>
+			</template>
 		</Ecosystem>
 		<Spotlights />
 	</div>

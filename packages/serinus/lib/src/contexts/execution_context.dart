@@ -50,13 +50,16 @@ final class HttpArgumentsHost extends ArgumentsHost {
 /// The base class for WebSocket-based argument hosts.
 final class WsArgumentsHost extends HttpArgumentsHost {
   /// The [WsArgumentsHost] constructor is used to create a new instance of the [WsArgumentsHost] class.
-  const WsArgumentsHost(super.request, this.wsAdapter, this.clientId);
+  WsArgumentsHost(super.request, this.wsAdapter, this.clientId);
 
   /// The WebSocket adapter instance.
   final WsAdapter wsAdapter;
 
   /// The client ID of the WebSocket connection.
   final String clientId;
+
+  /// The underlying message packet (either a request or an event).
+  String? message;
 }
 
 /// The base class for Server-Sent Events-based argument hosts.

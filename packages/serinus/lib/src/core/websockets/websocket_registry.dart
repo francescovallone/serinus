@@ -57,6 +57,7 @@ class WebsocketRegistry extends Provider
             },
             gateway.hooks.merge([_config.globalHooks]),
             gateway.exceptionFilters,
+            gateway.pipes
           ),
         );
         gateway.server = wsAdapter;
@@ -115,6 +116,7 @@ class WebsocketRegistry extends Provider
             },
             gateway.hooks.merge([_config.globalHooks]),
             gateway.exceptionFilters,
+            gateway.pipes
           ),
         );
         gateway.server = customWsAdapter;

@@ -50,7 +50,6 @@ export default defineConfig({
         text: 'v2.0',
         items: [
           { text: 'Breaking Changes', link: '/next/breaking-changes' },
-          { text: 'Roadmap', link: '/next/roadmap' },
           { text: 'Analysis', link: '/next/analysis/' }
         ]
       },
@@ -98,6 +97,7 @@ export default defineConfig({
             base: '/techniques/',
             collapsed: true,
             items: [
+              { text: 'Configuration', link: 'configuration' },
               { text: 'Logging', link: 'logging' },
               { text: 'Validation', link: 'validation' },
               { text: 'Model Provider', link: 'model_provider' },
@@ -107,7 +107,6 @@ export default defineConfig({
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
               { text: 'Session', link: 'session' },
-              { text: 'Exceptions', link: 'exceptions' },
               { text: 'Server-Sent Events', link: 'sse'},
             ]
           },
@@ -119,6 +118,16 @@ export default defineConfig({
               { text: 'Rate Limiting', link: 'rate_limiting' },
               { text: 'Body Size', link: 'body_size' },
               { text: 'CORS', link: 'cors' },
+            ]
+          },
+          {
+            text: 'WebSockets',
+            base: '/websockets/',
+            collapsed: true,
+            items: [
+              { text: 'Gateways', link: 'gateways' },
+              // { text: 'Adapters', link: 'adapters' },
+              // { text: 'Client', link: 'client' },
             ]
           },
           { 
@@ -133,32 +142,31 @@ export default defineConfig({
               { text: 'Deploy', link: 'deploy' },
             ]
           },
-          {
-            text: 'Plugins',
-            base: '/plugins/',
-            collapsed: true,
-            items: [
-              { text: 'Configuration', link: 'configuration' },
-              { text: 'Serve Static Files', link: 'serve_static' },
-              { text: 'Liquify', link: 'serinus_liquify' },
-              { 
-                text: 'Swagger', 
-                collapsed: true,
-                base: '/plugins/swagger/',
-                items: [
-                  { text: 'Introduction', link: '/' },
-                  { text: 'Document', link: 'document' },
-                  { text: 'Api Specification', link: 'api_spec' },
-                  { text: 'Components', link: 'components' },
-                ],
-              },
-              { text: 'Frontier', link: 'frontier' },
-              { text: 'Health Check [WIP]' },
-              { text: 'Cron [WIP]' },
-              { text: 'Socket.IO [WIP]', link: 'socketio' },
-            ],
-            link: '/'
-          },
+          // {
+          //   text: 'Plugins',
+          //   base: '/plugins/',
+          //   collapsed: true,
+          //   items: [
+          //     { text: 'Serve Static Files', link: 'serve_static' },
+          //     { text: 'Liquify', link: 'serinus_liquify' },
+          //     { 
+          //       text: 'Swagger', 
+          //       collapsed: true,
+          //       base: '/plugins/swagger/',
+          //       items: [
+          //         { text: 'Introduction', link: '/' },
+          //         { text: 'Document', link: 'document' },
+          //         { text: 'Api Specification', link: 'api_spec' },
+          //         { text: 'Components', link: 'components' },
+          //       ],
+          //     },
+          //     { text: 'Frontier', link: 'frontier' },
+          //     { text: 'Health Check [WIP]' },
+          //     { text: 'Cron [WIP]' },
+          //     { text: 'Socket.IO [WIP]', link: 'socketio' },
+          //   ],
+          //   link: '/'
+          // },
           {
             text: 'Deployment',
             base: '/deployment/',

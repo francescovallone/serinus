@@ -129,8 +129,12 @@ import 'package:serinus/serinus.dart';
 
 class AppController extends Controller {
   AppController(): super(path: '/posts') {
-    on(Route.get('/'), (RequestContext context) => ['post 1', 'post 2']);
-    on(Route.get('/<id>'), (RequestContext context, String id) => 'post id: $id');
+    on(Route.get('/'), (RequestContext context) {
+      return ['post 1', 'post 2'];
+    });
+    on(Route.get('/<id>'), (RequestContext context, String id) {
+      return 'post id: $id';
+    });
   }
 }
 ```

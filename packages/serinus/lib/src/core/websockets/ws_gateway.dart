@@ -79,4 +79,8 @@ abstract class WebSocketGateway extends Provider {
   /// The [exceptionFilters] of the WebSocketGateway.
   /// This is a list of exception filters that will be used to handle exceptions thrown in the WebSocketGateway
   final Set<ExceptionFilter> exceptionFilters = {};
+
+  /// The [pipes] of the WebSocketGateway.
+  /// This is a list of pipes that will be used to transform the data received from the client
+  final Set<Pipe> pipes = {};
 }

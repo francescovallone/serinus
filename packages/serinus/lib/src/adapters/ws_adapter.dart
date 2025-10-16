@@ -36,12 +36,16 @@ class GatewayScope {
   /// The [exceptionFilters] property contains the exception filters of the WebSocket gateway.
   final Set<ExceptionFilter> exceptionFilters;
 
+  /// The [pipes] property contains the pipes of the WebSocket gateway.
+  final Set<Pipe> pipes;
+
   /// The [GatewayScope] constructor is used to create a new instance of the [GatewayScope] class.
   const GatewayScope(
     this.gateway,
     this.providers,
     this.hooks,
     this.exceptionFilters,
+    this.pipes
   );
 
   @override
@@ -267,14 +271,18 @@ class WebSocketAdapter extends WsAdapter {
     for (final hook in hooks.reqHooks) {
       await hook.onRequest(context);
     }
-    final wsContext = context.switchToWs();
     client?.listen((data) async {
-      final message = data is String ? data : utf8.decode(data);
-      wsContext.currentMessage = message;
+      var message = data is String ? data : utf8.decode(data);
+      (context.argumentsHost as WsArgumentsHost).message = message;
+      for(final pipe in gatewayScope.pipes) {
+        await pipe.transform(context);
+      }
       for (final hook in hooks.beforeHooks) {
         await hook.beforeHandle(context);
       }
       try {
+        final wsContext = context.switchToWs();
+        wsContext.currentMessage = (context.argumentsHost as WsArgumentsHost).message ?? message;
         await gatewayScope.gateway.onMessage(message, wsContext);
       } on WsExceptions catch (e) {
         for (final filter in gatewayScope.exceptionFilters) {
