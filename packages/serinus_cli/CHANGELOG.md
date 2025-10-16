@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.13
+
+- fix: properly kill the process tree in Windows when using the `run` command in the CLI. [#192](https://github.com/francescovallone/serinus/pull/192) by [mdex-geek](https://github.com/mdex-geek)
+
 ## 1.0.12
 
 - feat: add whitelist of files to watch & make .dart files watched by default
@@ -16,7 +20,7 @@
 
 - fix(#189): await for `Process.exitCode` after killing the process in Linux and MacOS. [#190](https://github.com/francescovallone/serinus/pull/190) by [francescovallone](https://github.com/francescovallone)
 
-## 1.0.8 
+## 1.0.8
 
 - fix(#187): debounce the events executing only the last one.
 
