@@ -68,7 +68,9 @@ abstract class Application {
       _enableShutdownHooks = true;
       // Listen for common termination signals and perform graceful shutdown.
       void handleSignal(ProcessSignal _) async {
-        if (_shuttingDown) return;
+        if (_shuttingDown) {
+          return;
+        }
         _shuttingDown = true;
         try {
           await close();
