@@ -24,6 +24,7 @@ abstract class Application {
   /// The [entrypoint] property contains the entry point of the application.
   final Module entrypoint;
   bool _enableShutdownHooks = false;
+  bool _shuttingDown = false;
 
   /// The [modulesContainer] property contains the modules container of the application.
   ModulesContainer modulesContainer;
@@ -42,8 +43,8 @@ abstract class Application {
     Router? router,
     ModulesContainer? modulesContainer,
     LoggerService? logger,
-  })  : router = router ?? Router(),
-        modulesContainer = modulesContainer ?? ModulesContainer(config) {
+  }) : router = router ?? Router(),
+       modulesContainer = modulesContainer ?? ModulesContainer(config) {
     if (logger != null) {
       Logger.overrideLogger(logger);
     }
@@ -65,10 +66,52 @@ abstract class Application {
   void enableShutdownHooks() {
     if (!_enableShutdownHooks) {
       _enableShutdownHooks = true;
-      ProcessSignal.sigint.watch().listen((event) async {
-        await close();
+      // Listen for common termination signals and perform graceful shutdown.
+      void handleSignal(ProcessSignal _) async {
+        if (_shuttingDown) {
+          return;
+        }
+        _shuttingDown = true;
+        try {
+          await close();
+        } catch (e) {
+          // Log the error but continue with exit to ensure process terminates
+          try {
+            Logger(
+              'SerinusApplication',
+            ).severe('Error during shutdown', OptionalParameters(error: e));
+          } catch (_) {
+            // If logging fails, silently continue
+          }
+        }
+        // Ensure process exits after shutdown
         exit(0);
-      });
+      }
+
+      // SIGINT (Ctrl+C)
+      try {
+        ProcessSignal.sigint.watch().listen(handleSignal);
+      } catch (_) {
+        // Signal not supported on this platform, continue without it
+      }
+
+      // On Windows SIGTERM and SIGHUP are not supported; only register them
+      // on non-Windows platforms.
+      if (!Platform.isWindows) {
+        // SIGTERM (graceful termination)
+        try {
+          ProcessSignal.sigterm.watch().listen(handleSignal);
+        } catch (_) {
+          // Signal not supported on this platform, continue without it
+        }
+
+        // SIGHUP / others may be supported on some platforms
+        try {
+          ProcessSignal.sighup.watch().listen(handleSignal);
+        } catch (_) {
+          // Signal not supported on this platform, continue without it
+        }
+      }
     }
   }
 
@@ -191,8 +234,8 @@ class SerinusApplication extends Application {
     final explorer = Explorer(modulesContainer, router, config);
     explorer.resolveRoutes();
     await modulesContainer.finalize(entrypoint);
-    final registeredProviders =
-        modulesContainer.getAll<OnApplicationBootstrap>();
+    final registeredProviders = modulesContainer
+        .getAll<OnApplicationBootstrap>();
     for (final provider in registeredProviders) {
       await provider.onApplicationBootstrap();
     }
@@ -222,6 +265,7 @@ class SerinusApplication extends Application {
   void trace(Tracer tracer) {
     config.registerTracer(tracer);
     _logger.info(
-        'Tracer ${tracer.name}(${tracer.runtimeType}) added to application');
+      'Tracer ${tracer.name}(${tracer.runtimeType}) added to application',
+    );
   }
 }

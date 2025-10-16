@@ -13,11 +13,11 @@ class FormData {
   final Map<String, UploadedFile> _files;
 
   /// The [FormData] constructor is used to create a [FormData] object
-  const FormData(
-      {Map<String, dynamic> fields = const {},
-      Map<String, UploadedFile> files = const {}})
-      : _fields = fields,
-        _files = files;
+  const FormData({
+    Map<String, dynamic> fields = const {},
+    Map<String, UploadedFile> files = const {},
+  }) : _fields = fields,
+       _files = files;
 
   /// This method is used to get the values of the form data
   Map<String, dynamic> get values =>
@@ -45,7 +45,8 @@ class FormData {
   static Future<FormData> parseMultipart({required HttpRequest request}) async {
     try {
       final mediaType = MediaType.parse(
-          request.headers[HttpHeaders.contentTypeHeader]!.join(';'));
+        request.headers[HttpHeaders.contentTypeHeader]!.join(';'),
+      );
       final boundary = mediaType.parameters['boundary'];
       final parts = _getMultiparts(request, boundary);
       RegExp regex = RegExp('([a-zA-Z0-9-_]+)="(.*?)"');
@@ -57,11 +58,12 @@ class FormData {
             !contentDisposition.startsWith('form-data;')) {
           continue;
         }
-        final values = regex
-            .allMatches(contentDisposition)
-            .fold(<String, String>{}, (map, match) {
-          return map..[match.group(1)!] = match.group(2)!;
-        });
+        final values = regex.allMatches(contentDisposition).fold(
+          <String, String>{},
+          (map, match) {
+            return map..[match.group(1)!] = match.group(2)!;
+          },
+        );
 
         final name = values['name']!;
         final fileName = values['filename'];
@@ -74,8 +76,10 @@ class FormData {
           );
           await files[name]!.read();
         } else {
-          final bytes =
-              (await part.toList()).fold(<int>[], (p, e) => p..addAll(e));
+          final bytes = (await part.toList()).fold(
+            <int>[],
+            (p, e) => p..addAll(e),
+          );
           fields[name] = utf8.decode(bytes);
         }
       }
@@ -91,7 +95,9 @@ class FormData {
   }
 
   static Stream<MimeMultipart> _getMultiparts(
-      HttpRequest request, String? boundary) {
+    HttpRequest request,
+    String? boundary,
+  ) {
     if (boundary == null) {
       throw StateError('Not a multipart request.');
     }
@@ -141,7 +147,7 @@ class UploadedFile with JsonObject {
       'name': name,
       'contentType': contentType.toString(),
       'buffer': buffer,
-      'data': data
+      'data': data,
     };
   }
 }

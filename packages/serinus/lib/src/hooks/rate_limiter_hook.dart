@@ -21,9 +21,10 @@ class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
   final RateStorage storage = RateStorage();
 
   /// RateLimiterHook constructor.
-  RateLimiterHook(
-      {int? maxRequests, this.duration = const Duration(minutes: 1)})
-      : maxRequests = maxRequests ?? double.infinity.toInt();
+  RateLimiterHook({
+    int? maxRequests,
+    this.duration = const Duration(minutes: 1),
+  }) : maxRequests = maxRequests ?? double.infinity.toInt();
 
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {
@@ -32,8 +33,9 @@ class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
 
   @override
   Future<void> beforeHandle(RequestContext context) async {
-    final shouldSkip =
-        context.metadata.values.any((element) => element is SkipRateLimit);
+    final shouldSkip = context.metadata.values.any(
+      (element) => element is SkipRateLimit,
+    );
     if (shouldSkip) {
       return;
     }
@@ -65,7 +67,10 @@ class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
 
   @override
   Future<void> onResponse(
-      Request request, dynamic data, ResponseProperties properties) async {
+    Request request,
+    dynamic data,
+    ResponseProperties properties,
+  ) async {
     if (properties.statusCode < 400 && rateLimiter != null) {
       properties.headers.addAll({
         'X-RateLimit-Limit': '$maxRequests',
@@ -120,8 +125,8 @@ class ClientRateLimiter {
 
   /// The [ClientRateLimiter] constructor is used to create a new instance of the [ClientRateLimiter] class.
   ClientRateLimiter({required this.key, required Duration duration, int? count})
-      : resetAt = DateTime.now().add(duration),
-        count = count ?? 1;
+    : resetAt = DateTime.now().add(duration),
+      count = count ?? 1;
 
   /// Update the count of the rate limiter.
   void updateCount() {

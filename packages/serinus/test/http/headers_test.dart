@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 class _MockHeaders extends Mock implements HttpHeaders {
   final Map<String, String> values = {
-    'DateTime': DateTime.now().toIso8601String()
+    'DateTime': DateTime.now().toIso8601String(),
   };
 
   @override

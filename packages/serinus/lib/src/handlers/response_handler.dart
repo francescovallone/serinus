@@ -30,12 +30,7 @@ class ResponseHandler {
   int get statusCode => context.res.statusCode;
 
   /// Creates a new instance of [ResponseHandler].
-  const ResponseHandler(
-    this.response,
-    this.context,
-    this.config,
-    this.traced,
-  );
+  const ResponseHandler(this.response, this.context, this.config, this.traced);
 
   /// This method is used to handle the response of a request.
   Future<void> handle(Object data) async {
@@ -48,14 +43,12 @@ class ResponseHandler {
     if (resRedirect != null) {
       response.headers({
         HttpHeaders.locationHeader: resRedirect.location,
-        ...context.res.headers
+        ...context.res.headers,
       });
       return response.redirect(resRedirect.location, resRedirect.statusCode);
     }
     response.status(statusCode);
-    response.headers({
-      ...context.res.headers,
-    });
+    response.headers({...context.res.headers});
     Uint8List responseBody = Uint8List(0);
     response.contentType(context.res.contentType ?? ContentType.text);
     final isView = data is View || data is ViewString;
@@ -74,11 +67,11 @@ class ResponseHandler {
       });
     }
     if (data is File) {
-      response.contentType(context.res.contentType ??
-          ContentType.parse('application/octet-stream'));
-      response.headers({
-        'transfer-encoding': 'chunked',
-      });
+      response.contentType(
+        context.res.contentType ??
+            ContentType.parse('application/octet-stream'),
+      );
+      response.headers({'transfer-encoding': 'chunked'});
       final readPipe = data.openRead();
       return response.sendStream(readPipe);
     }
@@ -92,7 +85,7 @@ class ResponseHandler {
     await config.tracerService.endTrace(context.request);
     response.headers({
       ...context.res.headers,
-      HttpHeaders.contentLengthHeader: responseBody.length.toString()
+      HttpHeaders.contentLengthHeader: responseBody.length.toString(),
     });
     return response.send(responseBody);
   }
@@ -129,8 +122,6 @@ class ResponseHandler {
     for (final hook in config.hooks.reqResHooks) {
       await hook.onResponse(context.request, data, context.res);
     }
-    response.cookies.addAll([
-      ...context.res.cookies,
-    ]);
+    response.cookies.addAll([...context.res.cookies]);
   }
 }

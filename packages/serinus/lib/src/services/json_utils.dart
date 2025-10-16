@@ -22,10 +22,9 @@ dynamic parseJsonToResponse(dynamic data, ModelProvider? provider) {
         return MapEntry(key, parseJsonToResponse(value.toJson(), provider));
       } else if (value is Iterable<JsonObject>) {
         return MapEntry(
-            key,
-            value
-                .map((e) => parseJsonToResponse(e.toJson(), provider))
-                .toList());
+          key,
+          value.map((e) => parseJsonToResponse(e.toJson(), provider)).toList(),
+        );
       } else if (provider?.toJsonModels.containsKey(value.runtimeType) ??
           false) {
         return MapEntry(key, provider?.to(value));
@@ -40,19 +39,22 @@ dynamic parseJsonToResponse(dynamic data, ModelProvider? provider) {
   }
 
   if (data is Iterable<Map> || data is Iterable<Object>) {
-    return (data as Iterable<Object>).map((e) {
-      if (e is JsonObject) {
-        return parseJsonToResponse(e.toJson(), provider);
-      } else if (provider?.toJsonModels.containsKey(e.runtimeType) ?? false) {
-        return provider?.to(e);
-      } else if (e is DateTime || e is DateTime?) {
-        return (e as DateTime?)?.toIso8601String();
-      } else if (e is Map) {
-        return parseJsonToResponse(e, provider);
-      } else {
-        return e;
-      }
-    }).toList(growable: false);
+    return (data as Iterable<Object>)
+        .map((e) {
+          if (e is JsonObject) {
+            return parseJsonToResponse(e.toJson(), provider);
+          } else if (provider?.toJsonModels.containsKey(e.runtimeType) ??
+              false) {
+            return provider?.to(e);
+          } else if (e is DateTime || e is DateTime?) {
+            return (e as DateTime?)?.toIso8601String();
+          } else if (e is Map) {
+            return parseJsonToResponse(e, provider);
+          } else {
+            return e;
+          }
+        })
+        .toList(growable: false);
   }
 
   if (data is JsonObject) {

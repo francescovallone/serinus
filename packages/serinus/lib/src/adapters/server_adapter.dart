@@ -8,8 +8,8 @@ import '../http/internal_request.dart';
 import '../http/internal_response.dart';
 
 /// The [RequestCallback] type is used to define the request callback.
-typedef RequestCallback = Future<void> Function(
-    InternalRequest request, InternalResponse response);
+typedef RequestCallback =
+    Future<void> Function(InternalRequest request, InternalResponse response);
 
 /// The [ErrorHandler] type is used to define the error handler.
 typedef ErrorHandler = void Function(dynamic e, StackTrace stackTrace);
@@ -46,5 +46,8 @@ abstract class Adapter<TServer> {
 
   /// The [getHandler] method is used to get the handler for the adapter.
   Handler getHandler(
-      ModulesContainer container, ApplicationConfig config, Router router);
+    ModulesContainer container,
+    ApplicationConfig config,
+    Router router,
+  );
 }

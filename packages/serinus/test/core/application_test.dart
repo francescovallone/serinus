@@ -9,14 +9,20 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
   bool gentlyClose = false;
 
   @override
-  Future<void> listen(covariant RequestCallback requestCallback,
-      {InternalRequest? request, ErrorHandler? errorHandler}) {
+  Future<void> listen(
+    covariant RequestCallback requestCallback, {
+    InternalRequest? request,
+    ErrorHandler? errorHandler,
+  }) {
     throw SocketException('Failed to start server on');
   }
 
   @override
   Handler getHandler(
-      ModulesContainer container, ApplicationConfig config, Router router) {
+    ModulesContainer container,
+    ApplicationConfig config,
+    Router router,
+  ) {
     return RequestHandler(router, container, config);
   }
 
@@ -34,20 +40,22 @@ class TestModule extends Module {
 void main() {
   group('$SerinusApplication', () {
     test(
-        "when the adapter can't listen to requests and throw a $SocketException the application should gently shutdown",
-        () async {
-      final adapter = _MockAdapter();
-      final app = SerinusApplication(
-        entrypoint: TestModule(),
-        levels: {LogLevel.none},
-        config: ApplicationConfig(
+      "when the adapter can't listen to requests and throw a $SocketException the application should gently shutdown",
+      () async {
+        final adapter = _MockAdapter();
+        final app = SerinusApplication(
+          entrypoint: TestModule(),
+          levels: {LogLevel.none},
+          config: ApplicationConfig(
             host: 'localhost',
             poweredByHeader: 'Serinus',
             port: Random().nextInt(1000) + 1000,
-            serverAdapter: adapter),
-      );
-      await app.serve();
-      expect(adapter.gentlyClose, true);
-    });
+            serverAdapter: adapter,
+          ),
+        );
+        await app.serve();
+        expect(adapter.gentlyClose, true);
+      },
+    );
   });
 }

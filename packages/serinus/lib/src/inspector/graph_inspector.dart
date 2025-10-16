@@ -23,9 +23,10 @@ class GraphInspector extends Provider {
     final appModules = modules ?? _container.scopes;
     for (final module in appModules) {
       final moduleNode = ModuleNode(
-          id: module.token,
-          label: module.token,
-          metadata: ModuleMetadataNode());
+        id: module.token,
+        label: module.token,
+        metadata: ModuleMetadataNode(),
+      );
       graph.insertNode(moduleNode);
       _inspectModule(module);
       _insertEdges(module);
@@ -83,7 +84,8 @@ class GraphInspector extends Provider {
         id: providerToken,
         label: providerToken,
         parent: module.token,
-        metadata: module.instanceMetadata[provider.runtimeType]?.metadata ??
+        metadata:
+            module.instanceMetadata[provider.runtimeType]?.metadata ??
             _container.globalInstances[provider.runtimeType]!.metadata,
       );
       graph.insertNode(providerNode);

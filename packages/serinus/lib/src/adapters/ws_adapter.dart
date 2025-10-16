@@ -16,8 +16,8 @@ import '../services/logger_service.dart';
 import 'server_adapter.dart';
 
 /// The [WsRequestHandler] is used to handle the web socket request
-typedef WsRequestHandler = Future<void> Function(
-    dynamic data, WebSocketContext context);
+typedef WsRequestHandler =
+    Future<void> Function(dynamic data, WebSocketContext context);
 
 /// The [WsAdapter] class is used to create a new web socket adapter
 class WsAdapter extends Adapter<Map<String, WebSocket>> {
@@ -42,25 +42,31 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
   bool get isOpen => _isOpen;
 
   @override
-  Future<void> listen(List<WsRequestHandler> requestCallback,
-      {InternalRequest? request,
-      List<DisconnectHandler>? onDone,
-      ErrorHandler? errorHandler}) async {
+  Future<void> listen(
+    List<WsRequestHandler> requestCallback, {
+    InternalRequest? request,
+    List<DisconnectHandler>? onDone,
+    ErrorHandler? errorHandler,
+  }) async {
     final wsClient = server?[request?.webSocketKey];
-    wsClient?.listen((data) {
-      for (var handler in requestCallback) {
-        handler(data, _contexts[request?.webSocketKey]!);
-      }
-    }, onDone: () {
-      if (onDone != null) {
-        for (var done in onDone) {
-          if (done.onDone == null) {
-            return;
-          }
-          done.onDone?.call(done.clientId);
+    wsClient?.listen(
+      (data) {
+        for (var handler in requestCallback) {
+          handler(data, _contexts[request?.webSocketKey]!);
         }
-      }
-    }, onError: errorHandler);
+      },
+      onDone: () {
+        if (onDone != null) {
+          for (var done in onDone) {
+            if (done.onDone == null) {
+              return;
+            }
+            done.onDone?.call(done.clientId);
+          }
+        }
+      },
+      onError: errorHandler,
+    );
   }
 
   @override
@@ -76,7 +82,9 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
 
   @override
   Future<void> init(
-      ModulesContainer container, ApplicationConfig config) async {
+    ModulesContainer container,
+    ApplicationConfig config,
+  ) async {
     return;
   }
 
@@ -90,17 +98,21 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
     final socket = await request.response.detachSocket();
     final channel = StreamChannel<List<int>>(socket, socket);
     final sink = utf8.encoder.startChunkedConversion(channel.sink);
-    sink.add('HTTP/1.1 101 Switching Protocols\r\n'
-        'Upgrade: websocket\r\n'
-        'Connection: Upgrade\r\n'
-        'Sec-WebSocket-Accept: ${WebSocketChannel.signKey(request.webSocketKey)}\r\n');
+    sink.add(
+      'HTTP/1.1 101 Switching Protocols\r\n'
+      'Upgrade: websocket\r\n'
+      'Connection: Upgrade\r\n'
+      'Sec-WebSocket-Accept: ${WebSocketChannel.signKey(request.webSocketKey)}\r\n',
+    );
     sink.add('\r\n');
     if (channel.sink is! Socket) {
       throw ArgumentError('channel.sink must be a dart:io `Socket`.');
     }
     server ??= {};
-    server![request.webSocketKey] =
-        WebSocket.fromUpgradedSocket(channel.sink as Socket, serverSide: true);
+    server![request.webSocketKey] = WebSocket.fromUpgradedSocket(
+      channel.sink as Socket,
+      serverSide: true,
+    );
     _isOpen = true;
   }
 
@@ -123,7 +135,10 @@ class WsAdapter extends Adapter<Map<String, WebSocket>> {
 
   @override
   Handler getHandler(
-      ModulesContainer container, ApplicationConfig config, Router router) {
+    ModulesContainer container,
+    ApplicationConfig config,
+    Router router,
+  ) {
     return WebSocketHandler(router, container, config);
   }
 }

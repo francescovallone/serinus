@@ -24,8 +24,11 @@ abstract class HttpAdapter<TServer> extends Adapter<TServer> {
   final String poweredByHeader;
 
   /// The [HttpAdapter] constructor is used to create a new instance of the [HttpAdapter] class.
-  HttpAdapter(
-      {required this.host, required this.port, required this.poweredByHeader});
+  HttpAdapter({
+    required this.host,
+    required this.port,
+    required this.poweredByHeader,
+  });
 
   @override
   Future<void> init(ModulesContainer container, ApplicationConfig config);
@@ -34,6 +37,9 @@ abstract class HttpAdapter<TServer> extends Adapter<TServer> {
   Future<void> close();
 
   @override
-  Future<void> listen(RequestCallback requestCallback,
-      {InternalRequest? request, ErrorHandler? errorHandler});
+  Future<void> listen(
+    RequestCallback requestCallback, {
+    InternalRequest? request,
+    ErrorHandler? errorHandler,
+  });
 }

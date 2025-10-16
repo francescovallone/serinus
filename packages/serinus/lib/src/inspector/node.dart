@@ -8,17 +8,11 @@ abstract class Node {
   final String label;
 
   /// The parent of this node. This is used to build the tree structure.
-  const Node({
-    required this.id,
-    required this.label,
-  });
+  const Node({required this.id, required this.label});
 
   /// Converts the [Node] to a JSON object.
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'label': label,
-    };
+    return {'id': id, 'label': label};
   }
 }
 
@@ -41,11 +35,7 @@ class ClassNode extends Node {
   /// Converts the [ClassNode] to a JSON object.
   @override
   Map<String, dynamic> toJson() {
-    return {
-      ...super.toJson(),
-      'parent': parent,
-      'metadata': metadata.toJson(),
-    };
+    return {...super.toJson(), 'parent': parent, 'metadata': metadata.toJson()};
   }
 }
 
@@ -64,10 +54,7 @@ class ModuleNode extends Node {
   /// Converts the [ModuleNode] to a JSON object.
   @override
   Map<String, dynamic> toJson() {
-    return {
-      ...super.toJson(),
-      'metadata': metadata.toJson(),
-    };
+    return {...super.toJson(), 'metadata': metadata.toJson()};
   }
 }
 
@@ -80,16 +67,11 @@ class ModuleMetadataNode {
   final bool? internal;
 
   /// Creates a new instance of [ModuleMetadataNode].
-  const ModuleMetadataNode({
-    this.internal,
-  });
+  const ModuleMetadataNode({this.internal});
 
   /// Converts the [ModuleMetadataNode] to a JSON object.
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      if (internal != null) 'internal': internal,
-    };
+    return {'name': name, if (internal != null) 'internal': internal};
   }
 }
 

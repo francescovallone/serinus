@@ -57,8 +57,9 @@ class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
   }) {
     _schema = object({
       if (body != null)
-        'body':
-            (body is AcanthisMap) ? (body as AcanthisMap).passthrough() : body!,
+        'body': (body is AcanthisMap)
+            ? (body as AcanthisMap).passthrough()
+            : body!,
       if (query != null) 'query': query!.passthrough(),
       if (params != null) 'params': params!.passthrough(),
       if (headers != null) 'headers': headers!.passthrough(),
@@ -67,8 +68,9 @@ class AcanthisParseSchema extends ParseSchema<AcanthisMap, AcanthisType> {
   }
 
   @override
-  Future<Map<String, dynamic>> tryParse(
-      {required Map<String, dynamic> value}) async {
+  Future<Map<String, dynamic>> tryParse({
+    required Map<String, dynamic> value,
+  }) async {
     try {
       AcanthisParseResult result = _schema.tryParse(value);
       if (!result.success) {

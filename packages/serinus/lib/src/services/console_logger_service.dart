@@ -17,7 +17,6 @@ class ConsoleLogger implements LoggerService {
   IOSink _channel = stdout.nonBlocking;
 
   @visibleForTesting
-
   /// Usable for testing purposes.
   set channel(IOSink value) => _channel = value;
 
@@ -57,11 +56,12 @@ class ConsoleLogger implements LoggerService {
   Set<LogLevel> get logLevels => Logger.logLevels;
 
   /// The [ConsoleLogger] constructor.
-  ConsoleLogger(
-      {this.json = false,
-      this.prefix = 'Serinus',
-      this.timestamp = false,
-      Set<LogLevel>? levels}) {
+  ConsoleLogger({
+    this.json = false,
+    this.prefix = 'Serinus',
+    this.timestamp = false,
+    Set<LogLevel>? levels,
+  }) {
     if (levels != null) {
       Logger.setLogLevels(levels);
     }
@@ -70,7 +70,8 @@ class ConsoleLogger implements LoggerService {
     }
     logging.Logger.root.level = getLowestLevel(Logger.logLevels);
     logging.Logger.root.onRecord.listen((logging.LogRecord rec) {
-      final hasError = rec.object is AugmentedMessage &&
+      final hasError =
+          rec.object is AugmentedMessage &&
           (rec.object as AugmentedMessage).params?.error != null;
       if (hasError) {
         printErrors(rec, prefix);
@@ -154,8 +155,10 @@ class ConsoleLogger implements LoggerService {
       return;
     }
     final logger = logging.Logger.root;
-    logger.log(logging.Level('DEBUG', 300),
-        AugmentedMessage(message, optionalParameters));
+    logger.log(
+      logging.Level('DEBUG', 300),
+      AugmentedMessage(message, optionalParameters),
+    );
   }
 
   @override
@@ -164,8 +167,11 @@ class ConsoleLogger implements LoggerService {
       return;
     }
     final logger = logging.Logger.root;
-    logger.info(AugmentedMessage(message, optionalParameters),
-        optionalParameters?.error, optionalParameters?.stackTrace);
+    logger.info(
+      AugmentedMessage(message, optionalParameters),
+      optionalParameters?.error,
+      optionalParameters?.stackTrace,
+    );
   }
 
   /// Sets the log levels of the logger.
@@ -198,8 +204,10 @@ class ConsoleLogger implements LoggerService {
       return;
     }
     final logger = logging.Logger.root;
-    logger.log(logging.Level('VERBOSE', 0),
-        AugmentedMessage(message, optionalParameters));
+    logger.log(
+      logging.Level('VERBOSE', 0),
+      AugmentedMessage(message, optionalParameters),
+    );
   }
 
   @override

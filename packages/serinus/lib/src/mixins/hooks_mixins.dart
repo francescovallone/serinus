@@ -9,7 +9,10 @@ mixin OnRequestResponse on Hook {
 
   /// The [onResponse] method is used to execute code before the response is sent
   Future<void> onResponse(
-      Request request, dynamic data, ResponseProperties properties) async {}
+    Request request,
+    dynamic data,
+    ResponseProperties properties,
+  ) async {}
 }
 
 /// The [OnBeforeHandle] mixin is used to execute code before the request is handled

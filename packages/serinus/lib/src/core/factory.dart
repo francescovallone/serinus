@@ -16,36 +16,40 @@ final class SerinusFactory {
   /// It takes an [entrypoint] module, a [host] string, a [port] integer, a [loggingLevel] LogLevel, a [loggerService] LoggerService, a [poweredByHeader] string, a [securityContext] SecurityContext, and an [enableCompression] boolean.
   ///
   /// It returns a [Future] of [SerinusApplication].
-  Future<SerinusApplication> createApplication(
-      {required Module entrypoint,
-      String host = 'localhost',
-      int port = 3000,
-      Set<LogLevel> logLevels = const {LogLevel.verbose},
-      LoggerService? logger,
-      String poweredByHeader = 'Powered by Serinus',
-      SecurityContext? securityContext,
-      ModelProvider? modelProvider,
-      bool enableCompression = true}) async {
+  Future<SerinusApplication> createApplication({
+    required Module entrypoint,
+    String host = 'localhost',
+    int port = 3000,
+    Set<LogLevel> logLevels = const {LogLevel.verbose},
+    LoggerService? logger,
+    String poweredByHeader = 'Powered by Serinus',
+    SecurityContext? securityContext,
+    ModelProvider? modelProvider,
+    bool enableCompression = true,
+  }) async {
     final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
     final serverHost = Platform.environment['HOST'] ?? host;
     final server = SerinusHttpAdapter(
+      host: serverHost,
+      port: serverPort,
+      poweredByHeader: poweredByHeader,
+      securityContext: securityContext,
+      enableCompression: enableCompression,
+    );
+    await server.init();
+    final app = SerinusApplication(
+      entrypoint: entrypoint,
+      config: ApplicationConfig(
         host: serverHost,
         port: serverPort,
         poweredByHeader: poweredByHeader,
         securityContext: securityContext,
-        enableCompression: enableCompression);
-    await server.init();
-    final app = SerinusApplication(
-        entrypoint: entrypoint,
-        config: ApplicationConfig(
-            host: serverHost,
-            port: serverPort,
-            poweredByHeader: poweredByHeader,
-            securityContext: securityContext,
-            serverAdapter: server,
-            modelProvider: modelProvider),
-        levels: logLevels,
-        logger: logger);
+        serverAdapter: server,
+        modelProvider: modelProvider,
+      ),
+      levels: logLevels,
+      logger: logger,
+    );
     return app;
   }
 }

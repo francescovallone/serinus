@@ -28,21 +28,28 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
   bool get isOpen => isRunning;
 
   /// The [SerinusHttpAdapter] constructor is used to create a new instance of the [SerinusHttpAdapter] class.
-  SerinusHttpAdapter(
-      {required super.host,
-      required super.port,
-      required super.poweredByHeader,
-      this.securityContext,
-      this.enableCompression = true});
+  SerinusHttpAdapter({
+    required super.host,
+    required super.port,
+    required super.poweredByHeader,
+    this.securityContext,
+    this.enableCompression = true,
+  });
 
   @override
-  Future<void> init(
-      [ModulesContainer? container, ApplicationConfig? config]) async {
+  Future<void> init([
+    ModulesContainer? container,
+    ApplicationConfig? config,
+  ]) async {
     if (securityContext == null) {
       server = await io.HttpServer.bind(host, port, shared: true);
     } else {
-      server = await io.HttpServer.bindSecure(host, port, securityContext!,
-          shared: true);
+      server = await io.HttpServer.bindSecure(
+        host,
+        port,
+        securityContext!,
+        shared: true,
+      );
     }
     server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
     server?.autoCompress = enableCompression;
@@ -54,8 +61,11 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
   }
 
   @override
-  Future<void> listen(RequestCallback requestCallback,
-      {InternalRequest? request, ErrorHandler? errorHandler}) async {
+  Future<void> listen(
+    RequestCallback requestCallback, {
+    InternalRequest? request,
+    ErrorHandler? errorHandler,
+  }) async {
     try {
       await for (final req in server!) {
         final request = InternalRequest.from(req, port, host);
@@ -75,7 +85,10 @@ class SerinusHttpAdapter extends HttpAdapter<io.HttpServer> {
 
   @override
   Handler getHandler(
-      ModulesContainer container, ApplicationConfig config, Router router) {
+    ModulesContainer container,
+    ApplicationConfig config,
+    Router router,
+  ) {
     return RequestHandler(router, container, config);
   }
 }

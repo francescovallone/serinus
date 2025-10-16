@@ -17,7 +17,7 @@ typedef RouteHandler = ({
   Route route,
   dynamic handler,
   ParseSchema? schema,
-  Type? body
+  Type? body,
 });
 
 /// The [Controller] class is used to define a controller.
@@ -26,9 +26,7 @@ abstract class Controller {
   final String path;
 
   /// The [Controller] constructor is used to create a new instance of the [Controller] class.
-  Controller({
-    required this.path,
-  });
+  Controller({required this.path});
 
   final Map<String, RouteHandler> _routes = {};
 
@@ -49,17 +47,27 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route>(R route, Function handler,
-      {ParseSchema? schema, Type? body}) {
+  void on<R extends Route>(
+    R route,
+    Function handler, {
+    ParseSchema? schema,
+    Type? body,
+  }) {
     final routeExists = _routes.values.any(
-        (r) => r.route.path == route.path && r.route.method == route.method);
+      (r) => r.route.path == route.path && r.route.method == route.method,
+    );
     if (routeExists) {
       throw StateError(
-          'A route with the same path and method already exists. [${route.path}] [${route.method}]');
+        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
+      );
     }
 
-    _routes[UuidV4().generate()] =
-        (handler: handler, route: route, schema: schema, body: body);
+    _routes[UuidV4().generate()] = (
+      handler: handler,
+      route: route,
+      schema: schema,
+      body: body,
+    );
   }
 
   /// The [onStatic] method is used to register a static route.
@@ -72,13 +80,19 @@ abstract class Controller {
       throw StateError('The handler must be a static value');
     }
     final routeExists = _routes.values.any(
-        (r) => r.route.path == route.path && r.route.method == route.method);
+      (r) => r.route.path == route.path && r.route.method == route.method,
+    );
     if (routeExists) {
       throw StateError(
-          'A route with the same path and method already exists. [${route.path}] [${route.method}]');
+        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
+      );
     }
 
-    _routes[UuidV4().generate()] =
-        (handler: handler, route: route, schema: null, body: null);
+    _routes[UuidV4().generate()] = (
+      handler: handler,
+      route: route,
+      schema: null,
+      body: null,
+    );
   }
 }

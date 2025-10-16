@@ -91,8 +91,10 @@ class Request {
   }
 
   /// This method is used to listen to a request event.
-  void on(RequestEvent event,
-      Future<void> Function(RequestEvent, EventData) listener) {
+  void on(
+    RequestEvent event,
+    Future<void> Function(RequestEvent, EventData) listener,
+  ) {
     _original.on(event, listener);
   }
 
@@ -115,8 +117,9 @@ class Request {
 
     /// If the content type is multipart, it will parse the body as a multipart form data.
     if (contentType.isMultipart) {
-      final formData =
-          await FormData.parseMultipart(request: _original.original);
+      final formData = await FormData.parseMultipart(
+        request: _original.original,
+      );
       body = Body(contentType, formData: formData);
       return;
     }
@@ -150,10 +153,7 @@ class Request {
     }
 
     /// If the content type is text, it will parse the body as a text data.
-    body = Body(
-      contentType,
-      text: parsedBody,
-    );
+    body = Body(contentType, text: parsedBody);
   }
 
   /// This method is used to add data to the request.

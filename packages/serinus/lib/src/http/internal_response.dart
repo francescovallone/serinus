@@ -64,9 +64,7 @@ class InternalResponse {
 
   /// This method is used to set the content type of the response.
   void contentType(ContentType contentType) {
-    headers({
-      HttpHeaders.contentTypeHeader: contentType.toString(),
-    });
+    headers({HttpHeaders.contentTypeHeader: contentType.toString()});
   }
 
   /// This method is used to set the headers of the response.

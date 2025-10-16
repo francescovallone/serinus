@@ -38,7 +38,7 @@ class SerinusHeaders {
   }
 
   /// Operator to assign to a [key] a [value]
-  operator []=(String key, String value) {
+  void operator []=(String key, String value) {
     values[key] = value;
   }
 }
