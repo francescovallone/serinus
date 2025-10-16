@@ -20,8 +20,9 @@ class CorsHook extends Hook
       'Access-Control-Allow-Methods': _defaultMethodsList.join(','),
       'Access-Control-Max-Age': '86400',
     };
-    _defaultHeadersAll =
-        _defaultHeaders.map((key, value) => MapEntry(key, [value]));
+    _defaultHeadersAll = _defaultHeaders.map(
+      (key, value) => MapEntry(key, [value]),
+    );
   }
 
   Map<String, List<String>> _defaultHeadersAll = {};
@@ -34,7 +35,7 @@ class CorsHook extends Hook
     'dnt',
     'origin',
     'user-agent',
-    'access-control-allow-origin'
+    'access-control-allow-origin',
   ];
 
   final _defaultMethodsList = [
@@ -43,7 +44,7 @@ class CorsHook extends Hook
     'OPTIONS',
     'PATCH',
     'POST',
-    'PUT'
+    'PUT',
   ];
 
   Map<String, String> _defaultHeaders = {};
@@ -63,19 +64,16 @@ class CorsHook extends Hook
     }
 
     /// Set the response headers.
-    final headers = <String, List<String>>{
-      ..._defaultHeadersAll,
-    };
+    final headers = <String, List<String>>{..._defaultHeadersAll};
 
     /// Add the origin to the response headers.
     headers['Access-Control-Allow-Origin'] = [origin];
 
     /// Stringify the headers.
-    final stringHeaders =
-        headers.map((key, value) => MapEntry(key, value.toSet().join(',')));
-    responseHeaders = {
-      ...stringHeaders,
-    };
+    final stringHeaders = headers.map(
+      (key, value) => MapEntry(key, value.toSet().join(',')),
+    );
+    responseHeaders = {...stringHeaders};
 
     return;
   }

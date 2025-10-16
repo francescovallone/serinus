@@ -26,10 +26,16 @@ abstract class Middleware {
   /// It accepts a [shelf.Middleware] or a [shelf.Handler] object.
   ///
   /// It is used to create a middleware from a shelf middleware giving interoperability between Serinus and Shelf.
-  factory Middleware.shelf(Function handler,
-      {List<String> routes = const ['*'], bool ignoreResponse = true}) {
-    return _ShelfMiddleware(handler,
-        routes: routes, ignoreResponse: ignoreResponse);
+  factory Middleware.shelf(
+    Function handler, {
+    List<String> routes = const ['*'],
+    bool ignoreResponse = true,
+  }) {
+    return _ShelfMiddleware(
+      handler,
+      routes: routes,
+      ignoreResponse: ignoreResponse,
+    );
   }
 }
 
@@ -38,8 +44,11 @@ class _ShelfMiddleware extends Middleware {
 
   final bool ignoreResponse;
 
-  _ShelfMiddleware(this._handler,
-      {super.routes = const ['*'], this.ignoreResponse = true});
+  _ShelfMiddleware(
+    this._handler, {
+    super.routes = const ['*'],
+    this.ignoreResponse = true,
+  });
 
   /// Most of the code has been taken from
   /// https://github.com/codekeyz/pharaoh/tree/main/packages/pharaoh/lib/src/shelf_interop
@@ -52,7 +61,8 @@ class _ShelfMiddleware extends Middleware {
     late shelf.Response shelfResponse;
     if (_handler is shelf.Middleware) {
       shelfResponse = await _handler(
-          (req) => shelf.Response.ok(context.body.toString()))(request);
+        (req) => shelf.Response.ok(context.body.toString()),
+      )(request);
     } else if (_handler is shelf.Handler) {
       shelfResponse = await _handler.call(request);
     } else {
@@ -67,10 +77,12 @@ class _ShelfMiddleware extends Middleware {
   }
 
   Future<dynamic> _responseFromShelf(
-      RequestContext context, shelf.Response response) async {
+    RequestContext context,
+    shelf.Response response,
+  ) async {
     Map<String, String> headers = {
       for (var key in response.headers.keys)
-        key: response.headers[key].toString()
+        key: response.headers[key].toString(),
     };
     response.headers.forEach((key, value) => headers[key] = value);
     context.res.statusCode = response.statusCode;

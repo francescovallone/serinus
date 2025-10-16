@@ -36,31 +36,36 @@ class RequestHandler extends Handler {
   /// 6. Outgoing response
   @override
   Future<void> handleRequest(
-      InternalRequest request, InternalResponse response) async {
+    InternalRequest request,
+    InternalResponse response,
+  ) async {
     final Request wrappedRequest = Request(request);
     await wrappedRequest.parseBody();
     config.tracerService.addEvent(
-        name: TraceEvents.onRequestReceived,
-        request: wrappedRequest,
-        traced: 'RequestHandler');
+      name: TraceEvents.onRequestReceived,
+      request: wrappedRequest,
+      traced: 'RequestHandler',
+    );
     await executeOnRequest(wrappedRequest, response);
     if (response.isClosed) {
       return;
     }
 
     final routeLookup = router.getRouteByPathAndMethod(
-        request.path.endsWith('/')
-            ? request.path.substring(0, request.path.length - 1)
-            : request.path,
-        request.method.toHttpMethod());
+      request.path.endsWith('/')
+          ? request.path.substring(0, request.path.length - 1)
+          : request.path,
+      request.method.toHttpMethod(),
+    );
     final routeData = routeLookup.route;
     if (routeLookup.params.isNotEmpty) {
       wrappedRequest.params = routeLookup.params;
     }
     if (routeData == null) {
       throw NotFoundException(
-          message:
-              'No route found for path ${request.path} and method ${request.method}');
+        message:
+            'No route found for path ${request.path} and method ${request.method}',
+      );
     }
 
     final scope = modulesContainer.getScope(routeData.moduleToken);
@@ -68,10 +73,14 @@ class RequestHandler extends Handler {
     final route = routeSpec.route;
     final handler = routeSpec.handler;
     final schema = routeSpec.schema;
-    final scopedProviders =
-        scope.providers.addAllIfAbsent(modulesContainer.globalProviders);
-    RequestContext context =
-        buildRequestContext(scopedProviders, wrappedRequest, response);
+    final scopedProviders = scope.providers.addAllIfAbsent(
+      modulesContainer.globalProviders,
+    );
+    RequestContext context = buildRequestContext(
+      scopedProviders,
+      wrappedRequest,
+      response,
+    );
     context.metadata = await _resolveMetadata(routeData.metadata, context);
     dynamic bodyValue =
         getBodyValue(context, routeSpec.body) ?? context.body.value;
@@ -79,8 +88,10 @@ class RequestHandler extends Handler {
       bodyValue = await executeOnParse(context, schema, route, bodyValue);
     }
 
-    final middlewares =
-        scope.filterMiddlewaresByRoute(routeData.path, wrappedRequest.params);
+    final middlewares = scope.filterMiddlewaresByRoute(
+      routeData.path,
+      wrappedRequest.params,
+    );
     if (middlewares.isNotEmpty) {
       await handleMiddlewares(request, context, response, middlewares, config);
       if (response.isClosed) {
@@ -89,7 +100,13 @@ class RequestHandler extends Handler {
     }
     await executeBeforeHandle(context, route);
     Object? result = await executeHandler(
-        context, route, handler, routeData.isStatic, bodyValue, routeSpec.body);
+      context,
+      route,
+      handler,
+      routeData.isStatic,
+      bodyValue,
+      routeSpec.body,
+    );
     await executeAfterHandle(context, route, result);
     result = _processResult(result, context, config);
     if (context.res.redirect != null) {
@@ -104,21 +121,28 @@ class RequestHandler extends Handler {
       );
     }
 
-    final resHandler =
-        ResponseHandler(response, context, config, 'r-${route.runtimeType}');
+    final resHandler = ResponseHandler(
+      response,
+      context,
+      config,
+      'r-${route.runtimeType}',
+    );
     await resHandler.handle(result ?? 'null');
 
     request.emit(
       RequestEvent.close,
       EventData(
-          data: result,
-          properties: context.res
-            ..headers.addAll(response.currentHeaders.toMap())),
+        data: result,
+        properties: context.res
+          ..headers.addAll(response.currentHeaders.toMap()),
+      ),
     );
   }
 
   Future<Map<String, Metadata>> _resolveMetadata(
-      List<Metadata> metadataList, RequestContext context) async {
+    List<Metadata> metadataList,
+    RequestContext context,
+  ) async {
     final Map<String, Metadata> metadata = {};
     for (final meta in metadataList) {
       if (meta is ContextualizedMetadata) {
@@ -131,11 +155,15 @@ class RequestHandler extends Handler {
   }
 
   Object? _processResult(
-      Object? result, RequestContext context, ApplicationConfig config) {
+    Object? result,
+    RequestContext context,
+    ApplicationConfig config,
+  ) {
     final modelProvider = config.modelProvider;
     if (result?.canBeJson() ?? false) {
-      result =
-          JsonUtf8Encoder().convert(parseJsonToResponse(result, modelProvider));
+      result = JsonUtf8Encoder().convert(
+        parseJsonToResponse(result, modelProvider),
+      );
       context.res.contentType ??= ContentType.json;
     }
     if (modelProvider?.toJsonModels.containsKey(result.runtimeType) ?? false) {
@@ -152,43 +180,51 @@ class RequestHandler extends Handler {
   ///
   /// If the completer is not completed, the request will be blocked until the completer is completed.
   Future<void> handleMiddlewares(
-      InternalRequest request,
-      RequestContext context,
-      InternalResponse response,
-      Iterable<Middleware> middlewares,
-      ApplicationConfig config) async {
+    InternalRequest request,
+    RequestContext context,
+    InternalResponse response,
+    Iterable<Middleware> middlewares,
+    ApplicationConfig config,
+  ) async {
     final completer = Completer<void>();
     if (middlewares.isEmpty) {
       return;
     }
     for (int i = 0; i < middlewares.length; i++) {
       config.tracerService.addEvent(
-          name: TraceEvents.onMiddleware,
-          request: context.request,
-          context: context,
-          traced: 'm-${middlewares.elementAt(i).runtimeType}');
+        name: TraceEvents.onMiddleware,
+        request: context.request,
+        context: context,
+        traced: 'm-${middlewares.elementAt(i).runtimeType}',
+      );
       final middleware = middlewares.elementAt(i);
       await middleware.use(context, ([data]) async {
         config.tracerService.addEvent(
-            name: TraceEvents.onMiddleware,
-            request: context.request,
-            context: context,
-            traced: 'm-${middlewares.elementAt(i).runtimeType}');
+          name: TraceEvents.onMiddleware,
+          request: context.request,
+          context: context,
+          traced: 'm-${middlewares.elementAt(i).runtimeType}',
+        );
         if (data != null) {
           data = _processResult(data, context, config);
           request.emit(
             RequestEvent.data,
             EventData(data: data, properties: context.res),
           );
-          final resHandler = ResponseHandler(response, context, config,
-              'm-${middlewares.elementAt(i).runtimeType}');
+          final resHandler = ResponseHandler(
+            response,
+            context,
+            config,
+            'm-${middlewares.elementAt(i).runtimeType}',
+          );
           await resHandler.handle(data!);
           request.emit(
             RequestEvent.close,
             EventData(
-                data: data,
-                properties: context.res
-                  ..headers.addAll(response.currentHeaders.toMap())),
+              data: data,
+              properties: context.res
+                ..headers.addAll(response.currentHeaders.toMap()),
+            ),
           );
           return;
         }
@@ -206,20 +242,24 @@ class RequestHandler extends Handler {
 
   /// Executes the [onRequest] hooks
   Future<void> executeOnRequest(
-      Request wrappedRequest, InternalResponse response) async {
+    Request wrappedRequest,
+    InternalResponse response,
+  ) async {
     for (final hook in config.hooks.reqResHooks) {
       config.tracerService.addEvent(
-          name: TraceEvents.onRequest,
-          request: wrappedRequest,
-          traced: 'h-${hook.runtimeType}');
+        name: TraceEvents.onRequest,
+        request: wrappedRequest,
+        traced: 'h-${hook.runtimeType}',
+      );
       if (response.isClosed) {
         return;
       }
       await hook.onRequest(wrappedRequest, response);
       config.tracerService.addEvent(
-          name: TraceEvents.onRequest,
-          request: wrappedRequest,
-          traced: 'h-${hook.runtimeType}');
+        name: TraceEvents.onRequest,
+        request: wrappedRequest,
+        traced: 'h-${hook.runtimeType}',
+      );
     }
   }
 
@@ -228,13 +268,18 @@ class RequestHandler extends Handler {
   /// This method will parse the request body, query, params and headers.
   /// Also it will atomically add the parsed values to the request context.
   /// It means that if any of the values are not present in the request, they will not be added to the context.
-  Future<dynamic> executeOnParse(RequestContext context, ParseSchema schema,
-      Route route, dynamic body) async {
+  Future<dynamic> executeOnParse(
+    RequestContext context,
+    ParseSchema schema,
+    Route route,
+    dynamic body,
+  ) async {
     config.tracerService.addEvent(
-        name: TraceEvents.onParse,
-        request: context.request,
-        context: context,
-        traced: 'r-${route.runtimeType}');
+      name: TraceEvents.onParse,
+      request: context.request,
+      context: context,
+      traced: 'r-${route.runtimeType}',
+    );
     final Map<String, dynamic> toParse = {};
     if (schema.body != null) {
       toParse['body'] = body;
@@ -248,7 +293,7 @@ class RequestHandler extends Handler {
     if (schema.headers != null) {
       toParse['headers'] = {
         for (final key in schema.headers!.fields.keys)
-          key: context.request.headers[key]
+          key: context.request.headers[key],
       };
     }
     if (schema.session != null) {
@@ -259,10 +304,11 @@ class RequestHandler extends Handler {
     context.request.params.addAll(result['params'] ?? {});
     context.request.query.addAll(result['query'] ?? {});
     config.tracerService.addEvent(
-        name: TraceEvents.onParse,
-        request: context.request,
-        context: context,
-        traced: 'r-${route.runtimeType}');
+      name: TraceEvents.onParse,
+      request: context.request,
+      context: context,
+      traced: 'r-${route.runtimeType}',
+    );
     return body;
   }
 
@@ -270,40 +316,51 @@ class RequestHandler extends Handler {
   Future<void> executeBeforeHandle(RequestContext context, Route route) async {
     for (final hook in config.hooks.beforeHooks) {
       config.tracerService.addEvent(
-          name: TraceEvents.onBeforeHandle,
-          request: context.request,
-          context: context,
-          traced: 'h-${hook.runtimeType}');
+        name: TraceEvents.onBeforeHandle,
+        request: context.request,
+        context: context,
+        traced: 'h-${hook.runtimeType}',
+      );
       await hook.beforeHandle(context);
       config.tracerService.addEvent(
-          name: TraceEvents.onBeforeHandle,
-          request: context.request,
-          context: context,
-          traced: 'h-${hook.runtimeType}');
+        name: TraceEvents.onBeforeHandle,
+        request: context.request,
+        context: context,
+        traced: 'h-${hook.runtimeType}',
+      );
     }
     if (route is OnBeforeHandle) {
       config.tracerService.addEvent(
-          name: TraceEvents.onBeforeHandle,
-          request: context.request,
-          context: context,
-          traced: 'r-${route.runtimeType}');
+        name: TraceEvents.onBeforeHandle,
+        request: context.request,
+        context: context,
+        traced: 'r-${route.runtimeType}',
+      );
       await (route as OnBeforeHandle).beforeHandle(context);
       config.tracerService.addEvent(
-          name: TraceEvents.onBeforeHandle,
-          request: context.request,
-          context: context,
-          traced: 'r-${route.runtimeType}');
+        name: TraceEvents.onBeforeHandle,
+        request: context.request,
+        context: context,
+        traced: 'r-${route.runtimeType}',
+      );
     }
   }
 
   /// Executes the [handler] from the route
-  Future<Object?> executeHandler(RequestContext context, Route route,
-      Object handler, bool isStatic, dynamic bodyValue, Type? body) async {
+  Future<Object?> executeHandler(
+    RequestContext context,
+    Route route,
+    Object handler,
+    bool isStatic,
+    dynamic bodyValue,
+    Type? body,
+  ) async {
     config.tracerService.addEvent(
-        name: TraceEvents.onHandle,
-        request: context.request,
-        context: context,
-        traced: 'r-${route.runtimeType}');
+      name: TraceEvents.onHandle,
+      request: context.request,
+      context: context,
+      traced: 'r-${route.runtimeType}',
+    );
     Object? result;
     if (isStatic) {
       result = handler;
@@ -319,7 +376,7 @@ class RequestHandler extends Handler {
         result = Function.apply(handler, [
           context,
           if (bodyValue != null) bodyValue,
-          ...context.params.values
+          ...context.params.values,
         ]);
         if (result is Future) {
           result = await result;
@@ -327,41 +384,49 @@ class RequestHandler extends Handler {
       }
     }
     config.tracerService.addEvent(
-        name: TraceEvents.onHandle,
-        request: context.request,
-        context: context,
-        traced: 'r-${route.runtimeType}');
+      name: TraceEvents.onHandle,
+      request: context.request,
+      context: context,
+      traced: 'r-${route.runtimeType}',
+    );
     return result;
   }
 
   /// Executes the [onAfterHandle] hook from the route
   Future<void> executeAfterHandle(
-      RequestContext context, Route route, Object? result) async {
+    RequestContext context,
+    Route route,
+    Object? result,
+  ) async {
     if (route is OnAfterHandle) {
       config.tracerService.addEvent(
-          name: TraceEvents.onAfterHandle,
-          request: context.request,
-          context: context,
-          traced: 'r-${route.runtimeType}');
+        name: TraceEvents.onAfterHandle,
+        request: context.request,
+        context: context,
+        traced: 'r-${route.runtimeType}',
+      );
       await (route as OnAfterHandle).afterHandle(context, result);
       config.tracerService.addEvent(
-          name: TraceEvents.onAfterHandle,
-          request: context.request,
-          context: context,
-          traced: 'r-${route.runtimeType}');
+        name: TraceEvents.onAfterHandle,
+        request: context.request,
+        context: context,
+        traced: 'r-${route.runtimeType}',
+      );
     }
     for (final hook in config.hooks.afterHooks) {
       config.tracerService.addEvent(
-          name: TraceEvents.onAfterHandle,
-          request: context.request,
-          context: context,
-          traced: 'h-${hook.runtimeType}');
+        name: TraceEvents.onAfterHandle,
+        request: context.request,
+        context: context,
+        traced: 'h-${hook.runtimeType}',
+      );
       await hook.afterHandle(context, result);
       config.tracerService.addEvent(
-          name: TraceEvents.onAfterHandle,
-          request: context.request,
-          context: context,
-          traced: 'h-${hook.runtimeType}');
+        name: TraceEvents.onAfterHandle,
+        request: context.request,
+        context: context,
+        traced: 'h-${hook.runtimeType}',
+      );
     }
   }
 
@@ -393,7 +458,8 @@ class RequestHandler extends Handler {
     if (body == FormData) {
       if (context.body.formData == null) {
         throw PreconditionFailedException(
-            message: 'The body is not a form data');
+          message: 'The body is not a form data',
+        );
       }
       return context.body.formData;
     }
@@ -402,9 +468,11 @@ class RequestHandler extends Handler {
         if (context.body.formData != null) {
           return config.modelProvider!.from(body, {
             ...context.body.formData!.fields,
-            ...Map<String, dynamic>.fromEntries(context
-                .body.formData!.files.entries
-                .map((e) => MapEntry(e.key, e.value.toJson()))),
+            ...Map<String, dynamic>.fromEntries(
+              context.body.formData!.files.entries.map(
+                (e) => MapEntry(e.key, e.value.toJson()),
+              ),
+            ),
           });
         }
         if (context.body.json != null) {
@@ -418,7 +486,8 @@ class RequestHandler extends Handler {
         }
       } catch (e) {
         throw PreconditionFailedException(
-            message: 'The body cannot be converted to a valid model');
+          message: 'The body cannot be converted to a valid model',
+        );
       }
     }
   }

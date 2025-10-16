@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+
+- fix: add sigterm and sighup to correctly handle termination signals in the application. [#192](https://github.com/francescovallone/serinus/pulls/192) by [mdex-geek](https://github.com/mdex-geek)
+
 ## 1.0.5
 
 - fix: reinstantiate module providers on deferred provider add to it

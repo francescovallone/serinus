@@ -50,7 +50,8 @@ class TracersService {
   }) {
     if (context?.request == null && request == null) {
       throw ArgumentError(
-          'Either the RequestContext or the Request must be provided');
+        'Either the RequestContext or the Request must be provided',
+      );
     }
     if (_tracers.isEmpty) {
       return;
@@ -64,10 +65,11 @@ class TracersService {
       return;
     }
     final event = TraceEvent(
-        name: name.name,
-        request: context?.request ?? request,
-        context: context,
-        traced: traced);
+      name: name.name,
+      request: context?.request ?? request,
+      context: context,
+      traced: traced,
+    );
     if (name.name == TraceEvents.onRequestReceived.name) {
       _completers[(context?.request ?? request)!] = Completer<void>();
       event.endAt = DateTime.now();
@@ -95,10 +97,11 @@ class TracersService {
       return;
     }
     final event = TraceEvent(
-        name: name,
-        request: context?.request ?? request,
-        context: context,
-        traced: traced);
+      name: name,
+      request: context?.request ?? request,
+      context: context,
+      traced: traced,
+    );
     _events[(context?.request ?? request)!]?[name] = event;
   }
 

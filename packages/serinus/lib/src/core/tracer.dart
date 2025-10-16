@@ -124,7 +124,7 @@ enum TraceEvents {
   /// The onRequestReceived event.
   /// This event is triggered when a request is received.
   /// �
-  onRequestReceived
+  onRequestReceived,
 }
 
 /// Traces a function.

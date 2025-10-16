@@ -20,7 +20,7 @@ enum RequestEvent {
   error,
 
   /// All events.
-  all
+  all,
 }
 
 /// The [ResponseProperties] class is used to store the properties of a response.

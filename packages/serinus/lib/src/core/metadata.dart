@@ -9,10 +9,7 @@ class Metadata<T> {
   final T value;
 
   /// The [Metadata] constructor is used to create a new instance of the [Metadata] class.
-  const Metadata({
-    required this.name,
-    required this.value,
-  });
+  const Metadata({required this.name, required this.value});
 
   @override
   String toString() => 'Metadata($name)';
@@ -24,17 +21,11 @@ class Metadata<T> {
 class ContextualizedMetadata<T>
     extends Metadata<Future<T> Function(BaseContext)> {
   /// The [ContextualizedMetadata] constructor is used to create a new instance of the [ContextualizedMetadata] class.
-  const ContextualizedMetadata({
-    required super.value,
-    required super.name,
-  });
+  const ContextualizedMetadata({required super.value, required super.name});
 
   /// The [resolve] method is used to resolve the metadata.
   Future<Metadata<T>> resolve(BaseContext context) async {
-    return Metadata<T>(
-      name: name,
-      value: await value(context),
-    );
+    return Metadata<T>(name: name, value: await value(context));
   }
 
   @override

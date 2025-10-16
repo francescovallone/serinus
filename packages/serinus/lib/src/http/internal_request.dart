@@ -65,10 +65,11 @@ class InternalRequest {
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
   factory InternalRequest.from(HttpRequest request, int port, String host) {
     return InternalRequest(
-        headers: SerinusHeaders(request),
-        original: request,
-        port: port,
-        host: host);
+      headers: SerinusHeaders(request),
+      original: request,
+      port: port,
+      host: host,
+    );
   }
 
   /// The [cookies] property contains the cookies of the request
@@ -79,8 +80,10 @@ class InternalRequest {
       StreamController.broadcast(sync: true);
 
   /// This method is used to listen to a request event.
-  void on(RequestEvent event,
-      Future<void> Function(RequestEvent, EventData) listener) {
+  void on(
+    RequestEvent event,
+    Future<void> Function(RequestEvent, EventData) listener,
+  ) {
     _events.stream.listen((e) {
       if (e.$1 == event || e.$1 == RequestEvent.all) {
         listener(e.$1, e.$2);
@@ -204,8 +207,10 @@ class InternalRequest {
     if (connection == null) {
       return false;
     }
-    final tokens =
-        connection.toLowerCase().split(',').map((token) => token.trim());
+    final tokens = connection
+        .toLowerCase()
+        .split(',')
+        .map((token) => token.trim());
     if (!tokens.contains('upgrade')) {
       return false;
     }
@@ -220,14 +225,16 @@ class InternalRequest {
     final version = original.headers.value('Sec-WebSocket-Version');
     if (version == null) {
       throw BadRequestException(
-          message: 'missing Sec-WebSocket-Version header.');
+        message: 'missing Sec-WebSocket-Version header.',
+      );
     } else if (version != '13') {
       return false;
     }
 
     if (original.protocolVersion != '1.1') {
       throw BadRequestException(
-          message: 'unexpected HTTP version "${original.protocolVersion}".');
+        message: 'unexpected HTTP version "${original.protocolVersion}".',
+      );
     }
 
     final key = original.headers.value('Sec-WebSocket-Key');

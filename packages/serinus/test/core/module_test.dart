@@ -18,110 +18,128 @@ class TestProviderExported extends Provider {
 }
 
 final config = ApplicationConfig(
+  host: 'localhost',
+  port: 3000,
+  poweredByHeader: 'Powered by Serinus',
+  securityContext: null,
+  serverAdapter: SerinusHttpAdapter(
     host: 'localhost',
     port: 3000,
     poweredByHeader: 'Powered by Serinus',
-    securityContext: null,
-    serverAdapter: SerinusHttpAdapter(
-      host: 'localhost',
-      port: 3000,
-      poweredByHeader: 'Powered by Serinus',
-    ));
+  ),
+);
 
 void main() async {
   Logger.setLogLevels({LogLevel.none});
   group('$Module', () {
-    test('''registerModules should register all the submodules as well''',
-        () async {
-      final container = ModulesContainer(config);
-      final module = TestModule(imports: [TestSubModule()]);
-      await container.registerModules(module);
+    test(
+      '''registerModules should register all the submodules as well''',
+      () async {
+        final container = ModulesContainer(config);
+        final module = TestModule(imports: [TestSubModule()]);
+        await container.registerModules(module);
 
-      await container.finalize(module);
+        await container.finalize(module);
 
-      expect(container.scopes.length, 2);
-    });
+        expect(container.scopes.length, 2);
+      },
+    );
 
     test(
-        '''registerModules should throw a $InitializationError when the entrypoint has exports
-        ''', () async {
-      final container = ModulesContainer(config);
+      '''registerModules should throw a $InitializationError when the entrypoint has exports
+        ''',
+      () async {
+        final container = ModulesContainer(config);
 
-      container
-          .registerModules(
-            TestModule(
+        container
+            .registerModules(
+              TestModule(
                 imports: [TestSubModule()],
                 providers: [TestProviderExported()],
-                exports: [TestProviderExported]),
-          )
-          .catchError(
-              (value) => expect(value.runtimeType, InitializationError));
-    });
+                exports: [TestProviderExported],
+              ),
+            )
+            .catchError(
+              (value) => expect(value.runtimeType, InitializationError),
+            );
+      },
+    );
 
     test(
-        '''registerModules should throw a $InitializationError when the module imports itself
-        ''', () async {
-      final container = ModulesContainer(config);
+      '''registerModules should throw a $InitializationError when the module imports itself
+        ''',
+      () async {
+        final container = ModulesContainer(config);
 
-      container
-          .registerModules(
-            TestModule(
-              imports: [TestModule()],
-            ),
-          )
-          .catchError(
-              (value) => expect(value.runtimeType, InitializationError));
-    });
-
-    test(
-        '''registerModules should throw a $InitializationError when the module exports a provider that is not registered''',
-        () async {
-      final container = ModulesContainer(config);
-      final entrypoint = TestModule(
-        imports: [
-          TestSubModule(exports: [TestProviderExported])
-        ],
-      );
-      await container.registerModules(entrypoint);
-
-      container.finalize(entrypoint).catchError(
-          (value) => expect(value.runtimeType, InitializationError));
-    });
+        container
+            .registerModules(TestModule(imports: [TestModule()]))
+            .catchError(
+              (value) => expect(value.runtimeType, InitializationError),
+            );
+      },
+    );
 
     test(
-        '''getModuleByToken should throw an ArgumentError when the token is not found
-        ''', () async {
-      final container = ModulesContainer(config);
+      '''registerModules should throw a $InitializationError when the module exports a provider that is not registered''',
+      () async {
+        final container = ModulesContainer(config);
+        final entrypoint = TestModule(
+          imports: [
+            TestSubModule(exports: [TestProviderExported]),
+          ],
+        );
+        await container.registerModules(entrypoint);
 
-      expect(() => container.getModuleByToken('test'),
-          throwsA(isA<ArgumentError>()));
-    });
+        container
+            .finalize(entrypoint)
+            .catchError(
+              (value) => expect(value.runtimeType, InitializationError),
+            );
+      },
+    );
 
     test(
-        '''getParents should return an empty list when the module does not have parents
-        ''', () async {
-      final container = ModulesContainer(config);
+      '''getModuleByToken should throw an ArgumentError when the token is not found
+        ''',
+      () async {
+        final container = ModulesContainer(config);
 
-      final module = TestModule();
-      final parents = container.getParents(module);
-
-      expect(parents, []);
-    });
+        expect(
+          () => container.getModuleByToken('test'),
+          throwsA(isA<ArgumentError>()),
+        );
+      },
+    );
 
     test(
-        '''getParents should return the parent module when the module has a parent
-        ''', () async {
-      final container = ModulesContainer(config);
-      final subModule = TestSubModule();
-      final module = TestModule(imports: [subModule]);
+      '''getParents should return an empty list when the module does not have parents
+        ''',
+      () async {
+        final container = ModulesContainer(config);
 
-      await container.registerModules(module);
+        final module = TestModule();
+        final parents = container.getParents(module);
 
-      await container.finalize(module);
+        expect(parents, []);
+      },
+    );
 
-      final parents = container.getParents(subModule);
+    test(
+      '''getParents should return the parent module when the module has a parent
+        ''',
+      () async {
+        final container = ModulesContainer(config);
+        final subModule = TestSubModule();
+        final module = TestModule(imports: [subModule]);
 
-      expect(parents, [module]);
-    });
+        await container.registerModules(module);
+
+        await container.finalize(module);
+
+        final parents = container.getParents(subModule);
+
+        expect(parents, [module]);
+      },
+    );
   });
 }

@@ -5,10 +5,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
-  const TestRoute({
-    required super.path,
-    super.method = HttpMethod.get,
-  });
+  const TestRoute({required super.path, super.method = HttpMethod.get});
 }
 
 class TestJsonObject with JsonObject {
@@ -25,8 +22,12 @@ class TestController extends Controller {
 }
 
 class TestModule extends Module {
-  TestModule(
-      {super.controllers, super.imports, super.providers, super.exports});
+  TestModule({
+    super.controllers,
+    super.imports,
+    super.providers,
+    super.exports,
+  });
 }
 
 void main() {
@@ -35,9 +36,10 @@ void main() {
     final controller = TestController();
     setUpAll(() async {
       app = await serinus.createApplication(
-          port: 3010,
-          entrypoint: TestModule(controllers: [controller]),
-          logLevels: {LogLevel.none});
+        port: 3010,
+        entrypoint: TestModule(controllers: [controller]),
+        logLevels: {LogLevel.none},
+      );
       app?.use(BodySizeLimitHook(maxSize: 5));
       await app?.serve();
     });
@@ -45,14 +47,16 @@ void main() {
       await app?.close();
     });
     test(
-        'When the request body exceeds the limit, then the request should be rejected',
-        () async {
-      final request =
-          await HttpClient().postUrl(Uri.parse('http://localhost:3010'));
-      request.add(utf8.encode(jsonEncode({'id': 'json-obj'})));
-      final response = await request.close();
-      expect(response, isA<HttpClientResponse>());
-      expect(response.statusCode, 413);
-    });
+      'When the request body exceeds the limit, then the request should be rejected',
+      () async {
+        final request = await HttpClient().postUrl(
+          Uri.parse('http://localhost:3010'),
+        );
+        request.add(utf8.encode(jsonEncode({'id': 'json-obj'})));
+        final response = await request.close();
+        expect(response, isA<HttpClientResponse>());
+        expect(response.statusCode, 413);
+      },
+    );
   });
 }

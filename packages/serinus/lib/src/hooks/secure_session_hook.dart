@@ -17,9 +17,7 @@ class SecureSessionHook extends Hook with OnRequestResponse {
   late SecureSession _secureSession;
 
   /// The [SecureSessionHook] constructor is used to create a new instance of the [SecureSessionHook] class.
-  SecureSessionHook({
-    required List<SessionOptions> options,
-  }) {
+  SecureSessionHook({required List<SessionOptions> options}) {
     _secureSession = SecureSession(options: options);
   }
 
@@ -31,26 +29,31 @@ class SecureSessionHook extends Hook with OnRequestResponse {
 
   @override
   Future<void> onResponse(
-      Request request, dynamic data, ResponseProperties properties) async {
+    Request request,
+    dynamic data,
+    ResponseProperties properties,
+  ) async {
     for (final option in _secureSession.options) {
       final name = option.cookieName ?? option.defaultSessionName;
       final session = _secureSession.get(name);
       if (session != null) {
         properties.cookies.add(
-            Cookie(name, base64.encode((session.value as String).codeUnits))
-              ..maxAge = session.ttl ~/ 1000
-              ..expires =
-                  DateTime.now().add(Duration(milliseconds: session.ttl))
-              ..httpOnly = option.cookieOptions.httpOnly
-              ..secure = option.cookieOptions.secure
-              ..sameSite = option.cookieOptions.sameSite
-              ..domain = option.cookieOptions.domain
-              ..path = option.cookieOptions.path);
+          Cookie(name, base64.encode((session.value as String).codeUnits))
+            ..maxAge = session.ttl ~/ 1000
+            ..expires = DateTime.now().add(Duration(milliseconds: session.ttl))
+            ..httpOnly = option.cookieOptions.httpOnly
+            ..secure = option.cookieOptions.secure
+            ..sameSite = option.cookieOptions.sameSite
+            ..domain = option.cookieOptions.domain
+            ..path = option.cookieOptions.path,
+        );
         continue;
       }
-      properties.cookies.add(Cookie(name, '')
-        ..maxAge = 0
-        ..expires = DateTime.now());
+      properties.cookies.add(
+        Cookie(name, '')
+          ..maxAge = 0
+          ..expires = DateTime.now(),
+      );
     }
   }
 }

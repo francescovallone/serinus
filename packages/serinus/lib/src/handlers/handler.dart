@@ -27,7 +27,9 @@ abstract class Handler {
   /// Handles the request and sends the response
   /// This method is responsible for handling the request.
   Future<void> handle(
-      InternalRequest request, InternalResponse response) async {
+    InternalRequest request,
+    InternalResponse response,
+  ) async {
     try {
       await handleRequest(request, response);
     } on SerinusException catch (e) {
@@ -50,8 +52,12 @@ abstract class Handler {
       for (final hook in config.hooks.exceptionHooks) {
         await hook.onException(currentContext, e);
       }
-      final resHandler =
-          ResponseHandler(response, currentContext, config, null);
+      final resHandler = ResponseHandler(
+        response,
+        currentContext,
+        config,
+        null,
+      );
       await resHandler.handle(error);
       return;
     }
@@ -61,11 +67,16 @@ abstract class Handler {
   ///
   /// This is the method to be implemented by the handler
   Future<void> handleRequest(
-      InternalRequest request, InternalResponse response);
+    InternalRequest request,
+    InternalResponse response,
+  );
 
   /// Build the request context from the request and body
-  RequestContext buildRequestContext(Iterable<Provider> providers,
-      Request request, InternalResponse response) {
+  RequestContext buildRequestContext(
+    Iterable<Provider> providers,
+    Request request,
+    InternalResponse response,
+  ) {
     return RequestContext(
       {for (final provider in providers) provider.runtimeType: provider},
       config.hooks.services,

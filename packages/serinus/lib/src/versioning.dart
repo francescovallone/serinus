@@ -27,7 +27,10 @@ final class VersioningOptions {
   VersioningOptions({required this.type, this.version = 1, this.header}) {
     if (version < 1) {
       throw ArgumentError.value(
-          version, 'version', 'Version must be greater than 0');
+        version,
+        'version',
+        'Version must be greater than 0',
+      );
     }
     if (type == VersioningType.header && header == null) {
       throw ArgumentError.notNull('header');

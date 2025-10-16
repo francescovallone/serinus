@@ -6,10 +6,7 @@ import 'dart:io';
 import 'package:serinus/serinus.dart';
 
 class TestProvider extends Provider {
-  final List<String> testList = [
-    'Hello',
-    'World',
-  ];
+  final List<String> testList = ['Hello', 'World'];
 
   TestProvider({super.isGlobal});
 
@@ -66,29 +63,42 @@ class TestProviderFour extends Provider with OnApplicationInit {
 
 class CircularDependencyModule extends Module {
   CircularDependencyModule()
-      : super(imports: [], controllers: [], providers: [
-          Provider.deferred((TestProvider tp) => TestProviderThree(tp),
-              inject: [TestProvider], type: TestProviderThree),
-        ], exports: [
-          TestProviderThree
-        ], middlewares: []);
+    : super(
+        imports: [],
+        controllers: [],
+        providers: [
+          Provider.deferred(
+            (TestProvider tp) => TestProviderThree(tp),
+            inject: [TestProvider],
+            type: TestProviderThree,
+          ),
+        ],
+        exports: [TestProviderThree],
+        middlewares: [],
+      );
 }
 
 class AnotherModule extends Module {
   AnotherModule()
-      : super(imports: [
-          CircularDependencyModule()
-        ], controllers: [], providers: [
-          Provider.deferred((TestProviderThree tp) => TestProviderTwo(tp),
-              inject: [TestProviderThree], type: TestProviderTwo),
+    : super(
+        imports: [CircularDependencyModule()],
+        controllers: [],
+        providers: [
           Provider.deferred(
-              (TestProviderTwo tp, TestProviderThree t) =>
-                  TestProviderFour(t, tp),
-              inject: [TestProviderTwo, TestProviderThree],
-              type: TestProviderFour),
-        ], middlewares: [], exports: [
-          TestProviderFour
-        ]);
+            (TestProviderThree tp) => TestProviderTwo(tp),
+            inject: [TestProviderThree],
+            type: TestProviderTwo,
+          ),
+          Provider.deferred(
+            (TestProviderTwo tp, TestProviderThree t) =>
+                TestProviderFour(t, tp),
+            inject: [TestProviderTwo, TestProviderThree],
+            type: TestProviderFour,
+          ),
+        ],
+        middlewares: [],
+        exports: [TestProviderFour],
+      );
 }
 
 class WsGateway extends WebSocketGateway {
@@ -102,18 +112,12 @@ class WsGateway extends WebSocketGateway {
 
 class AppModule extends Module {
   AppModule()
-      : super(imports: [
-          AnotherModule(),
-          WsModule(),
-          CircularDependencyModule()
-        ], controllers: [
-          AppController()
-        ], providers: [
-          WsGateway(),
-          TestProvider(isGlobal: true),
-        ], middlewares: [
-          LogMiddleware()
-        ]);
+    : super(
+        imports: [AnotherModule(), WsModule(), CircularDependencyModule()],
+        controllers: [AppController()],
+        providers: [WsGateway(), TestProvider(isGlobal: true)],
+        middlewares: [LogMiddleware()],
+      );
 }
 
 class LogMiddleware extends Middleware {
@@ -126,9 +130,12 @@ class LogMiddleware extends Middleware {
   Future<void> use(RequestContext context, NextFunction next) {
     context.request.on(RequestEvent.error, (event, data) async {
       logger.severe(
-          'Error occurred',
-          OptionalParameters(
-              error: data.exception, stackTrace: StackTrace.current));
+        'Error occurred',
+        OptionalParameters(
+          error: data.exception,
+          stackTrace: StackTrace.current,
+        ),
+      );
     });
     return next();
   }
@@ -147,9 +154,10 @@ class AppController extends Controller {
 
 void main(List<String> arguments) async {
   final application = await serinus.createApplication(
-      entrypoint: AppModule(),
-      host: InternetAddress.anyIPv4.address,
-      logger: ConsoleLogger(prefix: 'Serinus New Logger'));
+    entrypoint: AppModule(),
+    host: InternetAddress.anyIPv4.address,
+    logger: ConsoleLogger(prefix: 'Serinus New Logger'),
+  );
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());
   await application.serve();

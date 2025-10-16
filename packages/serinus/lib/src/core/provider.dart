@@ -11,9 +11,11 @@ abstract class Provider {
   ///
   /// The [init] function is called when the provider is initialized.
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
-  factory Provider.deferred(Function init,
-          {required List<Type> inject, required Type type}) =>
-      DeferredProvider(init, inject: inject, type: type);
+  factory Provider.deferred(
+    Function init, {
+    required List<Type> inject,
+    required Type type,
+  }) => DeferredProvider(init, inject: inject, type: type);
 
   @override
   String toString() => '$runtimeType(isGlobal: $isGlobal)';

@@ -56,10 +56,7 @@ class ServerTimingTracer extends Tracer {
 }
 
 class TestRoute extends Route {
-  const TestRoute({
-    required super.path,
-    super.method = HttpMethod.get,
-  });
+  const TestRoute({required super.path, super.method = HttpMethod.get});
 }
 
 class TestJsonObject with JsonObject {
@@ -120,10 +117,13 @@ void main() {
     final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
-          entrypoint:
-              TestModule(controllers: [controller], middlewares: [middleware]),
-          port: 4000,
-          logLevels: {LogLevel.none});
+        entrypoint: TestModule(
+          controllers: [controller],
+          middlewares: [middleware],
+        ),
+        port: 4000,
+        logLevels: {LogLevel.none},
+      );
       app?.trace(ServerTimingTracer());
       await app?.serve();
     });
@@ -132,14 +132,18 @@ void main() {
     });
 
     test(
-        'when a request is made, then the tracer should set the duration header',
-        () async {
-      final request =
-          await HttpClient().getUrl(Uri.parse('http://localhost:4000/'));
-      final response = await request.close();
-      expect(response.headers.value('duration'), isNotNull);
-      expect(int.tryParse(response.headers.value('duration') ?? ''),
-          greaterThanOrEqualTo(1));
-    });
+      'when a request is made, then the tracer should set the duration header',
+      () async {
+        final request = await HttpClient().getUrl(
+          Uri.parse('http://localhost:4000/'),
+        );
+        final response = await request.close();
+        expect(response.headers.value('duration'), isNotNull);
+        expect(
+          int.tryParse(response.headers.value('duration') ?? ''),
+          greaterThanOrEqualTo(1),
+        );
+      },
+    );
   });
 }

@@ -23,9 +23,9 @@ final class ModulesContainer {
 
   /// The providers available in the application
   Iterable<Provider> get allProviders => {
-        ..._providers.values,
-        ...globalProviders,
-      };
+    ..._providers.values,
+    ...globalProviders,
+  };
 
   /// The [inspector] property contains the graph inspector of the application
   late final GraphInspector inspector;
@@ -67,10 +67,7 @@ final class ModulesContainer {
 
   /// The constructor of the [ModulesContainer] class
   ModulesContainer(this.config) {
-    inspector = GraphInspector(
-      SerializedGraph(),
-      this,
-    );
+    inspector = GraphInspector(SerializedGraph(), this);
   }
 
   /// The [moduleToken] method is used to get the token of a module
@@ -88,8 +85,9 @@ final class ModulesContainer {
 
     _scopes[token] = currentScope;
     _scopedControllers.addAll(
-      currentScope.controllers.map((controller) =>
-          (module: currentScope.module, controller: controller)),
+      currentScope.controllers.map(
+        (controller) => (module: currentScope.module, controller: controller),
+      ),
     );
     final split = currentScope.module.providers.splitBy<DeferredProvider>();
     for (final provider in split.notOfType) {
@@ -122,12 +120,11 @@ final class ModulesContainer {
       );
       _scopedProviders[provider.runtimeType] = currentScope;
     }
-    currentScope.extend(
-      providers: split.notOfType,
-    );
+    currentScope.extend(providers: split.notOfType);
     _deferredProviders[token] = split.ofType;
     logger.info(
-        'Initializing ${currentScope.module.runtimeType}${currentScope.module.token.isNotEmpty ? '(${currentScope.token})' : ''} dependencies.');
+      'Initializing ${currentScope.module.runtimeType}${currentScope.module.token.isNotEmpty ? '(${currentScope.token})' : ''} dependencies.',
+    );
     for (final subModule in currentScope.imports) {
       await registerModules(subModule);
       final subModuleToken = moduleToken(subModule);
@@ -156,14 +153,15 @@ final class ModulesContainer {
     }
     final token = moduleToken(entrypoint);
     final currentScope = ModuleScope(
-        module: entrypoint,
-        token: token,
-        providers: {},
-        exports: {...entrypoint.exports},
-        middlewares: {...entrypoint.middlewares},
-        controllers: {...entrypoint.controllers},
-        imports: {...entrypoint.imports},
-        importedBy: {});
+      module: entrypoint,
+      token: token,
+      providers: {},
+      exports: {...entrypoint.exports},
+      middlewares: {...entrypoint.middlewares},
+      controllers: {...entrypoint.controllers},
+      imports: {...entrypoint.imports},
+      importedBy: {},
+    );
     if (entrypointToken == token && currentScope.exports.isNotEmpty) {
       throw InitializationError('The entrypoint module cannot have exports');
     }
@@ -212,9 +210,7 @@ final class ModulesContainer {
   /// Finalizes the registration of the deferred providers
   Future<void> finalize(Module entrypoint) async {
     for (final scope in _scopes.values) {
-      scope.extend(
-        providers: globalProviders,
-      );
+      scope.extend(providers: globalProviders);
     }
     await initializeDeferredProviders(entrypoint);
     await resolveProvidersDependencies();
@@ -231,22 +227,26 @@ final class ModulesContainer {
         final dependencies = canInit(provider.inject);
         if (dependencies.isNotEmpty) {
           checkForCircularDependencies(provider, parentModule, dependencies);
-          _providerDependencies.add(_ProviderDependencies(
-            provider: provider,
-            module: parentModule,
-            dependencies: dependencies.toSet(),
-          ));
+          _providerDependencies.add(
+            _ProviderDependencies(
+              provider: provider,
+              module: parentModule,
+              dependencies: dependencies.toSet(),
+            ),
+          );
           continue;
         }
         if (dependencies.isEmpty && provider.inject.isNotEmpty) {
           final dependencies = canInit(provider.inject);
           if (dependencies.isNotEmpty) {
             checkForCircularDependencies(provider, parentModule, dependencies);
-            _providerDependencies.add(_ProviderDependencies(
-              provider: provider,
-              module: parentModule,
-              dependencies: dependencies.toSet(),
-            ));
+            _providerDependencies.add(
+              _ProviderDependencies(
+                provider: provider,
+                module: parentModule,
+                dependencies: dependencies.toSet(),
+              ),
+            );
             continue;
           }
         }
@@ -254,11 +254,12 @@ final class ModulesContainer {
         if (currentScope == null) {
           throw InitializationError('Module with token $token not found');
         }
-        final initializedProviders = currentScope.providers
-            .where((e) => provider.inject.contains(e.runtimeType));
-        final setDifferences = provider.inject
-            .toSet()
-            .difference(initializedProviders.map((e) => e.runtimeType).toSet());
+        final initializedProviders = currentScope.providers.where(
+          (e) => provider.inject.contains(e.runtimeType),
+        );
+        final setDifferences = provider.inject.toSet().difference(
+          initializedProviders.map((e) => e.runtimeType).toSet(),
+        );
         if (setDifferences.isNotEmpty) {
           final buffer = StringBuffer('Missing dependencies: \n');
           for (final inject in provider.inject.indexed) {
@@ -274,10 +275,13 @@ final class ModulesContainer {
             '$buffer',
           );
         }
-        Map<Type, Provider> dependenciesMap =
-            generateDependenciesMap(initializedProviders);
-        final result = await Function.apply(provider.init,
-            provider.inject.map((e) => dependenciesMap[e]).toList());
+        Map<Type, Provider> dependenciesMap = generateDependenciesMap(
+          initializedProviders,
+        );
+        final result = await Function.apply(
+          provider.init,
+          provider.inject.map((e) => dependenciesMap[e]).toList(),
+        );
         checkResultType(provider, result, module);
         await initIfUnregistered(result);
         module.providers = [...module.providers, result];
@@ -315,17 +319,20 @@ final class ModulesContainer {
           final parentScope = _scopes[importedBy];
           if (parentScope == null) {
             throw InitializationError(
-                'Module with token $importedBy not found');
+              'Module with token $importedBy not found',
+            );
           }
           parentScope.extend(
             providers: [
               for (final provider in currentScope.exports)
-                if (provider == result.runtimeType) result
+                if (provider == result.runtimeType) result,
             ],
           );
         }
-        _deferredProviders[token] = _deferredProviders[token]
-                ?.where((e) => e.hashCode != provider.hashCode) ??
+        _deferredProviders[token] =
+            _deferredProviders[token]?.where(
+              (e) => e.hashCode != provider.hashCode,
+            ) ??
             [];
         currentScope.instanceMetadata[result.runtimeType] = InstanceWrapper(
           name: provider.runtimeType.toString(),
@@ -357,7 +364,8 @@ final class ModulesContainer {
           final parentScope = _scopes[importedBy];
           if (parentScope == null) {
             throw InitializationError(
-                'Module with token $importedBy not found');
+              'Module with token $importedBy not found',
+            );
           }
           parentScope.instanceMetadata[result.runtimeType] =
               currentScope.instanceMetadata[result.runtimeType]!;
@@ -368,18 +376,24 @@ final class ModulesContainer {
 
   /// Checks the result type of the deferred provider
   void checkResultType(
-      DeferredProvider provider, dynamic result, Module module) {
+    DeferredProvider provider,
+    dynamic result,
+    Module module,
+  ) {
     if (result is DeferredProvider) {
       throw InitializationError(
-          '[${module.runtimeType}] A DeferredProvider cannot return another DeferredProvider');
+        '[${module.runtimeType}] A DeferredProvider cannot return another DeferredProvider',
+      );
     }
     if (result is! Provider) {
       throw InitializationError(
-          '[${module.runtimeType}] ${result.runtimeType} is not a Provider');
+        '[${module.runtimeType}] ${result.runtimeType} is not a Provider',
+      );
     }
     if (result.runtimeType != provider.type) {
       throw InitializationError(
-          '[${module.runtimeType}] ${result.runtimeType} has a different type than the expected type ${provider.type}');
+        '[${module.runtimeType}] ${result.runtimeType} has a different type than the expected type ${provider.type}',
+      );
     }
   }
 
@@ -411,10 +425,13 @@ final class ModulesContainer {
           'If the error persists, please check the logs for more information and open an issue on the repository.',
         );
       }
-      Map<Type, Provider> dependenciesMap =
-          generateDependenciesMap(initializedProviders);
-      final result = await Function.apply(provider.init,
-          provider.inject.map((e) => dependenciesMap[e]).toList());
+      Map<Type, Provider> dependenciesMap = generateDependenciesMap(
+        initializedProviders,
+      );
+      final result = await Function.apply(
+        provider.init,
+        provider.inject.map((e) => dependenciesMap[e]).toList(),
+      );
       checkResultType(provider, result, module);
       module.providers.add(result);
       await initIfUnregistered(result);
@@ -482,7 +499,7 @@ final class ModulesContainer {
         parentScope.extend(
           providers: [
             for (final provider in currentScope.exports)
-              if (provider == result.runtimeType) result
+              if (provider == result.runtimeType) result,
           ],
         );
         if (currentScope.instanceMetadata.containsKey(result.runtimeType)) {
@@ -516,7 +533,8 @@ final class ModulesContainer {
   Future<void> initIfUnregistered(Provider provider) async {
     if (_scopedProviders.containsKey(provider.runtimeType)) {
       throw InitializationError(
-          'The provider ${provider.runtimeType} is already registered in the application');
+        'The provider ${provider.runtimeType} is already registered in the application',
+      );
     }
     if (provider is OnApplicationInit) {
       await provider.onApplicationInit();
@@ -567,7 +585,10 @@ final class ModulesContainer {
 
   /// Checks for circular dependencies
   void checkForCircularDependencies(
-      DeferredProvider provider, Module parentModule, List<Type> dependencies) {
+    DeferredProvider provider,
+    Module parentModule,
+    List<Type> dependencies,
+  ) {
     final branchProviders = [
       ...parentModule.imports.map((e) => e.providers).flatten(),
       ...parentModule.providers,
@@ -577,14 +598,16 @@ final class ModulesContainer {
           dependencies.contains(p.type) &&
           p.inject.contains(provider.type)) {
         throw InitializationError(
-            '[${parentModule.runtimeType}] Circular dependency found in ${provider.type}');
+          '[${parentModule.runtimeType}] Circular dependency found in ${provider.type}',
+        );
       }
     }
   }
 
   /// Generates the dependencies map
   Map<Type, Provider> generateDependenciesMap(
-      Iterable<Provider> initializedProviders) {
+    Iterable<Provider> initializedProviders,
+  ) {
     Map<Type, Provider> dependenciesMap = {};
     for (final provider in initializedProviders) {
       dependenciesMap[provider.runtimeType] = provider;
@@ -646,15 +669,16 @@ class ModuleScope {
   }) {
     this.providers.addAll(this.providers.getMissingElements(providers ?? []));
     this.exports.addAllIfAbsent(this.exports.getMissingElements(exports ?? []));
-    this
-        .controllers
-        .addAllIfAbsent(this.controllers.getMissingElements(controllers ?? []));
-    this
-        .middlewares
-        .addAllIfAbsent(this.middlewares.getMissingElements(middlewares ?? []));
+    this.controllers.addAllIfAbsent(
+      this.controllers.getMissingElements(controllers ?? []),
+    );
+    this.middlewares.addAllIfAbsent(
+      this.middlewares.getMissingElements(middlewares ?? []),
+    );
     this.imports.addAllIfAbsent(this.imports.getMissingElements(imports ?? []));
     this.importedBy.addAllIfAbsent(
-        this.importedBy.getMissingElements(imports?.map((e) => e.token) ?? []));
+      this.importedBy.getMissingElements(imports?.map((e) => e.token) ?? []),
+    );
   }
 
   /// Extends the module scope with a dynamic module
@@ -675,7 +699,9 @@ class ModuleScope {
 
   /// Filters the guards by route
   Set<Middleware> filterMiddlewaresByRoute(
-      String path, Map<String, dynamic> params) {
+    String path,
+    Map<String, dynamic> params,
+  ) {
     Set<Middleware> executedMiddlewares = {};
     for (Middleware middleware in middlewares) {
       for (final route in middleware.routes) {

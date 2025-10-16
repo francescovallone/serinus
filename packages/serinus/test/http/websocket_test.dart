@@ -4,10 +4,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
-  const TestRoute({
-    required super.path,
-    super.method = HttpMethod.get,
-  });
+  const TestRoute({required super.path, super.method = HttpMethod.get});
 }
 
 class TestJsonObject with JsonObject {
@@ -18,8 +15,12 @@ class TestJsonObject with JsonObject {
 }
 
 class TestModule extends Module {
-  TestModule(
-      {super.controllers, super.imports, super.providers, super.exports});
+  TestModule({
+    super.controllers,
+    super.imports,
+    super.providers,
+    super.exports,
+  });
 }
 
 class WsGateway extends WebSocketGateway {
@@ -57,29 +58,36 @@ class WsGatewayMixins extends WebSocketGateway
 void main() {
   group('$WebSocket', () {
     test(
-        'when a module import the WsModule and use a WebSocketGateway it should possible to connect using a websocket',
-        () async {
-      final app = await serinus.createApplication(
-          entrypoint:
-              TestModule(imports: [WsModule()], providers: [WsGateway()]),
+      'when a module import the WsModule and use a WebSocketGateway it should possible to connect using a websocket',
+      () async {
+        final app = await serinus.createApplication(
+          entrypoint: TestModule(
+            imports: [WsModule()],
+            providers: [WsGateway()],
+          ),
           logLevels: {LogLevel.none},
-          port: 3004);
-      await app.serve();
-      final ws = await WebSocket.connect('ws://localhost:3004/');
-      ws.add('Hello from client');
-      final message = await ws.first;
-      expect(message, 'Hello from client');
-      await app.close();
-    });
+          port: 3004,
+        );
+        await app.serve();
+        final ws = await WebSocket.connect('ws://localhost:3004/');
+        ws.add('Hello from client');
+        final message = await ws.first;
+        expect(message, 'Hello from client');
+        await app.close();
+      },
+    );
 
     test(
       'when a module import the WsModule and use a WebSocketGateway and the path param is not null then the gateway should only accept connections on the specified path',
       () async {
         final app = await serinus.createApplication(
-            entrypoint: TestModule(
-                imports: [WsModule()], providers: [WsGateway(path: '/ws')]),
-            logLevels: {LogLevel.none},
-            port: 3001);
+          entrypoint: TestModule(
+            imports: [WsModule()],
+            providers: [WsGateway(path: '/ws')],
+          ),
+          logLevels: {LogLevel.none},
+          port: 3001,
+        );
         await app.serve();
         try {
           await WebSocket.connect('ws://localhost:3001/');
@@ -98,9 +106,10 @@ void main() {
       () async {
         final gateway = WsGatewayMixins(path: '/ws');
         final app = await serinus.createApplication(
-            entrypoint: TestModule(imports: [WsModule()], providers: [gateway]),
-            logLevels: {LogLevel.none},
-            port: 3002);
+          entrypoint: TestModule(imports: [WsModule()], providers: [gateway]),
+          logLevels: {LogLevel.none},
+          port: 3002,
+        );
         await app.serve();
         final ws = await WebSocket.connect('ws://localhost:3002/ws');
         ws.add('Hello from client');

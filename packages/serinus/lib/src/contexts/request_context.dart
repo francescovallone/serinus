@@ -34,7 +34,11 @@ class RequestContext extends BaseContext {
 
   /// The constructor of the [RequestContext] class.
   RequestContext(
-      super.providers, super.services, this.request, this._streamable);
+    super.providers,
+    super.services,
+    this.request,
+    this._streamable,
+  );
 
   /// The [streamable] property contains the streamable response of the request.
   final StreamableResponse _streamable;
@@ -85,8 +89,10 @@ final class Redirect {
   final int statusCode;
 
   /// The [Redirect] constructor.
-  const Redirect(this.location,
-      {this.statusCode = HttpStatus.movedTemporarily});
+  const Redirect(
+    this.location, {
+    this.statusCode = HttpStatus.movedTemporarily,
+  });
 }
 
 /// The [ResponseProperties] class is used to create the response properties.
@@ -103,7 +109,8 @@ final class ResponseProperties {
   set statusCode(int value) {
     if (value < 100 || value > 999) {
       throw ArgumentError(
-          'The status code must be between 100 and 999. $value is not a valid status code.');
+        'The status code must be between 100 and 999. $value is not a valid status code.',
+      );
     }
     _statusCode = value;
   }

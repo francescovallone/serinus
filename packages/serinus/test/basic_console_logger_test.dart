@@ -10,12 +10,18 @@ void main() {
   logger.warning('Test');
   logger.severe('Test');
   logger.shout(
-      'Test',
-      OptionalParameters(
-          error: Exception('Exception'), stackTrace: StackTrace.current));
+    'Test',
+    OptionalParameters(
+      error: Exception('Exception'),
+      stackTrace: StackTrace.current,
+    ),
+  );
   logger.shout(
-      'Test',
-      OptionalParameters(
-          error: BadRequestException(), stackTrace: StackTrace.current));
+    'Test',
+    OptionalParameters(
+      error: BadRequestException(),
+      stackTrace: StackTrace.current,
+    ),
+  );
   logger.verbose('Test');
 }

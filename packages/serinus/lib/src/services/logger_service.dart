@@ -157,9 +157,5 @@ final class OptionalParameters {
   String? context = '';
 
   /// The [OptionalParameters] constructor is used to create a new instance of the [OptionalParameters] class.
-  OptionalParameters({
-    this.error,
-    this.stackTrace,
-    this.metadata,
-  });
+  OptionalParameters({this.error, this.stackTrace, this.metadata});
 }

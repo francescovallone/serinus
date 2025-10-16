@@ -23,8 +23,10 @@ final class Explorer {
     final Logger logger = Logger('RoutesResolver');
     Map<Controller, _ControllerSpec> controllers = {
       for (final record in _modulesContainer.controllers)
-        record.controller:
-            _ControllerSpec(record.controller.path, record.module)
+        record.controller: _ControllerSpec(
+          record.controller.path,
+          record.module,
+        ),
     };
     for (var controller in controllers.entries) {
       if (controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))) {
@@ -32,7 +34,10 @@ final class Explorer {
       }
       logger.info('${controller.key.runtimeType} {${controller.value.path}}');
       exploreRoutes(
-          controller.key, controller.value.module, controller.value.path);
+        controller.key,
+        controller.value.module,
+        controller.value.path,
+      );
     }
   }
 
@@ -41,7 +46,10 @@ final class Explorer {
   /// It registers the routes in the router.
   /// It also logs the mapped routes.
   void exploreRoutes(
-      Controller controller, Module module, String controllerPath) {
+    Controller controller,
+    Module module,
+    String controllerPath,
+  ) {
     final logger = Logger('RoutesExplorer');
     final routes = controller.routes;
     final maybeUriVers = config.versioningOptions?.type == VersioningType.uri;
@@ -57,17 +65,20 @@ final class Explorer {
       }
       routePath = normalizePath(routePath);
       final routeMethod = spec.route.method;
-      _router.registerRoute(RouteData(
-        id: entry.key,
-        path: routePath,
-        controller: controller,
-        routeCls: spec.route.runtimeType,
-        method: routeMethod,
-        moduleToken:
-            module.token.isEmpty ? module.runtimeType.toString() : module.token,
-        isStatic: spec.handler is! Function,
-        spec: spec,
-      ));
+      _router.registerRoute(
+        RouteData(
+          id: entry.key,
+          path: routePath,
+          controller: controller,
+          routeCls: spec.route.runtimeType,
+          method: routeMethod,
+          moduleToken: module.token.isEmpty
+              ? module.runtimeType.toString()
+              : module.token,
+          isStatic: spec.handler is! Function,
+          spec: spec,
+        ),
+      );
       logger.info('Mapped {$routePath, $routeMethod} route');
     }
   }

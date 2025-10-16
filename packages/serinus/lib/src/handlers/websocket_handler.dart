@@ -16,10 +16,15 @@ class WebSocketHandler extends Handler {
 
   @override
   Future<void> handleRequest(
-      InternalRequest request, InternalResponse response) async {
+    InternalRequest request,
+    InternalResponse response,
+  ) async {
     final (:handlers, :onDoneHandlers) = await upgradeRequest(request);
-    (config.adapters[WsAdapter] as WsAdapter?)
-        ?.listen(handlers, onDone: onDoneHandlers, request: request);
+    (config.adapters[WsAdapter] as WsAdapter?)?.listen(
+      handlers,
+      onDone: onDoneHandlers,
+      request: request,
+    );
   }
 
   /// The [upgradeRequest] method is used to upgrade the request when a WebSocket request is received.
@@ -28,10 +33,9 @@ class WebSocketHandler extends Handler {
   ///
   /// It should not be overridden.
   Future<
-      ({
-        List<WsRequestHandler> handlers,
-        List<DisconnectHandler> onDoneHandlers,
-      })> upgradeRequest(InternalRequest request) async {
+    ({List<WsRequestHandler> handlers, List<DisconnectHandler> onDoneHandlers})
+  >
+  upgradeRequest(InternalRequest request) async {
     final providers = modulesContainer.getAll<WebSocketGateway>();
     final onDoneHandlers = <DisconnectHandler>[];
     final onMessageHandlers = <WsRequestHandler>[];
@@ -39,28 +43,33 @@ class WebSocketHandler extends Handler {
       if (provider.path != null && !request.uri.path.endsWith(provider.path!)) {
         continue;
       }
-      final providerModule =
-          modulesContainer.getScopeByProvider(provider.runtimeType);
+      final providerModule = modulesContainer.getScopeByProvider(
+        provider.runtimeType,
+      );
       final scopedProviders = providerModule.providers;
       scopedProviders.remove(provider);
       final context = WebSocketContext(
-          (config.adapters[WsAdapter] as WsAdapter?)!,
-          request.webSocketKey,
-          {
-            for (final provider in scopedProviders)
-              provider.runtimeType: provider
-          },
-          config.hooks.services,
-          Request(request),
-          provider.serializer);
-      (config.adapters[WsAdapter] as WsAdapter?)
-          ?.addContext(request.webSocketKey, context);
+        (config.adapters[WsAdapter] as WsAdapter?)!,
+        request.webSocketKey,
+        {
+          for (final provider in scopedProviders)
+            provider.runtimeType: provider,
+        },
+        config.hooks.services,
+        Request(request),
+        provider.serializer,
+      );
+      (config.adapters[WsAdapter] as WsAdapter?)?.addContext(
+        request.webSocketKey,
+        context,
+      );
       if (provider is OnClientConnect) {
         provider.onClientConnect(request.webSocketKey);
       }
       provider.server = (config.adapters[WsAdapter] as WsAdapter?);
-      var onDone =
-          provider is OnClientDisconnect ? provider.onClientDisconnect : null;
+      var onDone = provider is OnClientDisconnect
+          ? provider.onClientDisconnect
+          : null;
       if (onDone != null) {
         onDoneHandlers.add((onDone: onDone, clientId: request.webSocketKey));
       }
@@ -73,12 +82,10 @@ class WebSocketHandler extends Handler {
     }
     if (onMessageHandlers.isEmpty) {
       throw NotFoundException(
-          message: 'No WebSocketGateway found for this request');
+        message: 'No WebSocketGateway found for this request',
+      );
     }
     await (config.adapters[WsAdapter] as WsAdapter?)?.upgrade(request);
-    return (
-      handlers: onMessageHandlers,
-      onDoneHandlers: onDoneHandlers,
-    );
+    return (handlers: onMessageHandlers, onDoneHandlers: onDoneHandlers);
   }
 }
