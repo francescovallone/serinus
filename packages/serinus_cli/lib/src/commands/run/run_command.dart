@@ -78,7 +78,7 @@ class RunCommand extends Command<int> {
       } catch (e) {
         // If killing fails, log and force exit
         try {
-          _logger?.err('Failed to kill process on SIGINT: $e');
+          _logger.err('Failed to kill process on SIGINT: $e');
         } catch (_) {}
         exit(1);
       }
@@ -94,7 +94,7 @@ class RunCommand extends Command<int> {
         } catch (e) {
           // If killing fails, log and force exit
           try {
-            _logger?.err('Failed to kill process on SIGTERM: $e');
+            _logger.err('Failed to kill process on SIGTERM: $e');
           } catch (_) {}
           exit(1);
         }
@@ -114,7 +114,7 @@ class RunCommand extends Command<int> {
                 : File(path);
             return entity.existsSync() &&
                 FileSystemEntity.identicalSync(
-                    event.path, entity.absolute.path);
+                    event.path, entity.absolute.path,);
           });
       if (!shouldRestart) {
         return;
@@ -203,7 +203,7 @@ class RunCommand extends Command<int> {
       }
     } else {
       try {
-        process.kill(ProcessSignal.sigterm);
+        process.kill();
       } catch (_) {
         try {
           process.kill();
