@@ -83,8 +83,9 @@ class RunCommand extends Command<int> {
         try {
           final pids = await _pidsUsingPort(parsed);
           if (pids.isNotEmpty) {
-            _logger.info('Port $parsed is in use by PIDs: ${pids.join(', ')}');
-            _logger.info('Attempting to free port $parsed (user requested)');
+            _logger
+              ..info('Port $parsed is in use by PIDs: ${pids.join(', ')}')
+              ..info('Attempting to free port $parsed (user requested)');
             final ok = await _killPids(pids);
             if (!ok) {
               _logger.err('Failed to free port $parsed. Aborting start.');
