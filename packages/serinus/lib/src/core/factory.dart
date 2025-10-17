@@ -50,6 +50,9 @@ final class SerinusFactory {
       levels: logLevels,
       logger: logger,
     );
+    // Ensure shutdown hooks are always enabled so Ctrl+C and termination signals
+    // trigger a graceful close without requiring manual configuration.
+    app.enableShutdownHooks();
     return app;
   }
 }
