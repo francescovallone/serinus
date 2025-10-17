@@ -278,7 +278,7 @@ class RunCommand extends Command<int> {
         final result = await Process.run('netstat', ['-ano']);
         if (result.exitCode != 0) return [];
         final out = result.stdout as String;
-        final lines = out.split(RegExp(r"\r?\n"));
+        final lines = out.split(RegExp(r'\r?\n'));
         final pids = <int>{};
         for (final line in lines) {
           if (line.contains(':$port') && line.contains('LISTENING')) {
@@ -300,7 +300,7 @@ class RunCommand extends Command<int> {
         final result = await Process.run('lsof', ['-nP', '-i', ':$port']);
         if (result.exitCode != 0) return [];
         final out = result.stdout as String;
-        final lines = out.split(RegExp(r"\r?\n"));
+        final lines = out.split(RegExp(r'\r?\n'));
         final pids = <int>{};
         for (var i = 1; i < lines.length; i++) {
           final line = lines[i].trim();
