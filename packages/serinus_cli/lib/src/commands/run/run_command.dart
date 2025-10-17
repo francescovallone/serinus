@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+// import 'dart:isolate';
 
 import 'package:args/command_runner.dart';
 import 'package:mason/mason.dart';
@@ -26,6 +27,13 @@ class RunCommand extends Command<int> {
         'dev',
         help: 'Run your application in development mode',
         abbr: 'd',
+      )
+      ..addFlag(
+        'free-port',
+        help:
+            'If the configured port is in use, attempt to terminate the process holding it before starting (use with caution).',
+        abbr: 'f',
+        negatable: false,
       )
       ..addOption(
         'port',
@@ -67,6 +75,30 @@ class RunCommand extends Command<int> {
       return ExitCode.config.code;
     }
     final entrypoint = config.entrypoint ?? 'bin/main.dart';
+    final userRequestedFreePort = argResults?['free-port'] as bool? ?? false;
+    final requestedPort = (argResults?['port'] as String?) ?? '';
+    if (userRequestedFreePort && requestedPort.isNotEmpty) {
+      final parsed = int.tryParse(requestedPort);
+      if (parsed != null) {
+        try {
+          final pids = await _pidsUsingPort(parsed);
+          if (pids.isNotEmpty) {
+            _logger.info('Port $parsed is in use by PIDs: ${pids.join(', ')}');
+            _logger.info('Attempting to free port $parsed (user requested)');
+            final ok = await _killPids(pids);
+            if (!ok) {
+              _logger.err('Failed to free port $parsed. Aborting start.');
+              return ExitCode.software.code;
+            }
+            // give OS a moment to release socket
+            await Future<void>.delayed(const Duration(milliseconds: 250));
+          }
+        } catch (e) {
+          _logger.err('Error while trying to free port: $e');
+        }
+      }
+    }
+
     var process = await serve(entrypoint);
     // Install signal handlers on all platforms to ensure child process is killed
     // and cleaned up when the user presses Ctrl+C or the process receives SIGTERM.
@@ -114,7 +146,9 @@ class RunCommand extends Command<int> {
                 : File(path);
             return entity.existsSync() &&
                 FileSystemEntity.identicalSync(
-                    event.path, entity.absolute.path,);
+                  event.path,
+                  entity.absolute.path,
+                );
           });
       if (!shouldRestart) {
         return;
@@ -234,5 +268,91 @@ class RunCommand extends Command<int> {
 
   bool get _developmentMode {
     return argResults?['dev'] as bool? ?? false;
+  }
+
+  /// Return list of PIDs using the given TCP port (cross-platform best effort).
+  Future<List<int>> _pidsUsingPort(int port) async {
+    if (_isWindows) {
+      try {
+        final result = await Process.run('netstat', ['-ano']);
+        if (result.exitCode != 0) return [];
+        final out = result.stdout as String;
+        final lines = out.split(RegExp(r"\r?\n"));
+        final pids = <int>{};
+        for (final line in lines) {
+          if (line.contains(':$port') && line.contains('LISTENING')) {
+            final parts = line.trim().split(RegExp(r'\s+'));
+            if (parts.isNotEmpty) {
+              final pidStr = parts.last;
+              final pid = int.tryParse(pidStr);
+              if (pid != null) pids.add(pid);
+            }
+          }
+        }
+        return pids.toList();
+      } catch (_) {
+        return [];
+      }
+    } else {
+      // POSIX: try lsof -i :port
+      try {
+        final result = await Process.run('lsof', ['-nP', '-i', ':$port']);
+        if (result.exitCode != 0) return [];
+        final out = result.stdout as String;
+        final lines = out.split(RegExp(r"\r?\n"));
+        final pids = <int>{};
+        for (var i = 1; i < lines.length; i++) {
+          final line = lines[i].trim();
+          if (line.isEmpty) continue;
+          final parts = line.split(RegExp(r'\s+'));
+          if (parts.length >= 2) {
+            final pid = int.tryParse(parts[1]);
+            if (pid != null) pids.add(pid);
+          }
+        }
+        return pids.toList();
+      } catch (_) {
+        return [];
+      }
+    }
+  }
+
+  /// Attempt to kill the provided PIDs. Returns true if all PIDs were terminated.
+  Future<bool> _killPids(List<int> pids) async {
+    var allOk = true;
+    for (final pid in pids) {
+      if (_isWindows) {
+        try {
+          final r = await Process.run('taskkill', ['/F', '/T', '/PID', '$pid']);
+          if (r.exitCode != 0) {
+            allOk = false;
+            _logger?.err('taskkill failed for PID $pid: ${r.stderr}');
+          }
+        } catch (e) {
+          allOk = false;
+          try {
+            _logger?.err('Error when running taskkill for $pid: $e');
+          } catch (_) {}
+        }
+      } else {
+        try {
+          await Process.run('kill', ['-TERM', '$pid']);
+          // wait briefly
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+          // ensure termination
+          final check = await Process.run('kill', ['-0', '$pid']);
+          if (check.exitCode == 0) {
+            // still exists; force kill
+            await Process.run('kill', ['-KILL', '$pid']);
+          }
+        } catch (e) {
+          allOk = false;
+          try {
+            _logger?.err('Error when killing PID $pid: $e');
+          } catch (_) {}
+        }
+      }
+    }
+    return allOk;
   }
 }
