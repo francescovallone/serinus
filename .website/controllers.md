@@ -1,8 +1,12 @@
+<script setup>
+	import ControllerImage from './components/controllers.vue'
+</script>
+
 # Controllers
 
 Controllers are responsible for handling incoming requests and returning responses to the client. They are the glue between the HTTP layer and the business logic of your application.
 
-<img src='/controllers.png' alt='Controllers' />
+<ControllerImage />
 
 A controller's purpose is to handle a specific set of routes for a specific part of your application. For example, you might have a `UserController` that handles all the routes for user management.
 
