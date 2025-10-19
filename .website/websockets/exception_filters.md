@@ -1,6 +1,6 @@
 # Exception Filters
 
-There is no substantial difference between exception filters in WebSockets and HTTP. The same principles apply, and you can refer to the [Exception Filters](../exceptions/exception_filters.md) documentation for more details. The only difference is that instead of throwing a `SerinusException`, you should throw a `WsException`.
+There is no substantial difference between exception filters in WebSockets and HTTP. The same principles apply, and you can refer to the [Exception Filters](../exception_filters.md) documentation for more details. The only difference is that instead of throwing a `SerinusException`, you should throw a `WsException`.
 
 ```dart
 import 'package:serinus/serinus.dart';
