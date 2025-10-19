@@ -270,4 +270,42 @@ class AppModule extends Module {
 ```
 
   </template>
+  <template #testing>
+
+### Testing
+
+<p><span class="numbered">1</span>Create your test cases</p>
+
+```dart
+import 'package:serinus_test/serinus_test.dart';
+import 'package:serinus/serinus.dart';
+
+void main() {
+  test('Test provider', () async {
+    final application = await serinus.createTestApplication(
+      entrypoint: AppModule(),
+      host: InternetAddress.anyIPv4.address,
+      port: 3002,
+      logger: ConsoleLogger(
+        prefix: 'Serinus New Logger',
+        
+      ),
+    );
+    await application.serve();
+    final res = await application.get('/provider');
+    final providers = application.getProvider<TestProvider>();
+    providers?.testList.add('Testing provider retrieval');
+    final afterAdd = await application.post('/provider');
+    afterAdd.expectHttpException(NotFoundException());
+  });
+}
+```
+
+<p><span class="numbered">2</span>Run your tests</p>
+
+```bash
+dart test
+```
+
+  </template>
 </Home>

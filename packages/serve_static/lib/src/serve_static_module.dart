@@ -33,20 +33,17 @@ class ServeStaticModule extends Module {
     this.extensions = const [],
     this.index = const ['index.html'],
     this.redirect = true,
-  });
+  }) : super(
+    controllers: [
+      ServeStaticController(
+        rootPath,
+        routePath: '/$renderPath$serveRoot',
+        exclude: exclude,
+        extensions: extensions,
+        redirect: redirect,
+        index: index,
+      )
+    ]
+  );
 
-  @override
-  Future<Module> registerAsync(ApplicationConfig config) async {
-    final serveStaticController =
-        ServeStaticController(
-          path: rootPath,
-          routePath: '/$renderPath$serveRoot',
-          exclude: exclude,
-          extensions: extensions,
-          redirect: redirect,
-          index: index,
-        );
-    controllers = [serveStaticController];
-    return this;
-  }
 }

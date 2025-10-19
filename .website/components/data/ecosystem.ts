@@ -33,5 +33,12 @@ export const plugins = [
 		desc: 'Add real-time, bidirectional communication to your Serinus applications with WebSockets.',
 		link: '/websockets/gateways',
 		slot: 'websockets'
+	},
+	{
+		title: 'Testing',
+		pub: 'https://pub.dev/packages/serinus_test',
+		desc: 'Easily test your Serinus applications with this dedicated testing package.',
+		link: '/recipes/testing',
+		slot: 'testing'
 	}
 ]

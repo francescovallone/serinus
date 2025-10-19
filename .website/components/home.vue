@@ -30,6 +30,9 @@ import { plugins } from './data/ecosystem';
 			<template #websockets>
 				<slot name="websockets"></slot>
 			</template>
+			<template #testing>
+				<slot name="testing"></slot>
+			</template>
 		</Ecosystem>
 		<Spotlights />
 	</div>

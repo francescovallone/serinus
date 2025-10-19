@@ -206,7 +206,11 @@ class RouteExecutionContext {
               data: result.data,
               properties: executionContext.response
                 ..headers.addAll(
-                  (response.currentHeaders as HttpHeaders).toMap(),
+                  (response.currentHeaders is HttpHeaders) ?
+                      (response.currentHeaders as HttpHeaders).toMap() :
+                      (response.currentHeaders is SerinusHeaders) ?
+                        (response.currentHeaders as SerinusHeaders).values :
+                        {},
                 ),
             ),
           );

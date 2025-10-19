@@ -106,6 +106,7 @@ export default defineConfig({
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
               { text: 'Session', link: 'session' },
+              { text: 'Serve static files', link: 'serve_static' },
               { text: 'Server-Sent Events', link: 'sse'},
             ]
           },
@@ -141,6 +142,14 @@ export default defineConfig({
               { text: 'Generate', link: 'generate' },
               { text: 'Run', link: 'run' },
               { text: 'Deploy', link: 'deploy' },
+            ]
+          },
+          {
+            text: 'Recipes',
+            base: '/recipes/',
+            collapsed: true,
+            items: [
+              { text: 'Testing', link: 'testing' },
             ]
           },
           // {

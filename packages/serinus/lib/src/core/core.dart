@@ -4,7 +4,7 @@ export 'package:acanthis/acanthis.dart'
 export 'application.dart';
 export 'application_config.dart';
 export 'controller.dart';
-export 'factory.dart' hide SerinusFactory;
+export 'factory.dart';
 export 'hook.dart';
 export 'metadata.dart';
 export 'middlewares/middleware.dart';

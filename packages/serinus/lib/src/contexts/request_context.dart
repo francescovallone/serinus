@@ -151,6 +151,9 @@ class RequestContext<TBody> extends BaseContext {
   /// Response context for manipulating the outgoing response.
   late ResponseContext response;
 
+  /// Shortcut to access the response context.
+  ResponseContext get res => response;
+
   /// Returns a metadata entry by name.
   T stat<T>(String name) {
     if (!canStat(name)) {
