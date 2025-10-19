@@ -100,25 +100,27 @@ class AnotherController extends Controller with RpcController {
           'Received RPC event: ${context.message.pattern} with data: ${context.message.payload}');
     });
     on(
-      Route.all('/'),
+      Route.all(
+        '/',
+        pipes: {
+          BodySchemaValidationPipe(object({}).passthrough().list()),
+          TransformPipe((context) async {
+            final requestContext = context.switchToHttp();
+            requestContext.body = JsonBody.fromJson([
+              for (var item in requestContext.bodyAs<JsonList>().value)
+                item..['data'] = 'hello!',
+            ]);
+          }),
+          TransformPipe((context) async {
+            final argsHost = context.argumentsHost;
+            if (argsHost is! HttpArgumentsHost) {
+              return;
+            }
+            argsHost.request.query['transform'] = 'true';
+          }),
+        }
+      ),
       _fallback,
-      pipes: [
-        BodySchemaValidationPipe(object({}).passthrough().list()),
-        TransformPipe((context) async {
-          final requestContext = context.switchToHttp();
-          requestContext.body = JsonBody.fromJson([
-            for (var item in requestContext.bodyAs<JsonList>().value)
-              item..['data'] = 'hello!',
-          ]);
-        }),
-        TransformPipe((context) async {
-          final argsHost = context.argumentsHost;
-          if (argsHost is! HttpArgumentsHost) {
-            return;
-          }
-          argsHost.request.query['transform'] = 'true';
-        }),
-      ],
     );
   }
 

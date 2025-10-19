@@ -12,7 +12,6 @@ A testing library that makes it easy to test Serinus applications.
 > This package is still experimental and although it is ready to be used, some/or all of its API
 > might change (with deprecations) in future versions.
 
-
 ## Installation
 
 To install Serinus Test you can add the following dependency to your `pubspec.yaml` file:

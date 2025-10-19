@@ -54,7 +54,7 @@ class AppModule extends Module {
 }
 
 class AppController extends Controller {
-  AppController({super.path = '/'}) {
+  AppController(): super('/') {
     on(Route.get('/pass', metadata: [GuardMeta('Header')]), (context) {
       return 'pass';
     });
@@ -66,7 +66,7 @@ void main() {
     setUpAll(() async {
       final module = FrontierModule([strategy]);
       final app = await serinus.createApplication(
-          entrypoint: AppModule(module), loggingLevel: LogLevel.none);
+          entrypoint: AppModule(module), logLevels: {LogLevel.none});
       await app.serve();
     });
 
