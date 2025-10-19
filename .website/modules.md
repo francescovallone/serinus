@@ -1,10 +1,14 @@
+<script setup>
+  import ModulesImage from './components/modules.vue'
+</script>
+
 # Modules
 
 A module, in Serinus, is a class that extends the `Module` class and is used to organize the application into cohesive blocks of functionality.
 
 Modules can import other modules, controllers, providers, and middlewares, and export providers to other modules.
 
-<img src="/modules.png" alt="Module"/>
+<ModulesImage />
 
 Every Serinus application has at least one module, the `entrypoint`, which is the entry point of the application and it can be used to create the graph of dependencies in the application.
 

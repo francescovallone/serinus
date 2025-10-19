@@ -1,8 +1,12 @@
+<script setup>
+  import MiddlewareImage from './components/middlewares.vue'
+</script>
+
 # Middlewares
 
 Middlewares are functions called before the route handler. They have access to the `RequestContext` object and also to the `NextFunction` function, which is used to call the next middleware or the route handler.
 
-<img src="/middlewares.png" alt="Middlewares">
+<MiddlewareImage />
 
 Serinus middlewares, for ease of use, follow the capabilities of the Express.js middlewares so they can perform the same tasks.
 

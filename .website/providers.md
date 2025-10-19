@@ -1,10 +1,14 @@
+<script setup>
+	import ProvidersImage from './components/providers.vue'
+</script>
+
 # Providers
 
 Providers are a core concept in Serinus. They are used to manage dependencies and share data and logic across your application.
 
 Providers are registered in a module and can be exported to other modules or injected into other providers. Providers can also be global, meaning they are available to all modules.
 
-<img src='/providers.png' alt='Providers' />
+<ProvidersImage />
 
 When a provider is registered in a module, it is available to all controllers and routes in that module and it can be accessed in the controllers using the `Context` object.
 
