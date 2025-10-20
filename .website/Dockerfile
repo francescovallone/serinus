@@ -8,13 +8,12 @@ RUN npm install
 
 COPY . .
 
-RUN mkdir /md_only && \
-    find . -type f -name "*.md" -exec sh -c '
-        for filepath do
-            mkdir -p /md_only/$(dirname "$filepath") &&
-            cp "$filepath" /md_only/"$filepath"
-        done
-    ' sh {} +
+RUN mkdir -p /md_only && \
+    find . -type f -name "*.md" | while read filepath; do \
+        mkdir -p /md_only/$(dirname "$filepath") && \
+        cp "$filepath" /md_only/"$filepath"; \
+    done
+
 
 RUN npm run docs:build
 
