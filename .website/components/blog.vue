@@ -37,7 +37,7 @@ const topics = computed(() => {
 
 <template>
 
-	<div>
+	<div class="2xl:px-64 lg:px-16 px-8 w-full flex flex-col">
 		<header class="flex flex-col justify-center container gap-4 w-full mx-auto pt-20 p-4">
 			<h1 class="text-6xl font-semibold">
 				{{title ?? 'Blog'}}
@@ -58,7 +58,7 @@ const topics = computed(() => {
 				</div>
 			</div>
 		</header>
-		<main class="grid grid-cols-6 gap-8 container mx-auto my-8">
+		<main class="grid grid-cols-6 gap-8 mx-auto my-8">
 			<a v-for="post in filteredPosts"
 				class="p-4 rounded-lg hover:shadow-md transition-shadow cursor-pointer flex flex-col gap-2 md:col-span-2 col-span-6 border-dashed border-2 border-gray-300"
 				:href="post.href" :key="post.date + post.href">

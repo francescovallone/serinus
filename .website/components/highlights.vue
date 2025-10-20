@@ -3,7 +3,7 @@
 </script>
 
 <template>
-	<div id="highlights" class="flex flex-col w-full gap-8 flex-col py-16 px-64">
+	<div id="highlights" class="flex flex-col w-full gap-8 flex-col lg:py-16 py-8 2xl:px-64 lg:px-16 px-8">
 		<div class="flex gap-8 items-center">
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="#FF9800" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m12 17.75l-6.172 3.245l1.179-6.873l-5-4.867l6.9-1l3.086-6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"/></svg>
 			<div class="text-lg text-pretty text-serinus tracking-wide">
@@ -14,11 +14,11 @@
 			<div class="text-3xl text-pretty">
 				Powerful features for humans
 			</div>
-			<div class="text-base text-pretty text-gray-600 w-[52rem]">
+			<div class="text-base text-pretty text-gray-600 w-full 2xl:w-[52rem] lg:w-[36rem]">
 				Designed to make backend development in Dart easy and enjoyable, avoiding unnecessary complexity for you to focus on your application.
 			</div>
 		</div>
-		<div class="flex gap-4">
+		<div class="flex gap-4 flex-col lg:flex-row">
 			<div class="p-4 flex justify-center items-center border border-gray-200 rounded-lg">
 				<div class="flex flex-col gap-4">
 					<div class="flex gap-4 items-center">

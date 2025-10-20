@@ -30,8 +30,10 @@
 .VPNavBar:not(.home.top) .divider-line, .VPNavBar:not(.has-sidebar):not(.home.top) .divider {
 	background-color: transparent !important;
 }
-.VPNavBar:not(.has-sidebar) > .wrapper {
-	padding: 0 16rem !important;
+@media (min-width: 960px) {
+	.VPNavBar:not(.has-sidebar) > .wrapper {
+		padding: 0 16rem !important;
+	}
 }
 .VPNavBar:not(.has-sidebar) > .wrapper > .container {
 	margin: unset !important;
@@ -110,6 +112,7 @@ div[class*="language-"]:not(.vp-doc .vp-code) .vp-code {
 }
 div[class*="language-"]:not(.vp-doc .vp-code) {
 	position: relative !important;
+	overflow: auto !important;
 }
 
 [class*="language-"]:not(.vp-doc .vp-code) > span.lang {

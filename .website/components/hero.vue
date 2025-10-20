@@ -15,20 +15,20 @@ function copyCreateProjectCommand() {
 </script>
 
 <template>
-	<div class="flex w-full h-[calc(100vh-128px)] gap-8 items-center justify-between px-64">
+	<div class="flex w-full lg:h-[calc(100vh-128px)] gap-8 items-center justify-between 2xl:px-64 lg:px-16 px-8 flex-col md:flex-row">
         <div class="flex flex-col gap-4 w-full">
             <div class="text-gray-400 text-sm font-mono tracking-widest">
                 HeroModule()
             </div>
             <div class="flex flex-col items-start">
-                <div class="text-4xl lg:text-6xl md:w-[52rem] text-pretty"><span class="text-serinus font-semibold">Designed for Scale</span>,<br /> Crafted for Flutter Developers.</div>
-                <div class="my-4 lg:my-8 text-md lg:text-lg md:w-[48rem] text-pretty text-gray-600">
+                <div class="text-4xl lg:text-6xl 2xl:w-[52rem] lg:w-[36rem] text-pretty"><span class="text-serinus font-semibold">Designed for Scale</span>,<br /> Crafted for Flutter Developers.</div>
+                <div class="my-4 lg:my-8 text-md lg:text-lg 2xl:w-[48rem] lg:w-[32rem] text-pretty text-gray-600">
                     Serinus provides a powerful and flexible framework for building server-side applications in Dart. Our open-source Dart framework, packages, and tools make it easy to create high-performance, scalable, and maintainable applications. 
                 </div>
-                <div class="flex flex-col lg:flex-row justify-center items-center gap-2 border-dashed border-2 border-gray-300 rounded-lg p-4 relative">
+                <div class="flex flex-col lg:flex-row justify-center w-full lg:w-auto items-center gap-2 border-dashed border-2 border-gray-300 rounded-lg p-4 relative">
                     <div class="absolute -top-2 left-2 px-2 bg text-xs text-gray-400 rounded-md font-mono text-sm tracking-widest">HeroController()</div>
-                    <a href="/introduction.html" class="bg-serinus hover:shadow-md transition-shadow px-8 py-4 rounded-md text-white font-semibold">Get Started</a>
-                    <a href="/discord.html" class="px-8 py-4 hover:shadow-md transition-shadow font-semibold border border-gray-300 rounded-md">Join the community</a>
+                    <a href="/introduction.html" class="bg-serinus hover:shadow-md transition-shadow px-8 py-4 rounded-md text-white text-center lg:text-start w-full lg:w-auto font-semibold">Get Started</a>
+                    <a href="/discord.html" class="px-8 py-4 hover:shadow-md transition-shadow font-semibold border w-full text-center lg:text-start lg:w-auto border-gray-300 rounded-md">Join the community</a>
                 </div>
             </div>
             <div id="cli-command-copy" @click="copyCliCommand" class="flex gap-4 items-center cursor-pointer">
