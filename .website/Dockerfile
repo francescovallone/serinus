@@ -8,7 +8,6 @@ RUN npm install
 
 COPY . .
 
-
 RUN npm run docs:build
 
 FROM nginx:alpine as md_only
