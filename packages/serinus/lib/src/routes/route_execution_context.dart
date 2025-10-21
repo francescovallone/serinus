@@ -91,9 +91,11 @@ class RouteExecutionContext {
             return;
           }
         }
-        executionContext.metadata.addAll(
-          await context.initMetadata(executionContext),
-        );
+        if (context.metadata.isNotEmpty) {
+          executionContext.metadata.addAll(
+            await context.initMetadata(executionContext),
+          );
+        }
         if (context.pipes.isNotEmpty) {
           for (final pipe in context.pipes) {
             await pipe.transform(executionContext);

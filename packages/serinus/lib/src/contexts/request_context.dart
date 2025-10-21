@@ -70,13 +70,17 @@ class RequestContext<TBody> extends BaseContext {
       );
     }
     final raw = await request.parseBody(rawBody: rawBody);
-    final converted = converter.convert(targetType, raw) as TBody;
-    request.body = converted;
+    if (explicitType != null) {
+      final converted = converter.convert(targetType, raw) as TBody;
+      request.body = converted;
+    } else {
+      request.body = raw;
+    }
     return RequestContext._(
       request,
       targetType,
       converter,
-      converted,
+      request.body as TBody,
       providers,
       hooksServices,
       shouldValidateMultipart,
