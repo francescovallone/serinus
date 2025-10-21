@@ -25,7 +25,7 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
   @override
   Future<void> onApplicationBootstrap() async {
     await _resolveMiddleware();
-    await _mapMiddlewareToRoutes();
+    _mapMiddlewareToRoutes();
   }
 
   Future<void> _resolveMiddleware() async {
@@ -169,7 +169,7 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
         return (scopeA.distance - scopeB.distance).toInt();
       });
     for (final entry in entriesSortedByDistance) {
-      await _registerAllConfigs(entry.value);
+      _registerAllConfigs(entry.value);
     }
     for (final scope in _config.modulesContainer.scopes) {
       for (final route in _middlewareByRoute.keys) {
@@ -185,7 +185,7 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
               if (_config.versioningOptions != null) _config.versioningOptions!,
             ],
           );
-          return _middlewareByRoute[route]
+          final middlewares = _middlewareByRoute[route]
                   ?.where((configuration) {
                     return (configuration.routes.any(
                           (routeInfo) =>
@@ -195,19 +195,20 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
                           (excludeRoute) =>
                               _canResolve(requestRouteInfo, excludeRoute),
                         );
-                  })
-                  .map((configuration) => configuration.middlewares)
-                  .expand((m) => m)
-                  .toList() ??
-              <Middleware>[];
+                  });
+          final resultMiddlewares = <Middleware>[];
+          for (final middleware in middlewares ?? <MiddlewareConfiguration>[]) {
+            resultMiddlewares.addAll(middleware.middlewares);
+          }
+          return resultMiddlewares;
         });
       }
     }
   }
 
-  Future<void> _registerAllConfigs(
+  void _registerAllConfigs(
     Set<MiddlewareConfiguration> configuration,
-  ) async {
+  ) {
     final controllers = <({Controller controller, ModuleScope scope})>[];
     for (final scope in _config.modulesContainer.scopes) {
       controllers.addAll(

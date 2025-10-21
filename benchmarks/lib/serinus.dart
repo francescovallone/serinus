@@ -8,16 +8,9 @@ class TestModule extends Module {
         );
 }
 
-class TestRoute extends Route {
-  TestRoute({
-    super.path = '/',
-    super.method = HttpMethod.get,
-  });
-}
-
 class TestController extends Controller {
   TestController() : super('/') {
-    on(TestRoute(), (context) async => 'echo!');
+    on(Route.get('/'), (context) => 'echo!');
   }
 }
 
@@ -29,7 +22,7 @@ class SerinusAppBenchmark extends SerinusBenchmark {
   @override
   Future<void> setup() async {
     app = await serinus.createApplication(
-        entrypoint: TestModule(), logLevels: {LogLevel.none}, enableCompression: false);
+        entrypoint: TestModule(), logLevels: {LogLevel.none});
     await app!.serve();
   }
 
