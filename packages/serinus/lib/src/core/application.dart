@@ -345,7 +345,7 @@ class SerinusApplication extends Application {
         );
         break;
       case ExceptionFilter():
-        _container.config.exceptionFilters.add(processable);
+        _container.config.globalExceptionFilters.add(processable);
         _logger.verbose(
           'Global ExceptionFilter ${processable.runtimeType} added to application',
         );

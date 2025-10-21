@@ -61,7 +61,7 @@ class SseRegistry extends Provider
           exceptionFilters: {
             ...controller.exceptionFilters,
             ...route.exceptionFilters,
-            ..._config.exceptionFilters,
+            ..._config.globalExceptionFilters,
           },
         );
         router.addRoute(

@@ -135,7 +135,7 @@ final class ApplicationConfig {
   final TracersService tracerService = TracersService();
 
   /// The set of exception filters to be applied globally
-  final Set<ExceptionFilter> exceptionFilters = {};
+  final Set<ExceptionFilter> globalExceptionFilters = {};
 
   /// Register a tracer to the application
   void registerTracer(Tracer tracer) {

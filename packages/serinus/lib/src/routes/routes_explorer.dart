@@ -97,7 +97,7 @@ final class RoutesExplorer {
         exceptionFilters: {
           ...controller.exceptionFilters,
           ...spec.route.exceptionFilters,
-          ..._container.config.exceptionFilters,
+          ..._container.config.globalExceptionFilters,
         },
       );
       _router.registerRoute(

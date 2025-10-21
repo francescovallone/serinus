@@ -129,7 +129,7 @@ class DefaultMessagesResolver extends MessagesResolver {
             exceptionFilters: {
               ...entry.value.route.exceptionFilters,
               ...controllerEntry.exceptionFilters,
-              ...config.exceptionFilters,
+              ...config.globalExceptionFilters,
             },
           );
           if (entry.value.route.transporter != null) {
@@ -174,7 +174,7 @@ class DefaultMessagesResolver extends MessagesResolver {
             exceptionFilters: {
               ...entry.value.route.exceptionFilters,
               ...controllerEntry.exceptionFilters,
-              ...config.exceptionFilters,
+              ...config.globalExceptionFilters,
             },
           );
           if (entry.value.route.transporter != null) {

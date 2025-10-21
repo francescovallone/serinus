@@ -103,7 +103,7 @@ class RoutesResolver {
       for (final hook in reqHooks) {
         await hook.onRequest(executionContext);
       }
-      for (final filter in _container.config.exceptionFilters) {
+      for (final filter in _container.config.globalExceptionFilters) {
         if (filter.catchTargets.contains(data.runtimeType) ||
             filter.catchTargets.isEmpty) {
           await filter.onException(executionContext, data);
