@@ -30,6 +30,7 @@ export default defineConfig({
   },
   lastUpdated: true,
   appearance: false,
+  ignoreDeadLinks: true,
   themeConfig: {
     footer: {
       copyright: 'Copyright © 2025 Francesco Vallone',
@@ -57,10 +58,6 @@ export default defineConfig({
         text: 'Blog',
         link: '/blog/'
       },
-      // {
-      //   text: 'Next Version',
-      //   link: '/next/in_a_nutshell'
-      // },
       {
         text: 'Pub.dev',
         link: 'https://pub.dev/packages/serinus'
@@ -87,9 +84,6 @@ export default defineConfig({
               { text: 'Hooks', link: 'hooks' },
               { text: 'Pipes', link: 'pipes' },
               { text: 'Exception Filters', link: 'exception_filters' },
-              // { text: 'WebSockets', link: 'websockets' },
-              // { text: 'Exceptions', link: 'exceptions' },
-              // { text: 'Tracer', link: 'tracer' },
             ]
           },
           {
