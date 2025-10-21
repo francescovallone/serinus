@@ -12,7 +12,6 @@ import '../core/middlewares/middleware_executor.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
-import '../extensions/iterable_extansions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
 import '../services/json_utils.dart';
@@ -126,7 +125,9 @@ class RouteExecutionContext {
                   data: data,
                   properties: executionContext.response
                     ..headers.addAll(
-                      (response.currentHeaders as HttpHeaders).toMap(),
+                      (response.currentHeaders is SerinusHeaders) ?
+                            response.currentHeaders.values :
+                            {},
                     ),
                 ),
               );
@@ -176,7 +177,7 @@ class RouteExecutionContext {
               data: result.data,
               properties: executionContext.response
                 ..headers.addAll(
-                  (response.currentHeaders as HttpHeaders).toMap(),
+                  (response.currentHeaders as SerinusHeaders).values,
                 ),
             ),
           );
@@ -206,10 +207,8 @@ class RouteExecutionContext {
               data: result.data,
               properties: executionContext.response
                 ..headers.addAll(
-                  (response.currentHeaders is HttpHeaders) ?
-                      (response.currentHeaders as HttpHeaders).toMap() :
-                      (response.currentHeaders is SerinusHeaders) ?
-                        (response.currentHeaders as SerinusHeaders).values :
+                  (response.currentHeaders is SerinusHeaders) ?
+                        response.currentHeaders.values :
                         {},
                 ),
             ),

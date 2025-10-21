@@ -6,7 +6,6 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
-import '../extensions/iterable_extansions.dart';
 import '../extensions/string_extensions.dart';
 import '../http/http.dart';
 import '../services/logger_service.dart';
@@ -125,9 +124,7 @@ class RoutesResolver {
         EventData(
           data: data,
           properties: executionContext.response
-            ..headers.addAll((response.currentHeaders is HttpHeaders) ?
-                      (response.currentHeaders as HttpHeaders).toMap() :
-                      (response.currentHeaders is SerinusHeaders) ?
+            ..headers.addAll((response.currentHeaders is SerinusHeaders) ?
                         (response.currentHeaders as SerinusHeaders).values :
                         {}),
         ),

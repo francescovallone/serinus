@@ -157,7 +157,11 @@ class Request {
       _setBody(formData);
       return body;
     }
-    await _original.bytes();
+    final result = await _original.bytes();
+    if (result.isEmpty) {
+      _setBody(null);
+      return body;
+    }
     final parsedBody = _original.body();
 
     if (contentType.isUrlEncoded) {

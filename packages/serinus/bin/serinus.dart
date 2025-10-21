@@ -264,7 +264,6 @@ class AppController extends Controller with SseController {
 
   AppController([super.path = '/']) {
     on(Route.get('/'), (RequestContext context) async {
-      logger.info('Emitted event to TCP transport for pattern "*"');
       return 'Hello world!';
     });
     on(

@@ -54,7 +54,7 @@ abstract class OutgoingMessage<T, THeaders> {
 /// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
 ///
 /// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
-class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
+class InternalResponse extends OutgoingMessage<HttpResponse, SerinusHeaders> {
   /// The base url of the server
   final String? baseUrl;
 
@@ -66,7 +66,10 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
   /// The [InternalResponse] constructor is used to create a new instance of the [InternalResponse] class.
   InternalResponse(super.original, {this.baseUrl}) {
     original.headers.chunkedTransferEncoding = false;
+    _headers = SerinusHeaders(original.headers.toMap());
   }
+
+  late SerinusHeaders _headers;
 
   @override
   Future<Socket> detachSocket({bool writeHeaders = false}) {
@@ -125,7 +128,7 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
   }
 
   @override
-  HttpHeaders get currentHeaders => original.headers;
+  SerinusHeaders get currentHeaders => _headers;
 
   @override
   Future<void> redirect(Redirect redirect) async {

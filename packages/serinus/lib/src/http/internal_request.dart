@@ -255,6 +255,9 @@ class InternalRequest extends IncomingMessage {
   /// it is used internally by the [body], the [json] and the [stream] methods
   @override
   Future<Uint8List> bytes() async {
+    if (_bytes != null) {
+      return _bytes!;
+    }
     final byteBuffer = BytesBuilder();
     await for (var part in original) {
       byteBuffer.add(part);

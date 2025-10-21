@@ -4,6 +4,10 @@
 /// The fetch of a header is lazy since it will get the
 /// value only if requested otherwise will not copy it.
 class SerinusHeaders<T> {
+
+  /// The [chunkedTransferEncoding] property is used to set the chunked transfer encoding of the headers.
+  bool chunkedTransferEncoding = false;
+
   final Map<String, String> _requestHeaders = {};
 
   /// The [values] currently available

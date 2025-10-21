@@ -210,7 +210,7 @@ class SerinusHttpAdapter
     InternalResponse response,
     ResponseContext properties,
   ) {
-    final coding = response.currentHeaders['transfer-encoding']?.join(';');
+    final coding = response.currentHeaders['transfer-encoding'];
     if ((coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) ||
         (properties.statusCode >= 200 &&
             properties.statusCode != 204 &&
