@@ -81,10 +81,10 @@ class CircularDependencyModule extends Module {
 
 class AnotherController extends Controller {
   AnotherController() : super('/another') {
+    // on(Route.get('/'), (RequestContext context) {
+    //   return 'Hello from another controller!';
+    // });
     on(Route.get('/'), (RequestContext context) {
-      return 'Hello from another controller!';
-    });
-    on(Route.get('/<data>'), (RequestContext context) {
       return context.use<GraphInspector>().toJson();
     });
     // on(

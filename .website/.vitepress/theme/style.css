@@ -30,6 +30,9 @@
 .VPNavBar:not(.home.top) .divider-line, .VPNavBar:not(.has-sidebar):not(.home.top) .divider {
 	background-color: transparent !important;
 }
+.VPNavBarTitle.has-sidebar .title {
+	border-bottom: 1px solid transparent !important;
+}
 @media (min-width: 960px) {
 	.VPNavBar:not(.has-sidebar) > .wrapper {
 		padding: 0 16rem !important;
