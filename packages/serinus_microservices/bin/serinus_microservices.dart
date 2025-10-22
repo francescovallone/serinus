@@ -106,10 +106,7 @@ class AnotherController extends Controller with RpcController {
           BodySchemaValidationPipe(object({}).passthrough().list()),
           TransformPipe((context) async {
             final requestContext = context.switchToHttp();
-            requestContext.body = JsonBody.fromJson([
-              for (var item in requestContext.bodyAs<JsonList>().value)
-                item..['data'] = 'hello!',
-            ]);
+            requestContext.body = ['transformed body'];
           }),
           TransformPipe((context) async {
             final argsHost = context.argumentsHost;
