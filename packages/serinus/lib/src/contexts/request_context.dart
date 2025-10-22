@@ -202,6 +202,8 @@ class RequestContext<TBody> extends BaseContext {
   }
 }
 
+final _utf8Decoder = utf8.decoder;
+
 class _BodyConverter {
   const _BodyConverter(this.modelProvider);
 
@@ -230,10 +232,10 @@ class _BodyConverter {
           return value;
         }
         if (value is Uint8List) {
-          return utf8.decode(value);
+          return _utf8Decoder.convert(value);
         }
         if (value is List<int>) {
-          return utf8.decode(value);
+          return _utf8Decoder.convert(value);
         }
         break;
       case 'Uint8List':

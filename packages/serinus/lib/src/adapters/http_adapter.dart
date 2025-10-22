@@ -27,7 +27,7 @@ abstract class HttpAdapter<TServer, TRequest, TResponse>
   final int port;
 
   /// The [poweredByHeader] property contains the powered by header.
-  final String poweredByHeader;
+  final String? poweredByHeader;
 
   /// The [securityContext] property contains the security context of the server.
   final SecurityContext? securityContext;
@@ -63,7 +63,7 @@ abstract class HttpAdapter<TServer, TRequest, TResponse>
   HttpAdapter({
     required this.host,
     required this.port,
-    required this.poweredByHeader,
+    this.poweredByHeader,
     this.securityContext,
     this.preserveHeaderCase = true,
     this.viewEngine,

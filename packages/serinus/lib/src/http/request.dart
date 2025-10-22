@@ -146,8 +146,10 @@ class Request {
       return body;
     }
 
+    Future<Uint8List> ensureBytes() async => _original.bytes();
+
     if (rawBody) {
-      final bytes = await _original.bytes();
+      final bytes = await ensureBytes();
       _setBody(Uint8List.fromList(bytes));
       return body;
     }
@@ -157,11 +159,13 @@ class Request {
       _setBody(formData);
       return body;
     }
-    final result = await _original.bytes();
-    if (result.isEmpty) {
+
+    final bytes = await ensureBytes();
+    if (bytes.isEmpty) {
       _setBody(null);
       return body;
     }
+
     final parsedBody = _original.body();
 
     if (contentType.isUrlEncoded) {
@@ -193,7 +197,6 @@ class Request {
     }
 
     if (contentType == ContentType.binary) {
-      final bytes = await _original.bytes();
       _setBody(Uint8List.fromList(bytes));
       return body;
     }

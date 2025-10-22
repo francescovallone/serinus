@@ -17,6 +17,9 @@ class WrappedResponse {
     if (data == null) {
       return Uint8List(0);
     }
+    if (data is Uint8List) {
+      return data as Uint8List;
+    }
     if (data is! Uint8List) {
       if (data.runtimeType.isPrimitive()) {
         return data?.toBytes() ?? Uint8List(0);
@@ -27,8 +30,7 @@ class WrappedResponse {
       } else {
         return utf8.encode(data.toString());
       }
-    } else {
-      return data as Uint8List;
     }
+    return Uint8List(0);
   }
 }

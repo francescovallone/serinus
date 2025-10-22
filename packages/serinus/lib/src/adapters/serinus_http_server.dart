@@ -19,6 +19,9 @@ class SerinusHttpAdapter
   /// The [enableCompression] property is used to enable compression.
   final bool enableCompression;
 
+  /// Maximum idle duration to keep connections alive. If null, server default is used.
+  final Duration? keepAliveIdleTimeout;
+
   /// The [isSecure] property returns true if the server is secure.
   bool get isSecure => securityContext != null;
 
@@ -35,9 +38,10 @@ class SerinusHttpAdapter
   SerinusHttpAdapter({
     required super.host,
     required super.port,
-    required super.poweredByHeader,
+    super.poweredByHeader,
     super.securityContext,
     this.enableCompression = true,
+    this.keepAliveIdleTimeout,
     super.notFoundHandler,
     super.rawBody,
   });
@@ -54,7 +58,13 @@ class SerinusHttpAdapter
         shared: true,
       );
     }
-    server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader);
+    // apply keep-alive idle timeout when configured
+    if (keepAliveIdleTimeout != null) {
+      server?.idleTimeout = keepAliveIdleTimeout!;
+    }
+    if (poweredByHeader != null) {
+      server?.defaultResponseHeaders.add('X-Powered-By', poweredByHeader!);
+    }
     server?.autoCompress = enableCompression;
   }
 

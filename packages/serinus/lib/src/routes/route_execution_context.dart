@@ -26,6 +26,8 @@ class RouteExecutionContext {
   /// It provides methods to send responses, redirect, and render views.
   final RouteResponseController _responseController;
 
+  static JsonUtf8Encoder _jsonUtf8Encoder = JsonUtf8Encoder();
+
   /// The [modelProvider] is used to convert models to and from JSON.
   /// It is optional and can be null if models are not used in the application.
   final ModelProvider? modelProvider;
@@ -80,7 +82,7 @@ class RouteExecutionContext {
           shouldValidateMultipart: context.spec.shouldValidateMultipart,
         );
         executionContext.attachHttpContext(requestContext);
-        for (final hook in context.hooksContainer.reqHooks) {
+        for (final hook in context.reqHooks) {
           await hook.onRequest(executionContext);
           if (executionContext.response.closed) {
             await _responseController.sendResponse(
@@ -169,6 +171,9 @@ class RouteExecutionContext {
         await _executeAfterHandle(executionContext, context, responseData);
         await _executeOnResponse(context, executionContext, responseData);
         WrappedResponse result = _processResult(responseData, executionContext);
+        final currentResponseHeaders = (response.currentHeaders is SerinusHeaders) ?
+          response.currentHeaders.values :
+          (response.currentHeaders as HttpHeaders).toMap();
         if (result.data is View) {
           request.emit(
             RequestEvent.data,
@@ -179,10 +184,8 @@ class RouteExecutionContext {
             EventData(
               data: result.data,
               properties: executionContext.response
-                ..headers.addAll(
-                  (response.currentHeaders is SerinusHeaders) ?
-                        response.currentHeaders.values :
-                        (response.currentHeaders as HttpHeaders).toMap(),
+                ..addHeaders(
+                  currentResponseHeaders,
                 ),
             ),
           );
@@ -211,10 +214,8 @@ class RouteExecutionContext {
             EventData(
               data: result.data,
               properties: executionContext.response
-                ..headers.addAll(
-                  (response.currentHeaders is SerinusHeaders) ?
-                        response.currentHeaders.values :
-                        (response.currentHeaders as HttpHeaders).toMap(),
+                ..addHeaders(
+                  currentResponseHeaders,
                 ),
             ),
           );
@@ -279,7 +280,7 @@ class RouteExecutionContext {
     RouteContext context,
     WrappedResponse response,
   ) async {
-    for (final hook in context.hooksContainer.afterHooks) {
+    for (final hook in context.afterHooks) {
       await hook.afterHandle(executionContext, response);
     }
   }
@@ -288,7 +289,7 @@ class RouteExecutionContext {
     ExecutionContext executionContext,
     RouteContext context,
   ) async {
-    for (final hook in context.hooksContainer.beforeHooks) {
+    for (final hook in context.beforeHooks) {
       await hook.beforeHandle(executionContext);
     }
   }
@@ -302,14 +303,14 @@ class RouteExecutionContext {
       return result;
     }
     if (result.data?.canBeJson() ?? false) {
-      responseData = JsonUtf8Encoder().convert(
+      responseData = _jsonUtf8Encoder.convert(
         parseJsonToResponse(result.data, modelProvider),
       );
       context.response.contentType ??= ContentType.json;
     }
     if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType) ??
         false) {
-      responseData = JsonUtf8Encoder().convert(modelProvider?.to(result.data));
+      responseData = _jsonUtf8Encoder.convert(modelProvider?.to(result.data));
       context.response.contentType ??= ContentType.json;
     }
     if (result.data is Uint8List || result.data is File) {
@@ -324,7 +325,7 @@ class RouteExecutionContext {
     ExecutionContext executionContext,
     WrappedResponse responseData,
   ) async {
-    for (final hook in context.hooksContainer.resHooks) {
+    for (final hook in context.resHooks) {
       await hook.onResponse(executionContext, responseData);
     }
   }

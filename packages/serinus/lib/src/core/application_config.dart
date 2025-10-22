@@ -34,7 +34,7 @@ final class ApplicationConfig {
   /// The header to be sent with the response
   /// Default is 'Powered by Serinus'
   /// This can be changed to any value
-  String get poweredByHeader => serverAdapter.poweredByHeader;
+  String? get poweredByHeader => serverAdapter.poweredByHeader;
 
   /// The security context for the application if any
   /// If not provided, the application will be created as a normal http server
@@ -71,6 +71,14 @@ final class ApplicationConfig {
 
   /// The view engine for the application
   ViewEngine? get viewEngine => _viewEngine;
+
+  /// Keep-alive idle timeout to apply to the underlying HTTP server.
+  /// If null the adapter default will be used.
+  final Duration? keepAliveIdleTimeout;
+
+  /// Maximum requests accepted per connection before the connection is closed.
+  /// If null the adapter default will be used.
+  final int maxRequestsPerConnection;
 
   /// The global prefix for the application
   GlobalPrefix? get globalPrefix => _globalPrefix;
@@ -143,7 +151,12 @@ final class ApplicationConfig {
   }
 
   /// The application config constructor
-  ApplicationConfig({required this.serverAdapter, this.modelProvider}) {
+  ApplicationConfig({
+    required this.serverAdapter,
+    this.modelProvider,
+    this.keepAliveIdleTimeout,
+    this.maxRequestsPerConnection = 100,
+  }) {
     adapters.add(serverAdapter);
   }
 }

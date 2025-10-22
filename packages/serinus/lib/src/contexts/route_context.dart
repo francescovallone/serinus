@@ -43,11 +43,26 @@ class RouteContext {
   /// The [moduleScope] is used to store the scope of the module.
   final ModuleScope moduleScope;
 
-  /// The [metadata] is used to store the metadata for the route.
-  List<Metadata> get metadata => [
+  /// Internal cache for metadata defined at controller and route level.
+  late final List<Metadata> _metadataCache = [
     ...controller.metadata,
     ...spec.route.metadata,
   ];
+
+  /// Cached metadata entries that do not require runtime resolution.
+  late final Map<String, Metadata> _staticMetadata = {
+    for (final meta in _metadataCache.where((m) => m is! ContextualizedMetadata))
+      meta.name: meta,
+  };
+
+  late final Map<String, Metadata> _staticMetadataView =
+      Map.unmodifiable(_staticMetadata);
+
+  late final bool _hasContextualMetadata =
+      _metadataCache.length != _staticMetadata.length;
+
+  /// The [metadata] is used to store the metadata for the route.
+  List<Metadata> get metadata => _metadataCache;
 
   /// The [exceptionFilters] of the route.
   final Set<ExceptionFilter> exceptionFilters;
@@ -60,6 +75,14 @@ class RouteContext {
 
   /// The [hooksContainer] is used to store the hooks for the route.
   final HooksContainer hooksContainer;
+
+  /// Immutable snapshots of hooks taken at route registration time.
+  /// Using these avoids per-request iteration and any accidental mutation.
+  late final List<OnRequest> reqHooks = List.unmodifiable(hooksContainer.reqHooks);
+  late final List<OnBeforeHandle> beforeHooks =
+      List.unmodifiable(hooksContainer.beforeHooks);
+  late final List<OnAfterHandle> afterHooks = List.unmodifiable(hooksContainer.afterHooks);
+  late final List<OnResponse> resHooks = List.unmodifiable(hooksContainer.resHooks);
 
   /// The [RouteContext] constructor initializes the route context with the provided parameters.
   RouteContext({
@@ -81,15 +104,16 @@ class RouteContext {
 
   /// Initializes the metadata for the route context.
   Future<Map<String, Metadata>> initMetadata(ExecutionContext context) async {
-    final result = <String, Metadata>{};
-    for (final meta in metadata) {
+    if (!_hasContextualMetadata) {
+      return _staticMetadataView;
+    }
+    final resolved = <String, Metadata>{..._staticMetadata};
+    for (final meta in _metadataCache) {
       if (meta is ContextualizedMetadata) {
-        result[meta.name] = await meta.resolve(context);
-      } else {
-        result[meta.name] = meta;
+        resolved[meta.name] = await meta.resolve(context);
       }
     }
-    return result;
+    return resolved;
   }
 
   /// Returns the middlewares for the route.
