@@ -260,20 +260,22 @@ class TestResponse
     extends OutgoingMessage<StreamController<List<int>>, SerinusHeaders> {
   TestResponse({
     required this.preserveHeaderCase,
-    required String poweredByHeader,
+    String? poweredByHeader,
   })  : _headers = SerinusHeaders({}),
         _cookies = <Cookie>[],
         _poweredByHeader = poweredByHeader,
         _builder = BytesBuilder(),
         super(StreamController<List<int>>.broadcast(sync: true)) {
-    headers({'x-powered-by': poweredByHeader});
+    if (poweredByHeader != null) {
+      _headers.addAll({'x-powered-by': poweredByHeader});
+    }
   }
 
   final bool preserveHeaderCase;
   final BytesBuilder _builder;
   final SerinusHeaders _headers;
   final List<Cookie> _cookies;
-  final String _poweredByHeader;
+  final String? _poweredByHeader;
   bool _isClosed = false;
   int _statusCode = HttpStatus.ok;
   Redirect? _redirect;
@@ -352,7 +354,7 @@ class TestResponse
 
   @override
   void headers(Map<String, String> headers, {bool preserveHeaderCase = true}) {
-    if (!_headers.containsKey('x-powered-by')) {
+    if (!_headers.containsKey('x-powered-by') && _poweredByHeader != null) {
       _headers.addAll({'x-powered-by': _poweredByHeader});
     }
     _headers.addAll(headers);

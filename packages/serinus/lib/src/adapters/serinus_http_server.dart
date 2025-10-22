@@ -130,51 +130,6 @@ class SerinusHttpAdapter
     return response.redirect(redirect);
   }
 
-  // @override
-  // Future<({
-  //   RequestContext context,
-  //   dynamic body
-  // })> process(
-  //   RouteExecutionContext context,
-  //   SerinusContainer container,
-  //   ApplicationConfig config,
-  //   {
-  //     ErrorHandler? errorHandler,
-  //     NotFoundHandler? notFoundHandler,
-  //   }
-  // ) async {
-  //   final routeRequest = Request(request);
-  //   final routeContext = container.getRouteContext(routeRequest);
-  //   if (routeContext == null) {
-  //     final context = RequestContext(
-  //       routeRequest,
-  //       {
-  //         for (final provider in container.modulesContainer.globalProviders)
-  //           provider.runtimeType: provider
-  //       },
-  //       config.hooks.services
-  //     );
-  //     if (notFoundHandler != null) {
-  //       reply(response, notFoundHandler.call()?.toBytes() ?? Uint8List(0), context, config);
-  //     } else {
-  //       reply(response, NotFoundException().toBytes(), context, config);
-  //     }
-  //     return (context: context, body: null);
-  //   }
-  //   final context = RequestContext.fromRouteContext(routeRequest, routeContext);
-  //   context.metadata = await routeContext.initMetadata(context);
-  //   config.tracerService.addEvent(
-  //     name: TraceEvents.onRequest,
-  //     request: routeRequest,
-  //     context: context,
-  //     traced: request.id,
-  //   );
-  //   for (final hook in config.hooks.reqResHooks) {
-  //     await hook.onRequest(context.request, context.res);
-  //   }
-  //   return (context: context, body: context.body.data);
-  // }
-
   @override
   Future<void> reply(
     InternalResponse response,
