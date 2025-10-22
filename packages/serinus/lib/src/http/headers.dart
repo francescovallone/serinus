@@ -8,15 +8,13 @@ class SerinusHeaders<T> {
   /// The [chunkedTransferEncoding] property is used to set the chunked transfer encoding of the headers.
   bool chunkedTransferEncoding = false;
 
-  final Map<String, String> _requestHeaders = {};
+  final Map<String, String> _requestHeaders;
 
   /// The [values] currently available
   final Map<String, String> values = {};
 
   /// Constructor for the [SerinusHeaders] class
-  SerinusHeaders(Map<String, String> headers) {
-    _requestHeaders.addAll(headers);
-  }
+  SerinusHeaders(this._requestHeaders);
 
   /// Operator to get a value by its [key]
   String? operator [](String key) {

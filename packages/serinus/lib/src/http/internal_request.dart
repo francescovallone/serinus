@@ -9,7 +9,9 @@ import 'package:mime/mime.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/content_type_extensions.dart';
+import '../extensions/iterable_extansions.dart';
 import 'form_data.dart';
+import 'headers.dart';
 import 'internal_response.dart';
 import 'session.dart';
 
@@ -18,7 +20,7 @@ final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
 /// The [IncomingMessage] interface defines the methods and properties that a request must implement.
 /// It is used to parse the request and provide access to its properties.
-abstract class IncomingMessage<THeaders> {
+abstract class IncomingMessage {
   /// The id of the request.
   String get id;
 
@@ -32,7 +34,7 @@ abstract class IncomingMessage<THeaders> {
   String get method;
 
   /// The headers of the request.
-  THeaders get headers;
+  SerinusHeaders get headers;
 
   /// The query parameters of the request.
   Map<String, String> get queryParameters;
@@ -135,7 +137,7 @@ abstract class IncomingMessage<THeaders> {
 /// The class Request is used to handle the request
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
 
-class InternalRequest extends IncomingMessage<HttpHeaders> {
+class InternalRequest extends IncomingMessage {
   @override
   final String id;
 
@@ -155,7 +157,7 @@ class InternalRequest extends IncomingMessage<HttpHeaders> {
   final HttpRequest original;
 
   @override
-  HttpHeaders get headers => original.headers;
+  final SerinusHeaders headers;
 
   @override
   final int port;
@@ -182,6 +184,7 @@ class InternalRequest extends IncomingMessage<HttpHeaders> {
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
   factory InternalRequest.from(HttpRequest request, int port, String host) {
     return InternalRequest(
+      headers: SerinusHeaders(request.headers.toMap()),
       original: request,
       port: port,
       host: host,
@@ -199,10 +202,10 @@ class InternalRequest extends IncomingMessage<HttpHeaders> {
     if (ifModifiedSinceCache != null) {
       return ifModifiedSinceCache;
     }
-    if (headers.value('if-modified-since') == null) {
+    if (!headers.containsKey('if-modified-since')) {
       return null;
     }
-    ifModifiedSinceCache = parseHttpDate(headers['if-modified-since']?.firstOrNull ?? '');
+    ifModifiedSinceCache = parseHttpDate(headers['if-modified-since']!);
     return ifModifiedSinceCache;
   }
 
@@ -211,6 +214,7 @@ class InternalRequest extends IncomingMessage<HttpHeaders> {
 
   /// The [Request] constructor is used to create a new instance of the [Request] class
   InternalRequest({
+    required this.headers,
     required this.original,
     required this.port,
     required this.host,

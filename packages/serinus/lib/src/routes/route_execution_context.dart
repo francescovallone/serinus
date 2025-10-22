@@ -302,20 +302,24 @@ class RouteExecutionContext {
     if (result.data == null) {
       return result;
     }
+    // Prefer to produce bytes for JSON-able and model objects here, so downstream
+    // sending code doesn't re-encode and we avoid double-encoding.
     if (result.data?.canBeJson() ?? false) {
-      responseData = _jsonUtf8Encoder.convert(
-        parseJsonToResponse(result.data, modelProvider),
-      );
+      final prepared = parseJsonToResponse(result.data, modelProvider);
+      responseData = Uint8List.fromList(_jsonUtf8Encoder.convert(prepared));
       context.response.contentType ??= ContentType.json;
     }
-    if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType) ??
-        false) {
-      responseData = _jsonUtf8Encoder.convert(modelProvider?.to(result.data));
+
+    if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType) ?? false) {
+      final modelObj = modelProvider?.to(result.data);
+      responseData = Uint8List.fromList(_jsonUtf8Encoder.convert(modelObj));
       context.response.contentType ??= ContentType.json;
     }
+
     if (result.data is Uint8List || result.data is File) {
       context.response.contentType ??= ContentType.binary;
     }
+
     result.data = responseData ?? result.data;
     return result;
   }
