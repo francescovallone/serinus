@@ -18,8 +18,7 @@ resolution: workspace
 
 dependencies:
   serinus: ^2.0.0-rc.6
-  openapi_types: 
-    path: ../../../openapi_types
+  openapi_types: ^1.0.0
   analyzer: ^7.7.1
 
 dev_dependencies:
