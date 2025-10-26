@@ -3,13 +3,17 @@
 
 <template>
 	<svg width="690" height="400" xmlns="http://www.w3.org/2000/svg">
-    	<rect x="80" y="50" width="150" height="60" class="box" rx="12" ry="12"/>
-		<text x="155" y="85" class="text">Permission</text>
-		<rect x="460" y="50" width="150" height="60" class="box" rx="12" ry="12"/>
-		<text x="535" y="85" class="text">AuthStrategy</text>
+    <circle cx="50%" cy="50%" r="160" style="fill: transparent; stroke: #aaa; stroke-width: 1px;" />
+    <rect x="140" y="70" width="150" height="60" class="box" rx="12" ry="12"/>
+		<text x="215" y="105" class="text">Permission</text>
+    <rect x="140" y="270" width="150" height="60" class="box" rx="12" ry="12"/>
+		<text x="215" y="305" class="text">User</text>
 
-		<path d="M155 110 C155 200, 155 200, 270 200" class="arrow top-arrow arrow-dashed"/>
-		<path d="M535 110 C535 200, 535 200, 420 200" class="arrow top-arrow arrow-dashed"/>
+
+		<rect x="400" y="70" width="150" height="60" class="box" rx="12" ry="12"/>
+		<text x="475" y="105" class="text">Guarded</text>
+    <rect x="400" y="270" width="150" height="60" class="box" rx="12" ry="12"/>
+		<text x="475" y="305" class="text">AuthStrategy</text>
 
 		<rect x="270" y="170" width="150" height="60" class="box stroke" rx="12" ry="12"/>
 		<text x="345" y="205" class="text-brand">Route</text>

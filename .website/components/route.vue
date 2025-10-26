@@ -2,14 +2,12 @@
 </script>
 
 <template>
-	<svg width="690" height="400" xmlns="http://www.w3.org/2000/svg">
-    <!-- Client Side box -->
-    <rect x="10" y="150" width="150" height="60" class="box stroke" rx="8" ry="8"/>
-    <rect x="5" y="145" width="160" height="70" class="box stroke" rx="12" ry="12" style="stroke-width: 1;"/>
-    <text x="85" y="185" class="text-brand">Client Side</text>
+	<svg width="688" height="400" xmlns="http://www.w3.org/2000/svg">
+    <rect x="50" y="150" width="150" height="60" class="box stroke" rx="8" ry="8"/>
+    <text x="125" y="185" class="text-brand">Controller</text>
 
     <!-- Dashed arrow (HTTP request) -->
-    <line x1="165" y1="180" x2="265" y2="180" class="arrow arrow-dashed">
+    <line x1="205" y1="180" x2="340" y2="180" class="arrow arrow-dashed">
       <animate
           attributeName="stroke-dashoffset"
           values="100;0"
@@ -17,14 +15,28 @@
           calcMode="linear"
           repeatCount="indefinite" />
     </line>
-    <text x="215" y="165" class="text" style="fill:#aaa; font-size:12px;">Request</text>
-    <rect x="265" y="150" width="150" height="60" class="box" rx="12" ry="12"/>
-    <text x="340" y="185" class="text">Middleware</text>
-    <path d="M415 180 C415 180, 415 180, 515 180" class="arrow top-arrow"/>
-    <path d="M415 180 C415 180, 415 180, 515 180" class="arrow mid-arrow"/>
+    <text x="270" y="165" class="text" style="fill:#aaa; font-size:12px;">GET /</text>
 
-    <rect x="515" y="150" width="150" height="60" class="box stroke" rx="12" ry="12"/>
-    <text x="590" y="185" class="text-brand">Route</text>
+    <!-- Controller boxes -->
+    <!-- Top Controller -->
+    <rect x="460" y="80" width="150" height="60" class="box" rx="12" ry="12"/>
+    <text x="535" y="115" class="text">GET /</text>
+
+    <!-- Middle Controller (highlighted) -->
+    <rect x="460" y="150" width="150" height="60" class="box" rx="12" ry="12"/>
+    <text x="535" y="185" class="text">POST /</text>
+
+    <!-- Bottom Controller -->
+    <rect x="460" y="220" width="150" height="60" class="box" rx="12" ry="12"/>
+    <text x="535" y="255" class="text">PUT /</text>
+
+    <!-- curved path from first line to the top-most controller -->
+    <path d="M340 180 C340 100, 340 110, 460 110" class="arrow top-arrow"/>
+    <path d="M340 180 C340 100, 340 110, 460 110" class="arrow mid-arrow"/>
+    <!-- curved path from first line to the middle controller -->
+    <path d="M340 180 C340 180, 340 180, 460 180" class="arrow top-arrow"/>
+    <!-- curved path from first line to the bottom controller -->
+    <path d="M340 180 C340 250, 340 250, 460 250" class="arrow top-arrow"/>
   </svg>
 </template>
 

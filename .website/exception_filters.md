@@ -1,6 +1,12 @@
+<script setup>
+  import ExceptionFiltersImage from './components/exception_filters.vue'
+</script>
+
 # Exception Filters
 
 Exception filters are a powerful mechanism in Serinus that allow you to handle exceptions thrown during the request-response cycle. They provide a way to catch and process exceptions, enabling you to return custom error responses or perform specific actions when an error occurs.
+
+<ExceptionFiltersImage />
 
 ```dart
 import 'package:serinus/serinus.dart';

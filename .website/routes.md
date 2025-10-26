@@ -1,6 +1,12 @@
+<script setup>
+  import RoutesImage from './components/route.vue'
+</script>
+
 # Routes
 
 Routes are the core of every web application. They are the endpoints that the client will interact with.
+
+<RoutesImage />
 
 Serinus provides a simple way to define routes using the `Route` class. You can decide if defining a custom class that extends the `Route` class or use the factory constructor to create one.
 

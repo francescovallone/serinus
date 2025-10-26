@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 const copiedCliCommand = ref(false);
 const copiedCreateProjectCommand = ref(false);
@@ -12,6 +12,44 @@ function copyCreateProjectCommand() {
     copiedCreateProjectCommand.value = true;
 }
 
+onMounted(() => {
+    const words = ['Flutter', 'Dart', 'Backend'];
+    startTypingEffect(words, 'change-keyword', 2000);
+});
+
+function startTypingEffect(words, elementId, delay) {
+    let currentWordIndex = 0;
+    let currentCharIndex = 0;
+    let isDeleting = false;
+    const element = document.getElementById(elementId);
+
+    function type() {
+        const currentWord = words[currentWordIndex];
+        if (isDeleting) {
+            currentCharIndex--;
+            element.innerText = currentWord.substring(0, currentCharIndex);
+            if (currentCharIndex === 0) {
+                isDeleting = false;
+                currentWordIndex = (currentWordIndex + 1) % words.length;
+                setTimeout(type, 250);
+            } else {
+                setTimeout(type, 100);
+            }
+        } else {
+            currentCharIndex++;
+            element.innerText = currentWord.substring(0, currentCharIndex);
+            if (currentCharIndex === currentWord.length) {
+                isDeleting = true;
+                setTimeout(type, delay);
+            } else {
+                setTimeout(type, 100);
+            }
+        }
+    }
+
+    type();
+}
+
 </script>
 
 <template>
@@ -21,7 +59,7 @@ function copyCreateProjectCommand() {
                 HeroModule()
             </div>
             <div class="flex flex-col items-start">
-                <div class="text-4xl lg:text-6xl 2xl:w-[52rem] lg:w-[36rem] text-pretty"><span class="text-serinus font-semibold">Designed for Scale</span>,<br /> Crafted for Flutter Developers.</div>
+                <div class="text-4xl lg:text-6xl 2xl:w-[54rem] lg:w-[36rem] text-pretty"><span class="text-serinus font-semibold">Designed for Scale</span>,<br /> Crafted for <span id="change-keyword">Flutter</span> Developers.</div>
                 <div class="my-4 lg:my-8 text-md lg:text-lg 2xl:w-[48rem] lg:w-[32rem] text-pretty text-gray-600">
                     Serinus provides a powerful and flexible framework for building server-side applications in Dart. Our open-source Dart framework, packages, and tools make it easy to create high-performance, scalable, and maintainable applications. 
                 </div>

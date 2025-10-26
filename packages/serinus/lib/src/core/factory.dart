@@ -2,7 +2,7 @@ import 'dart:io';
 
 import '../adapters/adapters.dart';
 import '../constants.dart';
-import '../containers/model_provider.dart';
+import '../containers/models_provider.dart';
 import '../enums/log_level.dart';
 import '../services/logger_service.dart';
 import 'core.dart';

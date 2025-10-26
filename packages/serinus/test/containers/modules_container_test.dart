@@ -1,14 +1,23 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/injection_token.dart';
+import 'package:serinus/src/containers/serinus_container.dart';
+import 'package:serinus/src/routes/route_execution_context.dart';
+import 'package:serinus/src/routes/route_response_controller.dart';
+import 'package:serinus/src/routes/router.dart';
+import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
 
+import '../mocks/controller_mock.dart';
 import '../mocks/injectables_mock.dart';
 import '../mocks/module_mock.dart';
+import 'composed_module_test.dart';
 
 class _MockAdapter extends Mock implements HttpAdapter {
   @override
   String get name => 'http';
+
+  @override
+  bool get rawBody => false;
 }
 
 final config = ApplicationConfig(serverAdapter: _MockAdapter());
@@ -35,6 +44,39 @@ void main() {
         await container.registerModules(module);
         await container.registerModules(module);
         expect(container.scopes.length, 1);
+      },
+    );
+
+    test(
+      'registered routes retain the module injection token',
+      () async {
+        Logger.setLogLevels({LogLevel.none});
+        final adapter = _MockAdapter();
+        final localConfig = ApplicationConfig(serverAdapter: adapter);
+        final container = SerinusContainer(localConfig, adapter);
+        final module = SimpleMockModule(controllers: [MockController()]);
+
+        await container.modulesContainer.registerModules(module);
+
+        final router = Router(localConfig.versioningOptions);
+        final executionContext = RouteExecutionContext(
+          RouteResponseController(adapter),
+        );
+        final explorer = RoutesExplorer(
+          container,
+          router,
+          executionContext,
+        );
+
+        explorer.resolveRoutes();
+
+        final token = InjectionToken.fromModule(module);
+        final result = router.checkRouteByPathAndMethod('/', HttpMethod.get);
+
+        expect(result.spec, isNotNull);
+        final routeContext = result.spec!.route;
+        expect(routeContext.moduleToken, equals(token));
+        expect(routeContext.moduleScope.token, equals(token));
       },
     );
 
@@ -97,6 +139,12 @@ void main() {
       () async {
         final container = ModulesContainer(config);
         final module = SimpleModuleWithImportsAndInjects();
+        final importableModule = module.imports
+            .whereType<ImportableModuleWithProvider>()
+            .first;
+        final nestedImport = importableModule.imports
+            .whereType<ImportableModuleWithNonExportedProvider>()
+            .first;
         await container.registerModules(module);
         await container.finalize(module);
         expect(container.scopes.length, 3);
@@ -104,8 +152,9 @@ void main() {
           InjectionToken.fromModule(module),
         );
         expect(injectables.providers.length, 2);
-        final t = ImportableModuleWithProvider;
-        final subInjectables = container.getScope(InjectionToken.fromType(t));
+        final subInjectables = container.getScope(
+          InjectionToken.fromModule(importableModule),
+        );
         expect(subInjectables.providers.length, 2);
         expect(
           injectables.providers.where(
@@ -113,9 +162,8 @@ void main() {
           ),
           isEmpty,
         );
-        final t2 = ImportableModuleWithNonExportedProvider;
         final subInjectablesTwo = container.getScope(
-          InjectionToken.fromType(t2),
+          InjectionToken.fromModule(nestedImport),
         );
         expect(subInjectablesTwo.providers.length, 1);
       },
@@ -146,5 +194,20 @@ void main() {
         expect(container.scopes.length, 1);
       },
     );
+  });
+  group('Module scope identity', () {
+    test('allows registering the same module class twice with different params', () async {
+      final container =
+          ModulesContainer(ApplicationConfig(serverAdapter: _MockAdapter()));
+      final first = ParameterizedModule(ValueProviderOne());
+      final second = ParameterizedModule(ValueProviderTwo());
+      final root = ParentModule([first, second]);
+
+      await container.registerModules(root);
+      await container.finalize(root);
+
+      expect(container.get<ValueProviderOne>(), isNotNull);
+      expect(container.get<ValueProviderTwo>(), isNotNull);
+    });
   });
 }

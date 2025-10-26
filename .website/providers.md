@@ -132,10 +132,11 @@ class UsersModule extends Module {
   UsersModule() : super(
     providers: [
       DatabaseService(),
-      Provider.composed(
-        (DatabaseService databaseService) async => UserService(databaseService)
+      Provider.composed<UserService>(
+        (CompositionContext context) async => UserService(
+          context.use<DatabaseService>()
+        ),
         inject: [DatabaseService],
-        type: UserService,
       )
     ],
   );

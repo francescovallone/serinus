@@ -4,7 +4,7 @@ import '../injector/internal_core_module.dart';
 import '../inspector/inspector.dart';
 import '../mixins/provider_mixins.dart';
 import '../routes/routes_resolver.dart';
-import 'module_container.dart';
+import 'modules_container.dart';
 
 /// The [SerinusContainer] is the main container of the Serinus Framework.
 class SerinusContainer {

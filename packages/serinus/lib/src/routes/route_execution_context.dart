@@ -4,7 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import '../adapters/adapters.dart';
-import '../containers/model_provider.dart';
+import '../containers/models_provider.dart';
 import '../contexts/contexts.dart';
 import '../contexts/route_context.dart';
 import '../core/core.dart';

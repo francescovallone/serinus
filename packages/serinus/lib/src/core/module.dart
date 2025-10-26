@@ -1,3 +1,5 @@
+import '../../serinus.dart';
+import '../contexts/composition_context.dart';
 import 'core.dart';
 
 /// The [Module] class is used to define a module.
@@ -25,6 +27,18 @@ abstract class Module {
     if (exports.isEmpty) {
       return [];
     }
+    if (exports.length != providers.length) {
+      final buffer = StringBuffer('Exported providers do not match any provided types: \n');
+      for (final export in exports) {
+        final found = providers.where((element) => element.runtimeType == export);
+        if (found.isEmpty) {
+          buffer.writeln('- ${export.toString()}');
+        }
+      }
+      if (buffer.length > 0) {
+        throw InitializationError(buffer.toString());
+      }
+    }
     return [
       ...providers.where((element) => exports.contains(element.runtimeType)),
     ];
@@ -40,6 +54,15 @@ abstract class Module {
     this.isGlobal = false,
   });
 
+  static Module composed<T extends Module>(
+    Future<T> Function(CompositionContext context) init, {
+    required List<Type> inject,
+  }) =>
+      ComposedModule<T>(
+        init,
+        inject: inject,
+      );
+
   /// The [register] method is used to register the module.
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
     return DynamicModule();
@@ -47,6 +70,33 @@ abstract class Module {
 
   /// Configures the middleware for the module.
   void configure(MiddlewareConsumer consumer) {}
+}
+
+final class ComposedModule<T extends Module> extends Module {
+  /// The [init] function is called when the provider is initialized.
+  final Future<T> Function(CompositionContext context) init;
+
+  /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
+  final List<Type> inject;
+
+  /// The [type] property contains the type of the module.
+  Type get type => T;
+
+  ComposedModule(
+    this.init, 
+    {
+      required this.inject,
+    }
+  ) : super(
+    imports: [],
+    controllers: [],
+    providers: [],
+    exports: [],
+    isGlobal: false
+  );
+
+  @override
+  String toString() => '$T(inject: $inject, type: $T)';
 }
 
 /// The [DynamicModule] class is used to define a dynamic module.

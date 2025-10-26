@@ -1,4 +1,5 @@
 export 'base_context.dart';
+export 'composition_context.dart';
 export 'execution_context.dart';
 export 'request_context.dart';
 export 'response_context.dart';

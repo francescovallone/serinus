@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:uuid/v4.dart';
 
 import '../adapters/adapters.dart';
-import '../containers/adapter_container.dart';
+import '../containers/adapters_container.dart';
 import '../containers/hooks_container.dart';
-import '../containers/model_provider.dart';
-import '../containers/module_container.dart';
+import '../containers/models_provider.dart';
+import '../containers/modules_container.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../microservices/transports/transports.dart';

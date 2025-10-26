@@ -152,10 +152,9 @@ class AppModule extends Module {
     imports: [WsModule()],
     providers: [
       MyService(),
-      Provider.composed(
-        (MyService myService) => MyGateway(myService),
+      Provider.composed<MyGateway>(
+        (CompositionContext context) async => MyGateway(context.use<MyService>()),
         inject: [MyService]
-        type: MyGateway,
       ),
     ],
   );

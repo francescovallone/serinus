@@ -4,7 +4,7 @@ import 'dart:typed_data';
 
 import 'package:mime/mime.dart';
 
-import '../containers/model_provider.dart';
+import '../containers/models_provider.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/content_type_extensions.dart';

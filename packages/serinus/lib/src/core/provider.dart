@@ -1,3 +1,5 @@
+import '../contexts/composition_context.dart';
+
 /// The [Provider] class is used to define a provider.
 abstract class Provider {
   /// The [Provider] constructor is used to create a new instance of the [Provider] class.
@@ -8,11 +10,10 @@ abstract class Provider {
   ///
   /// The [init] function is called when the provider is initialized.
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
-  factory Provider.composed(
-    Function init, {
+  static ComposedProvider<T> composed<T extends Provider>(
+    Future<T> Function(CompositionContext context) init, {
     required List<Type> inject,
-    required Type type,
-  }) => ComposedProvider(init, inject: inject, type: type);
+  }) => ComposedProvider(init, inject: inject);
 
   @override
   String toString() => '$runtimeType';
@@ -21,19 +22,19 @@ abstract class Provider {
 /// The [ComposedProvider] class is used to define a provider that is initialized asynchronously.
 /// The [init] function is called when the provider is initialized.
 /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
-final class ComposedProvider extends Provider {
+final class ComposedProvider<T extends Provider> extends Provider {
   /// The [init] function is called when the provider is initialized.
-  final Function init;
-
-  /// The [type] property contains the type of the provider that will be initialized.
-  final Type type;
+  final Future<T> Function(CompositionContext context) init;
 
   /// The [inject] property contains the types of other [Provider]s that will be injected in the provider.
   final List<Type> inject;
 
+  /// Extracted type of the provider.
+  Type get type => T;
+
   /// The [ComposedProvider] constructor is used to create a new instance of the [ComposedProvider] class.
-  ComposedProvider(this.init, {required this.inject, required this.type});
+  ComposedProvider(this.init, {required this.inject});
 
   @override
-  String toString() => '$runtimeType(inject: $inject, type: $type)';
+  String toString() => '$runtimeType(inject: $inject)';
 }

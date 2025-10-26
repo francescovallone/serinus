@@ -7,9 +7,9 @@ This package is still experimental and although it is ready to be used, some/or 
 might change (with deprecations) in future versions.
 :::
 
-## End-to-End Testing
+## Application Integration Smoke Test
 
-End-to-end (E2E) testing covers the interactions between different parts of your application, simulating real user scenarios. With `serinus_test`, you can easily create E2E tests for your Serinus applications.
+Application integration smoke tests focus on verifying the interactions between different modules and components within your application. With `serinus_test`, you can easily create integration tests for your Serinus applications.
 
 Serinus simulates a real server environment leveraging the same underlying architecture as your application but removing the network overhead. This allows for fast and reliable tests.
 

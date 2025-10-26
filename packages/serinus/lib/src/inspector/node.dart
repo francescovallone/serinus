@@ -74,11 +74,19 @@ class ModuleMetadataNode {
   /// Indicates if the module represents a dynamic module.
   final bool isDynamic;
 
+  /// Indicates if the module represents a composed module.
+  final bool composed;
+
+  /// The time it took to initialize the module, in milliseconds.
+  final int initTime;
+
   /// Creates a new instance of [ModuleMetadataNode].
   const ModuleMetadataNode({
     this.internal = false,
     this.isDynamic = false,
     this.global = false,
+    this.composed = false,
+    this.initTime = 0,
   });
 
   /// Converts the [ModuleMetadataNode] to a JSON object.

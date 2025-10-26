@@ -274,7 +274,7 @@ class AppModule extends Module {
 
 ### Testing
 
-<p><span class="numbered">1</span>Create your test cases</p>
+<p><span class="numbered">1</span>Create your test case</p>
 
 ```dart
 import 'package:serinus_test/serinus_test.dart';
@@ -293,10 +293,8 @@ void main() {
     );
     await application.serve();
     final res = await application.get('/provider');
-    final providers = application.getProvider<TestProvider>();
-    providers?.testList.add('Testing provider retrieval');
-    final afterAdd = await application.post('/provider');
-    afterAdd.expectHttpException(NotFoundException());
+    expect(res.statusCode, 200);
+    expect(res.body, 'Hello from TestProvider');
   });
 }
 ```

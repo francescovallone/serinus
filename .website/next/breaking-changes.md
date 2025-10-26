@@ -22,10 +22,9 @@ class AppModule extends Module {
                 inject: [AppProvider], // [!code --]
                 type: SecondProvider // [!code --]
             ), // [!code --]
-            Provider.composed( // [!code ++]
-                (AppProvider appProvider) => SecondProvider(appProvider), // [!code ++]
+            Provider.composed<SecondProvider>( // [!code ++]
+                (CompositionContext context) async => SecondProvider(context.use<AppProvider>()), // [!code ++]
                 inject: [AppProvider], // [!code ++]
-                type: SecondProvider // [!code ++]
             ) // [!code ++]
         ]
     )
@@ -312,6 +311,14 @@ on(
 ```
 
 Now you can use any pipe to validate and parse request bodies, query parameters, path parameters and whatever you like, giving you more control over the validation process and allowing you to use different validation libraries or custom logic as needed.
+
+## 17. Tracer api has been removed
+
+The Tracer API has been removed from the framework. This decision was made to streamline the codebase and focus on core functionalities.
+
+::: info
+The tracer api will be reintroduced in future versions with a more robust and flexible implementation.
+:::
 
 ## Other Changes
 

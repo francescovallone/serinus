@@ -452,10 +452,11 @@ packages:
   openapi_types:
     dependency: transitive
     description:
-      path: "../openapi_types"
-      relative: true
-    source: path
-    version: "1.1.0"
+      name: openapi_types
+      sha256: cbc499c9a623292bb10c9c6403c1170d48eb9a7eb2cc22ebc32773127ebc233c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
   package_config:
     dependency: transitive
     description:

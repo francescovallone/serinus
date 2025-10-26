@@ -1,8 +1,15 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/contexts/composition_context.dart';
 
 import 'injectables_mock.dart';
 
 class SimpleMockModuleWithDeferred extends Module {}
+
+class SimpleMockModuleWithImports extends Module {
+
+  SimpleMockModuleWithImports({super.imports, super.controllers, super.providers, super.exports});
+
+}
 
 class SimpleMockModule extends Module {
   SimpleMockModule({super.controllers});
@@ -14,7 +21,7 @@ class SimpleModule extends Module {
 
 class SimpleModuleWithProvider extends Module {
   SimpleModuleWithProvider()
-    : super(controllers: [], providers: [TestProvider()], exports: []);
+    : super(controllers: [], providers: [TestProviderThree()], exports: []);
 }
 
 class SimpleModuleWithInjectables extends Module {
@@ -39,14 +46,12 @@ class ImportableModuleWithProvider extends Module {
         controllers: [],
         providers: [
           Provider.composed(
-            () => TestProviderTwo(),
+            (CompositionContext ctx) async => TestProviderTwo(),
             inject: [],
-            type: TestProviderTwo,
           ),
           Provider.composed(
-            (TestProviderTwo p) => TestGlobalProviderWithDeps(p),
+            (CompositionContext ctx) async => TestGlobalProviderWithDeps(ctx.use<TestProviderTwo>()),
             inject: [TestProviderTwo],
-            type: TestGlobalProviderWithDeps,
           ),
         ],
         exports: [TestProviderTwo],

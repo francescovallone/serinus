@@ -70,10 +70,9 @@ class CircularDependencyModule extends Module {
         imports: [],
         controllers: [],
         providers: [
-          Provider.composed(
-            (TestProvider tp) => TestProviderThree(tp),
+          Provider.composed<TestProviderThree>(
+            (CompositionContext context) async => TestProviderThree(context.use<TestProvider>()),
             inject: [TestProvider],
-            type: TestProviderThree,
           ),
         ],
         exports: [TestProviderThree],
@@ -132,16 +131,18 @@ class AnotherModule extends Module {
         imports: [CircularDependencyModule()],
         controllers: [AnotherController()],
         providers: [
-          Provider.composed(
-            (TestProviderThree tp) => TestProviderTwo(tp),
+          Provider.composed<TestProviderTwo>(
+            (CompositionContext context) async => TestProviderTwo(
+              context.use<TestProviderThree>(),
+            ),
             inject: [TestProviderThree],
-            type: TestProviderTwo,
           ),
-          Provider.composed(
-            (TestProviderTwo tp, TestProviderThree t) =>
-                TestProviderFour(t, tp),
-            inject: [TestProviderTwo, TestProviderThree],
-            type: TestProviderFour,
+          Provider.composed<TestProviderFour>(
+            (CompositionContext context) async => TestProviderFour(
+              context.use<TestProviderThree>(),
+              context.use<TestProviderTwo>(),
+            ),
+            inject: [TestProviderThree, TestProviderTwo],
           ),
         ],
         exports: [TestProviderFour],

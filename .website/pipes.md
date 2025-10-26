@@ -1,3 +1,7 @@
+<script setup>
+  import PipesImage from './components/pipes.vue'
+</script>
+
 # Pipes
 
 A pipe is a class annotated which extends the `Pipe` abstract class and override the `transform` method.
@@ -25,6 +29,8 @@ Serinus comes with a number of built-in pipes that you can use out-of-the-box. Y
 ::: info
 When a Pipe throws an exception it is handled by the exceptions layer. Given the above, it should be clear that when an exception is thrown in a Pipe, no other middleware, hooks or route handlers are subsequently executed.
 :::
+
+<PipesImage />
 
 ## Built-in Pipes
 

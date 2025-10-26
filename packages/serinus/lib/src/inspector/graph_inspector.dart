@@ -1,5 +1,5 @@
 import '../containers/injection_token.dart';
-import '../containers/module_container.dart';
+import '../containers/modules_container.dart';
 import '../core/core.dart';
 import 'edge.dart';
 import 'entrypoint.dart';
@@ -34,6 +34,8 @@ class GraphInspector extends Provider {
           global: moduleScope.module.isGlobal,
           isDynamic: moduleScope.isDynamic,
           internal: moduleScope.internal,
+          composed: moduleScope.composed,
+          initTime: moduleScope.initTime,
         ),
       );
       graph.insertNode(moduleNode);

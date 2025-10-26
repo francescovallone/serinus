@@ -1,6 +1,12 @@
+<script setup>
+  import HooksImage from './components/hooks.vue'
+</script>
+
 # Hooks
 
 We have already seen how to add some "hooks" to the application using the Route Lifecycle Hooks, but Serinus also provides a way to create custom hooks that can be used to execute code at specific points in the request lifecycle.
+
+<HooksImage />
 
 These hooks are similar to middlewares, but way more powerful. They can be used to execute code before and after the request is handled, but also before the request is received and after the response is sent.
 This can be useful to authenticate users, log requests, and responses, and more.
@@ -11,9 +17,9 @@ As for the Routes, Hooks are `Hookable` objects, so they can use the lifecycle h
 
 | Mixin | Hook | Description |
 |-------|------|-------------|
+| OnRequest | `onRequest` | Executes code when the request is received |
 | OnBeforeHandle | `beforeHandle` | Executes code before the request is handled. |
 | OnAfterHandle | `afterHandle` | Executes code after the request is handled. |
-| OnRequest | `onRequest` | Executes code when the request is received |
 | OnResponse | `onResponse` | Executes code when the response is sent. |
 
 In the example below, we create a custom hook that logs the request and response.
@@ -21,17 +27,8 @@ In the example below, we create a custom hook that logs the request and response
 ```dart
 import 'package:serinus/serinus.dart';
 
-class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequest, OnResponse {
-
-  @override
-  Future<void> beforeHandle(RequestContext context) async {
-    print('Before handling the request');
-  }
-
-  @override
-  Future<void> afterHandle(RequestContext context, dynamic response) async {
-    print('After handling the request');
-  }
+class LogHook extends Hook 
+  with OnRequest, OnBeforeHandle, OnAfterHandle, OnResponse {
 
   @override
   Future<void> onRequest(Request request, InternalResponse response) async {
@@ -39,7 +36,18 @@ class LogHook extends Hook with OnBeforeHandle, OnAfterHandle, OnRequest, OnResp
   }
 
   @override
-  Future<void> onResponse(Request request, dynamic data, ResponseProperties properties) async {
+  Future<void> beforeHandle(RequestContext context) async {
+    print('Before handling the request');
+  }
+
+  @override
+  Future<void> afterHandle(RequestContext context, WrappedResponse response) async {
+    print('After handling the request');
+  }
+
+  @override
+  Future<void> onResponse(
+    Request request, WrappedResponse data, ResponseProperties properties) async {
     print('Response sent: ${data}');
   }
 

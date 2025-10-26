@@ -1,4 +1,4 @@
-import '../containers/model_provider.dart';
+import '../containers/models_provider.dart';
 import '../extensions/object_extensions.dart';
 import '../mixins/mixins.dart';
 

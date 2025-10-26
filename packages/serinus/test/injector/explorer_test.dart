@@ -38,9 +38,6 @@ void main() {
           ),
         );
         final container = SerinusContainer(config, _MockAdapter());
-        await container.modulesContainer.registerModules(
-          SimpleMockModule(controllers: [MockController()]),
-        );
         final explorer = RoutesExplorer(
           container,
           router,

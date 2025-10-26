@@ -68,3 +68,33 @@ class AppModule extends Module {
   );
 }
 ```
+
+## Composed Modules
+
+Some modules might need to be configured thanks to other modules or services. In this case, you can use the `ComposedModule` class to achive this.
+
+Let's take an example where we want to create a `DatabaseModule` that needs to be configured with a `ConfigService` to get the database connection string.
+
+```dart
+import 'package:serinus/serinus.dart';
+import 'package:serinus_config/serinus_config.dart';
+
+class AppModule extends Module {
+  AppModule() : super(
+    imports: [
+      ConfigModule(),
+      Module.composed<DatabaseModule>(
+        (CompositionContext context) {
+          final configService = context.use<ConfigService>();
+          final connectionString = configService.get<String>('DATABASE_URL');
+          return DatabaseModule(connectionString);
+        },
+        inject: [ConfigService],
+      ),
+    ],
+    controllers: [AppController()],
+  );
+}
+```
+
+As you can see, we used the `Module.composed` method to create a `DatabaseModule` that is configured with the `ConfigService` the same syntax is used for the providers to create `ComposedProvider`s.

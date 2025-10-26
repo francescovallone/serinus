@@ -156,9 +156,8 @@ void main() async {
         final module = TestModule(
           providers: [
             ComposedProvider(
-              () async => TestProvider(),
+              (CompositionContext ctx) async => TestProvider(),
               inject: [],
-              type: TestProvider,
             ),
           ],
         );
@@ -183,9 +182,8 @@ void main() async {
         final module = TestModule(
           providers: [
             ComposedProvider(
-              () async => TestProvider(),
+              (CompositionContext ctx) async => TestProvider(),
               inject: [],
-              type: TestProvider,
             ),
           ],
         );
@@ -210,18 +208,16 @@ void main() async {
           providers: [
             TestProvider(),
             ComposedProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
+              (CompositionContext ctx) async {
+                return TestProviderDependent(ctx.use<TestProvider>());
               },
               inject: [TestProvider],
-              type: TestProviderDependent,
             ),
             Provider.composed(
-              (TestProvider provider) async {
-                return TestProviderDependent2(provider);
+              (CompositionContext ctx) async {
+                return TestProviderDependent2(ctx.use<TestProvider>());
               },
               inject: [TestProvider],
-              type: TestProviderDependent2,
             ),
           ],
         );
@@ -248,11 +244,10 @@ void main() async {
         final module = TestModule(
           providers: [
             ComposedProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
+              (CompositionContext ctx) async {
+                return TestProviderDependent(ctx.use<TestProvider>());
               },
               inject: [TestProvider],
-              type: TestProviderDependent,
             ),
           ],
         );
@@ -281,15 +276,13 @@ void main() async {
           providers: [
             TestProvider(),
             ComposedProvider(
-              (TestProvider provider) async {
+              (CompositionContext ctx) async {
                 return ComposedProvider(
-                  () => TestProviderDependent(provider),
+                  (CompositionContext ctx) async => TestProviderDependent(ctx.use<TestProvider>()),
                   inject: [],
-                  type: TestProviderDependent,
                 );
               },
               inject: [TestProvider],
-              type: TestProviderDependent,
             ),
           ],
         );
@@ -318,11 +311,10 @@ void main() async {
           providers: [
             TestProvider(),
             ComposedProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
+              (CompositionContext ctx) async {
+                return TestProviderDependent(ctx.use<TestProvider>());
               },
               inject: [TestProvider],
-              type: int,
             ),
           ],
         );
@@ -352,18 +344,14 @@ void main() async {
         final module = TestModule(
           providers: [
             ComposedProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
+              (CompositionContext ctx) async {
+                return TestProviderDependent(ctx.use<TestProvider>());
               },
               inject: [TestProvider],
-              type: TestProviderDependent,
             ),
             ComposedProvider(
-              () async {
-                return TestProvider();
-              },
+              (CompositionContext ctx) async => TestProvider(),
               inject: [],
-              type: TestProvider,
             ),
           ],
         );
@@ -391,18 +379,16 @@ void main() async {
         final module = TestModule(
           providers: [
             ComposedProvider(
-              (CircularProvider2 provider) async {
-                return CircularProvider(provider);
+              (CompositionContext ctx) async {
+                return CircularProvider(ctx.use<CircularProvider2>());
               },
               inject: [CircularProvider2],
-              type: CircularProvider,
             ),
             ComposedProvider(
-              (CircularProvider provider) async {
-                return CircularProvider2(provider);
+              (CompositionContext ctx) async {
+                return CircularProvider2(ctx.use<CircularProvider>());
               },
               inject: [CircularProvider],
-              type: CircularProvider2,
             ),
           ],
         );
@@ -412,7 +398,7 @@ void main() async {
           expect(value.runtimeType, InitializationError);
           expect(
             (value as InitializationError).message,
-            contains('[TestModule] Circular dependency found in'),
+            contains('[TestModule] Circular dependency found while resolving'),
           );
         });
       },
@@ -435,11 +421,10 @@ void main() async {
           ],
           providers: [
             ComposedProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
+              (CompositionContext ctx) async {
+                return TestProviderDependent(ctx.use<TestProvider>());
               },
               inject: [TestProvider],
-              type: TestProviderDependent,
             ),
           ],
         );
@@ -453,37 +438,6 @@ void main() async {
       },
     );
 
-    test(
-      '''when a $ComposedProvider does not return a $Provider an $InitializationError should be thrown''',
-      () async {
-        final config = ApplicationConfig(
-          serverAdapter: SerinusHttpAdapter(
-            host: 'localhost',
-            port: 3000,
-            poweredByHeader: 'Powered by Serinus',
-          ),
-        );
-        final container = ModulesContainer(config);
-        final module = TestModule(
-          providers: [
-            ComposedProvider(
-              () async {
-                return 'not a provider';
-              },
-              inject: [],
-              type: TestProviderDependent,
-            ),
-          ],
-        );
-        await container.registerModules(module);
-
-        container
-            .finalize(module)
-            .catchError(
-              (value) => expect(value.runtimeType, InitializationError),
-            );
-      },
-    );
   });
 
   test(
