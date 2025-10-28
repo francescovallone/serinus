@@ -11,6 +11,8 @@ resolution: workspace
 # Add regular dependencies here.
 dependencies:
   serinus: ^2.0.0-rc.4
+  grpc: ^4.3.0
+  protobuf: ^5.0.0
 
 dev_dependencies:
   lints: ^6.0.0
