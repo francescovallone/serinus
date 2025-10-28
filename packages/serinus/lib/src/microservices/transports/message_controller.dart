@@ -5,7 +5,7 @@ import '../../core/controller.dart';
 import '../../core/route.dart';
 
 /// Type definition for a message handler function.
-typedef MessageHandler = Future<dynamic> Function(RpcContext context);
+typedef MessageHandler<T> = Future<T> Function(RpcContext context);
 
 /// Type definition for an event handler function.
 typedef EventHandler = Future<void> Function(RpcContext context);
@@ -22,7 +22,7 @@ mixin RpcController on Controller {
   final Map<String, ({RpcRoute route, EventHandler handler})> eventRoutes = {};
 
   /// Register a message handler for the given [route].
-  void onMessage(RpcRoute route, MessageHandler handler) {
+  void onMessage<T>(RpcRoute route, MessageHandler<T> handler) {
     if (messageRoutes.values.any((r) => r.route.path == route.path)) {
       throw StateError(
         'A message route with pattern "${route.path}" is already registered in the controller.',

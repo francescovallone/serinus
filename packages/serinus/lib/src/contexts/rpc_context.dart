@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../microservices/transports/transports.dart';
 import 'contexts.dart';
 
@@ -14,6 +16,12 @@ class RpcContext extends BaseContext {
 
   /// Checks if the message is a request or an event.
   bool get isRequest => message is RequestPacket;
+
+  /// The payload of the message.
+  Object? get payload => message.payload;
+
+  /// The raw payload of the message.
+  Uint8List? get rawPayload => message.rawPayload;
 
   /// Safely casts the message to a [RequestPacket].
   RequestPacket get asRequest {
