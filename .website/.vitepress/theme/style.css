@@ -45,6 +45,9 @@
 .text-serinus {
 	color: var(--vp-c-brand-1) !important;
 }
+.text-serinus-2 {
+	color: var(--vp-c-brand-2) !important;
+}
 .bg {
 	background-color: var(--vp-c-bg) !important;
 }

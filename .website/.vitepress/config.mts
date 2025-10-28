@@ -32,10 +32,10 @@ export default defineConfig({
   appearance: false,
   ignoreDeadLinks: true,
   themeConfig: {
-    footer: {
-      copyright: 'Copyright © 2025 Francesco Vallone',
-      message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/avesbox">Avesbox</a>',
-    },
+    // footer: {
+    //   copyright: 'Copyright © 2025 Francesco Vallone',
+    //   message: 'Built with 💙 and Dart 🎯 | One of the 🐤 of <a href="https://github.com/avesbox">Avesbox</a>',
+    // },
     // https://vitepress.dev/reference/default-theme-config
     logo: '/serinus-logo.png',
     search: {
@@ -126,8 +126,19 @@ export default defineConfig({
               // { text: 'Client', link: 'client' },
             ]
           },
-          { 
-            text: 'CLI', 
+          {
+            text: 'Microservices',
+            base: '/microservices/',
+            collapsed: true,
+            items: [
+              { text: 'Introduction', link: '/' },
+              { text: 'Transporters', link: 'transporters' },
+              { text: 'Patterns', link: 'patterns' },
+              { text: 'Clients', link: 'clients' },
+            ]
+          },
+          {
+            text: 'CLI',
             base: '/cli/',
             collapsed: true,
             items: [
@@ -184,6 +195,10 @@ export default defineConfig({
           {
             'text': 'Breaking Changes in 2.x',
             'link': '/next/breaking-changes'
+          },
+          {
+            text: 'Support Us',
+            link: '/support'
           }
         ]
       },

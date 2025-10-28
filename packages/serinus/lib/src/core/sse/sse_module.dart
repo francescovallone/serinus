@@ -17,17 +17,17 @@ class SseModule extends Module {
     );
     config.adapters.add(sseAdapter);
     final sseRegistry = SseRegistry(config);
-    final sseDispatchers = SseDispatchers(sseAdapter);
-    return DynamicModule(imports: [sseDispatchers], providers: [sseRegistry]);
+    final sseEmitters = SseEmitters(sseAdapter);
+    return DynamicModule(imports: [sseEmitters], providers: [sseRegistry]);
   }
 }
 
 /// The SSE dispatchers are responsible for dispatching SSE events to connected clients.
-class SseDispatchers extends Module {
+class SseEmitters extends Module {
   @override
   bool get isGlobal => true;
 
   /// The constructor for [SseDispatchers].
-  SseDispatchers(SseAdapter adapter)
-    : super(providers: [SseDispatcher(adapter)]);
+  SseEmitters(SseAdapter adapter)
+    : super(providers: [SseEmitter(adapter)]);
 }

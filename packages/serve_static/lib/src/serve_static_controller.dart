@@ -6,15 +6,19 @@ import 'package:serinus/serinus.dart';
 ///
 /// This controller is used to serve static files from the current directory.
 class ServeStaticController extends Controller {
-  /// The [extensions] property contains the extensions whitelist of the controller.
+  /// The [exclude] property contains the excluded paths of the controller.
   final List<String> exclude;
 
+  /// The [extensions] property contains the extensions whitelist of the controller.
   final List<String> extensions;
 
+  /// The [routePath] property contains the route path used to serve files.
   final String routePath;
 
+  /// The [index] property contains the index files of the controller.
   final List<String> index;
 
+  /// The [redirect] property indicates whether to redirect to index files or not.
   final bool redirect;
 
   /// The [ServeStaticController] constructor is used to create a new instance of the [ServeStaticController] class.

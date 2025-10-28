@@ -42,7 +42,7 @@ const changePlugin = (event, selectedPlugin) => {
 					<slot :name="currentPlugin.slot" :slot="currentPlugin.slot"></slot>
 				</div>
 				<div class="flex gap-4 items-center">
-					<a :href="currentPlugin.link" class="text-serinus hover:shadow-md transition-shadow py-3 text-sm underline">Read {{ currentPlugin.title }} docs</a>
+					<a :href="currentPlugin.link" class="text-serinus py-3 text-sm underline">Read {{ currentPlugin.title }} docs</a>
 				</div>
 			</div>
 		</div>

@@ -108,3 +108,62 @@ abstract class HttpAdapter<TServer, TRequest, TResponse>
     ResponseContext properties,
   );
 }
+
+class NoopAdapter extends HttpAdapter<void, void, void> {
+  @override
+  String get name => 'noop';
+
+  NoopAdapter()
+      : super(
+          host: 'localhost',
+          port: 0,
+        );
+
+  @override
+  Future<void> close() {
+    return Future.value();
+  }
+
+  @override
+  Future<void> init(ApplicationConfig config) {
+    return Future.value();
+  }
+
+  @override
+  Future<void> listen({
+    required RequestCallback<void, void> onRequest,
+    ErrorHandler? onError,
+  }) {
+    return Future.value();
+  }
+
+  @override
+  Future<void> redirect(
+    void response,
+    Redirect redirect,
+    ResponseContext properties,
+  ) {
+    return Future.value();
+  }
+
+  @override
+  Future<void> reply(
+    void response,
+    WrappedResponse body,
+    ResponseContext properties,
+  ) {
+    return Future.value();
+  }
+
+  @override
+  Future<void> render(
+    void response,
+    View view,
+    ResponseContext properties,
+  ) {
+    return Future.value();
+  }
+  
+  @override
+  bool get isOpen => true;
+}

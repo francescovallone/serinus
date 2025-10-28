@@ -37,31 +37,15 @@ class AppModule extends Module {
 
   AppModule() : super(
     imports: [
-      ServeStaticModule(
-        options: ServeStaticModuleOptions(path: '/public')
-      )
-    ]
-  );
-
-}
-```
-
-You can also specify the extensions that should be served using the `extensions` parameter. By default all extensions will be served.
-
-```dart
-import 'package:serinus_serve_static/serinus_serve_static.dart';
-import 'package:serinus/serinus.dart';
-
-class AppModule extends Module {
-
-  AppModule() : super(
-    imports: [
-      ServeStaticModule(
-        options: ServeStaticModuleOptions(
-          path: '/public',
-          extensions: ['.html', '.css', '.js']
-        )
-      )
+      ServeStaticModule({
+        rootPath: '/public',
+        renderPath: '*',
+        serveRoot: '',
+        exclude: const [], // List of paths to exclude
+        extensions: const ['.html', '.css', '.js'], // List of extensions to serve
+        index: const ['index.html'],
+        redirect: true,
+      })
     ]
   );
 

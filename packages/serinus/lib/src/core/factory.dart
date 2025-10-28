@@ -4,6 +4,7 @@ import '../adapters/adapters.dart';
 import '../constants.dart';
 import '../containers/models_provider.dart';
 import '../enums/log_level.dart';
+import '../microservices/microservices.dart';
 import '../services/logger_service.dart';
 import 'core.dart';
 
@@ -53,6 +54,27 @@ final class SerinusFactory {
     );
     return app;
   }
+
+  Future<MicroserviceApplication> createMicroservice({
+    required Module entrypoint,
+    required TransportAdapter transport,
+    Set<LogLevel>? logLevels,
+    LoggerService? logger,
+    ModelProvider? modelProvider,
+  }) async {
+    final app = MicroserviceApplication(
+      entrypoint: entrypoint,
+      transport: transport,
+      config: ApplicationConfig(
+        modelProvider: modelProvider,
+        serverAdapter: NoopAdapter(),
+      ),
+      levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
+      logger: logger,
+    );
+    return app;
+  }
+
 }
 
 /// The [serinus] instance is used to create a new instance of the [SerinusFactory] class.
