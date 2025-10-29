@@ -4,6 +4,7 @@ export 'package:acanthis/acanthis.dart'
 export 'application.dart';
 export 'application_config.dart';
 export 'controller.dart';
+export 'exception_filter.dart';
 export 'factory.dart';
 export 'hook.dart';
 export 'metadata.dart';

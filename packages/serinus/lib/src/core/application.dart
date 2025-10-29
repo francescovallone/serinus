@@ -104,16 +104,13 @@ abstract class Application {
 class MicroserviceApplication extends Application {
   final Logger _logger = Logger('MicroserviceApplication');
 
-  final TransportAdapter _transport;
-
   /// The [MicroserviceApplication] constructor is used to create a new instance of the [MicroserviceApplication] class.
   MicroserviceApplication({
     required super.entrypoint,
     required super.config,
-    required TransportAdapter transport,
     super.levels,
     super.logger,
-  }) : _transport = transport;
+  });
 
   @override
   String get url => 'microservice';
@@ -123,9 +120,11 @@ class MicroserviceApplication extends Application {
   @override
   Future<void> serve() async {
     try {
-      _logger.info('Starting microservice on ${_transport.runtimeType} adapter');
+      _logger.info('Starting microservice on ${config.microservices.first.runtimeType} adapter');
+      for (final microservice in config.microservices) {
+        await microservice.init(config);
+      }
       await initialize();
-      await _transport.init(config);
       await _container.emitHook<OnApplicationReady>();
     } catch (e) {
       if (abortOnError) {

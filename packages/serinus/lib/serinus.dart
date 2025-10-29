@@ -2,6 +2,8 @@ export 'package:secure_session/secure_session.dart';
 
 export 'src/adapters/adapters.dart';
 export 'src/constants.dart';
+export 'src/containers/adapters_container.dart';
+export 'src/containers/hooks_container.dart';
 export 'src/containers/injection_token.dart';
 export 'src/containers/models_provider.dart';
 export 'src/containers/modules_container.dart';

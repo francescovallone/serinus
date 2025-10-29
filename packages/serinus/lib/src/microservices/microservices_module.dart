@@ -1,7 +1,6 @@
 import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
-import '../core/exception_filter.dart';
 import '../mixins/mixins.dart';
 import 'microservices.dart';
 

@@ -64,11 +64,10 @@ final class SerinusFactory {
   }) async {
     final app = MicroserviceApplication(
       entrypoint: entrypoint,
-      transport: transport,
       config: ApplicationConfig(
         modelProvider: modelProvider,
         serverAdapter: NoopAdapter(),
-      ),
+      )..microservices.add(transport),
       levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
       logger: logger,
     );
