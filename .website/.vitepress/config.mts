@@ -127,6 +127,15 @@ export default defineConfig({
             ]
           },
           {
+            text: 'OpenAPI',
+            base: '/openapi/',
+            collapsed: true,
+            items: [
+              { text: 'Introduction', link: '/' },
+              { text: 'Renderer', link: '/renderer' },
+            ]
+          },
+          {
             text: 'Microservices',
             base: '/microservices/',
             collapsed: true,
