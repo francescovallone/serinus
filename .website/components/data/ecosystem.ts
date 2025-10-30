@@ -1,7 +1,7 @@
 export const plugins = [
 	{
 		title: 'OpenAPI',
-		pub: 'https://pub.dev/packages/serinus_swagger',
+		pub: 'https://pub.dev/packages/serinus_openapi',
 		desc: 'Genearate Open API documentation for your Serinus project with no effort.',
 		link: '/plugins/swagger/',
 		slot: 'openapi'

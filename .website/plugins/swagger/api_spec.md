@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The `serinus_swagger` plugins provides a way to generate an OpenAPI Specification document for your Serinus application and do so creating two fundamentals classes:
+The `serinus_openapi` plugins provides a way to generate an OpenAPI Specification document for your Serinus application and do so creating two fundamentals classes:
 
 - `ApiRoute` - A route which exposes a ApiSpec property to define the route's OpenAPI Specification.
 - `ApiSpec` - The class that represents the OpenAPI Specification document.

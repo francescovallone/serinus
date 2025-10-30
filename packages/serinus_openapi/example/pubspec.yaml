@@ -1,0 +1,12 @@
+name: serinus_openapi_example
+description: "A simple Serinus application"
+
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  serinus: ^1.0.0
+  serinus_openapi:
+    path: ../
+  

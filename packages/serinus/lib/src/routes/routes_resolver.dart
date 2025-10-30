@@ -32,6 +32,8 @@ class RoutesResolver {
   RoutesResolver(this._container) {
     _routeExecutionContext = RouteExecutionContext(
       RouteResponseController(_container.applicationRef),
+      modelProvider: _container.config.modelProvider,
+      viewEngine: _container.config.viewEngine,
     );
     _explorer = RoutesExplorer(
       _container,

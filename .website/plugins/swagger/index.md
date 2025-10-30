@@ -12,7 +12,7 @@ A plugin to add OpenAPI Specification in your Serinus applications 🐤.
 ## Installation
 
 ```bash
-dart pub add serinus_swagger
+dart pub add serinus_openapi
 ```
 
 ## Usage
@@ -21,7 +21,7 @@ The plugin will expose the OpenAPI Specification in one endpoint. You can custom
 
 ```dart
 import 'package:serinus/serinus.dart';
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 
 void main(List<String> args) async {
   final document = DocumentSpecification(
@@ -49,7 +49,7 @@ void main(List<String> args) async {
   :buttons="[
     {
       label: 'Pub.dev',
-      url: 'https://pub.dev/packages/serinus_swagger',
+      url: 'https://pub.dev/packages/serinus_openapi',
     }
   ]" 
 />

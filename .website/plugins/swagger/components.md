@@ -25,7 +25,7 @@ The `SchemaObject` class is used to define a schema for your OpenAPI Specificati
 ### Example
 
 ```dart
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 import 'package:serinus/serinus.dart';
 
 void main(List<String> args) async {
@@ -86,7 +86,7 @@ The `ResponseObject` class is used to define a response for your OpenAPI Specifi
 ### Example
 
 ```dart
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 import 'package:serinus/serinus.dart';
 
 void main(List<String> args) async {
@@ -155,7 +155,7 @@ The `ParameterObject` class is used to define a parameter for your OpenAPI Speci
 ### Example
 
 ```dart
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 import 'package:serinus/serinus.dart';
 
 Component<ParameterObject>(
@@ -192,7 +192,7 @@ The `ExampleObject` class is used to define an example for your OpenAPI Specific
 ### Example
 
 ```dart
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 import 'package:serinus/serinus.dart';
 
 Component<ExampleObject>(
@@ -227,7 +227,7 @@ The `RequestBody` class is used to define a request body for your OpenAPI Specif
 ### Example
 
 ```dart
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 import 'package:serinus/serinus.dart';
 
 Component<RequestBody>(
@@ -274,7 +274,7 @@ If the name of the header is `accept`, `content-type`, `authorization`, then the
 ### Example
 
 ```dart
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 import 'package:serinus/serinus.dart';
 
 Component<HeaderObject>(
@@ -306,7 +306,7 @@ The `SecurityObject` class is used to define a security scheme for your OpenAPI 
 
 ```dart
 
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 
 Component<SecurityObject>(
   name: 'BearerAuth',

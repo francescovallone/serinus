@@ -8,7 +8,7 @@ workspace:
   - packages/serinus_cli
   - packages/serinus_config
   - packages/serinus_frontier
-  - packages/serinus_swagger
+  - packages/serinus_openapi
   - packages/serve_static
   - packages/serinus_test
   - packages/serinus_microservices
