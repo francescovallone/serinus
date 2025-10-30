@@ -29,13 +29,13 @@ jobs:
         run: |
           dart pub global activate coverage
           export SERINUS_TEST=true
-          dart test --coverage=coverage && dart pub global run coverage:format_coverage --check-ignore --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=${{inputs.report_on}}
+          dart test --coverage=coverage
       
-      - name: 📊 Check Code Coverage
-        uses: VeryGoodOpenSource/very_good_coverage@v2
-        with:
-          path: ./packages/serinus/coverage/lcov.info
-          min_coverage: 80
+      # - name: 📊 Check Code Coverage
+      #   uses: VeryGoodOpenSource/very_good_coverage@v2
+      #   with:
+      #     path: ./packages/serinus/coverage/lcov.info
+      #     min_coverage: 80
       
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4

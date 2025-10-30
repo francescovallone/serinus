@@ -16,6 +16,10 @@ class ConsoleLogger implements LoggerService {
 
   IOSink _channel = stdout.nonBlocking;
 
+  /// The [stdoutStream] of the logger.
+  /// You can use this stream to listen for log messages.
+  IOSink get stdoutStream => _channel;
+
   @visibleForTesting
   /// Usable for testing purposes.
   set channel(IOSink value) => _channel = value;
