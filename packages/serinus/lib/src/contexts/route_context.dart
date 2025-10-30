@@ -1,7 +1,4 @@
 import '../../serinus.dart';
-import '../containers/hooks_container.dart';
-import '../containers/injection_token.dart';
-import '../core/exception_filter.dart';
 
 /// The [HandlerFunction] is a function that handles the incoming request and returns a response.
 typedef HandlerFunction =
@@ -51,12 +48,15 @@ class RouteContext {
 
   /// Cached metadata entries that do not require runtime resolution.
   late final Map<String, Metadata> _staticMetadata = {
-    for (final meta in _metadataCache.where((m) => m is! ContextualizedMetadata))
+    for (final meta in _metadataCache.where(
+      (m) => m is! ContextualizedMetadata,
+    ))
       meta.name: meta,
   };
 
-  late final Map<String, Metadata> _staticMetadataView =
-      Map.unmodifiable(_staticMetadata);
+  late final Map<String, Metadata> _staticMetadataView = Map.unmodifiable(
+    _staticMetadata,
+  );
 
   late final bool _hasContextualMetadata =
       _metadataCache.length != _staticMetadata.length;
@@ -78,11 +78,24 @@ class RouteContext {
 
   /// Immutable snapshots of hooks taken at route registration time.
   /// Using these avoids per-request iteration and any accidental mutation.
-  late final List<OnRequest> reqHooks = List.unmodifiable(hooksContainer.reqHooks);
-  late final List<OnBeforeHandle> beforeHooks =
-      List.unmodifiable(hooksContainer.beforeHooks);
-  late final List<OnAfterHandle> afterHooks = List.unmodifiable(hooksContainer.afterHooks);
-  late final List<OnResponse> resHooks = List.unmodifiable(hooksContainer.resHooks);
+  late final List<OnRequest> reqHooks = List.unmodifiable(
+    hooksContainer.reqHooks,
+  );
+
+  /// The [beforeHooks] is used to store the before hooks for the route.
+  late final List<OnBeforeHandle> beforeHooks = List.unmodifiable(
+    hooksContainer.beforeHooks,
+  );
+
+  /// The [afterHooks] is used to store the after hooks for the route.
+  late final List<OnAfterHandle> afterHooks = List.unmodifiable(
+    hooksContainer.afterHooks,
+  );
+
+  /// The [resHooks] is used to store the response hooks for the route.
+  late final List<OnResponse> resHooks = List.unmodifiable(
+    hooksContainer.resHooks,
+  );
 
   /// The [RouteContext] constructor initializes the route context with the provided parameters.
   RouteContext({

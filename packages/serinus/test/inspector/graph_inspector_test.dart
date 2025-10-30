@@ -1,7 +1,6 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
-import 'package:serinus/src/contexts/composition_context.dart';
 import 'package:test/test.dart';
 
 import '../core/module_test.dart';
@@ -122,7 +121,8 @@ void main() {
           controllers: [MockController()],
           providers: [
             Provider.composed(
-              (CompositionContext ctx) async => TestProviderTwo(ctx.use<TestProvider>()),
+              (CompositionContext ctx) async =>
+                  TestProviderTwo(ctx.use<TestProvider>()),
               inject: [TestProvider],
             ),
           ],

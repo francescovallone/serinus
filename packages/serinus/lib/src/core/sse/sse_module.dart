@@ -28,6 +28,5 @@ class SseEmitters extends Module {
   bool get isGlobal => true;
 
   /// The constructor for [SseDispatchers].
-  SseEmitters(SseAdapter adapter)
-    : super(providers: [SseEmitter(adapter)]);
+  SseEmitters(SseAdapter adapter) : super(providers: [SseEmitter(adapter)]);
 }

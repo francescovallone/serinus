@@ -1,7 +1,6 @@
 import 'package:uuid/uuid.dart';
 
 import '../../../serinus.dart';
-import '../../containers/injection_token.dart';
 import '../../extensions/string_extensions.dart';
 import '../../inspector/entrypoint.dart';
 import 'route_info_path_extractor.dart';
@@ -185,17 +184,14 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
               if (_config.versioningOptions != null) _config.versioningOptions!,
             ],
           );
-          final middlewares = _middlewareByRoute[route]
-                  ?.where((configuration) {
-                    return (configuration.routes.any(
-                          (routeInfo) =>
-                              _canResolve(requestRouteInfo, routeInfo),
-                        )) &&
-                        !configuration.excludedRoutes.any(
-                          (excludeRoute) =>
-                              _canResolve(requestRouteInfo, excludeRoute),
-                        );
-                  });
+          final middlewares = _middlewareByRoute[route]?.where((configuration) {
+            return (configuration.routes.any(
+                  (routeInfo) => _canResolve(requestRouteInfo, routeInfo),
+                )) &&
+                !configuration.excludedRoutes.any(
+                  (excludeRoute) => _canResolve(requestRouteInfo, excludeRoute),
+                );
+          });
           final resultMiddlewares = <Middleware>[];
           for (final middleware in middlewares ?? <MiddlewareConfiguration>[]) {
             resultMiddlewares.addAll(middleware.middlewares);
@@ -206,9 +202,7 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
     }
   }
 
-  void _registerAllConfigs(
-    Set<MiddlewareConfiguration> configuration,
-  ) {
+  void _registerAllConfigs(Set<MiddlewareConfiguration> configuration) {
     final controllers = <({Controller controller, ModuleScope scope})>[];
     for (final scope in _config.modulesContainer.scopes) {
       controllers.addAll(

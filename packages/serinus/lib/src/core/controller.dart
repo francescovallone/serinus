@@ -7,7 +7,6 @@ import 'package:uuid/v4.dart';
 import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import 'core.dart';
-import 'exception_filter.dart';
 
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
 typedef ReqResHandler<T> = Future<T> Function(RequestContext context);

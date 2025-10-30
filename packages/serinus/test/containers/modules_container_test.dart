@@ -47,38 +47,31 @@ void main() {
       },
     );
 
-    test(
-      'registered routes retain the module injection token',
-      () async {
-        Logger.setLogLevels({LogLevel.none});
-        final adapter = _MockAdapter();
-        final localConfig = ApplicationConfig(serverAdapter: adapter);
-        final container = SerinusContainer(localConfig, adapter);
-        final module = SimpleMockModule(controllers: [MockController()]);
+    test('registered routes retain the module injection token', () async {
+      Logger.setLogLevels({LogLevel.none});
+      final adapter = _MockAdapter();
+      final localConfig = ApplicationConfig(serverAdapter: adapter);
+      final container = SerinusContainer(localConfig, adapter);
+      final module = SimpleMockModule(controllers: [MockController()]);
 
-        await container.modulesContainer.registerModules(module);
+      await container.modulesContainer.registerModules(module);
 
-        final router = Router(localConfig.versioningOptions);
-        final executionContext = RouteExecutionContext(
-          RouteResponseController(adapter),
-        );
-        final explorer = RoutesExplorer(
-          container,
-          router,
-          executionContext,
-        );
+      final router = Router(localConfig.versioningOptions);
+      final executionContext = RouteExecutionContext(
+        RouteResponseController(adapter),
+      );
+      final explorer = RoutesExplorer(container, router, executionContext);
 
-        explorer.resolveRoutes();
+      explorer.resolveRoutes();
 
-        final token = InjectionToken.fromModule(module);
-        final result = router.checkRouteByPathAndMethod('/', HttpMethod.get);
+      final token = InjectionToken.fromModule(module);
+      final result = router.checkRouteByPathAndMethod('/', HttpMethod.get);
 
-        expect(result.spec, isNotNull);
-        final routeContext = result.spec!.route;
-        expect(routeContext.moduleToken, equals(token));
-        expect(routeContext.moduleScope.token, equals(token));
-      },
-    );
+      expect(result.spec, isNotNull);
+      final routeContext = result.spec!.route;
+      expect(routeContext.moduleToken, equals(token));
+      expect(routeContext.moduleScope.token, equals(token));
+    });
 
     test(
       'registerModules should register a module and create a [ModuleScope] with the providers',
@@ -196,18 +189,22 @@ void main() {
     );
   });
   group('Module scope identity', () {
-    test('allows registering the same module class twice with different params', () async {
-      final container =
-          ModulesContainer(ApplicationConfig(serverAdapter: _MockAdapter()));
-      final first = ParameterizedModule(ValueProviderOne());
-      final second = ParameterizedModule(ValueProviderTwo());
-      final root = ParentModule([first, second]);
+    test(
+      'allows registering the same module class twice with different params',
+      () async {
+        final container = ModulesContainer(
+          ApplicationConfig(serverAdapter: _MockAdapter()),
+        );
+        final first = ParameterizedModule(ValueProviderOne());
+        final second = ParameterizedModule(ValueProviderTwo());
+        final root = ParentModule([first, second]);
 
-      await container.registerModules(root);
-      await container.finalize(root);
+        await container.registerModules(root);
+        await container.finalize(root);
 
-      expect(container.get<ValueProviderOne>(), isNotNull);
-      expect(container.get<ValueProviderTwo>(), isNotNull);
-    });
+        expect(container.get<ValueProviderOne>(), isNotNull);
+        expect(container.get<ValueProviderTwo>(), isNotNull);
+      },
+    );
   });
 }

@@ -10,7 +10,6 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
-import '../core/exception_filter.dart';
 import '../core/middlewares/middleware_executor.dart';
 import '../core/middlewares/middleware_registry.dart';
 import '../core/websockets/ws_exceptions.dart';
@@ -45,7 +44,7 @@ class GatewayScope {
     this.providers,
     this.hooks,
     this.exceptionFilters,
-    this.pipes
+    this.pipes,
   );
 
   @override
@@ -274,7 +273,7 @@ class WebSocketAdapter extends WsAdapter {
     client?.listen((data) async {
       var message = data is String ? data : utf8.decode(data);
       (context.argumentsHost as WsArgumentsHost).message = message;
-      for(final pipe in gatewayScope.pipes) {
+      for (final pipe in gatewayScope.pipes) {
         await pipe.transform(context);
       }
       for (final hook in hooks.beforeHooks) {
@@ -282,7 +281,8 @@ class WebSocketAdapter extends WsAdapter {
       }
       try {
         final wsContext = context.switchToWs();
-        wsContext.currentMessage = (context.argumentsHost as WsArgumentsHost).message ?? message;
+        wsContext.currentMessage =
+            (context.argumentsHost as WsArgumentsHost).message ?? message;
         await gatewayScope.gateway.onMessage(message, wsContext);
       } on WsException catch (e) {
         for (final filter in gatewayScope.exceptionFilters) {

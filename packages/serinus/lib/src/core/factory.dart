@@ -55,6 +55,7 @@ final class SerinusFactory {
     return app;
   }
 
+  /// The [createMicroservice] method is used to create a new instance of the [MicroserviceApplication] class.
   Future<MicroserviceApplication> createMicroservice({
     required Module entrypoint,
     required TransportAdapter transport,
@@ -73,7 +74,6 @@ final class SerinusFactory {
     );
     return app;
   }
-
 }
 
 /// The [serinus] instance is used to create a new instance of the [SerinusFactory] class.

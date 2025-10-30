@@ -14,7 +14,6 @@ import '../routes/routes_resolver.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
 import 'core.dart';
-import 'exception_filter.dart';
 
 /// The [Application] class is used to create an application.
 abstract class Application {
@@ -120,7 +119,9 @@ class MicroserviceApplication extends Application {
   @override
   Future<void> serve() async {
     try {
-      _logger.info('Starting microservice on ${config.microservices.first.runtimeType} adapter');
+      _logger.info(
+        'Starting microservice on ${config.microservices.first.runtimeType} adapter',
+      );
       for (final microservice in config.microservices) {
         await microservice.init(config);
       }

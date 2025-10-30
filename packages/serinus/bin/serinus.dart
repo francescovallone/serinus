@@ -5,27 +5,20 @@ import 'dart:io';
 import 'package:serinus/serinus.dart';
 
 class TestProvider extends Provider {
-
   int counter = 0;
 
   void increment() {
     counter++;
   }
-
 }
 
 class TestModule extends Module {
-  TestModule() : super(
-    providers: [TestProvider()],
-    exports: [TestProvider]
-  );
+  TestModule() : super(providers: [TestProvider()], exports: [TestProvider]);
 }
 
 class Test2Module extends Module {
-  Test2Module() : super(
-    imports: [TestModule()],
-    controllers: [Test2Controller()]
-  );
+  Test2Module()
+    : super(imports: [TestModule()], controllers: [Test2Controller()]);
 }
 
 class Test2Controller extends Controller {
@@ -48,12 +41,11 @@ class AppController extends Controller {
 }
 
 class AppModule extends Module {
-  
-  AppModule() : super(
-    imports: [Test2Module(), TestModule()],
-    controllers: [AppController()]
-  );
-
+  AppModule()
+    : super(
+        imports: [Test2Module(), TestModule()],
+        controllers: [AppController()],
+      );
 }
 
 void main(List<String> arguments) async {
@@ -61,10 +53,7 @@ void main(List<String> arguments) async {
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
-    logger: ConsoleLogger(
-      prefix: 'Serinus New Logger',
-      
-    ),
+    logger: ConsoleLogger(prefix: 'Serinus New Logger'),
   );
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());

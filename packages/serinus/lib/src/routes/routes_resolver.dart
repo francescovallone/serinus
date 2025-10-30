@@ -78,7 +78,7 @@ class RoutesResolver {
           _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??
           NotFoundException(
             'Route not found for ${request.method} ${request.uri}',
-            request.uri
+            request.uri,
           );
       final reqHooks = _container.config.globalHooks.reqHooks;
       final providers = {
@@ -127,9 +127,11 @@ class RoutesResolver {
         EventData(
           data: data,
           properties: executionContext.response
-            ..headers.addAll((response.currentHeaders is SerinusHeaders) ?
-                        (response.currentHeaders as SerinusHeaders).values :
-                        (response.currentHeaders as HttpHeaders).toMap()),
+            ..headers.addAll(
+              (response.currentHeaders is SerinusHeaders)
+                  ? (response.currentHeaders as SerinusHeaders).values
+                  : (response.currentHeaders as HttpHeaders).toMap(),
+            ),
         ),
       );
       _container.applicationRef.reply(

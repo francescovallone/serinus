@@ -13,4 +13,3 @@ class MockControllerWithWrongPath extends Controller {
     on(Route.get('/'), (context) => Future.value('Hello world'));
   }
 }
-

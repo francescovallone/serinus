@@ -1,7 +1,6 @@
 import '../containers/hooks_container.dart';
 import '../enums/http_method.dart';
 import 'core.dart';
-import 'exception_filter.dart';
 
 /// The [Route] class is used to define the routes of the application.
 class Route {

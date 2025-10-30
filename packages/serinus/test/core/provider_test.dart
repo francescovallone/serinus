@@ -207,18 +207,12 @@ void main() async {
         final module = TestModule(
           providers: [
             TestProvider(),
-            ComposedProvider(
-              (CompositionContext ctx) async {
-                return TestProviderDependent(ctx.use<TestProvider>());
-              },
-              inject: [TestProvider],
-            ),
-            Provider.composed(
-              (CompositionContext ctx) async {
-                return TestProviderDependent2(ctx.use<TestProvider>());
-              },
-              inject: [TestProvider],
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
+            Provider.composed((CompositionContext ctx) async {
+              return TestProviderDependent2(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -243,12 +237,9 @@ void main() async {
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
-            ComposedProvider(
-              (CompositionContext ctx) async {
-                return TestProviderDependent(ctx.use<TestProvider>());
-              },
-              inject: [TestProvider],
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -275,15 +266,13 @@ void main() async {
         final module = TestModule(
           providers: [
             TestProvider(),
-            ComposedProvider(
-              (CompositionContext ctx) async {
-                return ComposedProvider(
-                  (CompositionContext ctx) async => TestProviderDependent(ctx.use<TestProvider>()),
-                  inject: [],
-                );
-              },
-              inject: [TestProvider],
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return ComposedProvider(
+                (CompositionContext ctx) async =>
+                    TestProviderDependent(ctx.use<TestProvider>()),
+                inject: [],
+              );
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -310,12 +299,9 @@ void main() async {
         final module = TestModule(
           providers: [
             TestProvider(),
-            ComposedProvider(
-              (CompositionContext ctx) async {
-                return TestProviderDependent(ctx.use<TestProvider>());
-              },
-              inject: [TestProvider],
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -343,12 +329,9 @@ void main() async {
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
-            ComposedProvider(
-              (CompositionContext ctx) async {
-                return TestProviderDependent(ctx.use<TestProvider>());
-              },
-              inject: [TestProvider],
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
             ComposedProvider(
               (CompositionContext ctx) async => TestProvider(),
               inject: [],
@@ -378,18 +361,12 @@ void main() async {
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
-            ComposedProvider(
-              (CompositionContext ctx) async {
-                return CircularProvider(ctx.use<CircularProvider2>());
-              },
-              inject: [CircularProvider2],
-            ),
-            ComposedProvider(
-              (CompositionContext ctx) async {
-                return CircularProvider2(ctx.use<CircularProvider>());
-              },
-              inject: [CircularProvider],
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return CircularProvider(ctx.use<CircularProvider2>());
+            }, inject: [CircularProvider2]),
+            ComposedProvider((CompositionContext ctx) async {
+              return CircularProvider2(ctx.use<CircularProvider>());
+            }, inject: [CircularProvider]),
           ],
         );
         await container.registerModules(module);
@@ -420,12 +397,9 @@ void main() async {
             NoExportModule(providers: [TestProvider()]),
           ],
           providers: [
-            ComposedProvider(
-              (CompositionContext ctx) async {
-                return TestProviderDependent(ctx.use<TestProvider>());
-              },
-              inject: [TestProvider],
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -437,7 +411,6 @@ void main() async {
             );
       },
     );
-
   });
 
   test(

@@ -130,9 +130,9 @@ class RouteExecutionContext {
                   data: data,
                   properties: executionContext.response
                     ..headers.addAll(
-                      (response.currentHeaders is SerinusHeaders) ?
-                            response.currentHeaders.values :
-                            (response.currentHeaders as HttpHeaders).toMap(),
+                      (response.currentHeaders is SerinusHeaders)
+                          ? response.currentHeaders.values
+                          : (response.currentHeaders as HttpHeaders).toMap(),
                     ),
                 ),
               );
@@ -171,9 +171,10 @@ class RouteExecutionContext {
         await _executeAfterHandle(executionContext, context, responseData);
         await _executeOnResponse(context, executionContext, responseData);
         WrappedResponse result = _processResult(responseData, executionContext);
-        final currentResponseHeaders = (response.currentHeaders is SerinusHeaders) ?
-          response.currentHeaders.values :
-          (response.currentHeaders as HttpHeaders).toMap();
+        final currentResponseHeaders =
+            (response.currentHeaders is SerinusHeaders)
+            ? response.currentHeaders.values
+            : (response.currentHeaders as HttpHeaders).toMap();
         if (result.data is View) {
           request.emit(
             RequestEvent.data,
@@ -184,9 +185,7 @@ class RouteExecutionContext {
             EventData(
               data: result.data,
               properties: executionContext.response
-                ..addHeaders(
-                  currentResponseHeaders,
-                ),
+                ..addHeaders(currentResponseHeaders),
             ),
           );
           await _responseController.render(
@@ -214,9 +213,7 @@ class RouteExecutionContext {
             EventData(
               data: result.data,
               properties: executionContext.response
-                ..addHeaders(
-                  currentResponseHeaders,
-                ),
+                ..addHeaders(currentResponseHeaders),
             ),
           );
           await _responseController.sendResponse(
@@ -310,7 +307,8 @@ class RouteExecutionContext {
       context.response.contentType ??= ContentType.json;
     }
 
-    if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType) ?? false) {
+    if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType) ??
+        false) {
       final modelObj = modelProvider?.to(result.data);
       responseData = Uint8List.fromList(_jsonUtf8Encoder.convert(modelObj));
       context.response.contentType ??= ContentType.json;

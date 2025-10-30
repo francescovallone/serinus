@@ -7,7 +7,6 @@ import '../../adapters/ws_adapter.dart';
 import '../../containers/hooks_container.dart';
 import '../../contexts/contexts.dart';
 import '../core.dart';
-import '../exception_filter.dart';
 
 /// The [WebSocketContext] class is used to define the context of the WebSocket.
 abstract class MessageSerializer<TInput> {

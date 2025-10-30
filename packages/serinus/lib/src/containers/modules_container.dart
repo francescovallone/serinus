@@ -117,7 +117,9 @@ final class ModulesContainer {
     }
     currentScope.providers.removeAll(split.ofType);
     _composedProviders[token] = split.ofType;
-    final composedImports = currentScope.imports.whereType<ComposedModule>().toList();
+    final composedImports = currentScope.imports
+        .whereType<ComposedModule>()
+        .toList();
     if (composedImports.isNotEmpty) {
       currentScope.imports.removeAll(composedImports);
       currentScope.module.imports = [
@@ -276,7 +278,8 @@ final class ModulesContainer {
       );
       for (final entry in unresolvedModules) {
         final scope = _scopes[entry.parentToken];
-        final availableProviders = scope?.unifiedProviders ?? const <Provider>{};
+        final availableProviders =
+            scope?.unifiedProviders ?? const <Provider>{};
         final missing = _missingModuleDependencies(
           entry.module.inject,
           availableProviders,
@@ -323,9 +326,7 @@ final class ModulesContainer {
     return missing;
   }
 
-  CompositionContext _buildCompositionContext(
-    Iterable<Provider> providers,
-  ) {
+  CompositionContext _buildCompositionContext(Iterable<Provider> providers) {
     final providerMap = <Type, Provider>{};
     for (final provider in providers) {
       providerMap[provider.runtimeType] = provider;
@@ -351,7 +352,8 @@ final class ModulesContainer {
     Module module,
   ) {
     for (final entry in _providerDependencies) {
-      if (identical(entry.provider, provider) && identical(entry.module, module)) {
+      if (identical(entry.provider, provider) &&
+          identical(entry.module, module)) {
         return entry;
       }
     }
@@ -411,7 +413,9 @@ final class ModulesContainer {
 
         final refreshedParentScope = _scopes[snapshot.token];
         if (refreshedParentScope == null) {
-          throw InitializationError('Module with token ${snapshot.token} not found');
+          throw InitializationError(
+            'Module with token ${snapshot.token} not found',
+          );
         }
 
         refreshedParentScope.imports.add(moduleInstance);
@@ -425,7 +429,9 @@ final class ModulesContainer {
         final subModuleToken = InjectionToken.fromModule(moduleInstance);
         final subModuleScope = _scopes[subModuleToken];
         if (subModuleScope == null) {
-          throw InitializationError('Module with token $subModuleToken not found');
+          throw InitializationError(
+            'Module with token $subModuleToken not found',
+          );
         }
         subModuleScope.composed = true;
         subModuleScope.initTime = stopwatch.elapsedMicroseconds;
@@ -452,13 +458,15 @@ final class ModulesContainer {
             continue;
           }
           final reexportedProviders = exportedProviders.where(
-            (provider) => refreshedParentScope.exports.contains(provider.runtimeType),
+            (provider) =>
+                refreshedParentScope.exports.contains(provider.runtimeType),
           );
           importerScope.providers.addAll(reexportedProviders);
           importerScope.unifiedProviders.addAll(reexportedProviders);
           for (final provider in reexportedProviders) {
             final providerToken = InjectionToken.fromType(provider.runtimeType);
-            final metadata = refreshedParentScope.instanceMetadata[providerToken];
+            final metadata =
+                refreshedParentScope.instanceMetadata[providerToken];
             if (metadata != null) {
               importerScope.instanceMetadata[providerToken] = metadata;
             }
@@ -500,7 +508,10 @@ final class ModulesContainer {
         throw InitializationError('Module with token $token not found');
       }
       for (final provider in providers) {
-        final existingDependency = _findProviderDependency(provider, parentModule);
+        final existingDependency = _findProviderDependency(
+          provider,
+          parentModule,
+        );
         final providerType = provider.type;
         final existingScope = _scopedProviders[providerType];
         if (existingScope != null) {
@@ -523,7 +534,11 @@ final class ModulesContainer {
 
         final missingDependencies = canInit(provider.inject);
         if (missingDependencies.isNotEmpty) {
-          checkForCircularDependencies(provider, parentModule, missingDependencies);
+          checkForCircularDependencies(
+            provider,
+            parentModule,
+            missingDependencies,
+          );
           if (existingDependency == null) {
             _providerDependencies.add(
               _ProviderDependencies(
@@ -567,10 +582,7 @@ final class ModulesContainer {
 
         final resultType = result.runtimeType;
         if (_scopedProviders.containsKey(resultType)) {
-          _attachExistingProviderToScope(
-            parentScope,
-            providerType: resultType,
-          );
+          _attachExistingProviderToScope(parentScope, providerType: resultType);
           _removeComposedProviderEntry(token, provider);
           if (existingDependency != null) {
             existingDependency.isInitialized = true;
@@ -587,10 +599,7 @@ final class ModulesContainer {
         }
 
         await initIfUnregistered(result);
-        _replaceModuleProviderInstance(
-          parentScope,
-          replacement: result,
-        );
+        _replaceModuleProviderInstance(parentScope, replacement: result);
 
         final providerToken = InjectionToken.fromType(resultType);
         _providers[resultType] = result;
@@ -676,7 +685,9 @@ final class ModulesContainer {
   }
 
   /// Recursively resolves the dependencies of the deferred providers
-  Future<bool> resolveProvidersDependencies({bool failOnUnresolved = true}) async {
+  Future<bool> resolveProvidersDependencies({
+    bool failOnUnresolved = true,
+  }) async {
     bool progress = false;
     bool updated;
     do {
@@ -734,10 +745,7 @@ final class ModulesContainer {
         final context = _buildCompositionContext(currentScope.unifiedProviders);
         final result = await provider.init(context);
         checkResultType(provider, result, module);
-        _replaceModuleProviderInstance(
-          currentScope,
-          replacement: result,
-        );
+        _replaceModuleProviderInstance(currentScope, replacement: result);
         logger.info('Initialized ${provider.type} in ${module.runtimeType}');
         await initIfUnregistered(result);
         final providerToken = InjectionToken.fromType(result.runtimeType);
@@ -775,7 +783,9 @@ final class ModulesContainer {
         for (final importedBy in currentScope.importedBy) {
           final parentScope = _scopes[importedBy];
           if (parentScope == null) {
-            throw InitializationError('Module with token $importedBy not found');
+            throw InitializationError(
+              'Module with token $importedBy not found',
+            );
           }
           parentScope.extend(
             providers: [
@@ -903,7 +913,8 @@ final class ModulesContainer {
     final updated = <Provider>[];
     var replaced = false;
     for (final existing in scope.module.providers) {
-      final shouldReplace = !replaced &&
+      final shouldReplace =
+          !replaced &&
           ((pending != null && identical(existing, pending)) ||
               existing.runtimeType == replacement.runtimeType);
       if (shouldReplace) {

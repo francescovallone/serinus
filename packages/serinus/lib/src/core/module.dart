@@ -1,5 +1,5 @@
-import '../../serinus.dart';
 import '../contexts/composition_context.dart';
+import '../errors/initialization_error.dart';
 import 'core.dart';
 
 /// The [Module] class is used to define a module.
@@ -28,9 +28,13 @@ abstract class Module {
       return [];
     }
     if (exports.length != providers.length) {
-      final buffer = StringBuffer('Exported providers do not match any provided types: \n');
+      final buffer = StringBuffer(
+        'Exported providers do not match any provided types: \n',
+      );
       for (final export in exports) {
-        final found = providers.where((element) => element.runtimeType == export);
+        final found = providers.where(
+          (element) => element.runtimeType == export,
+        );
         if (found.isEmpty) {
           buffer.writeln('- ${export.toString()}');
         }
@@ -54,14 +58,11 @@ abstract class Module {
     this.isGlobal = false,
   });
 
+  /// The [composed] method is used to create a composed module.
   static Module composed<T extends Module>(
     Future<T> Function(CompositionContext context) init, {
     required List<Type> inject,
-  }) =>
-      ComposedModule<T>(
-        init,
-        inject: inject,
-      );
+  }) => ComposedModule<T>(init, inject: inject);
 
   /// The [register] method is used to register the module.
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
@@ -72,6 +73,7 @@ abstract class Module {
   void configure(MiddlewareConsumer consumer) {}
 }
 
+/// The [ComposedModule] class is used to define a composed module.
 final class ComposedModule<T extends Module> extends Module {
   /// The [init] function is called when the provider is initialized.
   final Future<T> Function(CompositionContext context) init;
@@ -82,18 +84,15 @@ final class ComposedModule<T extends Module> extends Module {
   /// The [type] property contains the type of the module.
   Type get type => T;
 
-  ComposedModule(
-    this.init, 
-    {
-      required this.inject,
-    }
-  ) : super(
-    imports: [],
-    controllers: [],
-    providers: [],
-    exports: [],
-    isGlobal: false
-  );
+  /// The [ComposedModule] constructor is used to create a new instance of the [ComposedModule] class.
+  ComposedModule(this.init, {required this.inject})
+    : super(
+        imports: [],
+        controllers: [],
+        providers: [],
+        exports: [],
+        isGlobal: false,
+      );
 
   @override
   String toString() => '$T(inject: $inject, type: $T)';

@@ -4,8 +4,7 @@ import '../core/module.dart';
 
 /// A simple class to represent an injection token.
 extension type InjectionToken(String name) {
-  static final _moduleTokens =
-      LinkedHashMap<Module, InjectionToken>.identity();
+  static final _moduleTokens = LinkedHashMap<Module, InjectionToken>.identity();
   static final Map<String, int> _moduleCounters = {};
 
   /// The [global] token is used to register global providers.

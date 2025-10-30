@@ -109,15 +109,13 @@ abstract class HttpAdapter<TServer, TRequest, TResponse>
   );
 }
 
+/// The [NoopAdapter] class is a no-operation implementation of the [HttpAdapter] class.
 class NoopAdapter extends HttpAdapter<void, void, void> {
   @override
   String get name => 'noop';
 
-  NoopAdapter()
-      : super(
-          host: 'localhost',
-          port: 0,
-        );
+  /// The [NoopAdapter] constructor is used to create a new instance of the [NoopAdapter] class.
+  NoopAdapter() : super(host: 'localhost', port: 0);
 
   @override
   Future<void> close() {
@@ -156,14 +154,10 @@ class NoopAdapter extends HttpAdapter<void, void, void> {
   }
 
   @override
-  Future<void> render(
-    void response,
-    View view,
-    ResponseContext properties,
-  ) {
+  Future<void> render(void response, View view, ResponseContext properties) {
     return Future.value();
   }
-  
+
   @override
   bool get isOpen => true;
 }

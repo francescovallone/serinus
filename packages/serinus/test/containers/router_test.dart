@@ -1,6 +1,4 @@
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/hooks_container.dart';
-import 'package:serinus/src/containers/injection_token.dart';
 import 'package:serinus/src/contexts/route_context.dart';
 import 'package:serinus/src/routes/router.dart';
 import 'package:spanner/spanner.dart';

@@ -1,5 +1,4 @@
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/containers/injection_token.dart';
 import 'package:test/test.dart';
 
 class TestProvider extends Provider {
