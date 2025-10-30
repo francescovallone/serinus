@@ -6,15 +6,11 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  serinus: ^1.0.0
+  serinus: ^2.0.0-rc.6
   dart_mappable: ^4.2.2
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
   dio: ^5.7.0
-  protobuf: ^5.0.0
-  grpc: ^4.3.0
-  serinus_microservices:
-    path: ../../serinus_microservices
 dev_dependencies:
   freezed: ^2.5.7
   build_runner: ^2.4.12
