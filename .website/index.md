@@ -208,6 +208,8 @@ class MyController extends Controller {
   
 ### OpenAPI
 
+Serinus' support for OpenAPI is unique in the Dart landscape. Powerful and gain access to all your routes information with just a module.
+
 <p><span class="numbered">1</span>Import the OpenAPI module</p>
 
 ```dart
@@ -218,12 +220,21 @@ class AppModule extends Module {
 
   AppModule() : super(
     imports: [
-      OpenApiModule()
+      OpenApiModule.v3(
+        InfoObject(
+          title: 'My API',
+          version: '1.0.0',
+          description: 'This is my API',
+        ),
+        analyze: true,
+      ),
     ]
   );
 
 }
 ```
+
+<p><span class="numbered">2</span> Access your API spec at http://[your-address]:[port]/api</p>
 
   </template>
   <template #websockets>

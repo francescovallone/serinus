@@ -303,7 +303,9 @@ div[class*="language-"]:not(.vp-doc .vp-code) {
 .vp-btn-custom:hover, .vp-doc a.vp-btn-custom:hover {
 	color: rgb(23,23,23);
 }
-
 html {
 	scroll-behavior: smooth;
+}
+.VPNavBar:not(.has-sidebar) > .wrapper {
+	@apply 2xl:px-64 lg:px-16 px-8 !important;
 }
