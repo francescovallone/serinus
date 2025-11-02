@@ -7,20 +7,28 @@ import '../../contexts/sse_context.dart';
 import '../../enums/http_method.dart';
 import '../core.dart';
 
+/// The [SseRouteHandlerSpec] class is used to define a Server-Sent Event (SSE) route handler specification.
+class SseRouteHandlerSpec extends RouteHandlerSpec<Stream Function(SseContext)> {
+  
+  /// The [SseRouteHandlerSpec] constructor is used to create a new instance of the [SseRouteHandlerSpec] class.
+  SseRouteHandlerSpec(
+    super.route,
+    super.handler
+  );
+}
+
 /// A mixin that adds support for Server-Sent Events (SSE) to a controller.
 mixin SseController on Controller {
-  final Map<String, RouteHandler> _sseRoutes = {};
+  final Map<String, SseRouteHandlerSpec> _sseRoutes = {};
 
   /// The [sseRoutes] property contains the SSE routes of the controller.
-  Map<String, RouteHandler> get sseRoutes => UnmodifiableMapView(_sseRoutes);
+  Map<String, SseRouteHandlerSpec> get sseRoutes => UnmodifiableMapView(_sseRoutes);
 
   /// This method is called when a new SSE route is registered.
   @mustCallSuper
   void onSse<R extends Route>(
     R route,
-    Stream Function(SseContext context) handler, {
-    List<Pipe> pipes = const [],
-  }) {
+    Stream Function(SseContext context) handler) {
     if (route.method != HttpMethod.get) {
       throw StateError('SSE routes must use GET method. [${route.method}]');
     }
@@ -36,11 +44,9 @@ mixin SseController on Controller {
       );
     }
 
-    _sseRoutes[UuidV4().generate()] = (
-      handler: handler,
-      route: route,
-      body: null,
-      shouldValidateMultipart: false,
+    _sseRoutes[UuidV4().generate()] = SseRouteHandlerSpec(
+      route,
+      handler,
     );
   }
 }

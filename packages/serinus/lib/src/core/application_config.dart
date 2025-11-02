@@ -76,10 +76,6 @@ final class ApplicationConfig {
   /// If null the adapter default will be used.
   final Duration? keepAliveIdleTimeout;
 
-  /// Maximum requests accepted per connection before the connection is closed.
-  /// If null the adapter default will be used.
-  final int maxRequestsPerConnection;
-
   /// The global prefix for the application
   GlobalPrefix? get globalPrefix => _globalPrefix;
 
@@ -155,7 +151,6 @@ final class ApplicationConfig {
     required this.serverAdapter,
     this.modelProvider,
     this.keepAliveIdleTimeout,
-    this.maxRequestsPerConnection = 100,
   }) {
     adapters.add(serverAdapter);
   }

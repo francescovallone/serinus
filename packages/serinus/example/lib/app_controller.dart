@@ -9,7 +9,7 @@ class AppController extends Controller {
     on(HelloWorldRoute(), _handleEcho);
     on(Route.get('/<id>/details/<name>'), (context) async {
       return 'Hello';
-    }, body: String);
+    });
   }
 
   Future<Map<String, dynamic>> _handleEcho(RequestContext context) async {

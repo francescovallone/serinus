@@ -11,16 +11,38 @@ import 'core.dart';
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
 typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 
-/// Shortcut for a synchronous request-response handler. It takes a [RequestContext] and returns a [Response].
-typedef SyncReqResHandler<T> = T Function(RequestContext context);
+/// The [RouteHandlerSpec] class is used to define a route handler specification.
+abstract class RouteHandlerSpec<T> {
 
-/// Shortcut for a route handler. It takes a [Route] and a [ReqResHandler].
-typedef RouteHandler = ({
-  Route route,
-  dynamic handler,
-  Type? body,
-  bool shouldValidateMultipart,
-});
+  /// The [route] property contains the route information.
+  final Route route;
+  /// The [handler] property contains the handler function.
+  final T handler;
+
+  /// The [RouteHandlerSpec] constructor is used to create a new instance of the [RouteHandlerSpec] class.
+  RouteHandlerSpec(
+    this.route,
+    this.handler
+  );
+  
+}
+
+/// The [RestRouteHandlerSpec] class is used to define a REST route handler specification.
+class RestRouteHandlerSpec<T> extends RouteHandlerSpec<ReqResHandler<T>> {
+
+  /// The [shouldValidateMultipart] property determines if multipart form data should be validated.
+  final bool shouldValidateMultipart;
+
+  /// The [isStatic] property determines if the route is static.
+  final bool isStatic;
+
+  /// The [RestRouteHandlerSpec] constructor is used to create a new instance of the [RestRouteHandlerSpec] class.
+  RestRouteHandlerSpec(
+    Route route,
+    ReqResHandler<T> handler,
+    {this.shouldValidateMultipart = false, this.isStatic = false}
+  ) : super(route, handler);
+}
 
 /// The [Controller] class is used to define a controller.
 abstract class Controller {
@@ -33,16 +55,16 @@ abstract class Controller {
   /// The [Controller] constructor is used to create a new instance of the [Controller] class.
   Controller(this.path);
 
-  final Map<String, RouteHandler> _routes = {};
+  final Map<String, RestRouteHandlerSpec> _routes = {};
 
   /// The list of pipes to be applied.
   List<Pipe> pipes = [];
 
   /// The [routes] property contains the routes of the controller.
-  Map<String, RouteHandler> get routes => UnmodifiableMapView(_routes);
+  Map<String, RestRouteHandlerSpec> get routes => UnmodifiableMapView(_routes);
 
   /// The [get] method is used to get a route.
-  RouteHandler? get(String routeId) {
+  RestRouteHandlerSpec? get(String routeId) {
     return _routes[routeId];
   }
 
@@ -61,10 +83,9 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void on<R extends Route>(
+  void on<R extends Route, T>(
     R route,
-    Function handler, {
-    Type? body,
+    ReqResHandler<T> handler, {
     bool shouldValidateMultipart = false,
   }) {
     final routeExists = _routes.values.any(
@@ -76,10 +97,9 @@ abstract class Controller {
       );
     }
 
-    _routes[UuidV4().generate()] = (
-      handler: handler,
-      route: route,
-      body: body,
+    _routes[UuidV4().generate()] = RestRouteHandlerSpec(
+      route,
+      handler,
       shouldValidateMultipart: shouldValidateMultipart,
     );
   }
@@ -89,7 +109,7 @@ abstract class Controller {
   ///
   /// It should not be overridden.
   @mustCallSuper
-  void onStatic<R extends Route>(R route, Object handler) {
+  void onStatic<R extends Route, T>(R route, T handler) {
     if (handler is Function) {
       throw StateError('The handler must be a static value');
     }
@@ -102,11 +122,11 @@ abstract class Controller {
       );
     }
 
-    _routes[UuidV4().generate()] = (
-      handler: handler,
-      route: route,
-      body: null,
+    _routes[UuidV4().generate()] = RestRouteHandlerSpec(
+      route,
+      (_) async => handler,
       shouldValidateMultipart: false,
+      isStatic: true,
     );
   }
 }

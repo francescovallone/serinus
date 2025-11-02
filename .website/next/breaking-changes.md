@@ -66,11 +66,11 @@ The `View` and `ViewString` classes have been merged into a single `View` class.
 class AppController extends Controller {
   
     AppController() : super('/') {
-        on(Route.get('/template'), (context) {
+        on(Route.get('/template'), (context) async {
             return View('template', {}); // [!code --]
             return View.template('templateName', {}); // [!code ++]
         });
-        on(Route.get('/string'), (context) {
+        on(Route.get('/string'), (context) async {
             return View('string', {}); // [!code --]
             return View.string('string', {}); // [!code ++]
         });
@@ -319,6 +319,27 @@ The Tracer API has been removed from the framework. This decision was made to st
 ::: info
 The tracer api will be reintroduced in future versions with a more robust and flexible implementation.
 :::
+
+## 18. Handler definition is now strictly typed
+
+To improve type safety and clarity, the handler definition is now strictly typed as `Future<T> Function(RequestContext context)`. This change ensures that handlers return a `Future` of the expected type, reducing the likelihood of runtime errors and improving the overall developer experience.
+
+Also with this change, all the variation of handler definitions that were previously supported have been removed.
+
+```dart
+// Valid
+on(Route.get('/example'), (context) async {
+    return 'Hello, World!';
+});
+// Invalid
+on(Route.get('/example'), (context) {
+    return 'Hello, World!';
+});
+on(Route.get('/example'), _handleExample);
+Future<String> _handleExample(RequestContext context, String pathParam1...) async {
+    return 'Hello, World!';
+}
+```
 
 ## Other Changes
 

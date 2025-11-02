@@ -23,7 +23,7 @@ class Test2Module extends Module {
 
 class Test2Controller extends Controller {
   Test2Controller() : super('/test2') {
-    on(Route.get('/'), (RequestContext context) {
+    on(Route.get('/'), (RequestContext context) async {
       final provider = context.use<TestProvider>();
       provider.increment();
       return 'Counter: ${provider.counter}';
@@ -33,7 +33,7 @@ class Test2Controller extends Controller {
 
 class AppController extends Controller {
   AppController() : super('/app') {
-    on(Route.get('/'), (RequestContext context) {
+    on(Route.get('/'), (RequestContext context) async {
       final provider = context.use<TestProvider>();
       return 'Counter: ${provider.counter}';
     });

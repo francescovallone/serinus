@@ -78,8 +78,7 @@ class RouteExecutionContext {
           hooksServices: context.hooksServices,
           modelProvider: modelProvider,
           rawBody: rawBody,
-          explicitType: context.spec.body,
-          shouldValidateMultipart: context.spec.shouldValidateMultipart,
+          shouldValidateMultipart: (context.spec is RestRouteHandlerSpec) && (context.spec as RestRouteHandlerSpec).shouldValidateMultipart,
         );
         executionContext.attachHttpContext(requestContext);
         for (final hook in context.reqHooks) {
@@ -143,30 +142,8 @@ class RouteExecutionContext {
           }
         }
         await _executeBeforeHandle(executionContext, context);
-        Object? handlerResult;
         final handler = context.spec.handler;
-        if (context.isStatic) {
-          handlerResult = handler;
-          if (handler is SerinusException) {
-            throw handler;
-          }
-        }
-        if (handler is Function) {
-          if (handler is ReqResHandler) {
-            handlerResult = await handler.call(requestContext);
-          } else if (handler is SyncReqResHandler) {
-            handlerResult = handler.call(requestContext);
-          } else {
-            handlerResult = Function.apply(handler, [
-              requestContext,
-              if (context.spec.body != null) requestContext.body,
-              ...requestContext.params.values,
-            ]);
-            if (handlerResult is Future) {
-              handlerResult = await handlerResult;
-            }
-          }
-        }
+        final handlerResult = await handler.call(requestContext);
         final responseData = WrappedResponse(handlerResult);
         await _executeAfterHandle(executionContext, context, responseData);
         await _executeOnResponse(context, executionContext, responseData);

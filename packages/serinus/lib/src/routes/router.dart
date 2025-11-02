@@ -1,9 +1,6 @@
 import 'package:spanner/spanner.dart';
 
-import '../containers/injection_token.dart';
 import '../contexts/route_context.dart';
-import '../core/controller.dart';
-import '../core/metadata.dart';
 import '../enums/http_method.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/string_extensions.dart';
@@ -72,51 +69,3 @@ final class Router {
   }
 }
 
-/// The [RouteData] class is used to create a route data object.
-class RouteData {
-  /// The [id] property contains the id of the route.
-  final String id;
-
-  /// The [path] property contains the path of the route.
-  final String path;
-
-  /// The [method] property contains the method of the route.
-  final HttpMethod method;
-
-  /// The [controller] property contains the controller of the route.
-  final Controller controller;
-
-  /// The [routeCls] property contains the route class of the route.
-  final Type routeCls;
-
-  /// The [moduleToken] property contains the module token of the route.
-  final InjectionToken moduleToken;
-
-  /// The [queryParameters] property contains the query parameters of the route.
-  final Map<String, Type> queryParameters;
-
-  /// The [isStatic] property defines if a route is a static one.
-  final bool isStatic;
-
-  /// The [spec] property contains the specification of the route.
-  final RouteHandler spec;
-
-  /// The [metadata] property contains the metadata that directly or indirectly affects the route.
-  List<Metadata> get metadata => [
-    ...controller.metadata,
-    ...spec.route.metadata,
-  ];
-
-  /// The [RouteData] constructor is used to create a new instance of the [RouteData] class.
-  const RouteData({
-    required this.id,
-    required this.path,
-    required this.method,
-    required this.controller,
-    required this.routeCls,
-    required this.moduleToken,
-    required this.spec,
-    this.isStatic = false,
-    this.queryParameters = const {},
-  });
-}

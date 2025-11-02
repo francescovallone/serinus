@@ -77,14 +77,14 @@ final class RoutesExplorer {
         controller.hooks,
         spec.route.hooks,
       ]);
-      final context = RouteContext(
+      final context = RouteContext<RestRouteHandlerSpec>(
         id: entry.key,
         path: routePath,
         controller: controller,
         routeCls: spec.route.runtimeType,
         method: routeMethod,
         moduleToken: moduleToken,
-        isStatic: spec.handler is! Function,
+        isStatic: spec.isStatic,
         spec: spec,
         moduleScope: moduleScope,
         hooksServices: mergedContainer.services,

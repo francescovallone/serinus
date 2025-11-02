@@ -6,7 +6,7 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  serinus: ^2.0.0-rc.6
+  serinus: ^2.0.0
   serinus_config:
     path: ../
   

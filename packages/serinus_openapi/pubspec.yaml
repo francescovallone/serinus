@@ -17,7 +17,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  serinus: ^2.0.0-rc.6
+  serinus: ^2.0.0
   openapi_types: ^2.0.0
   analyzer: ^8.4.0
 

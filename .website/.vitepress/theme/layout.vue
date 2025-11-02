@@ -11,6 +11,7 @@ import DefaultTheme from 'vitepress/theme-without-fonts'
 if (typeof window !== 'undefined') {
   watch(() => router.route.data.frontmatter, (frontmatter) => {
       console.log(frontmatter?.['layout'])
+      console.log(frontmatter)
   }, { immediate: true });
 }
 
@@ -96,8 +97,8 @@ const prompt = computed(() =>
             </div>
         </template>
         <template #layout-bottom>
-            <div class="flex w-full gap-8 items-center 2xl:px-64 lg:px-16 px-8 flex-col border-t py-8">
-                <div class="flex flex-col md:flex-row justify-between w-full" v-if="router.route.data.frontmatter['layout'] == 'page'">
+            <div class="flex w-full gap-8 items-center 2xl:px-64 lg:px-16 px-8 flex-col border-t py-8 z-40">
+                <div class="flex flex-col md:flex-row justify-between w-full" v-if="router.route.data.frontmatter['layout'] == 'page' || router.route.data.frontmatter['sidebar'] === false">
                     <div class="flex gap-2">
                         <a href="https://github.com/francescovallone/serinus" target="_blank" class="p-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2c2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2a4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6c-.6.6-.6 1.2-.5 2V21"/></svg>
@@ -121,12 +122,12 @@ const prompt = computed(() =>
                         </a>
                     </div>
                 </div>
-                <p class="text-sm" v-if="router.route.data.frontmatter['layout'] != 'page'">
-                    © 2025 Francesco Vallone. Built with 💙 and <a href="https://dart.dev" class="text-serinus hover:text-serinus-2 underline" target="_blank">Dart</a> 🎯 | One of the 🐤 of <a href="https://avesbox.com" class="text-serinus hover:text-serinus-2 underline" target="_blank">Acanthis</a>.
+                <p class="text-sm" v-if="router.route.data.frontmatter['layout'] != 'page' && router.route.data.frontmatter['sidebar'] !== false">
+                    © 2025 Francesco Vallone. Built with 💙 and <a href="https://dart.dev" class="text-serinus hover:text-serinus-2 underline" target="_blank">Dart</a> 🎯 | One of the 🐤 of <a href="https://avesbox.com" class="text-serinus hover:text-serinus-2 underline" target="_blank">Avesbox</a>.
                 </p>
-                <div class="flex flex-col md:flex-row justify-between w-full" v-if="router.route.data.frontmatter['layout'] == 'page'">
+                <div class="flex flex-col md:flex-row justify-between w-full" v-if="router.route.data.frontmatter['layout'] == 'page' || router.route.data.frontmatter['sidebar'] === false">
                     <p class="font-medium">
-                        One of the 🐤 of <a href="https://avesbox.com" class="text-serinus hover:text-serinus-2 underline" target="_blank">Acanthis</a>
+                        One of the 🐤 of <a href="https://avesbox.com" class="text-serinus hover:text-serinus-2 underline" target="_blank">Avesbox</a>
                     </p>
                     <p>
                         © 2025 Francesco Vallone. All rights reserved.

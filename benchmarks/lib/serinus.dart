@@ -10,7 +10,7 @@ class TestModule extends Module {
 
 class TestController extends Controller {
   TestController() : super('/') {
-    on(Route.get('/'), (context) => 'echo!');
+    on(Route.get('/'), (context) async => 'echo!');
   }
 }
 

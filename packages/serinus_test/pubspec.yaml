@@ -1,6 +1,6 @@
 name: serinus_test
 description: A test package for Serinus framework. It allows to test their Serinus applications.
-version: 0.0.1
+version: 0.1.0
 repository: https://github.com/francescovallone/serinus
 
 environment:
@@ -9,7 +9,7 @@ environment:
 resolution: workspace
 
 dependencies:
-  serinus: ^2.0.0-rc.6
+  serinus: ^2.0.0
   mime: ^2.0.0
   test: ^1.25.6
 

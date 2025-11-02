@@ -9,7 +9,7 @@ typedef HandlerFunction =
     );
 
 /// The [RouteContext] class is used to store the context of a route.
-class RouteContext {
+class RouteContext<T extends RouteHandlerSpec> {
   /// The [id] is used to uniquely identify the route.
   final String id;
 
@@ -35,7 +35,7 @@ class RouteContext {
   final bool isStatic;
 
   /// The [spec] is used to store the route specification.
-  final RouteHandler spec;
+  final T spec;
 
   /// The [moduleScope] is used to store the scope of the module.
   final ModuleScope moduleScope;

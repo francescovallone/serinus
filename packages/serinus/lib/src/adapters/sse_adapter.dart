@@ -6,6 +6,7 @@ import 'package:async/async.dart';
 import 'package:collection/collection.dart';
 import 'package:spanner/spanner.dart';
 import 'package:stream_channel/stream_channel.dart';
+import 'package:uuid/v4.dart';
 
 import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
@@ -21,7 +22,7 @@ import 'adapters.dart';
 /// It contains the [SseRouteSpec], the providers, and the hooks.
 class SseScope {
   /// The [gateway] property contains the WebSocket gateway.
-  final RouteHandler sseRouteSpec;
+  final SseRouteHandlerSpec sseRouteSpec;
 
   /// The [providers] property contains the providers of the WebSocket gateway.
   final Map<Type, Provider> providers;
@@ -129,25 +130,25 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       return;
     }
     final currentScope = route.values.firstOrNull as SseScope?;
-    final wrappedRequest = Request(request, route.params);
-    final responseContext = ResponseContext(
-      currentScope!.providers,
-      currentScope.hooks.services,
-    );
-    final clientId = wrappedRequest.query['sseClientId'];
-    if (clientId == null) {
-      final exception = BadRequestException(
-        'Missing sseClientId query parameter',
-      );
+    if (currentScope == null) {
+      final exception =
+          httpAdapter.notFoundHandler?.call(Request(request)) ??
+          NotFoundException(
+            'No SSE route found for ${request.method} ${request.path}',
+          );
       await httpAdapter.reply(
         response,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
-        responseContext
-          ..statusCode = exception.statusCode
-          ..headers.addAll({'content-type': 'application/json'}),
+        ResponseContext({}, {})
+          ..headers.addAll({'content-type': 'application/json'})
+          ..statusCode = exception.statusCode,
       );
       return;
     }
+    final wrappedRequest = Request(request, route.params);
+    final clientId = wrappedRequest.query['sseClientId'] ?? wrappedRequest.cookies
+        .firstWhereOrNull((c) => c.name == 'sseClientId')
+        ?.value ?? UuidV4().generate();
     final sink = await upgrade(request, response);
     final executionContext = ExecutionContext(
       HostType.sse,
@@ -160,6 +161,11 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     }
     executionContext.metadata.addAll(
       await initMetadata(executionContext, currentScope.metadata),
+    );
+    executionContext.response.addCookie(
+      Cookie('sseClientId', clientId)
+        ..httpOnly = true
+        ..path = '/',
     );
     final middlewares = currentScope.middlewares(request);
     if (middlewares.isNotEmpty) {
@@ -186,7 +192,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     if (_connections.containsKey(clientId)) {
       await acceptReconnection(clientId, sink);
       final result =
-          currentScope.sseRouteSpec.handler.call(sseContext) as Stream;
+          currentScope.sseRouteSpec.handler.call(sseContext);
       final connection = _connections[clientId];
       result.listen((data) {
         connection!.sink.add(data);
@@ -196,7 +202,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     final connection = SseConnection(sink, keepAlive: keepAlive);
     addConnection(clientId, connection);
     addConnectionController(connection);
-    final result = currentScope.sseRouteSpec.handler.call(sseContext) as Stream;
+    final result = currentScope.sseRouteSpec.handler.call(sseContext);
     result.listen((data) {
       connection.sink.add(data);
     });
