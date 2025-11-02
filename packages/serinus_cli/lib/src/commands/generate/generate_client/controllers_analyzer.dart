@@ -65,10 +65,10 @@ class ControllersAnalyzer {
                   );
                   continue;
                 }
-                for (final element in <ParameterElement>[
-                  ...member.declaredElement?.parameters ?? [],
-                  ...member.declaredElement?.superConstructor?.parameters ?? [],
+                for (final fragment in <FormalParameterFragment>[
+                  ...member.declaredFragment?.formalParameters ?? <FormalParameterFragment>[],
                 ]) {
+                  final element = fragment.element;
                   if ((element.name == 'path' &&
                           element.isSuperFormal &&
                           route.path == null) ||
@@ -102,7 +102,7 @@ class ControllersAnalyzer {
                   }
                 }
                 final matches = superParamsRegex.allMatches(
-                    member.declaredElement?.source.contents.data ?? '');
+                    member.toSource());
                 for (final match in matches) {
                   final superCon = match.group(0);
                   if (superCon != null) {
@@ -207,10 +207,10 @@ class ControllersAnalyzer {
                 );
                 continue;
               }
-              member.declaredElement?.parameters.forEach((element) {
-                if (element.name == 'path' && element.isSuperFormal) {
+              member.declaredFragment?.formalParameters.forEach((parameter) {
+                if (parameter.name == 'path' && parameter.element.isSuperFormal) {
                   controllerPath =
-                      element.computeConstantValue()?.toStringValue();
+                      parameter.element.computeConstantValue()?.toStringValue();
                 }
               });
               controllerRoutes.addAll(
@@ -295,7 +295,7 @@ class ControllersAnalyzer {
                   }
                 }
                 if (arg is FunctionExpression) {
-                  route.returnType = arg.declaredElement?.returnType;
+                  route.returnType = arg.declaredFragment?.element.returnType;
                 }
                 if (arg is NamedExpression) {
                   if (arg.name.label.name == 'body') {
@@ -357,7 +357,7 @@ class ControllersAnalyzer {
     if (pathField != null) {
       return pathField.computeConstantValue()?.toStringValue() ?? '/';
     }
-    return clazz.unnamedConstructor?.parameters
+    return clazz.unnamedConstructor?.formalParameters
             .where((p) => p.name == 'path')
             .first
             .computeConstantValue()

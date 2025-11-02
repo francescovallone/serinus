@@ -47,11 +47,11 @@ void main() async {
         controller.on(route2, (context) async => 'ok!');
         expect(
           controller.get(controller.routes.keys.elementAt(0)),
-          isA<RouteHandler>(),
+          isA<RestRouteHandlerSpec>(),
         );
         expect(
           controller.get(controller.routes.keys.elementAt(1)),
-          isA<RouteHandler>(),
+          isA<RestRouteHandlerSpec>(),
         );
       },
     );
@@ -64,7 +64,7 @@ void main() async {
         controller.onStatic(route, 'ok!');
         expect(
           controller.get(controller.routes.keys.elementAt(0)),
-          isA<RouteHandler>(),
+          isA<RestRouteHandlerSpec>(),
         );
       },
     );

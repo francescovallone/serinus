@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:echo/generated/helloworld.pbgrpc.dart';
+import 'package:grpc_example/generated/helloworld.pbgrpc.dart';
 import 'package:grpc/grpc.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus_microservices/transporters/grpc/grpc_controller.dart';

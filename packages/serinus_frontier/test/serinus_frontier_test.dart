@@ -55,7 +55,7 @@ class AppModule extends Module {
 
 class AppController extends Controller {
   AppController(): super('/') {
-    on(Route.get('/pass', metadata: [GuardMeta('Header')]), (context) {
+    on(Route.get('/pass', metadata: [GuardMeta('Header')]), (context) async {
       return 'pass';
     });
   }

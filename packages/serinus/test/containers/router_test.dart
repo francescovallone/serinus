@@ -51,11 +51,9 @@ void main() async {
           controller: TestController(),
           routeCls: Type,
           moduleToken: InjectionToken('moduleToken'),
-          spec: (
-            body: null,
-            handler: 'hi',
-            route: Route.get('/test'),
-            shouldValidateMultipart: false,
+          spec: RestRouteHandlerSpec(
+            Route.get('/test'),
+            (context) async => 'hi',
           ),
         );
         router.registerRoute(
@@ -89,11 +87,9 @@ void main() async {
           controller: TestController(),
           routeCls: Type,
           moduleToken: InjectionToken('moduleToken'),
-          spec: (
-            body: null,
-            handler: 'hi',
-            route: Route.get('/test'),
-            shouldValidateMultipart: false,
+          spec: RestRouteHandlerSpec(
+            Route.get('/test'),
+            (context) async => 'hi',
           ),
         );
         router.registerRoute(
@@ -132,11 +128,9 @@ void main() async {
           controller: TestController(),
           routeCls: Type,
           moduleToken: InjectionToken('moduleToken'),
-          spec: (
-            body: null,
-            handler: 'hi',
-            route: Route.get('/test'),
-            shouldValidateMultipart: false,
+          spec: RestRouteHandlerSpec(
+            Route.get('/test'),
+            (context) async => 'hi',
           ),
         );
         router.registerRoute(

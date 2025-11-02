@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 import 'package:serinus_test/serinus_test.dart';
-import 'package:shelf/shelf.dart' as s;
 
 class TestProvider extends Provider {
   final List<String> testList = ['Hello', 'World'];
@@ -81,11 +80,8 @@ class CircularDependencyModule extends Module {
 
 class AnotherController extends Controller {
   AnotherController() : super('/another') {
-    on(Route.get('/'), (RequestContext context) {
+    on(Route.get('/'), (RequestContext context) async {
       return 'Hello from another controller!';
-    });
-    on(Route.get('/<data>'), (RequestContext context) {
-      return context.use<GraphInspector>().toJson();
     });
     // on(
     //   Route.all('/'),
@@ -116,11 +112,11 @@ class AnotherController extends Controller {
         },
       ),
       _fallback,
-      body: List<Map<String, dynamic>>,
     );
   }
 
-  String _fallback(RequestContext context, List<Map<String, dynamic>> body) {
+  Future<String> _fallback(RequestContext context) async {
+    final body = context.bodyAs<List<Map<String, dynamic>>>();
     return 'Hello ajdaudiha! - ${jsonEncode(body)} - ${context.queryAs<Map<String, dynamic>>()} - ${context.paramAs('data')}';
   }
 }
@@ -154,13 +150,6 @@ class AnotherModule extends Module {
       RouteInfo('/another'),
       RouteInfo('/another/hello', method: HttpMethod.get),
     ]);
-    consumer
-        .apply([
-          Middleware.shelf((s.Request request) async {
-            return s.Response(200);
-          }),
-        ])
-        .forControllers([AnotherController]);
   }
 }
 
@@ -269,7 +258,7 @@ class AppController extends Controller with SseController {
       logger.info('Emitted event to TCP transport for pattern "*"');
       return 'Hello world!';
     });
-    on(Route.get('/provider'), (RequestContext context) {
+    on(Route.get('/provider'), (RequestContext context) async {
       final provider = context.use<TestProvider>();
       return provider.testList;
     });

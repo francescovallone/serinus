@@ -40,13 +40,14 @@ class SerinusAnalyzer {
             resolved.unit.directives.whereType<PartOfDirective>().firstOrNull;
 
         // final visitor = _ClassVisitor();
-        final element = unit.element;
+        final element = unit.fragment.element;
         final classes = element.classes;
         for (final clazz in classes) {
           final superclass = clazz.supertype?.element.name;
           final callForImports = elements.where(
             (e) => e.type == ElementType.module,
           );
+          final source = clazz.firstFragment.enclosingFragment?.source.contents.data;
           if (callForImports.isNotEmpty && superclass == 'Module') {
             updates.add(
               getUpdates(
@@ -56,7 +57,7 @@ class SerinusAnalyzer {
                 callForImports,
                 'Module',
                 'imports',
-                clazz.source.contents.data,
+                source ?? '',
               ),
             );
           }
@@ -72,7 +73,7 @@ class SerinusAnalyzer {
                 callForControllers,
                 'Controller',
                 'controllers',
-                clazz.source.contents.data,
+                source ?? '',
               ),
             );
           }
@@ -88,7 +89,7 @@ class SerinusAnalyzer {
                 callForProviders,
                 'Provider',
                 'providers',
-                clazz.source.contents.data,
+                source ?? '',
               ),
             );
           }

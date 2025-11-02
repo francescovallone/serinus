@@ -3,7 +3,7 @@ import 'package:serinus/serinus.dart';
 class MockController extends Controller {
   @override
   MockController([super.path = '/']) {
-    on(Route.get('/'), (context) => 'Hello world');
+    on(Route.get('/'), (context) async => 'Hello world');
   }
 }
 

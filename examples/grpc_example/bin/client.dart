@@ -1,4 +1,4 @@
-import 'package:echo/generated/helloworld.pbgrpc.dart';
+import 'package:grpc_example/generated/helloworld.pbgrpc.dart';
 import 'package:grpc/grpc.dart';
 
 Future<void> main() async {

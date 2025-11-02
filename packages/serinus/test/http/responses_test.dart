@@ -56,12 +56,11 @@ class TestController extends Controller {
     });
     on(TestRoute(path: '/path/path/<value>'), (
       RequestContext context,
-      String v,
     ) async {
-      return v;
+      return context.params['value'];
     });
     onStatic(Route.get('/static'), 'test');
-    on(Route.get('/session'), (RequestContext context) {
+    on(Route.get('/session'), (RequestContext context) async {
       final session = context.use<SecureSession>();
       session.write('hello', 'session');
       return 'ok!';
