@@ -39,7 +39,14 @@ class GrpcOptions extends TransportOptions {
   final ServerKeepAliveOptions keepAliveOptions;
 
   /// Creates gRPC transport options.
-  const GrpcOptions({required int port, required this.services, this.codecRegistry, this.keepAliveOptions = const ServerKeepAliveOptions(), this.host, this.security}) : super(port);
+  const GrpcOptions({
+    required int port,
+    required this.services,
+    this.codecRegistry,
+    this.keepAliveOptions = const ServerKeepAliveOptions(),
+    this.host,
+    this.security,
+  }) : super(port);
 }
 
 /// A gRPC transport adapter.
@@ -106,7 +113,9 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
       RequestPacket(
         pattern: '${service?.runtimeType}.$methodName',
         id: serviceName,
-        payload: GrpcPayload(call, _toSingleFuture(requests))
+        payload: method.streamingRequest 
+          ? GrpcPayloadStream<O>(call, requests) 
+          : GrpcPayloadUnitary<O>(call, _toSingleFuture(requests)),
       ),
       this,
     ).then((responsePacket) {
@@ -118,9 +127,73 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
           'Error from handler: ${responsePacket.payload}',
         );
       }
-      final response = responsePacket.payload as R;
-      
-      controller.add(response);
+      if (method.streamingResponse) {
+        if (method.streamingRequest) {
+          final responseStream = responsePacket.payload as Stream<R>;
+          responseStream.listen(
+            (event) {
+              controller.add(event);
+            },
+            onDone: () {
+              controller.close();
+            },
+            onError: (error) {
+              controller.addError(error);
+            },
+          );
+        } else {
+          if (responsePacket.payload is! Stream<R>) {
+            final response = responsePacket.payload as R;
+            controller.add(response);
+          } else {
+            final responseStream = responsePacket.payload as Stream<R>;
+            responseStream.listen(
+              (event) {
+                controller.add(event);
+              },
+              onDone: () {
+                controller.close();
+              },
+              onError: (error) {
+                controller.addError(error);
+              },
+            );
+          }
+        }
+      } else {
+        if (method.streamingRequest) {
+          final response = responsePacket.payload as Stream<R>;
+          response.listen(
+            (event) {
+              controller.add(event);
+            },
+            onDone: () {
+              controller.close();
+            },
+            onError: (error) {
+              controller.addError(error);
+            },
+          );
+        } else {
+          if (responsePacket.payload is! Stream<R>) {
+            final response = responsePacket.payload as R;
+            controller.add(response);
+          } else {
+            final responseStream = responsePacket.payload as Stream<R>;
+            responseStream.listen(
+              (event) {
+                controller.add(event);
+              },
+              onDone: () {
+                controller.close();
+              },
+              onError: (error) {
+                controller.addError(error);
+              },
+            );
+          }
+        }
+      }
       controller.close();
     }).catchError((error) {
       if (error is RpcException) {

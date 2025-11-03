@@ -137,9 +137,7 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Introduction', link: '/' },
-              { text: 'Transporters', link: 'transporters' },
-              { text: 'Patterns', link: 'patterns' },
-              { text: 'Clients', link: 'clients' },
+              { text: 'gRPC', link: 'grpc' },
             ]
           },
           {

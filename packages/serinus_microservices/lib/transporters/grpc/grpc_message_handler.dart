@@ -3,26 +3,49 @@ import 'package:serinus/serinus.dart';
 import 'grpc_controller.dart';
 
 /// The [GrpcPayload] class is the gRPC payload.
-class GrpcPayload<O> {
+sealed class GrpcPayload<T, R> {
   /// The gRPC service call.
   final ServiceCall call;
   /// The future request.
-  final Future<O> futureRequest;
-
-  O? _request;
+  final T futureRequest;
 
   /// Creates a gRPC payload.
   GrpcPayload(this.call, this.futureRequest);
 
-  /// Gets the gRPC request.
+  /// Gets the request.
+  T getRequest();
+}
+
+/// The [GrpcPayloadUnitary] class is the gRPC unary payload.
+class GrpcPayloadUnitary<O> extends GrpcPayload<Future<O>, O> {
+  /// Creates a gRPC unary payload.
+  GrpcPayloadUnitary(ServiceCall call, Future<O> futureRequest) : super(call, futureRequest);
+
+  O? _request;
+
+  @override
   Future<O> getRequest() async {
     if (_request != null) {
       return _request!;
     }
     _request = await futureRequest;
     return _request!;
+
   }
 }
+
+/// The [GrpcPayloadStream] class is the gRPC stream payload.
+class GrpcPayloadStream<O> extends GrpcPayload<Stream<O>, O> {
+  /// Creates a gRPC stream payload.
+  GrpcPayloadStream(ServiceCall call, Stream<O> futureRequest) : super(call, futureRequest);
+
+  @override
+  Stream<O> getRequest() async* {
+    yield* futureRequest;
+  }
+}
+
+
 
 /// The [GrpcRouteContext] class is the gRPC route context.
 sealed class GrpcRouteContext<T> {
