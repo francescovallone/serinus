@@ -20,7 +20,7 @@ jobs:
         uses: dart-lang/setup-dart@v1
 
       - name: 📦 Install Dependencies
-        run: dart pub get
+        run: dart pub get --no-example
 
       - name: 🕵️ Analyze
         run: dart analyze --fatal-infos --fatal-warnings .
