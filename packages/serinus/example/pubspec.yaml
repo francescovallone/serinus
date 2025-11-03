@@ -7,7 +7,7 @@ environment:
 
 dependencies:
   serinus: 
-    path: ../serinus
+    path: ../
   dart_mappable: ^4.2.2
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0

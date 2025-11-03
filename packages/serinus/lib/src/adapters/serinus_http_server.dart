@@ -67,6 +67,7 @@ class SerinusHttpAdapter
     }
     server?.autoCompress = enableCompression;
   }
+
   Future<void> close() async {
     await server?.close(force: true);
   }

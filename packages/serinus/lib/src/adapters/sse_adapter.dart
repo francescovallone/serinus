@@ -146,9 +146,12 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       return;
     }
     final wrappedRequest = Request(request, route.params);
-    final clientId = wrappedRequest.query['sseClientId'] ?? wrappedRequest.cookies
-        .firstWhereOrNull((c) => c.name == 'sseClientId')
-        ?.value ?? UuidV4().generate();
+    final clientId =
+        wrappedRequest.query['sseClientId'] ??
+        wrappedRequest.cookies
+            .firstWhereOrNull((c) => c.name == 'sseClientId')
+            ?.value ??
+        UuidV4().generate();
     final sink = await upgrade(request, response);
     final executionContext = ExecutionContext(
       HostType.sse,
@@ -191,8 +194,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     final sseContext = executionContext.switchToSse();
     if (_connections.containsKey(clientId)) {
       await acceptReconnection(clientId, sink);
-      final result =
-          currentScope.sseRouteSpec.handler.call(sseContext);
+      final result = currentScope.sseRouteSpec.handler.call(sseContext);
       final connection = _connections[clientId];
       result.listen((data) {
         connection!.sink.add(data);

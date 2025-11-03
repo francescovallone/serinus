@@ -78,7 +78,9 @@ class RouteExecutionContext {
           hooksServices: context.hooksServices,
           modelProvider: modelProvider,
           rawBody: rawBody,
-          shouldValidateMultipart: (context.spec is RestRouteHandlerSpec) && (context.spec as RestRouteHandlerSpec).shouldValidateMultipart,
+          shouldValidateMultipart:
+              (context.spec is RestRouteHandlerSpec) &&
+              (context.spec as RestRouteHandlerSpec).shouldValidateMultipart,
         );
         executionContext.attachHttpContext(requestContext);
         for (final hook in context.reqHooks) {

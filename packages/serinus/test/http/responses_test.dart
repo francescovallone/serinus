@@ -54,9 +54,7 @@ class TestController extends Controller {
     on(TestRoute(path: '/path/<value>'), (context) async {
       return context.params['value'];
     });
-    on(TestRoute(path: '/path/path/<value>'), (
-      RequestContext context,
-    ) async {
+    on(TestRoute(path: '/path/path/<value>'), (RequestContext context) async {
       return context.params['value'];
     });
     onStatic(Route.get('/static'), 'test');

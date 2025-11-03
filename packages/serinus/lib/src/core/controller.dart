@@ -13,23 +13,18 @@ typedef ReqResHandler<T> = Future<T> Function(RequestContext context);
 
 /// The [RouteHandlerSpec] class is used to define a route handler specification.
 abstract class RouteHandlerSpec<T> {
-
   /// The [route] property contains the route information.
   final Route route;
+
   /// The [handler] property contains the handler function.
   final T handler;
 
   /// The [RouteHandlerSpec] constructor is used to create a new instance of the [RouteHandlerSpec] class.
-  RouteHandlerSpec(
-    this.route,
-    this.handler
-  );
-  
+  RouteHandlerSpec(this.route, this.handler);
 }
 
 /// The [RestRouteHandlerSpec] class is used to define a REST route handler specification.
 class RestRouteHandlerSpec<T> extends RouteHandlerSpec<ReqResHandler<T>> {
-
   /// The [shouldValidateMultipart] property determines if multipart form data should be validated.
   final bool shouldValidateMultipart;
 
@@ -39,9 +34,10 @@ class RestRouteHandlerSpec<T> extends RouteHandlerSpec<ReqResHandler<T>> {
   /// The [RestRouteHandlerSpec] constructor is used to create a new instance of the [RestRouteHandlerSpec] class.
   RestRouteHandlerSpec(
     Route route,
-    ReqResHandler<T> handler,
-    {this.shouldValidateMultipart = false, this.isStatic = false}
-  ) : super(route, handler);
+    ReqResHandler<T> handler, {
+    this.shouldValidateMultipart = false,
+    this.isStatic = false,
+  }) : super(route, handler);
 }
 
 /// The [Controller] class is used to define a controller.

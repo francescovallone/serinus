@@ -77,11 +77,9 @@ abstract class HttpAdapter<TServer, TRequest, TResponse>
   @override
   Future<void> close();
 
-
   /// The [listen] method is used to start listening for incoming requests.
   /// It takes the [onRequest] callback to handle incoming requests and an optional [onError] callback to handle errors.
-  Future<void> listen(
-    {
+  Future<void> listen({
     required RequestCallback<TRequest, TResponse> onRequest,
     ErrorHandler? onError,
   });
@@ -130,7 +128,7 @@ class NoopAdapter extends HttpAdapter<void, void, void> {
   }
 
   @override
-  Future<void> listen( {
+  Future<void> listen({
     required RequestCallback<void, void> onRequest,
     ErrorHandler? onError,
   }) {
