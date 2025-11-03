@@ -1,0 +1,12 @@
+name: serinus_lint
+description: Collection of lint rules and analysis options for Serinus packages.
+homepage: https://serinus.app
+documentation: https://serinus.app
+repository: https://github.com/francescovallone/serinus
+issue_tracker: https://github.com/francescovallone/serinus/issues
+version: 0.1.0
+
+resolution: workspace
+
+environment:
+  sdk: '>=3.9.0 <4.0.0'

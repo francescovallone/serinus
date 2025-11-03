@@ -1,20 +1,28 @@
 name: serinus_microservices
-description: A sample command-line application.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+description: Microservice transporters and clients for Serinus framework.
+version: 0.1.0
+repository: https://github.com/francescovallone/serinus
+homepage: https://serinus.app
+documentation: https://serinus.app/microservices/
+topics:
+  - server
+  - microservices
+  - grpc
+  - tcp
+  - transporters
 
 environment:
-  sdk: '>=3.6.0 <4.0.0'
+  sdk: '>=3.9.0 <4.0.0'
 
 resolution: workspace
 
-# Add regular dependencies here.
 dependencies:
-  serinus: ^2.0.0-rc.4
+  serinus: ^2.0.0
   grpc: ^4.3.0
   protobuf: ^5.0.0
 
 dev_dependencies:
   lints: ^6.0.0
   test: ^1.26.3
+  serinus_lint: ^0.1.0
   

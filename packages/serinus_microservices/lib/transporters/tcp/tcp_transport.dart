@@ -1,27 +1,35 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:serinus/serinus.dart';
 
+/// TCP transport options.
 class TcpOptions extends TransportOptions {
 
+  /// The underlying TCP socket.
   final TcpSocket socket;
 
+  /// Creates TCP transport options.
   TcpOptions({required int port, TcpSocket? socket}): socket = socket ?? JsonSocket(), super(port);
 }
 
+/// TCP event class.
 class TcpEvents extends TransportEvent {
+  /// The event message.
   final String message;
 
+  /// Optional client identifier.
   final String? clientId;
 
+  /// Creates a TCP event.
   TcpEvents(this.message, {this.clientId}) : super();
 }
 
+/// A TCP transport adapter.
 class TcpTransport extends TransportAdapter<TcpSocket, TcpOptions> {
 
+  /// Creates a TCP transport adapter.
   TcpTransport(super.options);
 
   @override
@@ -104,28 +112,21 @@ class TcpTransport extends TransportAdapter<TcpSocket, TcpOptions> {
   Stream<TcpEvents> get status => server!.status;
 }
 
-
-class TcpTransportClientOptions extends TransportClientOptions {
-  final InternetAddress host;
-  final int port;
-
-  TcpTransportClientOptions({
-    required this.host,
-    required this.port,
-  });
-}
-
+/// Abstract TCP socket class.
 abstract class TcpSocket {
 
   final Map<String, Socket> _connections = {};
 
+  /// The underlying server socket.
   ServerSocket? server;
 
   StreamController<TcpEvents> get _controller =>
       StreamController<TcpEvents>.broadcast();
 
+  /// Stream of TCP events.
   Stream<TcpEvents> get status => _controller.stream;
 
+  /// Initializes the TCP socket server.
   Future<void> init(InternetAddress address, int port) async {
     server = await ServerSocket.bind(
       address,
@@ -134,8 +135,10 @@ abstract class TcpSocket {
     );
   }
 
+  /// Listens for incoming connections and data.
   Future<void> listen(Future<ResponsePacket?> Function(MessagePacket data) onData);
 
+  /// Closes all active connections.
   Future<void> close() async {
     for (final socket in _connections.values) {
       await socket.close();
@@ -147,6 +150,7 @@ abstract class TcpSocket {
 
 }
 
+/// A TCP socket implementation that encodes and decodes messages as JSON.
 class JsonSocket extends TcpSocket {
 
   @override
@@ -157,7 +161,6 @@ class JsonSocket extends TcpSocket {
       _controller.add(TcpEvents('connected', clientId: clientId));
       socket.listen((event) async {
         final message = utf8.decode(event);
-        print('Received message from $clientId: $message');
         _controller.add(TcpEvents('data', clientId: clientId));
         try {
           final jsonMessage = json.decode(message);
@@ -191,96 +194,4 @@ class JsonSocket extends TcpSocket {
     }
   }
   
-}
-
-class TcpTransportClient extends TransportClient<TcpTransportClientOptions> {
-
-  TcpTransportClient(super.options);
-
-  final Map<String, Completer<ResponsePacket?>> _pendingRequests = {};
-
-  Socket? _socket;
-
-  bool get isConnected => _socket != null;
-
-  bool _isRetrying = false;
-
-  final Logger _logger = Logger('TcpTransportClient');
-
-  @override
-  Future<void> connect() async {
-    try {
-      _socket = await Socket.connect(
-        options.host,
-        options.port,
-      );
-      _socket?.done.then((_) {
-        _socket = null;
-      });
-    } catch (e, _) {
-      if(!_isRetrying) {
-        _logger.warning('Failed to connect to TCP server, retrying with exponential backoff...');
-        await _retry();
-      }
-      return;
-    }
-  }
-
-  Future<void> _retry() async {
-    if (_isRetrying) return;
-    _isRetrying = true;
-    int attempt = 0;
-    const maxAttempts = 2;
-    while (attempt < maxAttempts) {
-      try {
-        await connect();
-        if (isConnected) {
-          _isRetrying = false;
-          _logger.info('Reconnected to TCP server.');
-          return;
-        }
-      } catch (e) {
-        _logger.warning('Retry attempt ${attempt + 1} failed: $e');
-      }
-      attempt++;
-      final delay = Duration(seconds: 2 ^ attempt);
-      await Future.delayed(delay);
-    }
-    _logger.severe('Failed to reconnect to TCP server after $maxAttempts attempts.');
-    throw StateError('Could not connect to the TCP server');
-  }
-
-  @override
-  Future<ResponsePacket?> send({
-    required String pattern,
-    required String id,
-    Uint8List? payload,
-  }) async {
-    if(_socket == null) {
-      await connect();
-    }
-    final completer = Completer<ResponsePacket?>();
-    _pendingRequests[id] = completer;
-    _socket?.write(jsonEncode({
-      'pattern': pattern,
-      'id': id,
-      'payload': payload != null ? base64Encode(payload) : null,
-    }));
-    return completer.future;
-  }
-
-  @override
-  Future<void> emit({
-    required String pattern,
-    Uint8List? payload,
-  }) async {
-    if(_socket == null) {
-      await connect();
-    }
-    _socket?.write(jsonEncode({
-      'pattern': pattern,
-      'payload': payload != null ? base64Encode(payload) : null,
-    }));
-  }
-
 }

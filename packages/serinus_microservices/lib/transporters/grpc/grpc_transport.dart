@@ -3,12 +3,15 @@ import 'dart:io';
 
 import 'package:grpc/grpc.dart';
 import 'package:serinus/serinus.dart';
-import 'package:serinus_microservices/transporters/grpc/grpc_message_handler.dart';
+import 'grpc_message_handler.dart';
 
+/// The [SerinusInterceptor] class is the gRPC interceptor for Serinus.
 class SerinusInterceptor extends ServerInterceptor {
-  
+
+  /// The [transporter] instance is used to handle gRPC requests.
   final GrpcTransport transporter;
 
+  /// Creates a gRPC interceptor for Serinus.
   SerinusInterceptor(this.transporter);
 
   @override
@@ -17,23 +20,32 @@ class SerinusInterceptor extends ServerInterceptor {
   }
 }
 
+/// The [GrpcOptions] class is the gRPC transport options.
 class GrpcOptions extends TransportOptions {
 
+  /// The list of gRPC services.
   final List<Service> services;
 
+  /// The codec registry for gRPC.
   final CodecRegistry? codecRegistry;
 
+  /// The host address for the gRPC server.
   final InternetAddress? host;
 
+  /// The security credentials for the gRPC server.
   final ServerCredentials? security;
 
+  /// The keep-alive options for the gRPC server.
   final ServerKeepAliveOptions keepAliveOptions;
 
-  GrpcOptions({required int port, required this.services, this.codecRegistry, this.keepAliveOptions = const ServerKeepAliveOptions(), this.host, this.security}) : super(port);
+  /// Creates gRPC transport options.
+  const GrpcOptions({required int port, required this.services, this.codecRegistry, this.keepAliveOptions = const ServerKeepAliveOptions(), this.host, this.security}) : super(port);
 }
 
+/// A gRPC transport adapter.
 class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
 
+  /// Creates a gRPC transport adapter.
   GrpcTransport(super.options);
 
   @override
@@ -73,14 +85,13 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
 
   @override
   Future<ResponsePacket> send(RpcContext context) {
-    // TODO: implement send
     throw UnimplementedError();
   }
 
   @override
-  // TODO: implement status
   Stream<TransportEvent> get status => throw UnimplementedError();
 
+  /// Handles a gRPC request.
   Stream<R> handleRequest<O, R>(ServiceCall call, ServiceMethod<O, R> method, Stream<O> requests) {
     final path = call.clientMetadata?[':path'] ?? 'unknown';
     final pathSegments = path.split('/');
@@ -130,7 +141,9 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
     }
 
     Q ensureOneRequest(Q? value) {
-      if (value == null) throw GrpcError.unimplemented('No requests received');
+      if (value == null) {
+        throw GrpcError.unimplemented('No requests received');
+      }
       return value;
     }
 

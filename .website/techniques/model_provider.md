@@ -47,10 +47,9 @@ class User {
 }
 
 class UsersController extends Controller {
-  UsersController() {
-    on(Route.post('/users'), body: User, (RequestContext context, User body) async {
-      print(body.name);
-      print(body.email);
+  UsersController() : super('/users') {
+    on(Route.post('/'), body: User, (RequestContext context) async {
+      final user = context.bodyAs<User>();
       return 'User created';
     });
   }

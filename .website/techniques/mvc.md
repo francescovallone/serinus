@@ -84,7 +84,7 @@ Now we can add the Route to render the view.
 import 'package:serinus/serinus.dart';
 
 class HomeController extends Controller {
-  HomeController() {
+  HomeController(): super('/') {
     on(Route.get('/'), (RequestContext context) async {
       return View('home', variables: {'name': 'Dear User'});
     });
@@ -98,7 +98,7 @@ We can also render directly a string.
 import 'package:serinus/serinus.dart';
 
 class HomeController extends Controller {
-  HomeController() {
+  HomeController(): super('/') {
     on(Route.get('/'), (RequestContext context) async {
       return ViewString('Hello {{name}}', variables: {'name': 'Dear User'});
     });

@@ -1,15 +1,20 @@
 import 'package:grpc/grpc.dart';
 import 'package:serinus/serinus.dart';
-import 'package:serinus_microservices/transporters/grpc/grpc_controller.dart';
+import 'grpc_controller.dart';
 
+/// The [GrpcPayload] class is the gRPC payload.
 class GrpcPayload<O> {
+  /// The gRPC service call.
   final ServiceCall call;
+  /// The future request.
   final Future<O> futureRequest;
 
   O? _request;
 
+  /// Creates a gRPC payload.
   GrpcPayload(this.call, this.futureRequest);
 
+  /// Gets the gRPC request.
   Future<O> getRequest() async {
     if (_request != null) {
       return _request!;
@@ -19,10 +24,13 @@ class GrpcPayload<O> {
   }
 }
 
-class GrpcRouteContext {
+/// The [GrpcRouteContext] class is the gRPC route context.
+sealed class GrpcRouteContext<T> {
 
-  final GrpcHandler handler;
+  /// The [handler] property contains the handler function.
+  final T handler;
   
+  /// The [providers] property contains the providers available in the context.
   final Map<Type, Provider> providers;
 
   /// The [hooks] property contains the hooks available in the context.
@@ -34,14 +42,42 @@ class GrpcRouteContext {
   /// The [pipes] property contains the pipes available in the context.
   final Set<Pipe> pipes;
 
+  /// Indicates whether the handler is streaming.
+  final bool streaming;
+
   const GrpcRouteContext({
     required this.handler,
     required this.providers,
     required this.hooks,
     required this.exceptionFilters,
     required this.pipes,
+    this.streaming = false,
   });
 
+}
+
+/// The [GrpcRouteContextHandler] class is the gRPC route context for unary handlers.
+class GrpcRouteContextHandler extends GrpcRouteContext<GrpcHandler> {
+  /// Creates a gRPC route context handler.
+  const GrpcRouteContextHandler({
+    required super.handler,
+    required super.providers,
+    required super.hooks,
+    required super.exceptionFilters,
+    required super.pipes,
+  }) : super(streaming: false);
+}
+
+/// The [GrpcRouteContextStreamHandler] class is the gRPC route context for streaming handlers.
+class GrpcRouteContextStreamHandler extends GrpcRouteContext<GrpcStreamHandler> {
+  /// Creates a gRPC route context stream handler.
+  const GrpcRouteContextStreamHandler({
+    required super.handler,
+    required super.providers,
+    required super.hooks,
+    required super.exceptionFilters,
+    required super.pipes,
+  }) : super(streaming: true);
 }
 
 /// The [GrpcMessageResolver] class is the gRPC implementation of the [MessagesResolver] class.
@@ -49,6 +85,7 @@ class GrpcMessageResolver extends MessagesResolver {
   /// The [resolvedMessageRoutes] property contains the resolved message routes of the application.
   final Map<String, GrpcRouteContext> resolvedMessageRoutes = {};
 
+  /// The [services] property contains the list of gRPC services registered in the server.
   final List<Service> services;
 
   /// The [resolvedAlready] property is used to check if the routes have been resolved already.
@@ -77,28 +114,58 @@ class GrpcMessageResolver extends MessagesResolver {
               'Service "$service" for gRPC route "${entry.value.route.path}" is not registered in the gRPC server.',
             );
           }
-          final context = GrpcRouteContext(
-            handler: entry.value.handler,
-            providers: {
-              for (final providerEntry in module.providers)
-                providerEntry.runtimeType: providerEntry,
-            },
-            hooks: entry.value.route.hooks.merge([
-              controllerEntry.hooks,
-              config.globalHooks,
-            ]),
-            pipes: {
-              ...entry.value.route.pipes,
-              ...controllerEntry.pipes,
-              ...config.globalPipes,
-            },
-            exceptionFilters: {
-              ...entry.value.route.exceptionFilters,
-              ...controllerEntry.exceptionFilters,
-              ...config.globalExceptionFilters,
-            },
-          );
-          resolvedMessageRoutes[entry.value.route.path] = context;
+          switch (entry.value) {
+            case GrpcRouteHandlerSpec():
+              resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextHandler(
+                handler: entry.value.handler,
+                providers: {
+                  for (final providerEntry in module.providers)
+                    providerEntry.runtimeType: providerEntry,
+                },
+                hooks: entry.value.route.hooks.merge([
+                  controllerEntry.hooks,
+                  config.globalHooks,
+                ]),
+                pipes: {
+                  ...entry.value.route.pipes,
+                  ...controllerEntry.pipes,
+                  ...config.globalPipes,
+                },
+                exceptionFilters: {
+                  ...entry.value.route.exceptionFilters,
+                  ...controllerEntry.exceptionFilters,
+                  ...config.globalExceptionFilters,
+                },
+              );
+              break;
+            case GrpcStreamRouteHandlerSpec():
+              resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextStreamHandler(
+                handler: entry.value.handler,
+                providers: {
+                  for (final providerEntry in module.providers)
+                    providerEntry.runtimeType: providerEntry,
+                },
+                hooks: entry.value.route.hooks.merge([
+                  controllerEntry.hooks,
+                  config.globalHooks,
+                ]),
+                pipes: {
+                  ...entry.value.route.pipes,
+                  ...controllerEntry.pipes,
+                  ...config.globalPipes,
+                },
+                exceptionFilters: {
+                  ...entry.value.route.exceptionFilters,
+                  ...controllerEntry.exceptionFilters,
+                  ...config.globalExceptionFilters,
+                },
+              );
+              break;
+            default:
+              throw StateError(
+                'Unknown gRPC route handler type for route "${entry.value.route.path}".',
+              );
+          }
         }
       }
     }
@@ -174,7 +241,7 @@ class GrpcMessageResolver extends MessagesResolver {
   Future<void> handleEvent(
     MessagePacket packet,
     TransportAdapter<dynamic, TransportOptions> adapter,
-  ) async {
+  ) {
     throw UnimplementedError();
   }
 }

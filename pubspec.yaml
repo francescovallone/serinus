@@ -12,3 +12,4 @@ workspace:
   - packages/serve_static
   - packages/serinus_test
   - packages/serinus_microservices
+  - packages/serinus_lint

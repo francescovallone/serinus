@@ -98,4 +98,7 @@ abstract class TransportClient<T extends TransportClientOptions>
 
   /// Emit a fire-and-forget event.
   Future<void> emit({required String pattern, Uint8List? payload});
+
+  /// Close the transport client connection.
+  Future<void> close();
 }

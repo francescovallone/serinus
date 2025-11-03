@@ -70,8 +70,8 @@ class UsersController extends Controller {
   @override
   int get version => 2;
 
-  UsersController() {
-    on(Route.get('/users'), (RequestContext context) async {
+  UsersController(): super('/users') {
+    on(Route.get('/'), (RequestContext context) async {
       return 'Users';
     });
   }
@@ -101,8 +101,8 @@ class CustomRoute extends Route {
 }
 
 class UsersController extends Controller {
-  UsersController() {
-    on(CustomRoute('/users'), (RequestContext context) async {
+  UsersController(): super('/users') {
+    on(CustomRoute('/'), (RequestContext context) async {
       return 'Users';
     });
   }

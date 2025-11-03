@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // ignore_for_file: avoid_print
 import 'package:serinus/serinus.dart';
-import 'package:serinus_microservices/transporters/tcp_transport.dart';
+import 'package:serinus_microservices/transporters/tcp/tcp_transport.dart';
 class TestProvider extends Provider {
 
   int counter = 0;

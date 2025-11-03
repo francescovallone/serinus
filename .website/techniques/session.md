@@ -15,14 +15,16 @@ import 'package:serinus/serinus.dart';
 
 void main() async {
   final app = await serinus.createApplication(entrypoint: AppModule());
-  app.use(SecureSessionHook(
-   options: [
-	SessionOptions(
-		secret: 'a' * 16,
-		salt: 'b' * 16
-	)
-  ]
-  ));
+  app.use(
+    SecureSessionHook(
+      options: [
+        SessionOptions(
+          secret: 'a' * 16,
+          salt: 'b' * 16
+        )
+      ]
+    )
+  );
   await app.serve();
 }
 ```
@@ -52,12 +54,12 @@ import 'package:serinus/serinus.dart';
 
 class AppController extends Controller {
   /// The constructor of the [AppController] class.
-  AppController({super.path = '/'}) {
-    on(Route.get(), _handleEcho);
+  AppController(): super('/') {
+    on(Route.get('/'), _handleEcho);
   }
 
   Future<Map<String, dynamic>> _handleEcho(RequestContext context) async {
-	context.use<SecureSession>().write('value', 'key'); // The key must be available in the session options.
+    context.use<SecureSession>().write('value', 'key'); // The key must be available in the session options.
     return {'message': 'Hello, World!'};
   }
 }
@@ -72,13 +74,13 @@ import 'package:serinus/serinus.dart';
 
 class AppController extends Controller {
   /// The constructor of the [AppController] class.
-  AppController({super.path = '/'}) {
-	on(Route.get(), _handleEcho);
+  AppController(): super('/') {
+    on(Route.get('/'), _handleEcho);
   }
 
   Future<Map<String, dynamic>> _handleEcho(RequestContext context) async {
-	context.session['key'] = 'value';
-	return {'message': 'Hello, World!'};
+    context.session['key'] = 'value';
+    return {'message': 'Hello, World!'};
   }
 }
 ```
