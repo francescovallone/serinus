@@ -92,3 +92,10 @@ class UserController extends Controller with RpcController {
 
 }
 ```
+
+## Transport Layers
+
+Serinus microservices support multiple transport layers out of the box. Each transport layer has its own advantages and use cases. Currently supported transport layers include:
+
+- TCP Transport
+- gRPC Transport

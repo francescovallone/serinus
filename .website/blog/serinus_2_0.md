@@ -211,4 +211,74 @@ class MySseController extends Controller with SseController {
 }
 ```
 
+Learn more about Server-Sent Events in the [SSE Documentation](../sse/).
+
+### Microservices
+
+Microservices is now a first-class citizen in Serinus 2.0 (finally!).
+To be honest they were in the roadmap since the very beginning but the implementation took longer than expected. With Serinus 2.0, we are excited to introduce a robust microservices module that allows developers to build scalable and distributed applications with ease.
+
+Currently it supports TCP and gRPC transport layers, with plans to add more in the future. (like MQTT, NATS and RabbitMQ)
+
+::: warning EXPERIMENTAL
+The microservices module is still experimental and may undergo significant changes in future releases. We encourage developers to try it out and provide feedback to help us improve the module.
+:::
+
+```dart
+import 'package:serinus/serinus.dart';
+import 'package:serinus_microservices/serinus_microservices.dart';
+
+Future<void> main() async {
+  final application = await serinus.createMicroservice(
+    entrypoint: AppModule(),
+    transport: GrpcTransport(
+      GrpcOptions(
+        port: 50051,
+        host: InternetAddress.loopbackIPv4,
+        services: [
+          GreeterService(),
+        ],
+      ),
+    ),
+  );
+  await application.serve();
+}
+```
+
+Learn more about Microservices in the [Microservices Documentation](../microservices/).
+
+## Ecosystem Additions
+
+In addition to the core framework improvements, Serinus 2.0 also introduces three new packages to the Serinus ecosystem: `serinus_microservices`, `serinus_lint`, and `serinus_test`.
+
+- `serinus_microservices`: This package provides tools and utilities for building microservices with Serinus, including support for various transport layers and communication patterns.
+- `serinus_lint`: This package offers a set of linting rules and configurations to ensure code quality and consistency across Serinus projects.
+- `serinus_test`: This package provides testing utilities and helpers specifically designed for Serinus applications, making it easier to write and maintain tests.
+
+::: warning EXPERIMENTAL
+These packages are still experimental and may undergo significant changes in future releases. We encourage developers to try them out and provide feedback to help us improve the packages.
+:::
+
+## Internal Improvements
+
+Serinus 2.0 also includes numerous internal improvements and optimizations that enhance the overall performance and stability of the framework. The most important improvements include:
+
+- Improved dependency injection system for better performance and flexibility.
+- Strictly typed handlers and routes for enhanced type safety and developer experience.
+- Enhanced module system for better modularity and reusability.
+
+## Execution Context
+
+In addition to all these new features you might have seen that pipes, exception filters, middlewares and hooks have changed their APIs, using a more consistent approach based on the `ExecutionContext`.
+
+The reason behind this change is to provide a unified and expandable way to access request and application data across different components and across different layers of the application. The `ExecutionContext` serves as a central point for accessing request information, response manipulation, and other contextual data.
+
+What does this mean for you? Well, for starters if you were using any of these features you will need to update your code to use the new `ExecutionContext` API. But don't worry, we have provided detailed documentation and migration guides to help you through the process.
+
+## Breaking Changes
+
+With the introduction of Serinus 2.0, there are several breaking changes that developers need to be aware of when upgrading their applications. These changes are necessary to accommodate the new features and improvements introduced in this release.
+
+All the breaking changes are documented in the [Breaking Changes](../next/breaking-changes) documentation page.
+
 </BlogPage>
