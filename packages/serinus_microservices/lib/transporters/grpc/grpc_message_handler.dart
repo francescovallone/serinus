@@ -80,7 +80,7 @@ sealed class GrpcRouteContext<T> {
 }
 
 /// The [GrpcRouteContextHandler] class is the gRPC route context for unary handlers.
-class GrpcRouteContextHandler extends GrpcRouteContext<GrpcHandler> {
+class GrpcRouteContextHandler extends GrpcRouteContext<GrpcUnaryHandler> {
   /// Creates a gRPC route context handler.
   const GrpcRouteContextHandler({
     required super.handler,

@@ -1,29 +1,62 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:grpc_example/generated/helloworld.pbgrpc.dart';
 import 'package:grpc/grpc.dart';
+import 'package:grpc_example/generated/helloworld.pbgrpc.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus_microservices/transporters/grpc/grpc_controller.dart';
 import 'package:serinus_microservices/transporters/grpc/grpc_transport.dart';
 
 class GreeterService extends GreeterServiceBase {
   @override
-  Future<HelloReply> sayHello(
-      ServiceCall call, HelloRequest request) async {
-    final reply = HelloReply()..message = 'Hello, ${request.name}!';
-    return reply;
+  Stream<HelloReply> bidiHello(ServiceCall call, Stream<HelloRequest> request) {
+    // TODO: implement bidiHello
+    throw UnimplementedError();
   }
+
+  @override
+  Future<HelloReply> lotsOfGreetings(ServiceCall call, Stream<HelloRequest> request) {
+    // TODO: implement lotsOfGreetings
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<HelloReply> sayHello(ServiceCall call, HelloRequest request) {
+    // TODO: implement sayHello
+    throw UnimplementedError();
+  }
+  
 }
 
 class AppController extends Controller with GrpcController {
 
   AppController() : super('/') {
-    grpc(
+    grpcStream<HelloRequest, HelloReply>(
+      GrpcRoute(GreeterService, 'LotsOfGreetings'),
+      (call, request, context) async* {
+        yield* request.map((req) {
+          final provider = context.use<GreeterProvider>();
+          final reply = provider.getGreeting(req.name);
+          return HelloReply()..message = reply;
+        });
+      }
+    );
+    grpc<HelloRequest, HelloReply>(
       GrpcRoute(GreeterService, 'SayHello'),
       (call, request, context) async {
-        final helloRequest = request as HelloRequest;
-        final reply = HelloReply()..message = context.use<GreeterProvider>().getGreeting(helloRequest.name);
-        return reply;
+        final provider = context.use<GreeterProvider>();
+        final reply = provider.getGreeting(request.name);
+        return HelloReply()..message = reply;
+      }
+    );
+    grpcStream<HelloRequest, HelloReply>(
+      GrpcRoute(GreeterService, 'BidiHello'),
+      (call, request, context) async* {
+        await for (final req in request) {
+          final provider = context.use<GreeterProvider>();
+          final reply = provider.getGreeting(req.name);
+          yield HelloReply()..message = reply;
+        }
       }
     );
   }

@@ -13,3 +13,4 @@ workspace:
   - packages/serinus_test
   - packages/serinus_microservices
   - packages/serinus_lint
+  - examples/grpc_example

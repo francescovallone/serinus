@@ -145,6 +145,7 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
           if (responsePacket.payload is! Stream<R>) {
             final response = responsePacket.payload as R;
             controller.add(response);
+            controller.close();
           } else {
             final responseStream = responsePacket.payload as Stream<R>;
             responseStream.listen(
@@ -163,21 +164,16 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
       } else {
         if (method.streamingRequest) {
           final response = responsePacket.payload as Stream<R>;
-          response.listen(
-            (event) {
-              controller.add(event);
-            },
-            onDone: () {
-              controller.close();
-            },
-            onError: (error) {
-              controller.addError(error);
-            },
-          );
+          controller.addStream(response).then((_) {
+            controller.close();
+          }).catchError((error) {
+            controller.addError(error);
+          });
         } else {
           if (responsePacket.payload is! Stream<R>) {
             final response = responsePacket.payload as R;
             controller.add(response);
+            controller.close();
           } else {
             final responseStream = responsePacket.payload as Stream<R>;
             responseStream.listen(
@@ -194,7 +190,6 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
           }
         }
       }
-      controller.close();
     }).catchError((error) {
       if (error is RpcException) {
         controller.add(GrpcError.custom(14, error.message) as R);

@@ -1,5 +1,5 @@
-import 'package:grpc_example/generated/helloworld.pbgrpc.dart';
 import 'package:grpc/grpc.dart';
+import 'package:grpc_example/generated/helloworld.pbgrpc.dart';
 
 Future<void> main() async {
   final channel = ClientChannel(
@@ -16,8 +16,12 @@ Future<void> main() async {
 
   final stub = GreeterClient(channel);
   try {
-    final response = await stub.sayHello(HelloRequest()..name = 'World');
-    print('Greeter client received: ${response.message}');
+    final response = await stub.lotsOfGreetings(
+      Stream.fromIterable([
+        HelloRequest()..name = 'World',
+      ]),
+    );
+   print('Greeting: ${response.message}');
   } catch (e) {
     print('Caught error: $e');
   }

@@ -5,32 +5,14 @@ publish_to: none
 environment:
   sdk: '>=3.9.0 <4.0.0'
 
+resolution: workspace
+
 dependencies:
   serinus: ^2.0.0
-  dart_mappable: ^4.2.2
-  freezed_annotation: ^2.4.4
-  json_annotation: ^4.9.0
   dio: ^5.7.0
   protobuf: ^5.0.0
   grpc: ^4.3.0
-  serinus_microservices: ^1.0.0
+  serinus_microservices: ^0.1.0
 dev_dependencies:
-  freezed: ^2.5.7
   build_runner: ^2.4.12
-  dart_mappable_builder: ^4.2.3
-  json_serializable: ^6.8.0
   
-serinus:
-  models:
-    extensions: 
-      - "t"
-    deserialize_keywords:
-      - keyword: "fromRequest"
-        static_method: true
-    serialize_keywords:
-      - keyword: "toBody"
-  client:
-    verbose: false
-    language: 'Dart'
-    httpClient: 'dio'
-        

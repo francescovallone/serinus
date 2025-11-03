@@ -82,6 +82,7 @@ class HelloReply extends $pb.GeneratedMessage {
     if (message != null) result.message = message;
     return result;
   }
+
   HelloReply._();
 
   factory HelloReply.fromBuffer($core.List<$core.int> data,

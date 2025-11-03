@@ -41,12 +41,36 @@ class GreeterClient extends $grpc.Client {
     return $createUnaryCall(_$sayHello, request, options: options);
   }
 
+  $grpc.ResponseStream<$0.HelloReply> bidiHello(
+    $async.Stream<$0.HelloRequest> request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(_$bidiHello, request, options: options);
+  }
+
+  $grpc.ResponseFuture<$0.HelloReply> lotsOfGreetings(
+    $async.Stream<$0.HelloRequest> request, {
+    $grpc.CallOptions? options,
+  }) {
+    return $createStreamingCall(_$lotsOfGreetings, request, options: options)
+        .single;
+  }
+
   // method descriptors
 
   static final _$sayHello = $grpc.ClientMethod<$0.HelloRequest, $0.HelloReply>(
       '/helloworld.Greeter/SayHello',
       ($0.HelloRequest value) => value.writeToBuffer(),
       $0.HelloReply.fromBuffer);
+  static final _$bidiHello = $grpc.ClientMethod<$0.HelloRequest, $0.HelloReply>(
+      '/helloworld.Greeter/BidiHello',
+      ($0.HelloRequest value) => value.writeToBuffer(),
+      $0.HelloReply.fromBuffer);
+  static final _$lotsOfGreetings =
+      $grpc.ClientMethod<$0.HelloRequest, $0.HelloReply>(
+          '/helloworld.Greeter/LotsOfGreetings',
+          ($0.HelloRequest value) => value.writeToBuffer(),
+          $0.HelloReply.fromBuffer);
 }
 
 @$pb.GrpcServiceName('helloworld.Greeter')
@@ -61,6 +85,20 @@ abstract class GreeterServiceBase extends $grpc.Service {
         false,
         ($core.List<$core.int> value) => $0.HelloRequest.fromBuffer(value),
         ($0.HelloReply value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.HelloRequest, $0.HelloReply>(
+        'BidiHello',
+        bidiHello,
+        true,
+        true,
+        ($core.List<$core.int> value) => $0.HelloRequest.fromBuffer(value),
+        ($0.HelloReply value) => value.writeToBuffer()));
+    $addMethod($grpc.ServiceMethod<$0.HelloRequest, $0.HelloReply>(
+        'LotsOfGreetings',
+        lotsOfGreetings,
+        true,
+        false,
+        ($core.List<$core.int> value) => $0.HelloRequest.fromBuffer(value),
+        ($0.HelloReply value) => value.writeToBuffer()));
   }
 
   $async.Future<$0.HelloReply> sayHello_Pre(
@@ -70,4 +108,10 @@ abstract class GreeterServiceBase extends $grpc.Service {
 
   $async.Future<$0.HelloReply> sayHello(
       $grpc.ServiceCall call, $0.HelloRequest request);
+
+  $async.Stream<$0.HelloReply> bidiHello(
+      $grpc.ServiceCall call, $async.Stream<$0.HelloRequest> request);
+
+  $async.Future<$0.HelloReply> lotsOfGreetings(
+      $grpc.ServiceCall call, $async.Stream<$0.HelloRequest> request);
 }
