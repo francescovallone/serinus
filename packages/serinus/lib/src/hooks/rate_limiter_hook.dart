@@ -4,10 +4,10 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../http/http.dart';
-import '../mixins/mixins.dart';
+import '../utils/wrapped_response.dart';
 
 /// The [RateLimiterHook] class is a hook that limits the number of requests a client can make.
-class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
+class RateLimiterHook extends Hook with OnBeforeHandle, OnResponse {
   /// Maximum number of requests.
   int maxRequests;
 
@@ -27,19 +27,19 @@ class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
   }) : maxRequests = maxRequests ?? double.infinity.toInt();
 
   @override
-  Future<void> onRequest(Request request, InternalResponse response) async {
-    return;
-  }
-
-  @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     final shouldSkip = context.metadata.values.any(
       (element) => element is SkipRateLimit,
     );
     if (shouldSkip) {
       return;
     }
-    final key = getKey(context.request);
+    final argsHost = context.argumentsHost;
+    if (argsHost is! HttpArgumentsHost) {
+      return;
+    }
+    final request = argsHost.request;
+    final key = getKey(request);
     if (key == null) {
       throw InternalServerErrorException();
     }
@@ -67,12 +67,11 @@ class RateLimiterHook extends Hook with OnRequestResponse, OnBeforeHandle {
 
   @override
   Future<void> onResponse(
-    Request request,
-    dynamic data,
-    ResponseProperties properties,
+    ExecutionContext context,
+    WrappedResponse data,
   ) async {
-    if (properties.statusCode < 400 && rateLimiter != null) {
-      properties.headers.addAll({
+    if (context.response.statusCode < 400 && rateLimiter != null) {
+      context.response.headers.addAll({
         'X-RateLimit-Limit': '$maxRequests',
         'X-RateLimit-Remaining': '${max(maxRequests - rateLimiter!.count, 0)}',
         'X-RateLimit-Reset':

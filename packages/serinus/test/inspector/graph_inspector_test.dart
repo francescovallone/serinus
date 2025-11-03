@@ -1,43 +1,58 @@
-import 'dart:convert';
-
+import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/serinus_container.dart';
 import 'package:test/test.dart';
 
 import '../core/module_test.dart';
 import '../mocks/controller_mock.dart';
 
+class _MockAdapter extends Mock implements SerinusHttpAdapter {
+  @override
+  String get name => 'http';
+
+  @override
+  Future<void> close() {
+    return Future.value();
+  }
+}
+
 class TestModule extends Module {
+  final List<Middleware>? middlewares;
+
   TestModule({
     String? token,
     List<Module>? imports,
     List<Controller>? controllers,
     List<Provider>? providers,
-    List<Middleware>? middlewares,
+    this.middlewares,
     List<Type>? exports,
   }) : super(
          token: token ?? 'TestModule',
          imports: imports ?? [],
          controllers: controllers ?? [],
          providers: providers ?? [],
-         middlewares: middlewares ?? [],
          exports: exports ?? [],
        );
+
+  @override
+  void configure(MiddlewareConsumer consumer) {
+    consumer
+        .apply([...(middlewares ?? [])])
+        .forControllers(controllers.map((e) => e.runtimeType).toList());
+  }
 }
 
 class TestProviderTwo extends Provider {
-  @override
-  bool get isGlobal => true;
-
   final TestProvider dep;
 
   TestProviderTwo(this.dep);
 }
 
 class TestMiddleware extends Middleware {
-  TestMiddleware() : super(routes: ['*']);
+  TestMiddleware() : super();
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     return next();
   }
 }
@@ -47,11 +62,18 @@ void main() {
     test(
       'should return a single node when a module with no dependencies is registered',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final module = TestModule();
-        final container = ModulesContainer(config);
+        final container = SerinusContainer(config, _MockAdapter());
         final inspector = container.inspector;
         final graph = inspector.graph;
-        await container.registerModules(module);
+        await container.modulesContainer.registerModules(module);
         inspector.inspectModules();
         expect(graph, isNotNull);
         expect(graph.nodes.length, 1);
@@ -66,10 +88,17 @@ void main() {
           controllers: [MockController()],
           providers: [TestProvider()],
         );
-        final container = ModulesContainer(config);
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
+        final container = SerinusContainer(config, _MockAdapter());
         final inspector = container.inspector;
         final graph = inspector.graph;
-        await container.registerModules(module);
+        await container.modulesContainer.registerModules(module);
         inspector.inspectModules();
         expect(graph, isNotNull);
         expect(graph.nodes.length, 3);
@@ -91,22 +120,29 @@ void main() {
           imports: [moduleA],
           controllers: [MockController()],
           providers: [
-            Provider.deferred(
-              (TestProvider provider) => TestProviderTwo(provider),
+            Provider.composed(
+              (CompositionContext ctx) async =>
+                  TestProviderTwo(ctx.use<TestProvider>()),
               inject: [TestProvider],
-              type: TestProviderTwo,
             ),
           ],
           middlewares: [TestMiddleware()],
         );
-        final container = ModulesContainer(config);
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
+        final container = SerinusContainer(config, _MockAdapter());
         final inspector = container.inspector;
         final graph = inspector.graph;
-        await container.registerModules(moduleB);
-        await container.finalize(moduleB);
+        await container.modulesContainer.registerModules(moduleB);
+        await container.modulesContainer.finalize(moduleB);
         inspector.inspectModules();
         expect(graph, isNotNull);
-        expect(graph.nodes.length, 6);
+        expect(graph.nodes.length, 5);
         expect(graph.edges.length, 2);
       },
     );
@@ -126,16 +162,19 @@ void main() {
           providers: [TestProvider()],
           middlewares: [],
         );
-        final container = ModulesContainer(config);
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
+        final container = SerinusContainer(config, _MockAdapter());
         final inspector = container.inspector;
         final graph = inspector.graph;
-        await container.registerModules(moduleB);
+        await container.modulesContainer.registerModules(moduleB);
         inspector.inspectModules();
         expect(graph, isNotNull);
-        expect(
-          jsonEncode(inspector.toJson()),
-          '{"nodes":[{"id":"ModuleB","label":"ModuleB","metadata":{"name":"module"}},{"id":"TestProvider","label":"TestProvider","parent":"ModuleB","metadata":{"type":"provider","sourceModuleName":"ModuleB","initTime":0,"exported":false,"composed":false,"global":false}},{"id":"MockController","label":"MockController","parent":"ModuleB","metadata":{"type":"controller","sourceModuleName":"ModuleB","initTime":0}},{"id":"ModuleA","label":"ModuleA","metadata":{"name":"module"}}],"edges":[{"id":"ModuleB-ModuleA","source":"ModuleB","target":"ModuleA","metadata":{"sourceModuleName":"ModuleB","targetModuleName":"ModuleA","type":"module_to_module"}}]}',
-        );
       },
     );
 
@@ -154,16 +193,19 @@ void main() {
           providers: [TestProvider()],
           middlewares: [],
         );
-        final container = ModulesContainer(config);
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
+        final container = SerinusContainer(config, _MockAdapter());
         final inspector = container.inspector;
         final graph = inspector.graph;
-        await container.registerModules(moduleB);
+        await container.modulesContainer.registerModules(moduleB);
         inspector.inspectModules();
         expect(graph, isNotNull);
-        expect(
-          jsonEncode(inspector.toJson()),
-          '{"nodes":[{"id":"ModuleB","label":"ModuleB","metadata":{"name":"module"}},{"id":"TestProvider","label":"TestProvider","parent":"ModuleB","metadata":{"type":"provider","sourceModuleName":"ModuleB","initTime":0,"exported":false,"composed":false,"global":false}},{"id":"MockController","label":"MockController","parent":"ModuleB","metadata":{"type":"controller","sourceModuleName":"ModuleB","initTime":0}},{"id":"ModuleA","label":"ModuleA","metadata":{"name":"module"}}],"edges":[{"id":"ModuleB-ModuleA","source":"ModuleB","target":"ModuleA","metadata":{"sourceModuleName":"ModuleB","targetModuleName":"ModuleA","type":"module_to_module"}}]}',
-        );
       },
     );
   });

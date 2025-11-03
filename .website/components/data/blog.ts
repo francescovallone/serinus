@@ -9,16 +9,26 @@ export type Authors = typeof authors
 
 export interface Post {
     title: string
-    src: string
-    alt: string
+    src?: string
+    alt?: string
     author: keyof Authors
     date: string
+    lastUpdated?: string
     shadow?: boolean
     tags: string[],
     href: string
 }
 
 export const posts: Post[] = [
+    {
+        title: 'Serinus 2.0 - Dawn Chorus',
+        src: '/blog/serinus_2_0/serinus_2_0.webp',
+        alt: 'Serinus 2.0 - Dawn Chorus',
+        author: 'Francesco Vallone',
+        date: '01 Nov 2025',
+        href: '/blog/serinus_2_0',
+        tags: ['releases'],
+    },
     {
         title: 'Serinus VS Dart Frog - A Comparison',
         src: '/blog/serinus_vs_dartfrog/serinus_vs_dartfrog.webp',

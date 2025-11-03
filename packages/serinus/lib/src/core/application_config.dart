@@ -2,14 +2,18 @@ import 'dart:io';
 
 import 'package:uuid/v4.dart';
 
-import '../adapters/server_adapter.dart';
+import '../adapters/adapters.dart';
+import '../containers/adapters_container.dart';
 import '../containers/hooks_container.dart';
-import '../containers/model_provider.dart';
+import '../containers/models_provider.dart';
+import '../containers/modules_container.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
+import '../microservices/transports/transports.dart';
 import '../services/tracers_service.dart';
 import '../versioning.dart';
-import 'hook.dart';
+import 'exception_filter.dart';
+import 'pipe.dart' as s;
 import 'tracer.dart';
 
 /// The configuration for the application
@@ -19,26 +23,29 @@ final class ApplicationConfig {
   /// Default is 'localhost'
   ///
   /// This can be changed to any value
-  final String host;
+  String get host => serverAdapter.host;
 
   /// The port to be used by the application
   /// Default is 3000
   ///
   /// This can be changed to any value
-  final int port;
+  int get port => serverAdapter.port;
 
   /// The header to be sent with the response
   /// Default is 'Powered by Serinus'
   /// This can be changed to any value
-  final String poweredByHeader;
+  String? get poweredByHeader => serverAdapter.poweredByHeader;
 
   /// The security context for the application if any
   /// If not provided, the application will be created as a normal http server
   /// If provided, the application will be created as a secure https server
-  final SecurityContext? securityContext;
+  SecurityContext? get securityContext => serverAdapter.securityContext;
 
   /// The applicationId, every application has a unique id
   final String applicationId = UuidV4().generate();
+
+  /// The list of microservices in the application.
+  final List<TransportAdapter> microservices = [];
 
   /// The versioning options for the application
   /// This can be set using the [versioning] method
@@ -65,12 +72,20 @@ final class ApplicationConfig {
   /// The view engine for the application
   ViewEngine? get viewEngine => _viewEngine;
 
+  /// Keep-alive idle timeout to apply to the underlying HTTP server.
+  /// If null the adapter default will be used.
+  final Duration? keepAliveIdleTimeout;
+
   /// The global prefix for the application
   GlobalPrefix? get globalPrefix => _globalPrefix;
 
   /// The base url for the application
   String get baseUrl =>
       '${securityContext != null ? 'https' : 'http'}://$host:$port';
+
+  /// The error handler for the application
+  /// This is used to handle errors that occur during the execution of the application
+  ErrorHandler? errorHandler;
 
   /// The versioning options for the application
   set versioningOptions(VersioningOptions? value) {
@@ -96,17 +111,26 @@ final class ApplicationConfig {
     _viewEngine = value;
   }
 
-  /// The server adapter for the application
-  final Adapter serverAdapter;
+  /// The http adapter for the application
+  final HttpAdapter serverAdapter;
 
   /// The adapters used by the application
   ///
   /// This is used to store the adapters used by the application
   /// E.g. [SseAdapter], [WsAdapter], etc.
-  final Map<Type, Adapter> adapters = {};
+  final AdapterContainer adapters = AdapterContainer();
 
-  /// The hooks container for the application
-  final HooksContainer hooks = HooksContainer();
+  /// The [HooksContainer] for the application
+  /// This is used to store the modules used by the application
+  final HooksContainer globalHooks = HooksContainer();
+
+  /// The [PipesContainer] for the application
+  /// This is used to store the pipes used by the application
+  final List<s.Pipe> globalPipes = [];
+
+  /// The [ModulesContainer] for the application
+  /// This is used to store the modules used by the application
+  late final ModulesContainer modulesContainer;
 
   /// The model provider for the application
   final ModelProvider? modelProvider;
@@ -114,10 +138,8 @@ final class ApplicationConfig {
   /// The tracer for the application
   final TracersService tracerService = TracersService();
 
-  /// Add a hook to the application
-  void addHook(Hook hook) {
-    hooks.addHook(hook);
-  }
+  /// The set of exception filters to be applied globally
+  final Set<ExceptionFilter> globalExceptionFilters = {};
 
   /// Register a tracer to the application
   void registerTracer(Tracer tracer) {
@@ -126,11 +148,10 @@ final class ApplicationConfig {
 
   /// The application config constructor
   ApplicationConfig({
-    required this.host,
-    required this.port,
-    required this.poweredByHeader,
     required this.serverAdapter,
     this.modelProvider,
-    this.securityContext,
-  });
+    this.keepAliveIdleTimeout,
+  }) {
+    adapters.add(serverAdapter);
+  }
 }

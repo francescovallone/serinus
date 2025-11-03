@@ -4,7 +4,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(Route.get('/'), (context) async => 'ok!');
     on(
       Route.get('/skip', metadata: [SkipRateLimit()]),
@@ -19,7 +19,6 @@ class TestModule extends Module {
     super.imports,
     super.providers,
     super.exports,
-    super.middlewares,
   });
 }
 

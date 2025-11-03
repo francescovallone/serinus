@@ -1,8 +1,12 @@
+<script setup>
+  import MiddlewareImage from './components/middlewares.vue'
+</script>
+
 # Middlewares
 
 Middlewares are functions called before the route handler. They have access to the `RequestContext` object and also to the `NextFunction` function, which is used to call the next middleware or the route handler.
 
-<img src="/middlewares.png" alt="Middlewares">
+<MiddlewareImage />
 
 Serinus middlewares, for ease of use, follow the capabilities of the Express.js middlewares so they can perform the same tasks.
 
@@ -17,7 +21,7 @@ import 'package:serinus/serinus.dart';
 
 class LoggerMiddleware extends Middleware {
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     print('Request received: ${context.request.method} ${context.request.url}');
     return next();
   }
@@ -26,12 +30,31 @@ class LoggerMiddleware extends Middleware {
 
 ## Dependency Injection
 
-Serinus middlewares share the same scopoe as the route handlers, so you can inject dependencies into them.
-So if a dependency is availble in the route handler, it will be available in the middleware as well.
+Serinus middlewares share the same scope as the route handlers, so you can inject dependencies into them.
+So if a dependency is available in the route handler, it will be available in the middleware as well.
 
 ## Using Middlewares
 
-To use a middleware, you must add it to the Module's `middlewares` list.
+To use a middleware, you must override the `configure` method of the `Module` class.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class AppModule extends Module {
+  
+  const AppModule() : super();
+
+  @override
+  void configure(MiddlewareConsumer consumer) {
+    consumer
+      .apply([LoggerMiddleware()])
+      .forRoutes([RouteInfo('/'),]); // You can also use wildcards like '/*' or '/users/*'
+  }
+
+}
+```
+
+But you can also use a middleware linked to a specific `Controller`.
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -39,31 +62,20 @@ import 'package:serinus/serinus.dart';
 class AppModule extends Module {
   
   const AppModule() : super(
-    middlewares: [LoggerMiddleware()],
+    controllers: [TestController()],
   );
 
-}
-```
-
-In the example above the `LoggerMiddleware` will be called before all the route handlers in the module and in the submodules.
-
-But you can also use a middleware in a specific route handler.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-class LoggerMiddleware extends Middleware {
-  LoggerMiddleware() : super(routes: ['/']);
-  
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
-    print('Request received: ${context.request.method} ${context.request.url}');
-    return next();
+  void configure(MiddlewareConsumer consumer) {
+    consumer
+      .apply([LoggerMiddleware()])
+      .forControllers([TestController]);
   }
+
 }
 ```
 
-In the example above the `LoggerMiddleware` will be called only for the route handler that matches the `/` path.
+In the example above the `LoggerMiddleware` will be called only for the routes defined in the `TestController`.
 
 ## Blocking requests
 
@@ -80,7 +92,7 @@ class AuthMiddleware extends Middleware {
   AuthMiddleware() : super(routes: ['/']);
   
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     if (context.request.headers['authorization'] != 'Bearer token') {
       context.res.statusCode = 401;
       return next('Unauthorized');
@@ -101,9 +113,14 @@ import 'package:serinus/serinus.dart';
 
 class UserModule extends Module {
   
-  const UserModule() : super(
-    middlewares: [Middleware.shelf(shelfMiddleware)], // You can also pass Shelf handlers
-  );
+  const UserModule() : super();
+
+  @override
+  void configure(MiddlewareConsumer consumer) {
+    consumer
+      .apply([Middleware.shelf(shelfMiddleware)]) // You can also pass Shelf handlers
+      .forRoutes([RouteInfo('*'),]);
+  }
 
 }
 ```
@@ -117,9 +134,14 @@ import 'package:serinus/serinus.dart';
 
 class UserModule extends Module {
   
-  const UserModule() : super(
-    middlewares: [Middleware.shelf(shelfMiddleware, ignoreResponse: false)], // You can also pass Shelf handlers
-  );
+  const UserModule() : super();
+
+  @override
+  void configure(MiddlewareConsumer consumer) {
+    consumer
+      .apply([Middleware.shelf(shelfMiddleware, ignoreResponse: false)]) // You can also pass Shelf handlers
+      .forRoutes([RouteInfo('*'),]);
+  }
 
 }
 ```

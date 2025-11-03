@@ -1,94 +1,145 @@
 import 'dart:io';
 
-/// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
-///
-/// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
-class InternalResponse {
-  final HttpResponse _original;
+import '../../serinus.dart';
 
-  /// The base url of the server
-  final String? baseUrl;
+/// The [OutgoingMessage] class is an abstract class that defines the methods and properties
+/// that an Outgoing message must implement in the Serinus framework.
+abstract class OutgoingMessage<T, THeaders> {
+  /// The original [T] object.
+  final T original;
 
-  bool _isClosed = false;
+  /// The [OutgoingMessage] constructor is used to create a new instance of the [OutgoingMessage] class.
+  OutgoingMessage(this.original);
 
-  /// This method is used to check if the response is closed.
-  bool get isClosed => _isClosed;
-
-  /// The [InternalResponse] constructor is used to create a new instance of the [InternalResponse] class.
-  InternalResponse(this._original, {this.baseUrl}) {
-    _original.headers.chunkedTransferEncoding = false;
-  }
+  /// Determines if the response is closed.
+  bool get isClosed;
 
   /// This method is used to detach the socket from the response.
   ///
   /// It will return a [Future<Socket>].
   /// It can be used to initiate a WebSocket connection.
-  Future<Socket> detachSocket() {
-    return _original.detachSocket(writeHeaders: false);
-  }
+  Future<Socket> detachSocket({bool writeHeaders = false});
 
-  /// This method is used to send data to the response.
-  ///
-  /// After sending the data, the response will be closed.
-  void send([List<int> data = const []]) {
-    _original.add(data);
-    _original.close();
-    _isClosed = true;
-  }
+  /// The [send] method send the provided [data] to the response and closes the response.
+  void send([List<int> data = const []]);
 
-  /// A simple wrapper for [HttpResponse.write].
-  void write(String data) {
-    _original.write(data);
-  }
+  /// The [write] method is used to write data to the response without closing it.
+  void write(String data);
 
-  /// A simple wrapper for [HttpResponse.cookies].
-  List<Cookie> get cookies => _original.cookies;
+  /// The [cookies] property is used to get the cookies of the response.
+  List<Cookie> get cookies;
 
-  /// This method is used to send a stream of data to the response.
-  ///
-  /// After sending the stream, the response will be closed.
-  Future<void> sendStream(Stream<List<int>> stream) async {
-    return _original.addStream(stream).then((value) {
-      _original.close();
-      _isClosed = true;
-    });
-  }
+  /// The [addStream] method is used to send a stream of data to the response.
+  void addStream(Stream<List<int>> stream, {bool close = true});
 
-  /// This method is used to set the status code of the response.
-  void status(int statusCode) {
-    if (statusCode == _original.statusCode) {
-      return;
-    }
-    _original.statusCode = statusCode;
-  }
+  /// The [status] method is used to set the status code of the response.
+  void status(int statusCode);
 
-  /// This method is used to set the content type of the response.
-  void contentType(ContentType contentType) {
-    headers({HttpHeaders.contentTypeHeader: contentType.toString()});
-  }
+  /// The [contentType] method is used to set the content type of the response.
+  void contentType(ContentType contentType, {bool preserveHeaderCase = true});
 
-  /// This method is used to set the headers of the response.
-  void headers(Map<String, String> headers) {
-    for (final key in headers.keys) {
-      final currentValue = _original.headers.value(key);
-      if (currentValue == null || currentValue != headers[key]) {
-        _original.headers.set(key, headers[key]!);
-      }
-    }
-  }
+  /// The [headers] method is used to set the headers of the response.
+  void headers(Map<String, String> headers, {bool preserveHeaderCase = true});
 
   /// This method is used to flush all the buffered content and then to close the response stream.
-  Future<void> flushAndClose() async {
-    await _original.flush();
-    _original.close();
+  Future<void> flushAndClose();
+
+  /// This method is used to get the current headers of the response.
+  THeaders get currentHeaders;
+
+  /// This method is used to redirect the response to a new location.
+  Future<void> redirect(Redirect redirect);
+}
+
+/// The [InternalResponse] class is a wrapper around the [HttpResponse] class from dart:io.
+///
+/// It is used to create a response object that doesn't expose the [HttpResponse] object itself.
+class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
+  /// The base url of the server
+  final String? baseUrl;
+
+  bool _isClosed = false;
+
+  @override
+  bool get isClosed => _isClosed;
+
+  /// The [InternalResponse] constructor is used to create a new instance of the [InternalResponse] class.
+  InternalResponse(super.original, {this.baseUrl}) {
+    original.headers.chunkedTransferEncoding = false;
+  }
+
+  @override
+  Future<Socket> detachSocket({bool writeHeaders = false}) {
+    return original.detachSocket(writeHeaders: writeHeaders);
+  }
+
+  @override
+  void send([List<int> data = const []]) {
+    original.add(data);
+    original.close();
     _isClosed = true;
   }
 
-  /// This method is used to get the current headers of the response.
-  HttpHeaders get currentHeaders => _original.headers;
+  @override
+  void write(String data) {
+    original.write(data);
+  }
 
-  /// Wrapper for [HttpResponse.redirect] that takes a [String] [path] instead of a [Uri].
-  Future<void> redirect(String location, int statusCode) async {
-    await _original.redirect(Uri.parse(location), status: statusCode);
+  @override
+  List<Cookie> get cookies => original.cookies;
+
+  @override
+  void status(int statusCode) {
+    if (statusCode == original.statusCode) {
+      return;
+    }
+    original.statusCode = statusCode;
+  }
+
+  @override
+  void contentType(ContentType contentType, {bool preserveHeaderCase = true}) {
+    headers({
+      'content-type': contentType.toString(),
+    }, preserveHeaderCase: preserveHeaderCase);
+  }
+
+  @override
+  void headers(Map<String, String> headers, {bool preserveHeaderCase = true}) {
+    for (final key in headers.keys) {
+      original.headers.set(
+        key,
+        headers[key]!,
+        preserveHeaderCase: preserveHeaderCase,
+      );
+    }
+  }
+
+  @override
+  Future<void> flushAndClose() async {
+    await original.flush();
+    original.close();
+    _isClosed = true;
+  }
+
+  @override
+  HttpHeaders get currentHeaders => original.headers;
+
+  @override
+  Future<void> redirect(Redirect redirect) async {
+    original.redirect(
+      Uri.parse(redirect.location),
+      status: redirect.statusCode,
+    );
+    _isClosed = true;
+  }
+
+  @override
+  void addStream(Stream<List<int>> stream, {bool close = true}) {
+    original.addStream(stream).then((_) {
+      if (close) {
+        original.close();
+        _isClosed = true;
+      }
+    });
   }
 }

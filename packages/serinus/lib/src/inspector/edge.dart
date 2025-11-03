@@ -1,13 +1,15 @@
+import '../containers/injection_token.dart';
+
 /// The [Edge] class is an abstract class that represents an edge in the inspector.
 class Edge {
   /// The id of this edge. This is used to identify the edge in the tree.
   final String id;
 
   /// The source of this edge. This is used to identify the source node in the tree.
-  final String source;
+  final InjectionToken source;
 
   /// The target of this edge. This is used to identify the target node in the tree.
-  final String target;
+  final InjectionToken target;
 
   /// The metadata of this edge. This is used to display the edge in the tree.
   final EdgeMetadata metadata;
@@ -34,10 +36,10 @@ class Edge {
 /// A [EdgeMetadata] is a class that represents the metadata of an edge in the inspector.
 abstract class EdgeMetadata {
   /// The name of the module that this edge points from. This is used to identify the module in the tree.
-  final String sourceModuleName;
+  final InjectionToken sourceModuleName;
 
   /// The name of the module that this edge points to. This is used to identify the module in the tree.
-  final String targetModuleName;
+  final InjectionToken targetModuleName;
 
   /// The type of the edge. This is used to display the edge in the tree.
   final String type;
@@ -62,10 +64,10 @@ abstract class EdgeMetadata {
 /// A [ClassToClassEdgeMetadata] is a class that represents the metadata of an edge between two classes in the inspector.
 class ClassToClassEdgeMetadata extends EdgeMetadata {
   /// The name of the class that this edge points from. This is used to identify the class in the tree.
-  final String sourceClassName;
+  final InjectionToken sourceClassName;
 
   /// The name of the class that this edge points to. This is used to identify the class in the tree.
-  final String targetClassName;
+  final InjectionToken targetClassName;
 
   /// Indicates if the edge represents an internal edge.
   final bool? internal;

@@ -17,7 +17,7 @@ class TestObj with JsonObject {
 }
 
 class TestRoute extends Route {
-  const TestRoute({required super.path, super.method = HttpMethod.get});
+  TestRoute({required super.path, super.method = HttpMethod.get});
 }
 
 class TestJsonObject with JsonObject {
@@ -28,12 +28,12 @@ class TestJsonObject with JsonObject {
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(TestRoute(path: '/text'), (context) async => 'ok!');
     on(TestRoute(path: '/json'), (context) async => {'message': 'ok!'});
     on(TestRoute(path: '/json-obj'), (context) async => TestJsonObject());
     on(TestRoute(path: '/html'), (context) async {
-      context.res.contentType = ContentType.html;
+      context.response.contentType = ContentType.html;
       return '<h1>ok!</h1>';
     });
     on(
@@ -46,35 +46,21 @@ class TestController extends Controller {
       );
       return file;
     });
-    on(
-      TestRoute(path: '/redirect'),
-      (context) async => context.res.redirect = Redirect('/text'),
-    );
+    on(TestRoute(path: '/redirect'), (context) async => Redirect('/text'));
     on(TestRoute(path: '/status'), (context) async {
       context.res.statusCode = 201;
       return 'test';
-    });
-    on(TestRoute(path: '/stream'), (context) async {
-      final streamable = context.stream();
-      final streamedFile = File(
-        '${Directory.current.absolute.path}/test/http/test.txt',
-      ).openRead().transform(utf8.decoder).transform(LineSplitter());
-      await for (final line in streamedFile) {
-        streamable.send(line);
-      }
-      return streamable.end();
     });
     on(TestRoute(path: '/path/<value>'), (context) async {
       return context.params['value'];
     });
     on(TestRoute(path: '/path/path/<value>'), (
       RequestContext context,
-      String v,
     ) async {
-      return v;
+      return context.params['value'];
     });
     onStatic(Route.get('/static'), 'test');
-    on(Route.get('/session'), (RequestContext context) {
+    on(Route.get('/session'), (RequestContext context) async {
       final session = context.use<SecureSession>();
       session.write('hello', 'session');
       return 'ok!';
@@ -86,10 +72,12 @@ class TestMiddleware extends Middleware {
   bool hasBeenCalled = false;
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
+  Future<void> use(ExecutionContext context, NextFunction next) async {
     next();
   }
 }
+
+final middleware = TestMiddleware();
 
 class TestModule extends Module {
   TestModule({
@@ -97,21 +85,21 @@ class TestModule extends Module {
     super.imports,
     super.providers,
     super.exports,
-    super.middlewares,
   });
+
+  @override
+  void configure(MiddlewareConsumer consumer) {
+    consumer.apply([middleware]).forControllers([TestController]);
+  }
 }
 
 void main() async {
   group('Responses Test', () {
     SerinusApplication? app;
     final controller = TestController();
-    final middleware = TestMiddleware();
     setUpAll(() async {
       app = await serinus.createApplication(
-        entrypoint: TestModule(
-          controllers: [controller],
-          middlewares: [middleware],
-        ),
+        entrypoint: TestModule(controllers: [controller]),
         logLevels: {LogLevel.none},
       );
       app?.use(
@@ -223,17 +211,6 @@ void main() async {
         expect(response.statusCode, 200);
         final body = await response.transform(Utf8Decoder()).join();
         expect(body, '{"id":"json-obj"}');
-      },
-    );
-    test(
-      '''when a Stream response is created and streamed, then the response should be streamed''',
-      () async {
-        final request = await HttpClient().getUrl(
-          Uri.parse('http://localhost:3000/stream'),
-        );
-        final response = await request.close();
-        final body = await response.transform(Utf8Decoder()).join();
-        expect(body, 'ok!');
       },
     );
     test(

@@ -1,64 +1,50 @@
 <script setup>
-const plugins = [
-	{
-		title: 'Swagger',
-		pub: 'https://pub.dev/packages/serinus_swagger',
-		desc: 'Genearate Open API documentation for your Serinus project with no effort.',
-		link: '/plugins/swagger/',
-	},
-	{
-		title: 'Config',
-		pub: 'https://pub.dev/packages/serinus_config',
-		desc: 'Manage your project configuration with a simple and easy to use package.',
-		link: '/plugins/configuration',
-	},
-	{
-		title: 'Frontier',
-		pub: 'https://pub.dev/packages/serinus_frontier',
-		desc: 'Leverage the power of Serinus and Frontier to authenticate your users with ease.',
-		link: '/plugins/frontier',
-	},
-]
+import { ref } from 'vue';
+import { plugins } from './data/ecosystem.ts';
+
+const currentPlugin = ref(plugins[0]);
+
+const changePlugin = (event, selectedPlugin) => {
+	event.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+	if (selectedPlugin) {
+		currentPlugin.value = selectedPlugin;
+	}
+};
 
 </script>
 
 <template>
-	<div class="flex w-full gap-8 flex-col my-12 justify-center items-center">
-		<div class="container flex gap-8 flex-col items-center">
-			<section class="flex flex-col gap-4 flex-1 items-center">
-				<h1 class="text-3xl font-bold">
-					Don't reinvent the wheel
-				</h1>
-				<p class="text-lg text-gray-400">
-					Extend Serinus with plugins to add more functionality to your project with ease.
-				</p>
-			</section>
-			<section class="container grid grid-cols-6 gap-8">
-				<div 
-					v-for="(plugin, index) in plugins" 
-					:key="plugin.title" 
-					class="plugin transition-all bg-neutral-900 p-8 rounded-xl flex flex-col gap-4"
-					:class="plugins.length % 2 !== 0 && index === plugins.length - 1 ? 'col-span-6' : 'col-span-3'"
-				>
-					<h1 class="text-2xl font-semibold">
+	<div class="flex w-full gap-8 flex-col md:py-16 py-4 2xl:px-64 md:px-16 px-8">
+		<div class="flex gap-8 items-center">
+			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="#FF9800" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 8l-4 4l4 4m10-8l4 4l-4 4M14 4l-4 16"/></svg>
+			<div class="text-lg text-pretty text-serinus tracking-wide">
+				Ecosystem
+			</div>
+		</div>
+		<div class="flex flex-col gap-2">
+			<div class="text-3xl text-pretty">
+				A robust ecosystem for every need
+			</div>
+			<div class="text-base text-pretty text-gray-600 2xl:w-[52rem] lg:w-[36rem] w-full">
+				Designed to make backend development in Dart easy and enjoyable, Serinus offers a range of powerful features to help you build the best possible applications.
+			</div>
+		</div>
+		<div class="flex flex-col md:flex-row gap-8">
+			<div class="selector flex md:flex-col gap-4 overflow-auto flex-1 md:max-w-[300px] tabs">
+				<div v-for="plugin in plugins" :key="plugin.title" class="flex flex-col w-full min-w-[120px] text-center md:text-start">
+					<div class="text-base text-pretty p-2 md:border-l-2 md:border-b-0 border-b-2 border-bg cursor-pointer" :class="{'border-color-serinus': currentPlugin.title === plugin.title, 'hover:border-gray-300': currentPlugin.title !== plugin.title}" @click="(event) => changePlugin(event, plugin)">
 						{{ plugin.title }}
-					</h1>
-					<p class="text-md">{{ plugin.desc }}</p>
-					<div class="flex gap-4">
-						<a :href="plugin.pub" class="bg-orange-400 text-white px-4 py-2 rounded-lg">
-							Pub.dev
-						</a>
-						<a :href="plugin.link" class="bg-orange-400 text-white px-4 py-2 rounded-lg">
-							Documentation
-						</a>
 					</div>
 				</div>
-			</section>
-		</div>
-		<div class="flex justify-center" style="flex-shrink: 0; padding: 6px">
-			<a href="/plugins/" class="bg-orange-400 px-8 py-4 rounded-full text-white font-semibold">
-				View all plugins
-			</a>
+			</div>
+			<div class="details flex flex-col gap-4 rounded-lg flex-1">
+				<div class="display">
+					<slot :name="currentPlugin.slot" :slot="currentPlugin.slot"></slot>
+				</div>
+				<div class="flex gap-4 items-center">
+					<a :href="currentPlugin.link" class="text-serinus py-3 text-sm underline">Read {{ currentPlugin.title }} docs</a>
+				</div>
+			</div>
 		</div>
   	</div>
 </template>
@@ -79,10 +65,22 @@ ol {
 .vp-doc a.bg-orange-400 {
 	color: white;
 }
-.plugin {
-	border: 1px solid transparent;
+</style>
+<style>
+.tabs::-webkit-scrollbar {
+  display: none;
 }
-.plugin:hover {
-	border: 1px solid var(--vp-c-brand-2);
+.tabs {
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+.display h3 {
+	@apply text-lg font-semibold text-pretty;
+}
+.display p {
+	@apply text-base text-gray-500 my-4;
+}
+.display p .numbered {
+	@apply font-bold pr-4;
 }
 </style>

@@ -1,4 +1,4 @@
-import '../contexts/request_context.dart';
+import '../contexts/contexts.dart';
 import '../exceptions/exceptions.dart';
 
 /// The [ResponseEvent] enum is used to define the different events that can be listened to on a response.
@@ -23,7 +23,7 @@ enum RequestEvent {
   all,
 }
 
-/// The [ResponseProperties] class is used to store the properties of a response.
+/// The [EventData] class is used to store the data of an event.
 class EventData {
   /// The [hasException] property contains a boolean value that indicates if the event contains an error.
   ///
@@ -37,8 +37,8 @@ class EventData {
   /// The [data] property contains the response data.
   final Object? data;
 
-  /// The [ResponseProperties] property contains the properties of the response it is copied from the request.
-  final ResponseProperties properties;
+  /// The [ResponseContext] property contains the properties of the response it is copied from the request.
+  final ResponseContext properties;
 
   /// The [EventData] class is used to store the data of an event.
   const EventData({

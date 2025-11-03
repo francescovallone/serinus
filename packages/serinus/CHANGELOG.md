@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.0.0
+
+- feat: add ComposedModule to allow for better composition of modules.
+- fix: WebSocketGateway now correctly converts data before sending it.
+- fix: correct handling of request body from previous erroneous implementation in 2.0.0-rc.5.
+- fix: correct assignment of WsAdapter to the WebSocketGateway to prevent wrongful exceptions on sending data.
+- ref!: remove ParseSchema completely from Serinus.
+- feat: add onPart callback to the FormData parsing to allow for custom handling of each part of the multipart/form-data.
+- feat: add simple hooks implementation to simplify the implementation of hooks in routes and controllers.
+- feat: add shouldValidateMultipart to the RouteHandler to allow for manual validation of multipart/form-data requests.
+- feat: improve body parsing to allow for more flexibility in the implementation of custom body types.
+- feat: add utility methods to the RequestContext to simplify the extraction of typed parameters from the request.
+- fix: fix check on WebSocketGateway to prevent wrongful exceptions on sending data.
+- fix: reinstantiate module providers on deferred provider add to it
+- fix: global prefix and versioning are now applied correctly to all routes
+- feat!: change `Provider.deferred` to `Provider.composed` to better reflect its purpose.
+- ref!: Controller path is now a required parameter.
+- ref!: View Engine now has just a single method for rendering templates.
+- ref!: View and ViewString are now one single class with two factory constructors.
+- ref!: Middlewares are now registered using a fluent API.
+- ref!: The `Module#registerAsync` method now must return a DynamicModule
+- ref!: Each body type is now a separate class
+- ref!: Request and Response Hooks are now divided.
+- ref!: Some Hooks have now different method signatures.
+- ref!: Renamed ResponseProperties to ResponseContext
+- ref!: The Logger has been refactored to allow for more flexibility in the implementation.
+- ref!: SerinusExceptions message is now a required parameter.
+- ref!: Global definitions are now module-scoped.
+
 ## 1.0.6
 
 - fix: add sigterm and sighup to correctly handle termination signals in the application. [#192](https://github.com/francescovallone/serinus/pulls/192) by [mdex-geek](https://github.com/mdex-geek)

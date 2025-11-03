@@ -6,26 +6,32 @@ import 'package:serinus/serinus.dart';
 ///
 /// This controller is used to serve static files from the current directory.
 class ServeStaticController extends Controller {
-  /// The [extensions] property contains the extensions whitelist of the controller.
+  /// The [exclude] property contains the excluded paths of the controller.
   final List<String> exclude;
 
+  /// The [extensions] property contains the extensions whitelist of the controller.
   final List<String> extensions;
 
+  /// The [routePath] property contains the route path used to serve files.
   final String routePath;
 
+  /// The [index] property contains the index files of the controller.
   final List<String> index;
 
+  /// The [redirect] property indicates whether to redirect to index files or not.
   final bool redirect;
 
   /// The [ServeStaticController] constructor is used to create a new instance of the [ServeStaticController] class.
-  ServeStaticController({
-    required super.path,
-    required this.routePath,
-    this.exclude = const [],
-    this.extensions = const [],
-    this.index = const ['index.html'],
-    this.redirect = true,
-  }) {
+  ServeStaticController(
+    super.path, 
+    {
+      required this.routePath,
+      this.exclude = const [],
+      this.extensions = const [],
+      this.index = const ['index.html'],
+      this.redirect = true,
+    }
+  ) {
     on(Route.get('/'), _serveFile);
     on(Route.get(routePath), _serveFile);
   }
@@ -34,7 +40,7 @@ class ServeStaticController extends Controller {
     final path = context.request.path;
     if(exclude.contains(path.replaceAll(super.path, ''))) {
       throw ForbiddenException(
-        message: 'The path $path is not available to be served'
+        'The path $path is not available to be served'
       );
     }
     Directory current = Directory.current;
@@ -55,7 +61,7 @@ class ServeStaticController extends Controller {
         }
       }
       throw BadRequestException(
-        message: 'The chosen path is a directory and none of the following files is available in the directory. [${index.join(',')}]'
+        'The chosen path is a directory and none of the following files is available in the directory. [${index.join(',')}]'
       );
     }
     if(!fileExists && !directoryExists) {
@@ -75,7 +81,7 @@ class ServeStaticController extends Controller {
       }
     }
     throw NotFoundException(
-      message: 'The file or directory $path does not exists'
+      'The file or directory $path does not exists'
     );
   }
 }

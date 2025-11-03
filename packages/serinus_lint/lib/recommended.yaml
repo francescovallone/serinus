@@ -1,0 +1,34 @@
+analyzer:
+  exclude:
+    - build/**
+
+  errors:
+    close_sinks: ignore
+    missing_required_param: error
+    missing_return: error
+  
+formatter:
+  page_width: 120
+  trailing_commas: preserve
+
+linter:
+  rules:
+    - always_declare_return_types
+    - always_put_control_body_on_new_line
+    - always_put_required_named_parameters_first
+    - directives_ordering
+    - prefer_relative_imports
+    - prefer_single_quotes
+    - avoid_print
+    - avoid_classes_with_only_static_members
+    - avoid_futureor_void
+    - avoid_returning_null_for_void
+    - eol_at_end_of_file
+    - prefer_adjacent_string_concatenation
+    - prefer_iterable_whereType
+    - unnecessary_async
+    - unnecessary_await_in_return
+    - unnecessary_late
+    - unnecessary_new
+    - unnecessary_this
+    - unnecessary_getters_setters

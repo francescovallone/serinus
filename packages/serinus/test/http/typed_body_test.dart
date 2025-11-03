@@ -5,16 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
-class _MockAdapter extends Mock implements SerinusHttpAdapter {}
-
-class _MockContext extends Mock implements RequestContext {
-  final Body _body;
-
-  _MockContext(this._body);
-
-  @override
-  Body get body => _body;
-}
+class _MockIncomingMessage extends Mock implements IncomingMessage {}
 
 class _MockModelProvider extends Mock implements ModelProvider {
   @override
@@ -41,163 +32,121 @@ class TestObject {
   }
 }
 
-final config = ApplicationConfig(
-  host: 'host',
-  port: 10000,
-  poweredByHeader: '',
-  serverAdapter: _MockAdapter(),
-);
+Request _buildRequest({ContentType? contentType}) {
+  final incoming = _MockIncomingMessage();
+  final effectiveContentType = contentType ?? ContentType.json;
+  when(() => incoming.queryParameters).thenReturn({});
+  when(() => incoming.headers).thenReturn(SerinusHeaders({}));
+  when(() => incoming.contentType).thenReturn(effectiveContentType);
+  when(() => incoming.method).thenReturn('POST');
+  when(() => incoming.path).thenReturn('/');
+  when(() => incoming.uri).thenReturn(Uri.parse('http://localhost'));
+  when(() => incoming.id).thenReturn('req-1');
+  when(() => incoming.host).thenReturn('localhost');
+  when(() => incoming.hostname).thenReturn('localhost');
+  when(() => incoming.port).thenReturn(3000);
+  when(() => incoming.cookies).thenReturn(const []);
+  when(() => incoming.segments).thenReturn(const []);
+  when(() => incoming.clientInfo).thenReturn(null);
+  when(() => incoming.contentLength).thenReturn(0);
+  when(() => incoming.isWebSocket).thenReturn(false);
+  when(() => incoming.webSocketKey).thenReturn('');
+  when(() => incoming.body()).thenReturn('');
+  when(() => incoming.json()).thenReturn(null);
+  when(() => incoming.bytes()).thenAnswer((_) async => Uint8List(0));
+  when(() => incoming.stream()).thenAnswer((_) => const Stream.empty());
+  when(() => incoming.formData()).thenAnswer(
+    (_) async => FormData(
+      contentType: ContentType('application', 'x-www-form-urlencoded'),
+    ),
+  );
+  return Request(incoming);
+}
 
 void main() {
-  group('Typed Body', () {
-    test(
-      'when the body type is an available body the request handler should provide it',
-      () {
-        final RequestHandler requestHandler = RequestHandler(
-          Router(),
-          ModulesContainer(config),
-          config,
-        );
-        var body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.text, text: 'test')),
-          String,
-        );
-        expect(body, 'test');
+  setUpAll(() {
+    registerFallbackValue(<String, String>{});
+  });
 
-        body = requestHandler.getBodyValue(
-          _MockContext(
-            Body(ContentType.json, json: JsonBodyObject({'test': 'test'})),
-          ),
-          Map,
-        );
+  group('RequestContext body typing', () {
+    test('preserves string bodies when explicitly typed', () {
+      final request = _buildRequest(contentType: ContentType.text);
+      final context = RequestContext<String>.withBody(
+        request,
+        'hello',
+        <Type, Provider>{},
+        <Type, Object>{},
+        explicitType: String,
+      );
 
-        expect(body, {'test': 'test'});
+      expect(context.body, equals('hello'));
+      expect(request.body, equals('hello'));
+    });
 
-        body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.json, json: JsonList(['test']))),
-          List,
-        );
+    test('converts binary payloads to Uint8List', () {
+      final request = _buildRequest(contentType: ContentType.binary);
+      final context = RequestContext<Uint8List>.withBody(
+        request,
+        Uint8List(0),
+        <Type, Provider>{},
+        <Type, Object>{},
+        explicitType: Uint8List,
+      );
 
-        body = requestHandler.getBodyValue(
-          _MockContext(Body(ContentType.binary, bytes: [1, 2, 3])),
-          Uint8List,
-        );
+      context.body = [1, 2, 3];
 
-        expect(body, [1, 2, 3]);
+      expect(context.body.toList(), equals([1, 2, 3]));
+    });
 
-        body = requestHandler.getBodyValue(
-          _MockContext(
-            Body(
-              ContentType.parse('application/x-www-form-urlencoded'),
-              formData: FormData(fields: {'test': 'test'}),
-            ),
-          ),
-          FormData,
-        );
+    test('casts dynamic list to typed list of maps', () {
+      final request = _buildRequest();
+      final context = RequestContext<dynamic>.withBody(
+        request,
+        [
+          {'name': 'serinus'},
+        ],
+        <Type, Provider>{},
+        <Type, Object>{},
+        explicitType: List<Map<String, dynamic>>,
+      );
 
-        expect(body.values, {
-          'fields': {'test': 'test'},
-          'files': {},
-        });
-      },
-    );
+      final body = context.body as List;
 
-    test(
-      'if the body type is not the same as the current body value then a [PreconditionFailedException] should be thrown',
-      () {
-        final RequestHandler requestHandler = RequestHandler(
-          Router(),
-          ModulesContainer(config),
-          config,
-        );
-        expect(
-          () => requestHandler.getBodyValue(
-            _MockContext(Body(ContentType.text, text: 'test')),
-            Map,
-          ),
-          throwsA(isA<PreconditionFailedException>()),
-        );
-      },
-    );
+      expect(body, hasLength(1));
+      expect(body.first, isA<Map<String, dynamic>>());
+      expect((body.first as Map<String, dynamic>)['name'], equals('serinus'));
+    });
 
-    test(
-      'if the body type is in the [ModelProvider] then the body should be converted to the model',
-      () {
-        final modelProviderConfig = ApplicationConfig(
-          host: 'host',
-          port: 10000,
-          poweredByHeader: '',
-          serverAdapter: _MockAdapter(),
-          modelProvider: _MockModelProvider(),
-        );
-        final RequestHandler requestHandler = RequestHandler(
-          Router(),
-          ModulesContainer(modelProviderConfig),
-          modelProviderConfig,
-        );
-        final body = requestHandler.getBodyValue(
-          _MockContext(
-            Body(ContentType.json, json: JsonBodyObject({'name': 'test'})),
-          ),
-          TestObject,
-        );
-        expect(body.name, 'test');
-      },
-    );
+    test('throws when body cannot be converted to expected type', () {
+      final request = _buildRequest();
+      final context = RequestContext<dynamic>.withBody(
+        request,
+        'original',
+        <Type, Provider>{},
+        <Type, Object>{},
+        explicitType: String,
+      );
 
-    test(
-      'if the body type is not in the [ModelProvider] then a [PreconditionFailedException] should be thrown',
-      () {
-        final modelProviderConfig = ApplicationConfig(
-          host: 'host',
-          port: 10000,
-          poweredByHeader: '',
-          serverAdapter: _MockAdapter(),
-          modelProvider: _MockModelProvider(),
-        );
-        final RequestHandler requestHandler = RequestHandler(
-          Router(),
-          ModulesContainer(modelProviderConfig),
-          modelProviderConfig,
-        );
-        expect(
-          () => requestHandler.getBodyValue(
-            _MockContext(
-              Body(ContentType.json, json: JsonBodyObject({'name': 'test'})),
-            ),
-            String,
-          ),
-          throwsA(isA<PreconditionFailedException>()),
-        );
-      },
-    );
+      expect(
+        () => context.body = {'unexpected': true},
+        throwsA(isA<PreconditionFailedException>()),
+      );
+    });
 
-    test(
-      'if the body type is in the [ModelProvider] and the raw body is a FormData then the body should be converted to the model',
-      () {
-        final modelProviderConfig = ApplicationConfig(
-          host: 'host',
-          port: 10000,
-          poweredByHeader: '',
-          serverAdapter: _MockAdapter(),
-          modelProvider: _MockModelProvider(),
-        );
-        final RequestHandler requestHandler = RequestHandler(
-          Router(),
-          ModulesContainer(modelProviderConfig),
-          modelProviderConfig,
-        );
-        final body = requestHandler.getBodyValue(
-          _MockContext(
-            Body(
-              ContentType.parse('application/x-www-form-urlencoded'),
-              formData: FormData(fields: {'name': 'test'}),
-            ),
-          ),
-          TestObject,
-        );
-        expect(body.name, 'test');
-      },
-    );
+    test('leverages model provider conversions', () {
+      final request = _buildRequest();
+      final modelProvider = _MockModelProvider();
+      final context = RequestContext<dynamic>.withBody(
+        request,
+        {'name': 'bird'},
+        <Type, Provider>{},
+        <Type, Object>{},
+        modelProvider: modelProvider,
+        explicitType: TestObject,
+      );
+
+      expect(context.body, isA<TestObject>());
+      expect((context.body as TestObject).name, equals('bird'));
+    });
   });
 }

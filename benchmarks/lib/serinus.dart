@@ -8,16 +8,9 @@ class TestModule extends Module {
         );
 }
 
-class TestRoute extends Route {
-  const TestRoute({
-    super.path = '/',
-    super.method = HttpMethod.get,
-  });
-}
-
 class TestController extends Controller {
-  TestController() : super(path: '/') {
-    on(TestRoute(), (context) async => 'echo!');
+  TestController() : super('/') {
+    on(Route.get('/'), (context) async => 'echo!');
   }
 }
 

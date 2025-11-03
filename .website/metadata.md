@@ -1,8 +1,12 @@
+<script setup>
+  import MetadataImage from './components/metadata.vue'
+</script>
+
 # Metadata
 
 Metadata are used to add information to a class, a method, a property, or a parameter. In other programming languages they are easily accessible thanks to reflaction. But since they are really useful, Serinus provides his own way to add metadata to your routes and controllers.
 
-<img src="/metadata.png" alt="Metadata" />
+<MetadataImage />
 
 ::: info
 Dart does not support reflection, so Serinus provides a more static way to add metadata to your classes.
@@ -54,7 +58,7 @@ If you add a metadata to a controller, it will be applied to all the routes of t
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers, metadata: [IsPublic()]);
     on(Route.get('/<id>'), getUser);
   }
@@ -81,7 +85,7 @@ They can be used in combination in this way:
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers, metadata: [IsPublic()]);
     on(Route.get('/<id>'), getUser);
   }

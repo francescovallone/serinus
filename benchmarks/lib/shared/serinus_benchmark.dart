@@ -97,11 +97,12 @@ abstract class SerinusBenchmark {
   Future<void> teardown();
   
   Future<Result?> _executeWinrkBenchmark() async {
-    final process = await Process.start('winrk', [
+    final process = await Process.start('bombardier', [
+      '-c',
+      '$connections',
+      '-d',
+      '${duration.inSeconds}s',
       'http://localhost:3000/',
-      '-t $threads',
-      '-c $connections',
-      '-d ${duration.inSeconds}',
     ]);
     Result? result;
     final resultMessage = StringBuffer();

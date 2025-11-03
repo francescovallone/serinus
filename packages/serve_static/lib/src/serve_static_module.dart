@@ -9,19 +9,26 @@ import 'serve_static_controller.dart';
 ///
 /// You can also use the constructor to initialize any dependencies that your plugin may have.
 class ServeStaticModule extends Module {
-  
+
+  /// The [rootPath] property contains the root path used to serve files.
   final String rootPath;
 
+  /// The [renderPath] property contains the path used to render files.
   final String renderPath;
 
+  /// The [serveRoot] property contains the root path to serve files from.
   final String serveRoot;
 
+  /// The [exclude] property contains the excluded paths of the controller.
   final List<String> exclude;
 
+  /// The [extensions] property contains the extensions whitelist of the controller.
   final List<String> extensions;
 
+  /// The [index] property contains the index files of the controller.
   final List<String> index;
 
+  /// The [redirect] property indicates whether to redirect to index files or not.
   final bool redirect;
 
   /// The [ServeStaticModule] constructor is used to create a new instance of the [ServeStaticModule] class.
@@ -33,22 +40,17 @@ class ServeStaticModule extends Module {
     this.extensions = const [],
     this.index = const ['index.html'],
     this.redirect = true,
-  });
+  }) : super(
+    controllers: [
+      ServeStaticController(
+        rootPath,
+        routePath: '/$renderPath$serveRoot',
+        exclude: exclude,
+        extensions: extensions,
+        redirect: redirect,
+        index: index,
+      )
+    ]
+  );
 
-  @override
-  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
-    final serveStaticController =
-        ServeStaticController(
-          path: rootPath,
-          routePath: '/$renderPath$serveRoot',
-          exclude: exclude,
-          extensions: extensions,
-          redirect: redirect,
-          index: index,
-        );
-    controllers = [serveStaticController];
-    return DynamicModule(
-      controllers: controllers,
-    );
-  }
 }

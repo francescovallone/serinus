@@ -45,4 +45,13 @@ class SerinusException with JsonObject implements HttpException {
       'uri': uri != null ? uri!.path : 'No Uri',
     };
   }
+
+  /// Creates a copy of the current SerinusException with the given parameters.
+  SerinusException copyWith({String? message, Uri? uri, int? statusCode}) {
+    return SerinusException(
+      message: message ?? this.message,
+      uri: uri ?? this.uri,
+      statusCode: statusCode ?? this.statusCode,
+    );
+  }
 }

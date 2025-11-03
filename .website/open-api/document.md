@@ -33,7 +33,7 @@ The `LicenseObject` class is used to define the license information for the Open
 ## Example
 
 ```dart
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 import 'package:serinus/serinus.dart';
 
 void main(List<String> args) async {

@@ -1,9 +1,13 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/contexts/route_context.dart';
+import 'package:serinus/src/routes/router.dart';
 import 'package:spanner/spanner.dart';
 import 'package:test/test.dart';
 
+import '../commons/form_data_test.dart';
+
 class TestController extends Controller {
-  TestController({super.path = '/'});
+  TestController([super.path = '/']);
 }
 
 void main() async {
@@ -13,14 +17,14 @@ void main() async {
             then it should return the correct HTTP method from Spanner
           ''',
       () {
-        final router = Router();
-        expect(router.getHttpMethod(HttpMethod.get), HTTPMethod.GET);
-        expect(router.getHttpMethod(HttpMethod.post), HTTPMethod.POST);
-        expect(router.getHttpMethod(HttpMethod.put), HTTPMethod.PUT);
-        expect(router.getHttpMethod(HttpMethod.delete), HTTPMethod.DELETE);
-        expect(router.getHttpMethod(HttpMethod.patch), HTTPMethod.PATCH);
-        expect(router.getHttpMethod(HttpMethod.head), HTTPMethod.HEAD);
-        expect(router.getHttpMethod(HttpMethod.options), HTTPMethod.OPTIONS);
+        expect(HttpMethod.toSpanner(HttpMethod.get), HTTPMethod.GET);
+        expect(HttpMethod.toSpanner(HttpMethod.post), HTTPMethod.POST);
+        expect(HttpMethod.toSpanner(HttpMethod.put), HTTPMethod.PUT);
+        expect(HttpMethod.toSpanner(HttpMethod.delete), HTTPMethod.DELETE);
+        expect(HttpMethod.toSpanner(HttpMethod.patch), HTTPMethod.PATCH);
+        expect(HttpMethod.toSpanner(HttpMethod.head), HTTPMethod.HEAD);
+        expect(HttpMethod.toSpanner(HttpMethod.options), HTTPMethod.OPTIONS);
+        expect(HttpMethod.toSpanner(HttpMethod.all), HTTPMethod.ALL);
       },
     );
 
@@ -30,21 +34,32 @@ void main() async {
           ''',
       () {
         final router = Router();
-        final routeData = RouteData(
+        final routeContext = RouteContext(
+          moduleScope: ModuleScope(
+            token: InjectionToken('moduleToken'),
+            providers: {},
+            exports: {},
+            controllers: {},
+            imports: {},
+            module: TestModule(),
+            importedBy: {},
+          ),
+          hooksContainer: HooksContainer(),
           id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken',
-          spec: (
-            body: null,
-            schema: null,
-            handler: 'hi',
-            route: Route.get('/test'),
+          moduleToken: InjectionToken('moduleToken'),
+          spec: RestRouteHandlerSpec(
+            Route.get('/test'),
+            (context) async => 'hi',
           ),
         );
-        router.registerRoute(routeData);
+        router.registerRoute(
+          context: routeContext,
+          handler: (request, response, params) async => '',
+        );
       },
     );
 
@@ -55,23 +70,37 @@ void main() async {
           ''',
       () {
         final router = Router();
-        final routeData = RouteData(
+        final routeContext = RouteContext(
+          moduleScope: ModuleScope(
+            token: InjectionToken('moduleToken'),
+            providers: {},
+            exports: {},
+            controllers: {},
+            imports: {},
+            module: TestModule(),
+            importedBy: {},
+          ),
+          hooksContainer: HooksContainer(),
           id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken',
-          spec: (
-            body: null,
-            schema: null,
-            handler: 'hi',
-            route: Route.get('/test'),
+          moduleToken: InjectionToken('moduleToken'),
+          spec: RestRouteHandlerSpec(
+            Route.get('/test'),
+            (context) async => 'hi',
           ),
         );
-        router.registerRoute(routeData);
-        final result = router.getRouteByPathAndMethod('/test', HttpMethod.get);
-        expect(result.route, routeData);
+        router.registerRoute(
+          context: routeContext,
+          handler: (request, response, params) async => '',
+        );
+        final result = router.checkRouteByPathAndMethod(
+          '/test',
+          HttpMethod.get,
+        );
+        expect(result.spec?.route, routeContext);
       },
     );
 
@@ -82,23 +111,37 @@ void main() async {
           ''',
       () {
         final router = Router();
-        final routeData = RouteData(
+        final routeContext = RouteContext(
+          moduleScope: ModuleScope(
+            token: InjectionToken('moduleToken'),
+            providers: {},
+            exports: {},
+            controllers: {},
+            imports: {},
+            module: TestModule(),
+            importedBy: {},
+          ),
+          hooksContainer: HooksContainer(),
           id: 'id',
           path: '/test',
           method: HttpMethod.get,
           controller: TestController(),
           routeCls: Type,
-          moduleToken: 'moduleToken',
-          spec: (
-            body: null,
-            schema: null,
-            handler: 'hi',
-            route: Route.get('/test'),
+          moduleToken: InjectionToken('moduleToken'),
+          spec: RestRouteHandlerSpec(
+            Route.get('/test'),
+            (context) async => 'hi',
           ),
         );
-        router.registerRoute(routeData);
-        final result = router.getRouteByPathAndMethod('/test', HttpMethod.post);
-        expect(result.route, isNull);
+        router.registerRoute(
+          context: routeContext,
+          handler: (request, response, params) async => '',
+        );
+        final result = router.checkRouteByPathAndMethod(
+          '/test',
+          HttpMethod.post,
+        );
+        expect(result.spec?.route, isNull);
       },
     );
   });

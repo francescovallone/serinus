@@ -23,8 +23,8 @@ After setting the global prefix, all routes will be prefixed with the value set 
 import 'package:serinus/serinus.dart';
 
 class UsersController extends Controller {
-  UsersController() {
-    on(Route.get('/users'), (RequestContext context) async {
+  UsersController() : super>('/users'); {
+    on(Route.get('/'), (RequestContext context) async {
       return 'Users';
     });
   }

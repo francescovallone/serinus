@@ -4,18 +4,37 @@ import Hero from './hero.vue'
 import Partners from './partners.vue'
 import Highlights from './highlights.vue'
 import Features from './features.vue'
-import { spotlights } from './data/spotlights'
 import Spotlights from './spotlight.vue'
-import Cli from './cli.vue'
+import { plugins } from './data/ecosystem';
 </script>
 
 <template>
 	<div class="flex flex-col gap-16">
-		<Hero class="h-screen" />
+		<Hero>
+			<slot name="start"></slot>
+		</Hero>
 		<Highlights />
-		<Spotlights :spotlights="spotlights" />
-		<Cli />
-		<Ecosystem />
+		<Ecosystem>
+			<template #openapi>
+				<slot name="openapi"></slot>
+			</template>
+			<template #configuration>
+				<slot name="configuration"></slot>
+			</template>
+			<template #authentication>
+				<slot name="authentication"></slot>
+			</template>
+			<template #cron_jobs>
+				<slot name="cron_jobs"></slot>
+			</template>
+			<template #websockets>
+				<slot name="websockets"></slot>
+			</template>
+			<template #testing>
+				<slot name="testing"></slot>
+			</template>
+		</Ecosystem>
+		<Spotlights />
 	</div>
 </template>
 

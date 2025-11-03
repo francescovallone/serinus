@@ -16,6 +16,10 @@ class ConsoleLogger implements LoggerService {
 
   IOSink _channel = stdout.nonBlocking;
 
+  /// The [stdoutStream] of the logger.
+  /// You can use this stream to listen for log messages.
+  IOSink get stdoutStream => _channel;
+
   @visibleForTesting
   /// Usable for testing purposes.
   set channel(IOSink value) => _channel = value;
@@ -111,8 +115,7 @@ class ConsoleLogger implements LoggerService {
             if (message.params?.metadata != null)
               'metadata': message.params?.metadata,
           })
-        : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message} +${DateTime.now().difference(_previousTime ?? DateTime.now()).inMilliseconds}ms';
-    _previousTime = DateTime.now();
+        : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message}';
     channel.writeln(formattedMessage);
   }
 

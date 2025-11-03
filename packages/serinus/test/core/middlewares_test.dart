@@ -5,39 +5,42 @@ import 'package:serinus/serinus.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 
-class TestRoute extends Route {
-  const TestRoute({required super.path, super.method = HttpMethod.get});
-}
-
 class TestValueMiddleware extends Middleware {
-  TestValueMiddleware({super.routes = const ['/value/:v']});
+  TestValueMiddleware();
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
-    switch (context.params['v']) {
-      case '1':
-        return next({'id': 'json-obj'});
-      case '2':
-        return next(Uint8List.fromList('Hello, World!'.codeUnits));
-      default:
-        context.res.headers['x-middleware'] = 'ok!';
+  Future<void> use(ExecutionContext context, NextFunction next) async {
+    final argumentsHost = context.argumentsHost;
+    if (argumentsHost is HttpArgumentsHost) {
+      switch (argumentsHost.params['v']) {
+        case '1':
+          return next({'id': 'json-obj'});
+        case '2':
+          return next(Uint8List.fromList('Hello, World!'.codeUnits));
+        default:
+          context.response.headers['x-middleware'] = 'ok!';
+      }
     }
+
     return next();
   }
 }
 
 class TestRequestEvent extends Middleware {
-  TestRequestEvent() : super(routes: const ['/request-event']);
+  TestRequestEvent();
 
   bool hasClosed = false;
   bool hasException = false;
 
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
-    context.request.on(RequestEvent.close, (event, data) async {
-      hasClosed = true;
-      hasException = data.hasException;
-    });
+  Future<void> use(ExecutionContext context, NextFunction next) async {
+    final argumentsHost = context.argumentsHost;
+    if (argumentsHost is HttpArgumentsHost) {
+      argumentsHost.request.on(RequestEvent.close, (event, data) async {
+        hasClosed = true;
+        hasException = data.hasException;
+      });
+    }
     return next();
   }
 }
@@ -50,10 +53,10 @@ class TestJsonObject with JsonObject {
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
-    on(TestRoute(path: '/middleware'), (RequestContext context) async {
-      context.res.headers['x-middleware'] =
-          context.request.headers['x-middleware'] ?? '';
+  TestController([super.path = '/']) {
+    on(Route.get('/middleware'), (RequestContext context) async {
+      context.response.headers['x-middleware'] =
+          context.headers['x-middleware'] ?? '';
       return 'ok!';
     });
     on(Route.get('/value/<v>'), (context) async => 'Hello, World!');
@@ -61,20 +64,18 @@ class TestController extends Controller {
   }
 }
 
-final shelfAltMiddleware = Middleware.shelf(
-  (req) => shelf.Response.ok('Hello world from shelf', headers: req.headers),
-  ignoreResponse: false,
-);
+final shelfAltMiddleware = Middleware.shelf((req) {
+  return shelf.Response.ok('Hello world from shelf', headers: req.headers);
+}, ignoreResponse: false);
 
 final shelfMiddleware = Middleware.shelf((shelf.Handler innerHandler) {
-  return (shelf.Request request) {
-    return Future.sync(() => innerHandler(request)).then((
-      shelf.Response response,
-    ) {
-      return response.change(headers: {'x-shelf-middleware': 'ok!'});
-    });
+  return (shelf.Request request) async {
+    final res = await innerHandler(request);
+    return res.change(headers: {'x-shelf-middleware': 'ok!'});
   };
 });
+
+TestRequestEvent r = TestRequestEvent();
 
 class TestModule extends Module {
   TestModule({
@@ -82,23 +83,28 @@ class TestModule extends Module {
     super.imports,
     super.providers,
     super.exports,
-    super.middlewares,
   });
 
   @override
-  List<Middleware> get middlewares => [
-    TestModuleMiddleware(),
-    TestValueMiddleware(),
-    ...super.middlewares,
-    shelfMiddleware,
-    shelfAltMiddleware,
-  ];
+  void configure(MiddlewareConsumer consumer) {
+    consumer.apply([TestValueMiddleware()]).forRoutes([
+      RouteInfo('/value/<v>'),
+    ]);
+    consumer
+        .apply([TestModuleMiddleware(), shelfMiddleware, shelfAltMiddleware])
+        .forControllers([TestController])
+        .exclude([RouteInfo('/request-event')]);
+    consumer.apply([r]).forRoutes([RouteInfo('/request-event')]);
+  }
 }
 
 class TestModuleMiddleware extends Middleware {
   @override
-  Future<void> use(RequestContext context, NextFunction next) async {
-    context.request.headers['x-middleware'] = 'ok!';
+  Future<void> use(ExecutionContext context, NextFunction next) async {
+    final argumentsHost = context.argumentsHost;
+    if (argumentsHost is HttpArgumentsHost) {
+      argumentsHost.headers['x-middleware'] = 'ok!';
+    }
     return next();
   }
 }
@@ -106,11 +112,8 @@ class TestModuleMiddleware extends Middleware {
 void main() {
   group('$Middleware', () {
     SerinusApplication? app;
-    TestRequestEvent r = TestRequestEvent();
-    final module = TestModule(
-      controllers: [TestController()],
-      middlewares: [r],
-    );
+
+    final module = TestModule(controllers: [TestController()]);
     setUpAll(() async {
       app = await serinus.createApplication(
         entrypoint: module,

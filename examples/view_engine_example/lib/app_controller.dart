@@ -1,13 +1,11 @@
 import 'package:serinus/serinus.dart';
 
 class AppController extends Controller {
-
-  AppController({super.path = '/'}){
+  AppController() : super('/') {
     on(Route.get('/'), _handleHelloWorld);
   }
 
   Future<View> _handleHelloWorld(RequestContext context) async {
-    return View('index', {'string': 'Hello world'});
+    return View.template('index', {'string': 'Hello world'});
   }
-
 }

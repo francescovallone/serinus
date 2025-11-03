@@ -24,7 +24,7 @@ class ModelsAnalyzer {
         }
         final unitElement = await context.currentSession.getUnitElement(file);
         final unit = unitElement as UnitElementResult;
-        final element = unit.element;
+        final element = unit.fragment.element;
         final classes = element.classes;
         for (final clazz in classes) {
           final name = clazz.name;
@@ -46,9 +46,12 @@ class ModelsAnalyzer {
             toJson = 'toMap';
           }
           for (final c in constructors) {
+            if (c.name == null) {
+              continue;
+            }
             if (!hasFromJson) {
               for (final s in deserializeKeywords) {
-                if (c.name.contains(s.keyword) && !s.staticMethod && !c.isStatic) {
+                if (c.name!.contains(s.name) && !s.isStatic && !c.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${c.name}';
                   break;
@@ -57,9 +60,12 @@ class ModelsAnalyzer {
             }
           }
           for (final m in methods) {
+            if (m.name == null) {
+              continue;
+            }
             if (!hasFromJson) {
               for (final s in deserializeKeywords) {
-                if (m.name.contains(s.keyword) && s.staticMethod && m.isStatic) {
+                if (m.name!.contains(s.name) && s.isStatic && m.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${m.name}';
                   break;
@@ -68,9 +74,9 @@ class ModelsAnalyzer {
             }
             if (!hasToJson) {
               for (final s in serializeKeywords) {
-                if (m.name.contains(s.keyword)) {
+                if (m.name!.contains(s.name)) {
                   hasToJson = true;
-                  toJson = m.name;
+                  toJson = m.name!;
                   break;
                 }
               }
@@ -79,7 +85,7 @@ class ModelsAnalyzer {
           final path = file.split(Platform.pathSeparator);
           final libIndex = path.indexOf('lib');
           path.removeRange(0, libIndex + 1);
-          if (hasToJson || hasFromJson) {
+          if ((hasToJson || hasFromJson) && name != null) {
             models.add(
               Model(
                 filename: path.join('/'),

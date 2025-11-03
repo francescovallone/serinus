@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
@@ -9,21 +8,20 @@ class _MockAdapter extends Mock implements SerinusHttpAdapter {
   bool gentlyClose = false;
 
   @override
-  Future<void> listen(
-    covariant RequestCallback requestCallback, {
-    InternalRequest? request,
-    ErrorHandler? errorHandler,
-  }) {
-    throw SocketException('Failed to start server on');
-  }
+  String get host => 'localhost';
 
   @override
-  Handler getHandler(
-    ModulesContainer container,
-    ApplicationConfig config,
-    Router router,
-  ) {
-    return RequestHandler(router, container, config);
+  int get port => 3000;
+
+  @override
+  String get name => 'http';
+
+  @override
+  Future<void> listen({
+    required RequestCallback<InternalRequest, InternalResponse> onRequest,
+    ErrorHandler? onError,
+  }) async {
+    return;
   }
 
   @override
@@ -46,14 +44,10 @@ void main() {
         final app = SerinusApplication(
           entrypoint: TestModule(),
           levels: {LogLevel.none},
-          config: ApplicationConfig(
-            host: 'localhost',
-            poweredByHeader: 'Serinus',
-            port: Random().nextInt(1000) + 1000,
-            serverAdapter: adapter,
-          ),
+          config: ApplicationConfig(serverAdapter: adapter),
         );
         await app.serve();
+        await app.close();
         expect(adapter.gentlyClose, true);
       },
     );

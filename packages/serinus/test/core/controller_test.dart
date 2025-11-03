@@ -2,15 +2,15 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestController extends Controller {
-  TestController({super.path = '/'});
+  TestController([super.path = '/']);
 }
 
 class GetRoute extends Route {
-  const GetRoute({required super.path, super.method = HttpMethod.get});
+  GetRoute({required super.path, super.method = HttpMethod.get});
 }
 
 class LeadingSlashController extends Controller {
-  LeadingSlashController() : super(path: '/leading/');
+  LeadingSlashController() : super('/leading/');
 }
 
 void main() async {
@@ -47,11 +47,11 @@ void main() async {
         controller.on(route2, (context) async => 'ok!');
         expect(
           controller.get(controller.routes.keys.elementAt(0)),
-          isA<RouteHandler>(),
+          isA<RestRouteHandlerSpec>(),
         );
         expect(
           controller.get(controller.routes.keys.elementAt(1)),
-          isA<RouteHandler>(),
+          isA<RestRouteHandlerSpec>(),
         );
       },
     );
@@ -64,7 +64,7 @@ void main() async {
         controller.onStatic(route, 'ok!');
         expect(
           controller.get(controller.routes.keys.elementAt(0)),
-          isA<RouteHandler>(),
+          isA<RestRouteHandlerSpec>(),
         );
       },
     );

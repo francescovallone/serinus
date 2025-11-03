@@ -76,7 +76,7 @@ class MyController extends Controller {
   :buttons="[
     {
       label: 'Pub.dev',
-      url: 'https://pub.dev/packages/serinus_swagger',
+      url: 'https://pub.dev/packages/serinus_openapi',
     },
     {
       label: 'Frontier',

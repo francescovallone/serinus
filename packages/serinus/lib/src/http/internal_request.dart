@@ -3,118 +3,119 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:async/async.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/content_type_extensions.dart';
+import '../extensions/iterable_extansions.dart';
+import 'form_data.dart';
 import 'headers.dart';
 import 'internal_response.dart';
 import 'session.dart';
 
-final _utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
+/// The UTF-8 JSON decoder.
+final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
-/// The class Request is used to handle the request
-/// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
-
-class InternalRequest {
+/// The [IncomingMessage] interface defines the methods and properties that a request must implement.
+/// It is used to parse the request and provide access to its properties.
+abstract class IncomingMessage {
   /// The id of the request.
-  final String id;
+  String get id;
 
-  /// The [path] property contains the path of the request
-  String get path => uri.path;
+  /// The path of the request.
+  String get path;
 
-  /// The [uri] property contains the uri of the request
-  Uri get uri => original.requestedUri;
+  /// The uri of the request.
+  Uri get uri;
 
-  /// The [method] property contains the method of the request
-  String get method => original.method;
+  /// The method of the request.
+  String get method;
 
-  /// The [segments] property contains the segments of the request
-  List<String> get segments => original.requestedUri.pathSegments;
+  /// The headers of the request.
+  SerinusHeaders get headers;
 
-  /// The [original] property contains the [HttpRequest] object from dart:io
-  final HttpRequest original;
+  /// The query parameters of the request.
+  Map<String, String> get queryParameters;
 
-  /// The [headers] property contains the headers of the request
-  final SerinusHeaders headers;
+  /// The port of the request.
+  Session get session;
 
-  /// The [port] property contains the port of the request
-  final int port;
+  /// The client info of the request.
+  HttpConnectionInfo? get clientInfo;
 
-  /// The [host] property contains the host of the request
-  final String host;
+  /// The content type of the request.
+  ContentType get contentType;
 
-  /// The [bytes] property contains the bytes of the request body
-  Uint8List? _bytes;
+  /// The host of the request.
+  String get host;
 
-  /// The [queryParameters] property contains the query parameters of the request
-  Map<String, String> get queryParameters =>
-      original.requestedUri.queryParameters;
+  /// The hostname of the request.
+  String get hostname;
 
-  /// The [contentType] property contains the content type of the request
-  ContentType get contentType =>
-      original.headers.contentType ?? ContentType('text', 'plain');
+  /// The cookies of the request.
+  List<Cookie> get cookies;
 
-  /// The [webSocketKey] property contains the key of the web socket
-  String webSocketKey = '';
+  /// The port of the request.
+  int get port;
 
-  /// The [clientInfo] property contains the connection info of the request
-  HttpConnectionInfo? get clientInfo => original.connectionInfo;
+  /// The segments of the request path splitted by slashes.
+  List<String> get segments;
 
-  /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
-  factory InternalRequest.from(HttpRequest request, int port, String host) {
-    return InternalRequest(
-      headers: SerinusHeaders(request),
-      original: request,
-      port: port,
-      host: host,
-    );
-  }
+  /// This method is used to get the body of the request as a [String]
+  String body();
 
-  /// The [cookies] property contains the cookies of the request
-  List<Cookie> get cookies => original.cookies;
+  /// This method is used to get the body of the request as a [dynamic] json object
+  dynamic json();
+
+  /// This method is used to get the body of the request as a [Uint8List]
+  Future<Uint8List> bytes();
+
+  /// This method is used to get the body of the request as a [Stream<List<int>>]
+  Stream<List<int>> stream();
+
+  /// This method is used to get the body of the request as a [FormData]
+  Future<FormData> formData({
+    Future<void> Function(MimeMultipart part)? onPart,
+  });
 
   /// The [events] property contains the events of the request
-  final StreamController<(RequestEvent, EventData)> _events =
+  StreamController<(RequestEvent, EventData)> events =
       StreamController.broadcast(sync: true);
 
   /// This method is used to listen to a request event.
+  ///
+  /// It provides a [RequestEvent] and a listener function that takes the event and event data.
   void on(
     RequestEvent event,
     Future<void> Function(RequestEvent, EventData) listener,
   ) {
-    _events.stream.listen((e) {
+    events.stream.listen((e) {
       if (e.$1 == event || e.$1 == RequestEvent.all) {
         listener(e.$1, e.$2);
       }
     });
   }
 
-  /// This method is used to emit a request event.
-  void emit(RequestEvent event, EventData data) {
-    _events.sink.add((event, data));
-  }
+  /// It signals that the request has been hijacked and should not be processed further by the default [Adapter].
+  bool hijacked = false;
 
-  /// The [session] getter is used to get the session of the request
-  Session get session => Session(original.session);
+  /// This method is used to emit a request event.
+  ///
+  /// It add the event and data to the events stream and can be listened whenever the request is processed.
+  void emit(RequestEvent event, EventData data) {
+    events.sink.add((event, data));
+  }
 
   /// The [ifModifiedSince] getter is used to get the if-modified-since header of the request
-  DateTime? get ifModifiedSince {
-    if (_ifModifiedSinceCache != null) {
-      return _ifModifiedSinceCache;
-    }
-    if (!headers.containsKey('if-modified-since')) {
-      return null;
-    }
-    _ifModifiedSinceCache = parseHttpDate(headers['if-modified-since']!);
-    return _ifModifiedSinceCache;
-  }
+  DateTime? get ifModifiedSince;
 
-  DateTime? _ifModifiedSinceCache;
+  /// The [ifModifiedSinceCache] is used to cache the if-modified-since header value it shouldn't be overridden.
+  DateTime? ifModifiedSinceCache;
 
   /// The [contentLength] getter is used to get the content length of the request
-  int get contentLength => original.contentLength;
+  int get contentLength;
 
   /// The [encoding] property contains the encoding of the request
   Encoding? get encoding {
@@ -124,6 +125,92 @@ class InternalRequest {
     }
     return Encoding.getByName(contentType.parameters['charset']);
   }
+
+  /// This getter is used to check if the request is a web socket request
+  bool get isWebSocket;
+
+  /// The [webSocketKey] property contains the key of the web socket
+  /// It is used to upgrade the request to a web socket request.
+  String get webSocketKey;
+}
+
+/// The class Request is used to handle the request
+/// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
+
+class InternalRequest extends IncomingMessage {
+  @override
+  final String id;
+
+  @override
+  String get path => uri.path;
+
+  @override
+  Uri get uri => original.requestedUri;
+
+  @override
+  String get method => original.method;
+
+  @override
+  List<String> get segments => original.requestedUri.pathSegments;
+
+  /// The [original] property contains the [HttpRequest] object from dart:io
+  final HttpRequest original;
+
+  @override
+  final SerinusHeaders headers;
+
+  @override
+  final int port;
+
+  @override
+  final String host;
+
+  Uint8List? _bytes;
+
+  @override
+  Map<String, String> get queryParameters =>
+      original.requestedUri.queryParameters;
+
+  @override
+  ContentType get contentType =>
+      original.headers.contentType ?? ContentType('text', 'plain');
+
+  @override
+  String webSocketKey = '';
+
+  @override
+  HttpConnectionInfo? get clientInfo => original.connectionInfo;
+
+  /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
+  factory InternalRequest.from(HttpRequest request, int port, String host) {
+    return InternalRequest(
+      headers: SerinusHeaders(request.headers.toMap()),
+      original: request,
+      port: port,
+      host: host,
+    );
+  }
+
+  @override
+  List<Cookie> get cookies => original.cookies;
+
+  @override
+  Session get session => Session(original.session);
+
+  @override
+  DateTime? get ifModifiedSince {
+    if (ifModifiedSinceCache != null) {
+      return ifModifiedSinceCache;
+    }
+    if (!headers.containsKey('if-modified-since')) {
+      return null;
+    }
+    ifModifiedSinceCache = parseHttpDate(headers['if-modified-since']!);
+    return ifModifiedSinceCache;
+  }
+
+  @override
+  int get contentLength => original.contentLength;
 
   /// The [Request] constructor is used to create a new instance of the [Request] class
   InternalRequest({
@@ -144,13 +231,9 @@ class InternalRequest {
   /// ``` dart
   /// String body = await request.body();
   /// ```
-  Future<String> body() async {
-    List<int> data = [];
-    await for (var part in original) {
-      data += part;
-    }
-    _bytes = Uint8List.fromList(data);
-    return utf8.decode(data);
+  @override
+  String body() {
+    return utf8.decode(_bytes ?? Uint8List(0));
   }
 
   /// This method is used to get the body of the request as a [dynamic] json object
@@ -159,46 +242,53 @@ class InternalRequest {
   /// ``` dart
   /// dynamic json = await request.json();
   /// ```
-  Future<dynamic> json() async {
-    if (encoding == null || (encoding != null && encoding!.name == 'utf-8')) {
-      try {
-        return (await _utf8JsonDecoder.bind(original).firstOrNull) ?? {};
-      } catch (e) {
-        throw BadRequestException(message: 'The json body is malformed');
-      }
-    }
-    final data = await body();
-    if (data.isEmpty) {
-      return {};
-    }
+  @override
+  dynamic json() {
     try {
-      dynamic jsonData = jsonDecode(data);
-      return jsonData;
+      return utf8JsonDecoder.convert(_bytes!);
     } catch (e) {
-      throw BadRequestException(message: 'The json body is malformed');
+      return null;
     }
   }
 
   /// This method is used to get the body of the request as a [Uint8List]
   /// it is used internally by the [body], the [json] and the [stream] methods
-  Uint8List bytes() {
-    try {
+  @override
+  Future<Uint8List> bytes() async {
+    if (_bytes != null) {
       return _bytes!;
-    } catch (_) {
-      return Uint8List(0);
     }
+    final byteBuffer = BytesBuilder();
+    await for (var part in original) {
+      byteBuffer.add(part);
+    }
+    _bytes = byteBuffer.takeBytes();
+    return _bytes!;
   }
 
   /// This method is used to get the body of the request as a [Stream<List<int>>]
-  Future<Stream<List<int>>> stream() async {
-    try {
-      return Stream.value(List<int>.from(_bytes!));
-    } catch (_) {
-      return Stream.value(List<int>.from(Uint8List(0)));
+  @override
+  Stream<List<int>> stream() async* {
+    yield List<int>.from(_bytes ?? Uint8List(0));
+  }
+
+  @override
+  Future<FormData> formData({
+    Future<void> Function(MimeMultipart part)? onPart,
+  }) async {
+    if (contentType.isMultipart) {
+      return FormData.parseMultipart(request: original, onPart: onPart);
+    } else if (contentType.isUrlEncoded) {
+      return FormData.parseUrlEncoded(body());
+    } else {
+      throw BadRequestException(
+        'The content type is not supported for form data',
+      );
     }
   }
 
   /// This getter is used to check if the request is a web socket request
+  @override
   bool get isWebSocket {
     if (method != 'GET') {
       return false;
@@ -224,26 +314,27 @@ class InternalRequest {
 
     final version = original.headers.value('Sec-WebSocket-Version');
     if (version == null) {
-      throw BadRequestException(
-        message: 'missing Sec-WebSocket-Version header.',
-      );
+      throw BadRequestException('missing Sec-WebSocket-Version header.');
     } else if (version != '13') {
       return false;
     }
 
     if (original.protocolVersion != '1.1') {
       throw BadRequestException(
-        message: 'unexpected HTTP version "${original.protocolVersion}".',
+        'unexpected HTTP version "${original.protocolVersion}".',
       );
     }
 
     final key = original.headers.value('Sec-WebSocket-Key');
 
     if (key == null) {
-      throw BadRequestException(message: 'missing Sec-WebSocket-Key header.');
+      throw BadRequestException('missing Sec-WebSocket-Key header.');
     }
 
     webSocketKey = key;
     return true;
   }
+
+  @override
+  String get hostname => original.headers.value('Host')?.split(':').first ?? '';
 }

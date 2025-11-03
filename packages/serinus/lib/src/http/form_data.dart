@@ -12,8 +12,12 @@ class FormData {
   final Map<String, dynamic> _fields;
   final Map<String, UploadedFile> _files;
 
+  /// The content type of the form data.
+  final ContentType contentType;
+
   /// The [FormData] constructor is used to create a [FormData] object
   const FormData({
+    required this.contentType,
     Map<String, dynamic> fields = const {},
     Map<String, UploadedFile> files = const {},
   }) : _fields = fields,
@@ -42,7 +46,10 @@ class FormData {
   }
 
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
-  static Future<FormData> parseMultipart({required HttpRequest request}) async {
+  static Future<FormData> parseMultipart({
+    required HttpRequest request,
+    Future<void> Function(MimeMultipart part)? onPart,
+  }) async {
     try {
       final mediaType = MediaType.parse(
         request.headers[HttpHeaders.contentTypeHeader]!.join(';'),
@@ -53,6 +60,7 @@ class FormData {
       final fields = <String, dynamic>{};
       final files = <String, UploadedFile>{};
       await for (MimeMultipart part in parts) {
+        await onPart?.call(part);
         final contentDisposition = part.headers['content-disposition'];
         if (contentDisposition == null ||
             !contentDisposition.startsWith('form-data;')) {
@@ -83,7 +91,11 @@ class FormData {
           fields[name] = utf8.decode(bytes);
         }
       }
-      return FormData(fields: fields, files: files);
+      return FormData(
+        fields: fields,
+        files: files,
+        contentType: ContentType('multipart', 'form-data'),
+      );
     } catch (_) {
       throw NotAcceptableException();
     }
@@ -91,7 +103,11 @@ class FormData {
 
   /// This method is used to parse the request body as a [FormData] if the content type is application/x-www-form-urlencoded
   factory FormData.parseUrlEncoded(String body) {
-    return FormData(fields: Uri.splitQueryString(body), files: {});
+    return FormData(
+      fields: Uri.splitQueryString(body),
+      files: {},
+      contentType: ContentType('application', 'x-www-form-urlencoded'),
+    );
   }
 
   static Stream<MimeMultipart> _getMultiparts(
@@ -101,7 +117,6 @@ class FormData {
     if (boundary == null) {
       throw StateError('Not a multipart request.');
     }
-
     return MimeMultipartTransformer(boundary).bind(request);
   }
 }
@@ -139,6 +154,16 @@ class UploadedFile with JsonObject {
     await for (final part in stream) {
       _data.addAll(part);
     }
+  }
+
+  /// Generates a [File] from the [UploadedFile] object provided the path.
+  File toFile(String path) {
+    final file = File(path);
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
+    file.writeAsBytesSync(_data, mode: FileMode.write);
+    return file;
   }
 
   @override

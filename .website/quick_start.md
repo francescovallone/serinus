@@ -4,7 +4,7 @@ In this guide and in the following guides, you will learn the fundamentals of Se
 
 ## Pre-requisites
 
-Before we start, make sure you have Dart (version >= 3.5.0) installed on your machine. If you don't have Dart installed, you can follow the instructions [here](https://dart.dev/get-dart).
+Before we start, make sure you have Dart (version >= 3.9.0) installed on your machine. If you don't have Dart installed, you can follow the instructions [here](https://dart.dev/get-dart).
 
 ## Setup
 

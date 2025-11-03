@@ -1,6 +1,12 @@
+<script setup>
+  import RoutesImage from './components/route.vue'
+</script>
+
 # Routes
 
 Routes are the core of every web application. They are the endpoints that the client will interact with.
+
+<RoutesImage />
 
 Serinus provides a simple way to define routes using the `Route` class. You can decide if defining a custom class that extends the `Route` class or use the factory constructor to create one.
 
@@ -39,6 +45,7 @@ class MyController extends Controller {
 | `Route.put` | PUT | Defines a route that only accepts PUT requests. |
 | `Route.delete` | DELETE | Defines a route that only accepts DELETE requests. |
 | `Route.patch` | PATCH | Defines a route that only accepts PATCH requests. |
+| `Route.all` | ALL | Defines a route that accepts all HTTP methods. (Usually used as a fallback route) |
 
 ## Create a custom route
 
@@ -54,14 +61,19 @@ class MyRoute extends Route {
 
 While this approach can seem more verbose, extending the `Route` class allows you to add lifecycle hooks and other custom logic to your routes.
 
-## Lifecycle hooks
+## Route-scoped Hooks
 
-The `Route`, since it is a subclass of the `Hookable` class, has access to the lifecycle hooks provided by some mixins.
+You can add hooks to your routes by add it using the `HooksContainer` available in the `Route` class.
 
-| Mixin | Hook | Description |
-|-------|------|-------------|
-| OnBeforeHandle | `beforeHandle` | Executes code before the request is handled. |
-| OnAfterHandle | `afterHandle` | Executes code after the request is handled. |
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyRoute extends Route {
+  MyRoute(String path): super({path: path, method: HttpMethod.get}) {
+    hooks.add(TestHook());
+  }
+}
+```
 
 ## Metadata
 

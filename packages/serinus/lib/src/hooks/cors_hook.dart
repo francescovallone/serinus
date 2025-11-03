@@ -1,11 +1,10 @@
 import '../contexts/contexts.dart';
 import '../core/core.dart';
-import '../http/http.dart';
-import '../mixins/mixins.dart';
+import '../enums/enums.dart';
+import '../utils/wrapped_response.dart';
 
 /// The [CorsHook] class is a hook that adds CORS headers to the response.
-class CorsHook extends Hook
-    with OnRequestResponse, OnAfterHandle, OnBeforeHandle {
+class CorsHook extends Hook with OnRequest, OnResponse, OnBeforeHandle {
   /// The allowed origins.
   final List<String> allowedOrigins;
 
@@ -53,9 +52,15 @@ class CorsHook extends Hook
   Map<String, String> responseHeaders = {};
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! HttpArgumentsHost) {
+      return;
+    }
+    final request = argsHost.request;
+
     /// Get the origin from the request headers.
-    final origin = context.headers['origin'];
+    final origin = request.headers['origin'];
 
     /// Check if the origin is allowed.
     if ((origin == null ||
@@ -79,22 +84,30 @@ class CorsHook extends Hook
   }
 
   @override
-  Future<void> afterHandle(RequestContext context, dynamic response) async {
+  Future<void> onResponse(
+    ExecutionContext context,
+    WrappedResponse response,
+  ) async {
     /// Add the headers to the response.
-    context.res.headers.addAll(responseHeaders);
+    context.response.headers.addAll(responseHeaders);
   }
 
   @override
-  Future<void> onRequest(Request request, InternalResponse response) async {
-    if (request.method == 'OPTIONS') {
-      response.headers({
+  Future<void> onRequest(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! HttpArgumentsHost) {
+      return;
+    }
+    final request = argsHost.request;
+    if (request.method == HttpMethod.options) {
+      context.response.headers.addAll({
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Access-Control-Max-Age': '86400',
       });
-      response.status(200);
-      response.send();
+      context.response.statusCode = 200;
+      context.response.close();
       return;
     }
     return;

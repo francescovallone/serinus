@@ -14,7 +14,7 @@ class TestController extends Controller {
   @override
   List<Metadata> get metadata => [Metadata(name: 'controller', value: 'test')];
 
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(
       Route.get('/meta', metadata: [Metadata(name: 'meta', value: true)]),
       (context) async =>
@@ -44,7 +44,6 @@ class TestModule extends Module {
     super.imports,
     super.providers,
     super.exports,
-    super.middlewares,
   });
 }
 
@@ -57,7 +56,6 @@ void main() async {
         port: 3030,
         entrypoint: TestModule(
           controllers: [controller],
-          middlewares: [],
           providers: [TestProvider()],
         ),
         logLevels: {LogLevel.none},

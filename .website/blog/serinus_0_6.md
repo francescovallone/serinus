@@ -69,7 +69,7 @@ The chains of the Response object have been broken! You can now return whatever 
 
 ### ParseSchema
 
-One of the core rules of Serinus is that the developer should use whatever tool he wants, and while the team is still working in making Serinus more open, this is a step in the right direction. Out of the box Serinus will provide the AcanthisParseSchema that will use the Acanthis library (another bird of Serinus Nest) but you can also create your own parse schema simply extending the ParseSchema class. You can read more of it [here](/techniques/validation.html).
+One of the core rules of Serinus is that the developer should use whatever tool he wants, and while the team is still working in making Serinus more open, this is a step in the right direction. Out of the box Serinus will provide the AcanthisParseSchema that will use the Acanthis library (another bird of Serinus Nest) but you can also create your own parse schema simply extending the ParseSchema class. You can read more of it [here](/pipes.html).
 
 ## Bug fixes
 

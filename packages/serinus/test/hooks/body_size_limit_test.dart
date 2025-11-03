@@ -5,7 +5,7 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
-  const TestRoute({required super.path, super.method = HttpMethod.get});
+  TestRoute({required super.path, super.method = HttpMethod.get});
 }
 
 class TestJsonObject with JsonObject {
@@ -16,7 +16,7 @@ class TestJsonObject with JsonObject {
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
+  TestController([super.path = '/']) {
     on(TestRoute(path: '/', method: HttpMethod.post), (context) async => 'ok!');
   }
 }

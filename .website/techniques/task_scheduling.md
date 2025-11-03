@@ -1,6 +1,6 @@
 # Task Scheduling
 
-Task scheduling allows you to execute code at fixed date/time, at recurring intervals, or once after a certain time. This is useful for tasks like sending emails, cleaning up databases, etc. 
+Task scheduling allows you to execute code at fixed date/time, at recurring intervals, or once after a certain time. This is useful for tasks like sending emails, cleaning up databases, etc.
 For Dart applications (Flutter or server-side), you can use the `cron` package for scheduling tasks.
 
 Serinus provides `serinus_schedule` which integrates the `cron` package and provides a set of tools to schedule tasks in your application. Let's dive into the details of how to use it.
@@ -57,7 +57,7 @@ class AppModule extends Module {
 class AppController extends Controller {
 
   AppController(): super('/') {
-    on(Route.get('/'), (RequestContext context) {
+    on(Route.get('/'), (RequestContext context) async {
       final registry = context.use<ScheduleRegistry>();
       registry.addCronJob(
         'hello',
@@ -66,6 +66,7 @@ class AppController extends Controller {
           print('Hello world');
         }
       );
+      return 'Cron job scheduled';
     });
   }
 

@@ -1,6 +1,10 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:meta/meta.dart';
 
 import '../../adapters/ws_adapter.dart';
+import '../../containers/hooks_container.dart';
 import '../../contexts/contexts.dart';
 import '../core.dart';
 
@@ -23,6 +27,9 @@ abstract class WebSocketGateway extends Provider {
   /// If the path is not provided, the WebSocketGateway will be available at the root path.
   final String? path;
 
+  /// The [port] property contains the port of the WebSocketGateway.
+  final int? port;
+
   /// The [serializer] property contains the serializer of the WebSocketGateway.
   ///
   /// It is used to serialize the data before sending it to the client.
@@ -37,7 +44,7 @@ abstract class WebSocketGateway extends Provider {
   WsAdapter? server;
 
   /// The [WebSocketGateway] constructor is used to create a new instance of the [WebSocketGateway] class.
-  WebSocketGateway({this.path, this.serializer, this.deserializer});
+  WebSocketGateway({this.port, this.path, this.serializer, this.deserializer});
 
   /// The [onMessage] method will be called when a message from the client is received.
   ///
@@ -51,10 +58,28 @@ abstract class WebSocketGateway extends Provider {
   /// A [clientId] can be provided to send the data to a specific client.
   /// If not provided the data will be broadcasted to all clients.
   @nonVirtual
-  void send(dynamic data, [String? clientId]) {
+  void send(dynamic data, {String? clientId}) {
     if (serializer != null) {
       data = serializer!.serialize(data);
     }
-    server?.send(data, key: clientId);
+    if (data is! String && data is! Uint8List) {
+      throw ArgumentError('The serialized data must be a String or Uint8List');
+    }
+    if (data is String) {
+      data = utf8.encode(data);
+    }
+    server?.send(data, clientId: clientId);
   }
+
+  /// The [Hook]s of the WebSocketGateway.
+  /// This is a list of hooks that will be executed when the WebSocketGateway is initialized
+  final HooksContainer hooks = HooksContainer();
+
+  /// The [exceptionFilters] of the WebSocketGateway.
+  /// This is a list of exception filters that will be used to handle exceptions thrown in the WebSocketGateway
+  final Set<ExceptionFilter> exceptionFilters = {};
+
+  /// The [pipes] of the WebSocketGateway.
+  /// This is a list of pipes that will be used to transform the data received from the client
+  final Set<Pipe> pipes = {};
 }

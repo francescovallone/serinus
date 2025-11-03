@@ -8,15 +8,15 @@ import 'package:benchmarks/shared/serinus_benchmark.dart';
 Map<String, Result?> results = {};
 
 Future<void> main(List<String> arguments) async {
+  results['shelf'] = await benchmarks.ShelfAppBenchmark().report();
   results['serinus'] = await benchmarks.SerinusAppBenchmark().report();
-  // // results['shelf'] = await benchmarks.ShelfAppBenchmark().report();
   // // results['vania (no_cli)'] = await benchmarks.VaniaAppBenchmark().report();
   // // results['pharaoh'] = await benchmarks.PharaohAppBenchmark().report();
   // // results['angel3'] = await benchmarks.Angel3AppBenchmark().report();
   // // results['dart_frog (no_cli)'] =
   // //     await benchmarks.DartFrogAppBenchmark().report();
   results['dart_http'] = await benchmarks.DartHttpAppBenchmark().report();
-  await saveToFile();
+  // await saveToFile();
 }
 
 Future<void> saveToFile() async {

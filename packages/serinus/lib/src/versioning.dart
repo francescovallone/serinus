@@ -37,5 +37,41 @@ final class VersioningOptions {
     }
   }
 
-  // TODO: Add Factory Constructors to manage the creation of the VersioningOptions better and make the default constructor private
+  /// Returns the version prefix for the API.
+  String get versionPrefix {
+    return 'v';
+  }
+
+  /// Creates a new instance of [VersioningOptions] with [VersioningType.uri].
+  factory VersioningOptions.uri({int version = 1}) {
+    return VersioningOptions(type: VersioningType.uri, version: version);
+  }
+
+  /// Creates a new instance of [VersioningOptions] with [VersioningType.header].
+  factory VersioningOptions.header({required String header, int version = 1}) {
+    return VersioningOptions(
+      type: VersioningType.header,
+      version: version,
+      header: header,
+    );
+  }
+
+  @override
+  bool operator ==(covariant VersioningOptions other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    if (other.runtimeType != runtimeType) {
+      return false;
+    }
+    final otherOptions = other;
+    return otherOptions.version == version &&
+        otherOptions.type == type &&
+        otherOptions.header == header;
+  }
+
+  @override
+  int get hashCode {
+    return Object.hash(version, type, header);
+  }
 }

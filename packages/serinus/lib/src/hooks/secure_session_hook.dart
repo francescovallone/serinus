@@ -3,14 +3,12 @@ import 'dart:io';
 
 import 'package:secure_session/secure_session.dart';
 
-import '../contexts/request_context.dart';
+import '../contexts/contexts.dart';
 import '../core/hook.dart';
-import '../http/internal_response.dart';
-import '../http/request.dart';
-import '../mixins/mixins.dart';
+import '../utils/wrapped_response.dart';
 
 /// The [SecureSessionHook] class is used to create a hook that can be used to secure the session of the request.
-class SecureSessionHook extends Hook with OnRequestResponse {
+class SecureSessionHook extends Hook with OnRequest, OnResponse {
   @override
   SecureSession get service => _secureSession;
 
@@ -22,22 +20,25 @@ class SecureSessionHook extends Hook with OnRequestResponse {
   }
 
   @override
-  Future<void> onRequest(Request request, InternalResponse response) async {
+  Future<void> onRequest(ExecutionContext context) async {
+    final argsHost = context.argumentsHost;
+    if (argsHost is! HttpArgumentsHost) {
+      return;
+    }
     _secureSession.clear();
-    _secureSession.init(request.cookies);
+    _secureSession.init(argsHost.request.cookies);
   }
 
   @override
   Future<void> onResponse(
-    Request request,
-    dynamic data,
-    ResponseProperties properties,
+    ExecutionContext context,
+    WrappedResponse data,
   ) async {
     for (final option in _secureSession.options) {
       final name = option.cookieName ?? option.defaultSessionName;
       final session = _secureSession.get(name);
       if (session != null) {
-        properties.cookies.add(
+        context.response.cookies.add(
           Cookie(name, base64.encode((session.value as String).codeUnits))
             ..maxAge = session.ttl ~/ 1000
             ..expires = DateTime.now().add(Duration(milliseconds: session.ttl))
@@ -49,7 +50,7 @@ class SecureSessionHook extends Hook with OnRequestResponse {
         );
         continue;
       }
-      properties.cookies.add(
+      context.response.cookies.add(
         Cookie(name, '')
           ..maxAge = 0
           ..expires = DateTime.now(),

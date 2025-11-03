@@ -5,42 +5,55 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class HookTest extends Hook
-    with OnRequestResponse, OnBeforeHandle, OnAfterHandle, OnException {
+    with OnRequest, OnResponse, OnBeforeHandle, OnAfterHandle {
   final Map<String, dynamic> data = {};
 
   @override
-  Future<void> onRequest(Request request, InternalResponse response) async {
+  Future<void> onRequest(ExecutionContext context) async {
     data['onRequest'] = true;
   }
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     data['beforeHandle'] = true;
   }
 
   @override
-  Future<void> afterHandle(RequestContext context, dynamic response) async {
-    data['afterHandle'] = true;
+  Future<void> afterHandle(
+    ExecutionContext context,
+    WrappedResponse data,
+  ) async {
+    this.data['afterHandle'] = true;
   }
 
   @override
   Future<void> onResponse(
-    Request request,
-    dynamic data,
-    ResponseProperties properties,
+    ExecutionContext context,
+    WrappedResponse data,
   ) async {
     this.data['onResponse'] = true;
   }
+}
+
+class NoOverrideHook extends Hook with OnRequest, OnResponse {
+  @override
+  Future<void> onRequest(ExecutionContext context) async {
+    // No-op
+  }
 
   @override
-  Future<void> onException(RequestContext request, Exception exception) async {
-    data['onException'] = true;
+  Future<void> onResponse(
+    ExecutionContext context,
+    WrappedResponse data,
+  ) async {
+    // No-op
   }
 }
 
-class NoOverrideHook extends Hook with OnRequestResponse {}
-
 class MockRequest extends Mock implements Request {
+  @override
+  HttpMethod get method => HttpMethod.get;
+
   final Map<String, dynamic> _data = {};
 
   @override
@@ -54,27 +67,36 @@ class MockResponse extends Mock implements InternalResponse {}
 
 class MockStreamableResponse extends Mock implements StreamableResponse {}
 
-class HookRoute extends Route with OnBeforeHandle, OnAfterHandle {
+class HookedRoute extends Hook with OnBeforeHandle, OnAfterHandle {
   final Map<String, dynamic> data = {};
 
-  HookRoute({super.path = '/', super.method = HttpMethod.get});
-
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     data['beforeHandle-route'] = true;
   }
 
   @override
-  Future<void> afterHandle(RequestContext context, dynamic response) async {
+  Future<void> afterHandle(
+    ExecutionContext context,
+    WrappedResponse response,
+  ) async {
     data['afterHandle-route'] = true;
   }
 }
 
+class HookRoute extends Route {
+  final Map<String, dynamic> data = {};
+
+  HookRoute({super.path = '/', super.method = HttpMethod.get}) {
+    hooks.addHook(HookedRoute());
+  }
+}
+
 class TestController extends Controller {
-  TestController({required Route route, super.path = '/'}) {
+  TestController(Route route, [super.path = '/']) {
     on(route, (context) async => 'ok!');
     on(Route.get('/error'), (context) async {
-      throw NotFoundException(message: 'Not found');
+      throw NotFoundException('Not found');
     });
   }
 }
@@ -89,19 +111,19 @@ void main() {
       'if a hook is augmented and the methods are called then the data should be populated',
       () async {
         final hook = HookTest();
-        final context = RequestContext(
+        final context = ExecutionContext(
+          HostType.http,
           {},
           {},
-          MockRequest(),
-          MockStreamableResponse(),
+          HttpArgumentsHost(MockRequest()),
         );
-        await hook.onRequest(context.request, MockResponse());
+        await hook.onRequest(context);
         expect(hook.data['onRequest'], true);
         await hook.beforeHandle(context);
         expect(hook.data['beforeHandle'], true);
-        await hook.afterHandle(context, 'response');
+        await hook.afterHandle(context, WrappedResponse('response'));
         expect(hook.data['afterHandle'], true);
-        await hook.onResponse(context.request, 'data', ResponseProperties());
+        await hook.onResponse(context, WrappedResponse('data'));
         expect(hook.data['onResponse'], true);
       },
     );
@@ -113,7 +135,7 @@ void main() {
       () async {
         final route = HookRoute();
         final app = await serinus.createApplication(
-          entrypoint: TestModule(controllers: [TestController(route: route)]),
+          entrypoint: TestModule(controllers: [TestController(route)]),
           port: 9000,
           logLevels: {LogLevel.none},
         );
@@ -127,8 +149,20 @@ void main() {
         final response = await request.close();
         expect(response.statusCode, 200);
         await app.close();
-        expect(route.data['beforeHandle-route'], true);
-        expect(route.data['afterHandle-route'], true);
+        expect(
+          route.hooks.beforeHooks
+              .whereType<HookedRoute>()
+              .first
+              .data['beforeHandle-route'],
+          true,
+        );
+        expect(
+          route.hooks.afterHooks
+              .whereType<HookedRoute>()
+              .last
+              .data['afterHandle-route'],
+          true,
+        );
         expect(hook.data['onRequest'], true);
         expect(hook.data['beforeHandle'], true);
         expect(hook.data['afterHandle'], true);
@@ -141,7 +175,7 @@ void main() {
       () async {
         final route = HookRoute();
         final app = await serinus.createApplication(
-          entrypoint: TestModule(controllers: [TestController(route: route)]),
+          entrypoint: TestModule(controllers: [TestController(route)]),
           port: 9101,
           logLevels: {LogLevel.none},
         );
@@ -155,7 +189,6 @@ void main() {
         final response = await request.close();
         expect(response.statusCode, 404);
         await app.close();
-        expect(hook.data['onException'], true);
         expect(hook.data['onResponse'], true);
       },
     );

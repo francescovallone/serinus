@@ -1,8 +1,10 @@
 import 'dart:io';
 
-import '../adapters/serinus_http_server.dart';
-import '../containers/model_provider.dart';
+import '../adapters/adapters.dart';
+import '../constants.dart';
+import '../containers/models_provider.dart';
 import '../enums/log_level.dart';
+import '../microservices/microservices.dart';
 import '../services/logger_service.dart';
 import 'core.dart';
 
@@ -20,12 +22,14 @@ final class SerinusFactory {
     required Module entrypoint,
     String host = 'localhost',
     int port = 3000,
-    Set<LogLevel> logLevels = const {LogLevel.verbose},
+    Set<LogLevel>? logLevels,
     LoggerService? logger,
     String poweredByHeader = 'Powered by Serinus',
     SecurityContext? securityContext,
     ModelProvider? modelProvider,
     bool enableCompression = true,
+    bool rawBody = false,
+    NotFoundHandler? notFoundHandler,
   }) async {
     final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
     final serverHost = Platform.environment['HOST'] ?? host;
@@ -35,19 +39,37 @@ final class SerinusFactory {
       poweredByHeader: poweredByHeader,
       securityContext: securityContext,
       enableCompression: enableCompression,
+      rawBody: rawBody,
+      notFoundHandler: notFoundHandler,
     );
     await server.init();
     final app = SerinusApplication(
       entrypoint: entrypoint,
       config: ApplicationConfig(
-        host: serverHost,
-        port: serverPort,
-        poweredByHeader: poweredByHeader,
-        securityContext: securityContext,
         serverAdapter: server,
         modelProvider: modelProvider,
       ),
-      levels: logLevels,
+      levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
+      logger: logger,
+    );
+    return app;
+  }
+
+  /// The [createMicroservice] method is used to create a new instance of the [MicroserviceApplication] class.
+  Future<MicroserviceApplication> createMicroservice({
+    required Module entrypoint,
+    required TransportAdapter transport,
+    Set<LogLevel>? logLevels,
+    LoggerService? logger,
+    ModelProvider? modelProvider,
+  }) async {
+    final app = MicroserviceApplication(
+      entrypoint: entrypoint,
+      config: ApplicationConfig(
+        modelProvider: modelProvider,
+        serverAdapter: NoopAdapter(),
+      )..microservices.add(transport),
+      levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
       logger: logger,
     );
     return app;

@@ -1,28 +1,11 @@
-import 'dart:io';
-import 'dart:math';
-
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/containers/serinus_container.dart';
 import 'package:test/test.dart';
 
 class _MockAdapter extends Mock implements SerinusHttpAdapter {
   @override
-  Future<void> listen(
-    covariant RequestCallback requestCallback, {
-    InternalRequest? request,
-    ErrorHandler? errorHandler,
-  }) {
-    return Future.value();
-  }
-
-  @override
-  Handler getHandler(
-    ModulesContainer container,
-    ApplicationConfig config,
-    Router router,
-  ) {
-    return RequestHandler(router, container, config);
-  }
+  String get name => 'http';
 
   @override
   Future<void> close() {
@@ -92,18 +75,6 @@ class TestProviderHooks extends Provider
   }
 }
 
-final config = ApplicationConfig(
-  host: 'localhost',
-  port: 3000,
-  poweredByHeader: 'Powered by Serinus',
-  securityContext: null,
-  serverAdapter: SerinusHttpAdapter(
-    host: 'localhost',
-    port: 3000,
-    poweredByHeader: 'Powered by Serinus',
-  ),
-);
-
 void main() async {
   Logger.setLogLevels({LogLevel.none});
   group('$Provider', () {
@@ -112,6 +83,13 @@ void main() async {
           then it should be gettable from the container
         ''',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final provider = TestProvider();
         final container = ModulesContainer(config);
 
@@ -125,6 +103,13 @@ void main() async {
           then it should throw a $InitializationError
         ''',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
 
         await container
@@ -140,6 +125,13 @@ void main() async {
         then the onApplicationInit method should be called''',
       () async {
         final provider = TestProviderHooks();
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(providers: [provider]);
         await container.registerModules(module);
@@ -149,17 +141,23 @@ void main() async {
     );
   });
 
-  group('$DeferredProvider', () {
+  group('$ComposedProvider', () {
     test(
-      'all the $DeferredProvider should be accessible after the finalize method is called',
+      'all the $ComposedProvider should be accessible after the finalize method is called',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
-            DeferredProvider(
-              () async => TestProvider(),
+            ComposedProvider(
+              (CompositionContext ctx) async => TestProvider(),
               inject: [],
-              type: TestProvider,
             ),
           ],
         );
@@ -171,15 +169,21 @@ void main() async {
     );
 
     test(
-      'No $DeferredProvider should be accessible before the finalize method is called',
+      'No $ComposedProvider should be accessible before the finalize method is called',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
-            DeferredProvider(
-              () async => TestProvider(),
+            ComposedProvider(
+              (CompositionContext ctx) async => TestProvider(),
               inject: [],
-              type: TestProvider,
             ),
           ],
         );
@@ -190,26 +194,25 @@ void main() async {
     );
 
     test(
-      'A $DeferredProvider with the dependencies satisifed can be initialized',
+      'A $ComposedProvider with the dependencies satisifed can be initialized',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
             TestProvider(),
-            DeferredProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
-              },
-              inject: [TestProvider],
-              type: TestProviderDependent,
-            ),
-            Provider.deferred(
-              (TestProvider provider) async {
-                return TestProviderDependent2(provider);
-              },
-              inject: [TestProvider],
-              type: TestProviderDependent2,
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
+            Provider.composed((CompositionContext ctx) async {
+              return TestProviderDependent2(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -222,18 +225,21 @@ void main() async {
     );
 
     test(
-      '''A $DeferredProvider with the dependencies not satisfied cannot be initialized and a $InitializationError should be thrown''',
+      '''A $ComposedProvider with the dependencies not satisfied cannot be initialized and a $InitializationError should be thrown''',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
-            DeferredProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
-              },
-              inject: [TestProvider],
-              type: TestProviderDependent,
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -247,23 +253,26 @@ void main() async {
     );
 
     test(
-      '''A $DeferredProvider cannot return another $DeferredProvider''',
+      '''A $ComposedProvider cannot return another $ComposedProvider''',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
             TestProvider(),
-            DeferredProvider(
-              (TestProvider provider) async {
-                return DeferredProvider(
-                  () => TestProviderDependent(provider),
-                  inject: [],
-                  type: TestProviderDependent,
-                );
-              },
-              inject: [TestProvider],
-              type: TestProviderDependent,
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return ComposedProvider(
+                (CompositionContext ctx) async =>
+                    TestProviderDependent(ctx.use<TestProvider>()),
+                inject: [],
+              );
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -279,17 +288,20 @@ void main() async {
     test(
       '''The type param must be the same as the $Provider returned by the init function''',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
             TestProvider(),
-            DeferredProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
-              },
-              inject: [TestProvider],
-              type: int,
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -305,24 +317,24 @@ void main() async {
     );
 
     test(
-      '''If a the dependency of a $DeferredProvider is a $DeferredProvider that will be initialized after it then they should be resolved''',
+      '''If a the dependency of a $ComposedProvider is a $ComposedProvider that will be initialized after it then they should be resolved''',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
-            DeferredProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
-              },
-              inject: [TestProvider],
-              type: TestProviderDependent,
-            ),
-            DeferredProvider(
-              () async {
-                return TestProvider();
-              },
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
+            ComposedProvider(
+              (CompositionContext ctx) async => TestProvider(),
               inject: [],
-              type: TestProvider,
             ),
           ],
         );
@@ -337,25 +349,24 @@ void main() async {
     );
 
     test(
-      '''when two DeferredProviders have a circular dependency a $InitializationError must be thrown''',
+      '''when two ComposedProviders have a circular dependency a $InitializationError must be thrown''',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           providers: [
-            DeferredProvider(
-              (CircularProvider2 provider) async {
-                return CircularProvider(provider);
-              },
-              inject: [CircularProvider2],
-              type: CircularProvider,
-            ),
-            DeferredProvider(
-              (CircularProvider provider) async {
-                return CircularProvider2(provider);
-              },
-              inject: [CircularProvider],
-              type: CircularProvider2,
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return CircularProvider(ctx.use<CircularProvider2>());
+            }, inject: [CircularProvider2]),
+            ComposedProvider((CompositionContext ctx) async {
+              return CircularProvider2(ctx.use<CircularProvider>());
+            }, inject: [CircularProvider]),
           ],
         );
         await container.registerModules(module);
@@ -364,53 +375,31 @@ void main() async {
           expect(value.runtimeType, InitializationError);
           expect(
             (value as InitializationError).message,
-            contains('[TestModule] Circular dependency found in'),
+            contains('[TestModule] Circular dependency found while resolving'),
           );
         });
       },
     );
 
     test(
-      '''when a $DeferredProvider uses a dependency that is not available in the module scope an $InitializationError should be thrown''',
+      '''when a $ComposedProvider uses a dependency that is not available in the module scope an $InitializationError should be thrown''',
       () async {
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
         final container = ModulesContainer(config);
         final module = TestModule(
           imports: [
             NoExportModule(providers: [TestProvider()]),
           ],
           providers: [
-            DeferredProvider(
-              (TestProvider provider) async {
-                return TestProviderDependent(provider);
-              },
-              inject: [TestProvider],
-              type: TestProviderDependent,
-            ),
-          ],
-        );
-        await container.registerModules(module);
-
-        container
-            .finalize(module)
-            .catchError(
-              (value) => expect(value.runtimeType, InitializationError),
-            );
-      },
-    );
-
-    test(
-      '''when a $DeferredProvider does not return a $Provider an $InitializationError should be thrown''',
-      () async {
-        final container = ModulesContainer(config);
-        final module = TestModule(
-          providers: [
-            DeferredProvider(
-              () async {
-                return 'not a provider';
-              },
-              inject: [],
-              type: TestProviderDependent,
-            ),
+            ComposedProvider((CompositionContext ctx) async {
+              return TestProviderDependent(ctx.use<TestProvider>());
+            }, inject: [TestProvider]),
           ],
         );
         await container.registerModules(module);
@@ -427,46 +416,51 @@ void main() async {
   test(
     'when a $Provider use the mixin $OnApplicationReady, then the onApplicationReady method should be called',
     () async {
-      final container = ModulesContainer(config);
-      final module = TestModule(providers: [TestProviderHooks()]);
-      final SerinusApplication app = SerinusApplication(
-        levels: {LogLevel.none},
-        entrypoint: module,
-        modulesContainer: container,
-        config: ApplicationConfig(
-          host: InternetAddress.anyIPv4.address,
+      final config = ApplicationConfig(
+        serverAdapter: SerinusHttpAdapter(
+          host: 'localhost',
           port: 3000,
-          poweredByHeader: '',
-          serverAdapter: _MockAdapter(),
+          poweredByHeader: 'Powered by Serinus',
         ),
       );
+      final module = TestModule(providers: [TestProviderHooks()]);
+      final SerinusContainer appContainer = SerinusContainer(
+        config,
+        _MockAdapter(),
+      );
+      await appContainer.modulesContainer.registerModules(module);
+      await appContainer.modulesContainer.finalize(module);
+      await appContainer.emitHook<OnApplicationReady>();
 
-      await app.serve();
-
-      expect(container.get<TestProviderHooks>()!.isReady, true);
+      expect(
+        appContainer.modulesContainer.get<TestProviderHooks>()!.isReady,
+        true,
+      );
     },
   );
 
   test(
     'when a $Provider use the mixin $OnApplicationShutdown, then the onApplicationShutdown method should be called',
     () async {
-      final container = ModulesContainer(config);
-      final module = TestModule(providers: [TestProviderHooks()]);
-      final SerinusApplication app = SerinusApplication(
-        levels: {LogLevel.none},
-        entrypoint: module,
-        modulesContainer: container,
-        config: ApplicationConfig(
-          host: InternetAddress.anyIPv4.address,
-          port: Random().nextInt(9999),
-          poweredByHeader: '',
-          serverAdapter: _MockAdapter(),
+      final config = ApplicationConfig(
+        serverAdapter: SerinusHttpAdapter(
+          host: 'localhost',
+          port: 3000,
+          poweredByHeader: 'Powered by Serinus',
         ),
       );
-
-      await app.serve();
-      await app.close();
-      expect(container.get<TestProviderHooks>()!.isShutdown, true);
+      final module = TestModule(providers: [TestProviderHooks()]);
+      final SerinusContainer appContainer = SerinusContainer(
+        config,
+        _MockAdapter(),
+      );
+      await appContainer.modulesContainer.registerModules(module);
+      await appContainer.modulesContainer.finalize(module);
+      await appContainer.emitHook<OnApplicationShutdown>();
+      expect(
+        appContainer.modulesContainer.get<TestProviderHooks>()!.isShutdown,
+        true,
+      );
     },
   );
 }

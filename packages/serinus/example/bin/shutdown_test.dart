@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:serinus/serinus.dart';
 
 class SimpleModule extends Module {
-  SimpleModule() : super(controllers: [], providers: [], middlewares: []);
+  SimpleModule() : super(controllers: [], providers: []);
 }
 
 Future<void> main() async {

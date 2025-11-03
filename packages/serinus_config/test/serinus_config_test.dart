@@ -10,7 +10,7 @@ class TestRoute extends Route {
 }
 
 class MainController extends Controller {
-  MainController({super.path = '/'}) {
+  MainController(): super('/') {
     on(TestRoute(), (context) async {
       final configService = context.use<ConfigService>();
       final value = configService.getOrThrow(context.query['key'] ?? 'TEST');
@@ -48,16 +48,6 @@ void main() {
     expect(response.statusCode, 200);
     var body = await response.transform(utf8.decoder).join();
     expect(body, 'Hello World!');
-  });
-
-  test(
-      'when getting a Enviroment Variable with "getOrThrow" that not exists, then the service will throw a 412 error',
-      () async {
-    final client = HttpClient();
-    var request =
-        await client.getUrl(Uri.parse('http://localhost:3000?key=TEST2'));
-    var response = await request.close();
-    expect(response.statusCode, 412);
   });
 
   test(

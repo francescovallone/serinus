@@ -5,13 +5,29 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
-  const TestRoute({required super.path, super.method = HttpMethod.get});
+  TestRoute({required super.path, super.method = HttpMethod.get});
 }
 
 class TestController extends Controller {
-  TestController({super.path = '/'}) {
-    on(TestRoute(path: '/form', method: HttpMethod.post), (context) async {
-      return context.request.body?.formData?.values ?? {};
+  TestController(super.path) {
+    on(TestRoute(path: '/form', method: HttpMethod.post), (
+      RequestContext context,
+    ) async {
+      if (context.body is FormData) {
+        final formData = context.body as FormData;
+        return {
+          'fields': formData.fields,
+          'files': {
+            for (final entry in formData.files.entries)
+              entry.key: {
+                'name': entry.value.name,
+                'contentType': entry.value.contentType.toString(),
+                'data': entry.value.data,
+                'buffer': entry.value.buffer,
+              },
+          },
+        };
+      }
     });
   }
 }
@@ -54,7 +70,7 @@ void main() async {
       SerinusApplication? app;
       setUpAll(() async {
         app = await serinus.createApplication(
-          entrypoint: TestModule(controllers: [TestController()]),
+          entrypoint: TestModule(controllers: [TestController('/')]),
           logLevels: {LogLevel.none},
         );
         await app?.serve();

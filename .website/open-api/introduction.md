@@ -5,7 +5,7 @@ The OpenAPI specification is a language-agnostic definition format used to descr
 ## Installation
 
 ```bash
-dart pub add serinus_swagger
+dart pub add serinus_openapi
 ```
 
 ## Usage
@@ -14,7 +14,7 @@ The plugin will expose the OpenAPI Specification in one endpoint. You can custom
 
 ```dart
 import 'package:serinus/serinus.dart';
-import 'package:serinus_swagger/serinus_swagger.dart';
+import 'package:serinus_openapi/serinus_openapi.dart';
 
 void main(List<String> args) async {
   final document = DocumentSpecification(

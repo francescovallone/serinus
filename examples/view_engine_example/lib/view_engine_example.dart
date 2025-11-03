@@ -7,8 +7,11 @@ Future<void> bootstrap() async {
   final app = await serinus.createApplication(
     entrypoint: AppModule(),
     host: 'localhost',
-    port: 3000
+    port: 3000,
+    logLevels: {LogLevel.debug},
+    logger: ConsoleLogger(),
   );
-  app.useViewEngine(MustacheViewEngine(viewFolder: 'views'));
+  app.viewEngine = MustacheViewEngine(viewFolder: 'views');
+  app.use(BodySizeLimitHook());
   await app.serve();
 }

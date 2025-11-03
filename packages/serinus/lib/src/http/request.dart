@@ -1,27 +1,33 @@
+import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:mime/mime.dart';
 
 import '../enums/enums.dart';
 import '../extensions/content_type_extensions.dart';
-import '../extensions/string_extensions.dart';
 import 'http.dart';
 
 /// The class [Request] is used to create a request object.
 ///
-/// It is a wrapper around the [InternalRequest] object.
+/// It is a wrapper around the [ParsableRequest] object.
 class Request {
-  /// The original [InternalRequest] object.
-  final InternalRequest _original;
+  /// The original [IncomingMessage] object.
+  final IncomingMessage _original;
 
   /// The [Request] constructor is used to create a new instance of the [Request] class.
   ///
-  /// It accepts an [InternalRequest] object and an optional [params] parameter.
+  /// It accepts an [IncomingMessage] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
-  Request(this._original);
+  Request(this._original, [Map<String, dynamic> params = const {}]) {
+    this.params = params;
+    _query.addAll(_original.queryParameters);
+  }
 
   /// This method is used to set the parameters of the request.
   set params(Map<String, dynamic> params) {
-    this.params.addAll(params);
+    _params.addAll(params);
   }
 
   /// The id of the request.
@@ -34,13 +40,15 @@ class Request {
   Uri get uri => _original.uri;
 
   /// The method of the request.
-  String get method => _original.method;
+  HttpMethod get method => HttpMethod.parse(_original.method);
 
   /// The headers of the request.
   SerinusHeaders get headers => _original.headers;
 
   /// The query parameters of the request.
-  Map<String, dynamic> get query => Map.from(_original.queryParameters);
+  Map<String, dynamic> get query => _query;
+
+  final Map<String, dynamic> _query = {};
 
   /// The session of the request.
   Session get session => _original.session;
@@ -99,74 +107,125 @@ class Request {
   }
 
   /// The body of the request.
-  Body? body;
+  Object? body;
+
+  bool _bodyParsed = false;
 
   /// The content type of the request.
-  int get contentLength => _original.contentLength > -1
-      ? _original.contentLength
-      : body?.length ?? 0;
+  int get contentLength =>
+      _original.contentLength > -1 ? _original.contentLength : _bodyLength;
+
+  int get _bodyLength {
+    final currentBody = body;
+    if (currentBody == null) {
+      return 0;
+    }
+    if (currentBody is String) {
+      return currentBody.length;
+    }
+    if (currentBody is Uint8List) {
+      return currentBody.length;
+    }
+    if (currentBody is List<int>) {
+      return currentBody.length;
+    }
+    if (currentBody is FormData) {
+      return currentBody.length;
+    }
+    return utf8.encode(currentBody.toString()).length;
+  }
 
   /// This method is used to parse the body of the request.
   ///
   /// It will try to parse the body of the request to the correct type.
-  Future<void> parseBody() async {
-    /// If the body is already parsed, it will return.
-    if (body != null) {
-      return;
+  Future<Object?> parseBody({
+    bool rawBody = false,
+    Future<void> Function(MimeMultipart part)? onPart,
+  }) async {
+    if (_bodyParsed) {
+      return body;
     }
 
-    /// If the content type is multipart, it will parse the body as a multipart form data.
+    Future<Uint8List> ensureBytes() async => _original.bytes();
+
+    if (rawBody) {
+      final bytes = await ensureBytes();
+      _setBody(Uint8List.fromList(bytes));
+      return body;
+    }
+
     if (contentType.isMultipart) {
-      final formData = await FormData.parseMultipart(
-        request: _original.original,
-      );
-      body = Body(contentType, formData: formData);
-      return;
+      final formData = await _original.formData(onPart: onPart);
+      _setBody(formData);
+      return body;
     }
 
-    /// If the body is empty, it will return an empty body.
-    final parsedBody = await _original.body();
-    if (parsedBody.isEmpty) {
-      body = Body.empty();
-      return;
+    final bytes = await ensureBytes();
+    if (bytes.isEmpty) {
+      _setBody(null);
+      return body;
     }
 
-    /// If the content type is url encoded, it will parse the body as a url encoded form data.
+    final parsedBody = _original.body();
+
     if (contentType.isUrlEncoded) {
       final formData = FormData.parseUrlEncoded(parsedBody);
-      body = Body(contentType, formData: formData);
-      return;
+      _setBody(formData);
+      return body;
     }
 
-    /// If the content type is json, it will parse the body as a json object.
-    final parsedJson = _original.bytes().tryParse();
-    if ((parsedJson != null && contentType == ContentType.json) ||
-        parsedJson != null) {
-      body = Body(contentType, json: JsonBody.fromJson(parsedJson));
-      return;
+    if (contentType.isJson) {
+      final parsedJson = _original.json();
+      if (parsedJson != null) {
+        _setBody(parsedJson);
+        return body;
+      }
     }
 
-    /// If the content type is binary, it will parse the body as a binary data.
+    final trimmed = parsedBody.trimLeft();
+    if (trimmed.isNotEmpty) {
+      final firstChar = trimmed.codeUnitAt(0);
+      if (firstChar == 123 || firstChar == 91) {
+        try {
+          final decoded = jsonDecode(trimmed);
+          _setBody(decoded);
+          return body;
+        } catch (_) {
+          // fall through to other parsers
+        }
+      }
+    }
+
     if (contentType == ContentType.binary) {
-      body = Body(contentType, bytes: _original.bytes());
-      return;
+      _setBody(Uint8List.fromList(bytes));
+      return body;
     }
 
-    /// If the content type is text, it will parse the body as a text data.
-    body = Body(contentType, text: parsedBody);
+    if (contentType.mimeType.startsWith('text/')) {
+      _setBody(parsedBody);
+      return body;
+    }
+
+    _setBody(parsedBody);
+    return body;
+  }
+
+  void _setBody(Object? value) {
+    body = value;
+    _bodyParsed = true;
   }
 
   /// This method is used to add data to the request.
   ///
   /// Helper function to pass information between [Hook]s and [Route]s.
-  void addData(String key, dynamic value) {
+  void addData(String key, Object? value) {
     _data[key] = value;
   }
 
   /// This method is used to get data from the request.
   ///
   /// Helper function to pass information between [Hook]s and [Route]s.
-  dynamic getData(String key) {
+  Object? getData(String key) {
     return _data[key];
   }
 }

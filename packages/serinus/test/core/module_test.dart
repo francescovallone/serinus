@@ -18,10 +18,6 @@ class TestProviderExported extends Provider {
 }
 
 final config = ApplicationConfig(
-  host: 'localhost',
-  port: 3000,
-  poweredByHeader: 'Powered by Serinus',
-  securityContext: null,
   serverAdapter: SerinusHttpAdapter(
     host: 'localhost',
     port: 3000,
@@ -105,7 +101,7 @@ void main() async {
         final container = ModulesContainer(config);
 
         expect(
-          () => container.getModuleByToken('test'),
+          () => container.getModuleByToken(InjectionToken('test')),
           throwsA(isA<ArgumentError>()),
         );
       },

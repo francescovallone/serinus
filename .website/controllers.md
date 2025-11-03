@@ -1,8 +1,12 @@
+<script setup>
+	import ControllerImage from './components/controllers.vue'
+</script>
+
 # Controllers
 
 Controllers are responsible for handling incoming requests and returning responses to the client. They are the glue between the HTTP layer and the business logic of your application.
 
-<img src='/controllers.png' alt='Controllers' />
+<ControllerImage />
 
 A controller's purpose is to handle a specific set of routes for a specific part of your application. For example, you might have a `UserController` that handles all the routes for user management.
 
@@ -20,7 +24,7 @@ Controllers define routes using the `on` and `onStatic` methods. The `on` method
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers);
   }
 
@@ -51,13 +55,16 @@ The `RequestContext` object is also used to access all the providers in the modu
 | Property | Description |
 | -------- | ----------- |
 | `request` | The `Request` object of the current request. |
-| `body` | The `Body` object of the current request. |
+| `body` | The body of the current request. |
+| `bodyAs` | The method to parse the body as a specific type. |
 | `path` | The path of the current request. |
 | `headers` | The headers of the current request. |
 | `params` | The path parameters of the current request. |
+| `paramAs` | The method to parse a path parameter as a specific type. |
 | `query` | The query parameters of the current request. |
+| `queryAs` | The method to parse a query parameter as a specific type. |
 | `metadata` | The metadata of the current request. |
-| `res` | The response properties of the current request. |
+| `res` | The `ResponseContext` of the current request. |
 | `stream` | The method to stream data to the response. |
 | `stat` | The method to retrieve a metadata from the context. |
 | `canStat` | The method to check if a metadata exists in the context. |
@@ -84,7 +91,7 @@ You can use wildcards in the path of a route to match any value. Wildcards are d
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers);
     on(Route.get('/*'), getUser);
   }
@@ -104,18 +111,16 @@ The route `/users/*` will match any path that starts with `/users/` and will mat
 
 ## Status Codes
 
-You can return a status code from a controller method by setting the `res.statusCode` property of the `RequestContext` object. The default status code is `200`.
+You can return a status code from a controller method by setting the `res.statusCode` property of the `RequestContext` object. The default status code is `201` for POST requests and `200` for all other requests.
 
 ```dart
 Future<User> createUser(RequestContext context) async {
-  final user = await context.use<UsersService>().createUser(context.body);
-  context.res.statusCode = 201;
-  return user;
+  return await context.use<UsersService>().createUser(context.body);
 }
 ```
 
 ::: info
-If you wish to return an error status code, you should throw an exception. Serinus will catch the [exception](/techniques/exceptions) and return the appropriate status code.
+If you wish to return an error status code, you should throw an exception. Serinus will catch the [exception](/exception_filters) and return the appropriate status code.
 :::
 
 ## Response Headers
@@ -133,54 +138,32 @@ Future<User> getUser(RequestContext context) async {
 
 ## Redirects
 
-You can redirect the client to another URL by setting the `res.redirect` property of the `RequestContext` object.
+You can redirect the client to another URL by returning a `Redirect` object as the response.
 
 ```dart
-Future<void> redirect(RequestContext context) async {
-  context.res.redirect('/users');
+Future<Redirect> redirect(RequestContext context) async {
+  return Redirect('/users');
 }
 ```
-
-::: warning
-The `res.redirect` property will take precedence over everything else. If you set the `res.redirect` property, the response will be redirected to the specified URL and the response will be closed.
-:::
 
 ## Typed Request Body
 
-You can define a type for the request payload by setting the `body` name parameter in the handler definition.
+You can define the type of the request body by using the `bodyAs<T>()` method of the `RequestContext` object. This method will parse the body of the request and return an instance of the specified type.
 
-::: info
-To enable this feature with your custom class please refer to the [ModelProvider](/techniques/model_provider) page.
-:::
+If you have defined the `ModelProvider` to handle the serialization and deserialization of your models, you can use this method to get the body as an instance of your model. 
 
 ```dart
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
-    on(Route.post('/', body: User), createUser);
+  UserController(): super('/users') {
+    on(Route.post('/'), createUser);
   }
 
-  Future<User> createUser(RequestContext context, User body) async {
+  Future<User> createUser(RequestContext context) async {
+    final body = context.bodyAs<UserCreate>();
     final newUser = await context.use<UsersService>().createUser(body);
     return newUser;
-  }
-}
-```
-
-The body parameter must always be the **second** parameter of the handler method immediately after the `RequestContext` object.
-
-```dart
-import 'package:serinus/serinus.dart';
-
-class UserController extends Controller {
-  UserController(): super(path: '/users') {
-    on(Route.put('/<id>', body: UserUpdate), updateUser);
-  }
-
-  Future<User> updateUser(RequestContext context, UserUpdate body, String id) async {
-    final updatedUser = await context.use<UsersService>().updateUser(body);
-    return updatedUser;
   }
 }
 ```
@@ -193,7 +176,7 @@ You can define path parameters in the route path by enclosing the parameter name
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/<id>'), getUser);
   }
 
@@ -205,7 +188,7 @@ class UserController extends Controller {
 ```
 
 ::: warning
-The path parameters cannot be used inside the Controller path.
+The path parameters cannot be used inside the `Controller` path.
 :::
 
 The path parameters must always be after the `RequestContext` object and the (optional) body parameter.
@@ -216,7 +199,7 @@ If you don't want to use the path parameter in the method signature, you can acc
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/<id>'), getUser);
   }
 
@@ -236,7 +219,7 @@ You can access query parameters in the route path by using the `query` property 
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers);
   }
 
@@ -261,7 +244,7 @@ class UserController extends Controller {
     GuardMetadata(),
   ];
 
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     on(Route.get('/'), getUsers);
   }
 
@@ -278,7 +261,7 @@ You can define static routes using the `onStatic` method. Static routes are rout
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
-  UserController(): super(path: '/users') {
+  UserController(): super('/users') {
     onStatic(Route.get('/'), 'Hello World');
   }
 
