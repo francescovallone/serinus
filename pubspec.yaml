@@ -5,8 +5,10 @@ environment:
 
 workspace:
   - packages/serinus
+  - packages/serinus/example
   - packages/serinus_cli
   - packages/serinus_config
+  - packages/serinus_config/example
   - packages/serinus_frontier
   - packages/serinus_openapi
   - packages/serve_static
