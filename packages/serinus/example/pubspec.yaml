@@ -6,7 +6,8 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  serinus: ^2.0.0
+  serinus: 
+    path: ../serinus
   dart_mappable: ^4.2.2
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
