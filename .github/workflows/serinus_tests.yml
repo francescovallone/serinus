@@ -20,16 +20,16 @@ jobs:
         uses: dart-lang/setup-dart@v1
 
       - name: 📦 Install Dependencies
-        run: dart pub -C packages/serinus get
+        run: dart pub get
 
       - name: 🕵️ Analyze
-        run: dart pub -C packages/serinus analyze --fatal-infos --fatal-warnings .
+        run: dart analyze --fatal-infos --fatal-warnings .
 
       - name: 🧪 Run Tests
         run: |
           dart pub global activate coverage
           export SERINUS_TEST=true
-          dart pub -C packages/serinus test --coverage=coverage
+          dart test --coverage=coverage
       
       # - name: 📊 Check Code Coverage
       #   uses: VeryGoodOpenSource/very_good_coverage@v2
