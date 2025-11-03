@@ -20,7 +20,7 @@ jobs:
         uses: dart-lang/setup-dart@v1
 
       - name: 📦 Install Dependencies
-        run: dart pub get
+        run: dart pub get --no-example
 
       # - name: 🕵️ Analyze
       #   run: dart analyze --fatal-infos --fatal-warnings .
@@ -28,13 +28,14 @@ jobs:
       - name: 🧪 Run Tests
         run: |
           dart pub global activate coverage
-          dart test --coverage=coverage && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=${{inputs.report_on}}
+          export SERINUS_TEST=true
+          dart test --coverage=coverage
       
-      - name: 📊 Check Code Coverage
-        uses: VeryGoodOpenSource/very_good_coverage@v2
-        with:
-          path: ./packages/serinus_cli/coverage/lcov.info
-          min_coverage: 0
+      # - name: 📊 Check Code Coverage
+      #   uses: VeryGoodOpenSource/very_good_coverage@v2
+      #   with:
+      #     path: ./packages/serinus_cli/coverage/lcov.info
+      #     min_coverage: 0
       
       # - name: Upload coverage reports to Codecov
       #   uses: codecov/codecov-action@v4
