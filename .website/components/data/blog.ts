@@ -25,7 +25,7 @@ export const posts: Post[] = [
         src: '/blog/serinus_2_0/serinus_2_0.webp',
         alt: 'Serinus 2.0 - Dawn Chorus',
         author: 'Francesco Vallone',
-        date: '01 Nov 2025',
+        date: '05 Nov 2025',
         href: '/blog/serinus_2_0',
         tags: ['releases'],
     },

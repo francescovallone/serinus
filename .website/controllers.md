@@ -148,6 +148,33 @@ Future<Redirect> redirect(RequestContext context) async {
 
 ## Typed Request Body
 
+### Decide the type beforehand
+
+One of the most common use cases is to define the type of the request body beforehand in the method signature. Serinus will automatically parse the body of the request and return an instance of the specified type.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class UserController extends Controller {
+  UserController(): super('/users') {
+    on<User, UserCreate>(Route.post('/'), createUser);
+  }
+
+  Future<User> createUser(RequestContext<UserCreate> context) async {
+    final newUser = await context.use<UsersService>().createUser(context.body);
+    return newUser;
+  }
+}
+```
+
+As you can see in the example above, we have defined the type of the request body as `UserCreate` in the method signature. Serinus will automatically parse the body of the request and return an instance of `UserCreate` as the `body` property of the `RequestContext` object and will expect the return type to be `User`.
+
+::: warning
+When using custom objects as request body types, make sure to register a `ModelProvider` that can handle the serialization and deserialization of your models.
+:::
+
+### Parse the body in the handler
+
 You can define the type of the request body by using the `bodyAs<T>()` method of the `RequestContext` object. This method will parse the body of the request and return an instance of the specified type.
 
 If you have defined the `ModelProvider` to handle the serialization and deserialization of your models, you can use this method to get the body as an instance of your model. 
@@ -167,6 +194,13 @@ class UserController extends Controller {
   }
 }
 ```
+
+::: info
+Although both approaches are valid, using the first approach (defining the type in the method signature) is generally preferred as it provides better type safety and makes the code more readable.
+:::
+
+> [!IMPORTANT]
+> Right now Serinus supports only `List<dynamic>` and `List<Map<String, dynamic>>` as request body types for lists. Support for custom object lists will be added in future releases. The reason behind this limitation is that Dart's type system does not support generic type parameters at runtime, making it impossible to determine the type of the objects in the list.
 
 ## Path Parameters
 

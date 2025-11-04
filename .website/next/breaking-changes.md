@@ -341,6 +341,10 @@ Future<String> _handleExample(RequestContext context, String pathParam1...) asyn
 }
 ```
 
+## 19. ModelProvider now uses Strings as keys for model registration
+
+To improve consistency and usability, the `ModelProvider` now uses `String` values as keys for model registration instead of `Type` objects. This change simplifies the registration process and makes it easier to manage models within the provider.
+
 ## Other Changes
 
 ### a. Headers are now a separate class

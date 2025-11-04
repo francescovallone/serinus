@@ -35,12 +35,12 @@ head:
     src="/blog/serinus_2_0/serinus_2_0.webp"
     alt="Serinus 2.0 - Dawn Chorus"
     author="Francesco Vallone"
-    date="01 Nov 2025"
+    date="05 Nov 2025"
     :tags="['releases']"
     shadow
 >
 
-Serinus 2.0, named "Dawn Chorus," marks a significant milestone in our journey to provide a robust and flexible framework for building scalable server-side applications with Dart. This release introduces several new features and improvements that enhance the developer experience and expand the capabilities of Serinus.
+Serinus 2.0, named "Dawn Chorus," marks a significant milestone in our journey to provide a robust and flexible framework for building scalable server-side applications with Dart. But I like to think of it like a stepping stone towards something even greater. With this release, we have laid the groundwork for a more modular and adaptable framework that can evolve with the ever-changing landscape of web development.
 
 ## New Features
 
@@ -221,7 +221,7 @@ To be honest they were in the roadmap since the very beginning but the implement
 Currently it supports TCP and gRPC transport layers, with plans to add more in the future. (like MQTT, NATS and RabbitMQ)
 
 ::: warning EXPERIMENTAL
-The microservices module is still experimental and may undergo significant changes in future releases. We encourage developers to try it out and provide feedback to help us improve the module.
+The microservices package is still experimental and may undergo significant changes in future releases. We encourage developers to try it out and provide feedback to help us improve it.
 :::
 
 ```dart
@@ -247,17 +247,60 @@ Future<void> main() async {
 
 Learn more about Microservices in the [Microservices Documentation](../microservices/).
 
-## Ecosystem Additions
+### Testing Utilities
 
-In addition to the core framework improvements, Serinus 2.0 also introduces three new packages to the Serinus ecosystem: `serinus_microservices`, `serinus_lint`, and `serinus_test`.
-
-- `serinus_microservices`: This package provides tools and utilities for building microservices with Serinus, including support for various transport layers and communication patterns.
-- `serinus_lint`: This package offers a set of linting rules and configurations to ensure code quality and consistency across Serinus projects.
-- `serinus_test`: This package provides testing utilities and helpers specifically designed for Serinus applications, making it easier to write and maintain tests.
+Serinus 2.0 introduces a set of testing utilities that make it easier to write unit and integration tests for Serinus applications. These utilities provide helpers for simulating HTTP requests. Making really easy to create [Smoke Tests](https://en.wikipedia.org/wiki/Smoke_testing_(software)) for your application.
 
 ::: warning EXPERIMENTAL
-These packages are still experimental and may undergo significant changes in future releases. We encourage developers to try them out and provide feedback to help us improve the packages.
+The testing package is still experimental and may undergo significant changes in future releases. We encourage developers to try it out and provide feedback to help us improve it.
 :::
+
+```dart
+import 'package:serinus_test/serinus_test.dart';
+
+void main() {
+  test('GET /users', () async {
+    final application = await serinus.createTestApplication(
+      entrypoint: AppModule(),
+      host: InternetAddress.anyIPv4.address,
+      port: 3002,
+      logger: ConsoleLogger(
+        prefix: 'Serinus Test Logger',
+      ),
+    );
+    await application.serve();
+    final res = await application.get('/users');
+    res.expectStatusCode(200);
+    res.expectJsonBody([
+      {'id': 1, 'name': 'John Doe'},
+      {'id': 2, 'name': 'Jane Smith'},
+    ]);
+  });
+}
+```
+
+Learn more about Testing in the [Testing Documentation](../recipes/testing).
+
+### Staticly Typed Handlers
+
+Serinus 2.0 introduces strictly typed handlers, allowing developers to define the types of request bodies and responses directly in the handler method signatures. This feature enhances type safety and improves the developer experience by providing better autocompletion and error checking.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class UserController extends Controller {
+  UserController(): super('/users') {
+    on<User, UserCreate>(Route.post('/'), createUser);
+  }
+
+  Future<User> createUser(RequestContext<UserCreate> context) async {
+    final newUser = await context.use<UsersService>().createUser(context.body);
+    return newUser;
+  }
+}
+```
+
+This feature simplifies the process of handling request and response data, making it easier to work with complex data structures.
 
 ## Internal Improvements
 
@@ -280,5 +323,15 @@ What does this mean for you? Well, for starters if you were using any of these f
 With the introduction of Serinus 2.0, there are several breaking changes that developers need to be aware of when upgrading their applications. These changes are necessary to accommodate the new features and improvements introduced in this release.
 
 All the breaking changes are documented in the [Breaking Changes](../next/breaking-changes) documentation page.
+
+## Conclusion
+
+There is so much more to Serinus 2.0 than what we could cover in this blog post. We encourage you to explore the [official documentation](https://serinus.app/docs/) to learn more about the new features and improvements in detail.
+
+But what does this mean for you as a developer? It means that you can now build applications that are more resilient, easier to maintain, and better suited to the needs of modern web development. Whether you're building a small API or a large-scale microservices architecture, Serinus 2.0 provides the tools and features you need to succeed.
+
+And for us, this is just the beginning. We are committed to continuing to improve and evolve Serinus, and we can't wait to see what you build with it.
+
+Happy coding! 🐤💙
 
 </BlogPage>
