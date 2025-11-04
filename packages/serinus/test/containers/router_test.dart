@@ -53,7 +53,7 @@ void main() async {
           moduleToken: InjectionToken('moduleToken'),
           spec: RestRouteHandlerSpec(
             Route.get('/test'),
-            (context) async => 'hi',
+            ReqResHandler((context) async => 'hi'),
           ),
         );
         router.registerRoute(
@@ -89,7 +89,7 @@ void main() async {
           moduleToken: InjectionToken('moduleToken'),
           spec: RestRouteHandlerSpec(
             Route.get('/test'),
-            (context) async => 'hi',
+            ReqResHandler((context) async => 'hi'),
           ),
         );
         router.registerRoute(
@@ -130,7 +130,7 @@ void main() async {
           moduleToken: InjectionToken('moduleToken'),
           spec: RestRouteHandlerSpec(
             Route.get('/test'),
-            (context) async => 'hi',
+            ReqResHandler((context) async => 'hi'),
           ),
         );
         router.registerRoute(

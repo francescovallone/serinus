@@ -33,9 +33,15 @@ class Test2Controller extends Controller {
 
 class AppController extends Controller {
   AppController() : super('/app') {
-    on(Route.get('/'), (RequestContext context) async {
+    on<String, dynamic>(Route.get('/'), (RequestContext context) async {
       final provider = context.use<TestProvider>();
       return 'Counter: ${provider.counter}';
+    });
+    on<String, List<dynamic>>(Route.post('/echo'), (
+      RequestContext<List<dynamic>> context,
+    ) async {
+      final mapBody = context.bodyAs<String>();
+      return 'Echo: $mapBody ${context.body}';
     });
   }
 }
@@ -48,12 +54,41 @@ class AppModule extends Module {
       );
 }
 
+class MyObject with JsonObject {
+  final String name;
+  final int value;
+
+  MyObject(this.name, this.value);
+
+  factory MyObject.fromJson(Map<String, dynamic> json) {
+    return MyObject(json['name'] as String, json['value'] as int);
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {'name': name, 'value': value};
+  }
+}
+
+class MyModelProvider extends ModelProvider {
+  @override
+  Map<String, Function> get fromJsonModels => {
+    'MyObject': (json) => MyObject.fromJson(json),
+  };
+
+  @override
+  Map<String, Function> get toJsonModels => {
+    'MyObject': (model) => (model as MyObject).toJson(),
+  };
+}
+
 void main(List<String> arguments) async {
   final application = await serinus.createApplication(
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
+    modelProvider: MyModelProvider(),
   );
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());

@@ -9,6 +9,7 @@ import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/content_type_extensions.dart';
 import '../http/http.dart';
+import '../mixins/object_mixins.dart';
 import 'base_context.dart';
 import 'response_context.dart';
 
@@ -31,7 +32,7 @@ class RequestContext<TBody> extends BaseContext {
        _body = body,
        shouldValidateMultipart = shouldValidateMultipart,
        super(providers, hooksServices) {
-    this.body = body;
+    this.body = _converter.convert(_bodyType, body);
   }
 
   RequestContext._(
@@ -210,22 +211,23 @@ class _BodyConverter {
   final ModelProvider? modelProvider;
 
   Object? convert(Type targetType, Object? value) {
-    final typeName = targetType.toString();
+    var typeName = targetType.toString();
     if (_isDynamicLike(typeName)) {
       return value;
     }
-
+    final allowsNull = _allowsNull(typeName);
     if (value == null) {
-      if (_allowsNull(typeName)) {
+      if (allowsNull) {
         return null;
       }
-      throw PreconditionFailedException('Request body is empty');
+      throw BadRequestException('Request body is empty');
     }
-
+    if (allowsNull) {
+      typeName = typeName.replaceAll('?', '');
+    }
     if (typeName == value.runtimeType.toString()) {
       return value;
     }
-
     switch (typeName) {
       case 'String':
         if (value is String) {
@@ -236,6 +238,23 @@ class _BodyConverter {
         }
         if (value is List<int>) {
           return _utf8Decoder.convert(value);
+        }
+        if (value is JsonObject) {
+          return value.toString();
+        }
+        if (modelProvider != null) {
+          final json =
+              modelProvider!.toJsonModels.containsKey(
+                value.runtimeType.toString(),
+              )
+              ? modelProvider!.to(value)
+              : null;
+          if (json != null) {
+            return jsonEncode(json);
+          }
+        }
+        if (value is Map || value is List) {
+          return jsonEncode(value);
         }
         break;
       case 'Uint8List':
@@ -308,42 +327,43 @@ class _BodyConverter {
     if (_isMapType(typeName)) {
       return _convertToMap(value);
     }
-
     if (_isListType(typeName)) {
       if (value is! List) {
-        throw PreconditionFailedException(
-          'Element cannot be converted to List',
+        throw BadRequestException('The element is not of the expected type');
+      }
+      if (typeName == 'List<Map<String, dynamic>>') {
+        return List<Map<String, dynamic>>.from(
+          value.map((e) => _convertToMap(e)),
         );
       }
-      final elementName = _extractListElement(typeName);
-      if (elementName == null || _isDynamicLike(elementName)) {
+      if (typeName == 'List<dynamic>') {
         return value;
       }
-      return value.map((e) => convert(_RuntimeType(elementName), e)).toList();
     }
     if (modelProvider != null) {
       if (value is FormData) {
         final map = {...value.fields, ...value.files};
-        return modelProvider!.from(targetType, Map<String, dynamic>.from(map));
+        return modelProvider!.from(
+          '$targetType',
+          Map<String, dynamic>.from(map),
+        );
       }
       if (value is Map) {
         final mapped = value.map((key, val) => MapEntry('$key', val));
-        return modelProvider!.from(
-          targetType,
+        final result = modelProvider!.from(
+          '$targetType',
           Map<String, dynamic>.from(mapped),
         );
+        if (allowsNull && result == null) {
+          return null;
+        }
+        return result;
       }
       if (value is List) {
-        final elementName = _extractListElement(typeName);
-        if (elementName != null && elementName.isNotEmpty) {
-          return value
-              .map((e) => convert(_RuntimeType(elementName), e))
-              .toList();
-        }
+        throw BadRequestException('The element is not of the expected type');
       }
     }
-
-    throw PreconditionFailedException('The type is not supported: $targetType');
+    throw BadRequestException('The element is not of the expected type');
   }
 
   Map<String, dynamic> _convertToMap(Object value) {
@@ -356,7 +376,17 @@ class _BodyConverter {
     if (value is FormData) {
       return {...value.fields, 'files': value.files};
     }
-    throw PreconditionFailedException('The body is not a map');
+    if (modelProvider != null) {
+      final json = modelProvider!.toJsonModels.containsKey(value.runtimeType)
+          ? modelProvider!.to(value)
+          : null;
+      if (json is Map<String, dynamic>) {
+        return json;
+      }
+    }
+    throw BadRequestException(
+      'The element is not encodable to the correct type',
+    );
   }
 
   static bool _isDynamicLike(String typeName) {
@@ -376,24 +406,6 @@ class _BodyConverter {
   static bool _isListType(String typeName) {
     return typeName == 'List' || typeName.startsWith('List<');
   }
-
-  static String? _extractListElement(String typeName) {
-    final start = typeName.indexOf('<');
-    final end = typeName.lastIndexOf('>');
-    if (start == -1 || end == -1 || end <= start + 1) {
-      return null;
-    }
-    return typeName.substring(start + 1, end);
-  }
-}
-
-/// Helper runtime type used when a generic type argument is only available as a string.
-class _RuntimeType implements Type {
-  const _RuntimeType(this._repr);
-  final String _repr;
-
-  @override
-  String toString() => _repr;
 }
 
 /// The [Redirect] class is used to create the redirect response.
