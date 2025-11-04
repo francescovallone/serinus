@@ -227,61 +227,6 @@ class GenerateModelsCommand extends Command<int> {
               ''');
             }),
           );
-          c.methods.add(
-            Method((m) {
-              m.annotations.add(
-                refer('override'),
-              );
-              m
-                ..name = 'from'
-                ..returns = refer('Object')
-                ..requiredParameters.addAll([
-                  Parameter((p) {
-                    p
-                      ..name = 'model'
-                      ..type = refer('Type');
-                  }),
-                  Parameter((p) {
-                    p
-                      ..name = 'json'
-                      ..type = refer('Map<String, dynamic>');
-                  }),
-                ])
-                ..body = Block.of([
-                  const Code(r'''
-                    if(fromJsonModels.containsKey(model)) {
-                      return fromJsonModels[model]!(json);
-                    }
-                    throw UnsupportedError('Model $model not supported');
-                  '''),
-                ]);
-            }),
-          );
-          c.methods.add(
-            Method((m) {
-              m.annotations.add(
-                refer('override'),
-              );
-              m
-                ..name = 'to<T>'
-                ..returns = refer('Map<String, dynamic>')
-                ..requiredParameters.add(
-                  Parameter((p) {
-                    p
-                      ..name = 'model'
-                      ..type = refer('T');
-                  }),
-                )
-                ..body = Block.of([
-                  const Code(r'''
-                    if(toJsonModels.containsKey(T)) {
-                      return toJsonModels[T]!(model) as Map<String, dynamic>;
-                    }
-                    throw UnsupportedError('Model $T not supported');
-                  '''),
-                ]);
-            }),
-          );
         }),
       );
     });

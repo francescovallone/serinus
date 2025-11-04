@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:mime/mime.dart';
 
+import '../../serinus.dart';
 import '../containers/models_provider.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
@@ -202,6 +203,109 @@ class RequestContext<TBody> extends BaseContext {
   }
 }
 
+abstract class TypeConverter<E> {
+  E fromValue(Object? input);
+}
+
+class IdentityConverter<E> extends TypeConverter<E> {
+  @override
+  E fromValue(Object? input) => input as E;
+}
+
+class ConverterRegistry {
+  // Map by Type (preferred) and by String name (fallback).
+  static final Map<Type, TypeConverter<dynamic>> _byType = {};
+  static final Map<String, TypeConverter<dynamic>> _byName = {};
+
+  static void registerType<E>(TypeConverter<E> converter) {
+    _byType[E] = converter;
+    _byName[_typeName(E)] = converter;
+  }
+
+  static TypeConverter<E>? getByType<E>(Type type) {
+    return _byType[type] as TypeConverter<E>?;
+  }
+
+  static TypeConverter<E>? getByName<E>(String name) {
+    final conv = _byName[name];
+    return conv as TypeConverter<E>?;
+  }
+
+  static String _typeName(Object t) => t.toString();
+}
+
+/// Try to extract the inner generic parameter name from "List<Something>"
+String? _extractListElementTypeNameFromTypeString(String tStr) {
+  // Basic parser: finds the top-level <...> inside the string and returns content.
+  final start = tStr.indexOf('<');
+  final end = tStr.lastIndexOf('>');
+  if (start == -1 || end == -1 || end <= start + 1) {
+    return null;
+  }
+  final inner = tStr.substring(start + 1, end).trim();
+  return inner.isEmpty ? null : inner;
+}
+
+/// The main generic function user asked for.
+T convertList<T>(Object? value) {
+  // Expect T to be something like List<E>
+  final runtimeType = _typeOf<T>();
+  final typeString = runtimeType.toString();
+
+  // If the runtime type string is just 'List' without generic args, no luck
+  final elemTypeName = _extractListElementTypeNameFromTypeString(typeString);
+
+  // If we can resolve a Type converter by Type directly, prefer that.
+  // Try to guess element type by parsing the string and looking up registry by name.
+  List<dynamic> converted;
+
+  if (value is! List) {
+    // Not a list: return empty list of correct typed List
+    converted = <dynamic>[];
+  } else {
+    // Best-effort: 1) try exact Type lookup for List<E> -> not helpful for elements
+    // 2) parse element type name and look up converter by name
+    TypeConverter? elemConverter;
+
+    if (elemTypeName != null) {
+      // Try direct by name
+      elemConverter = ConverterRegistry.getByName(elemTypeName);
+      // If name lookup fails, also try infer common dart types:
+      if (elemConverter == null) {
+        if (elemTypeName == 'int') elemConverter = IdentityConverter<int>();
+        if (elemTypeName == 'double') elemConverter = IdentityConverter<double>();
+        if (elemTypeName == 'String') elemConverter = IdentityConverter<String>();
+        if (elemTypeName == 'bool') elemConverter = IdentityConverter<bool>();
+      }
+    }
+
+    if (elemConverter != null) {
+      converted = value.map((e) => elemConverter!.fromValue(e)).toList();
+    } else {
+      // Last resort: try to cast each element to the expected element type by
+      // using a runtime Type for element if we can recover it (this is fragile)
+      // We'll try to derive a Type from the name if the registry has one
+      converted = value.cast<dynamic>().toList();
+    }
+  }
+
+  // Cast the list to T — if T is List<E> this will be a runtime cast.
+  return converted as T;
+}
+
+/// Robust explicit alternative: caller supplies element-type via generic parameter
+List<E> convertListWith<E>(Object? value) {
+  if (value is! List) {
+    return <E>[];
+  }
+  final conv = ConverterRegistry.getByType<E>(E);
+  if (conv != null) {
+    return value.map((e) => conv.fromValue(e)).toList();
+  }
+  // fallback to cast
+  return value.cast<E>().toList();
+}
+
 final _utf8Decoder = utf8.decoder;
 
 class _BodyConverter {
@@ -214,18 +318,16 @@ class _BodyConverter {
     if (_isDynamicLike(typeName)) {
       return value;
     }
-
     if (value == null) {
       if (_allowsNull(typeName)) {
         return null;
       }
-      throw PreconditionFailedException('Request body is empty');
+      throw BadRequestException('Request body is empty');
     }
 
     if (typeName == value.runtimeType.toString()) {
       return value;
     }
-
     switch (typeName) {
       case 'String':
         if (value is String) {
@@ -236,6 +338,20 @@ class _BodyConverter {
         }
         if (value is List<int>) {
           return _utf8Decoder.convert(value);
+        }
+        if (value is JsonObject) {
+          return value.toString();
+        }
+        if (modelProvider != null) {
+          final json = modelProvider!.toJsonModels.containsKey(value.runtimeType.toString())
+              ? modelProvider!.to(value)
+              : null;
+          if (json != null) {
+            return jsonEncode(json);
+          }
+        }
+        if (value is Map || value is List) {
+          return jsonEncode(value);
         }
         break;
       case 'Uint8List':
@@ -311,39 +427,32 @@ class _BodyConverter {
 
     if (_isListType(typeName)) {
       if (value is! List) {
-        throw PreconditionFailedException(
-          'Element cannot be converted to List',
+        throw BadRequestException(
+          'The element is not of the expected type',
         );
       }
-      final elementName = _extractListElement(typeName);
-      if (elementName == null || _isDynamicLike(elementName)) {
-        return value;
-      }
-      return value.map((e) => convert(_RuntimeType(elementName), e)).toList();
     }
     if (modelProvider != null) {
       if (value is FormData) {
         final map = {...value.fields, ...value.files};
-        return modelProvider!.from(targetType, Map<String, dynamic>.from(map));
+        return modelProvider!.from('$targetType', Map<String, dynamic>.from(map));
       }
       if (value is Map) {
         final mapped = value.map((key, val) => MapEntry('$key', val));
         return modelProvider!.from(
-          targetType,
+          '$targetType',
           Map<String, dynamic>.from(mapped),
         );
       }
       if (value is List) {
-        final elementName = _extractListElement(typeName);
-        if (elementName != null && elementName.isNotEmpty) {
-          return value
-              .map((e) => convert(_RuntimeType(elementName), e))
-              .toList();
-        }
+        throw BadRequestException(
+          'The element is not of the expected type',
+        );
       }
     }
-
-    throw PreconditionFailedException('The type is not supported: $targetType');
+    throw BadRequestException(
+      'The element is not of the expected type',
+    );
   }
 
   Map<String, dynamic> _convertToMap(Object value) {
@@ -356,7 +465,15 @@ class _BodyConverter {
     if (value is FormData) {
       return {...value.fields, 'files': value.files};
     }
-    throw PreconditionFailedException('The body is not a map');
+    if (modelProvider != null) {
+      final json = modelProvider!.toJsonModels.containsKey(value.runtimeType)
+          ? modelProvider!.to(value)
+          : null;
+      if (json is Map<String, dynamic>) {
+        return json;
+      }
+    }
+    throw BadRequestException('The element is not encodable to the correct type');
   }
 
   static bool _isDynamicLike(String typeName) {
@@ -376,24 +493,6 @@ class _BodyConverter {
   static bool _isListType(String typeName) {
     return typeName == 'List' || typeName.startsWith('List<');
   }
-
-  static String? _extractListElement(String typeName) {
-    final start = typeName.indexOf('<');
-    final end = typeName.lastIndexOf('>');
-    if (start == -1 || end == -1 || end <= start + 1) {
-      return null;
-    }
-    return typeName.substring(start + 1, end);
-  }
-}
-
-/// Helper runtime type used when a generic type argument is only available as a string.
-class _RuntimeType implements Type {
-  const _RuntimeType(this._repr);
-  final String _repr;
-
-  @override
-  String toString() => _repr;
 }
 
 /// The [Redirect] class is used to create the redirect response.

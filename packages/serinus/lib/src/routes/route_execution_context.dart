@@ -49,8 +49,8 @@ class RouteExecutionContext {
   /// It takes a [RouteContext] and optional parameters such as [errorHandler], [notFoundHandler], and [rawBody].
   /// The [errorHandler] is used to handle errors that occur during the request processing.
   /// The [rawBody] parameter indicates whether the body should be treated as raw binary data
-  HandlerFunction describe(
-    RouteContext context, {
+  HandlerFunction describe<T extends RouteHandlerSpec>(
+    RouteContext<T> context, {
     ErrorHandler? errorHandler,
     bool rawBody = false,
   }) {
@@ -72,15 +72,18 @@ class RouteExecutionContext {
           context.hooksServices,
           HttpArgumentsHost(wrappedRequest),
         );
-        final requestContext = await RequestContext.create<dynamic>(
+        if (context.spec is! RestRouteHandlerSpec) {
+          throw StateError(
+            'Unsupported route handler specification: ${context.spec.runtimeType}',
+          );
+        }
+        final spec = context.spec as RestRouteHandlerSpec;
+        final requestContext = await spec.buildRequestContext(
           request: wrappedRequest,
           providers: providers,
           hooksServices: context.hooksServices,
           modelProvider: modelProvider,
           rawBody: rawBody,
-          shouldValidateMultipart:
-              (context.spec is RestRouteHandlerSpec) &&
-              (context.spec as RestRouteHandlerSpec).shouldValidateMultipart,
         );
         executionContext.attachHttpContext(requestContext);
         for (final hook in context.reqHooks) {
@@ -144,7 +147,7 @@ class RouteExecutionContext {
           }
         }
         await _executeBeforeHandle(executionContext, context);
-        final handler = context.spec.handler;
+        final handler = spec.handler;
         final handlerResult = await handler.call(requestContext);
         final responseData = WrappedResponse(handlerResult);
         await _executeAfterHandle(executionContext, context, responseData);
@@ -152,8 +155,8 @@ class RouteExecutionContext {
         WrappedResponse result = _processResult(responseData, executionContext);
         final currentResponseHeaders =
             (response.currentHeaders is SerinusHeaders)
-            ? response.currentHeaders.values
-            : (response.currentHeaders as HttpHeaders).toMap();
+                ? response.currentHeaders.values
+                : (response.currentHeaders as HttpHeaders).toMap();
         if (result.data is View) {
           request.emit(
             RequestEvent.data,
