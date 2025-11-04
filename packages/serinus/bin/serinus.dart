@@ -37,7 +37,9 @@ class AppController extends Controller {
       final provider = context.use<TestProvider>();
       return 'Counter: ${provider.counter}';
     });
-    on<String, List<dynamic>>(Route.post('/echo'), (RequestContext<List<dynamic>> context) async {
+    on<String, List<dynamic>>(Route.post('/echo'), (
+      RequestContext<List<dynamic>> context,
+    ) async {
       final mapBody = context.bodyAs<String>();
       return 'Echo: $mapBody ${context.body}';
     });
@@ -59,33 +61,25 @@ class MyObject with JsonObject {
   MyObject(this.name, this.value);
 
   factory MyObject.fromJson(Map<String, dynamic> json) {
-    return MyObject(
-      json['name'] as String,
-      json['value'] as int,
-    );
+    return MyObject(json['name'] as String, json['value'] as int);
   }
 
   @override
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'value': value,
-    };
+    return {'name': name, 'value': value};
   }
 }
 
 class MyModelProvider extends ModelProvider {
-
   @override
   Map<String, Function> get fromJsonModels => {
-        'MyObject': (json) => MyObject.fromJson(json),
-      };
+    'MyObject': (json) => MyObject.fromJson(json),
+  };
 
   @override
   Map<String, Function> get toJsonModels => {
-        'MyObject': (model) => (model as MyObject).toJson(),
-      };
-  
+    'MyObject': (model) => (model as MyObject).toJson(),
+  };
 }
 
 void main(List<String> arguments) async {
@@ -94,7 +88,7 @@ void main(List<String> arguments) async {
     host: InternetAddress.anyIPv4.address,
     port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
-    modelProvider: MyModelProvider()
+    modelProvider: MyModelProvider(),
   );
   application.enableShutdownHooks();
   // application.trace(ServerTimingTracer());

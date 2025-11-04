@@ -24,13 +24,14 @@ class ReqResHandler<T, B> {
   }
 }
 
-typedef _RequestContextBuilder = Future<RequestContext> Function({
-  required Request request,
-  required Map<Type, Provider> providers,
-  required Map<Type, Object> hooksServices,
-  required ModelProvider? modelProvider,
-  required bool rawBody,
-});
+typedef _RequestContextBuilder =
+    Future<RequestContext> Function({
+      required Request request,
+      required Map<Type, Provider> providers,
+      required Map<Type, Object> hooksServices,
+      required ModelProvider? modelProvider,
+      required bool rawBody,
+    });
 
 /// The [RouteHandlerSpec] class is used to define a route handler specification.
 abstract class RouteHandlerSpec<T> {
@@ -45,8 +46,7 @@ abstract class RouteHandlerSpec<T> {
 }
 
 /// The [RestRouteHandlerSpec] class is used to define a REST route handler specification.
-class RestRouteHandlerSpec<T, B>
-  extends RouteHandlerSpec<ReqResHandler<T, B>> {
+class RestRouteHandlerSpec<T, B> extends RouteHandlerSpec<ReqResHandler<T, B>> {
   /// The [shouldValidateMultipart] property determines if multipart form data should be validated.
   final bool shouldValidateMultipart;
 
@@ -61,24 +61,25 @@ class RestRouteHandlerSpec<T, B>
     ReqResHandler<T, B> handler, {
     this.shouldValidateMultipart = false,
     this.isStatic = false,
-  }) :  super(route, handler) {
-    _requestContextBuilder = ({
-      required Request request,
-      required Map<Type, Provider> providers,
-      required Map<Type, Object> hooksServices,
-      required ModelProvider? modelProvider,
-      required bool rawBody,
-    }) async {
-      return await RequestContext.create<B>(
-        request: request,
-        providers: providers,
-        hooksServices: hooksServices,
-        modelProvider: modelProvider,
-        rawBody: rawBody,
-        explicitType: B,
-        shouldValidateMultipart: shouldValidateMultipart,
-      );
-    };
+  }) : super(route, handler) {
+    _requestContextBuilder =
+        ({
+          required Request request,
+          required Map<Type, Provider> providers,
+          required Map<Type, Object> hooksServices,
+          required ModelProvider? modelProvider,
+          required bool rawBody,
+        }) async {
+          return await RequestContext.create<B>(
+            request: request,
+            providers: providers,
+            hooksServices: hooksServices,
+            modelProvider: modelProvider,
+            rawBody: rawBody,
+            explicitType: B,
+            shouldValidateMultipart: shouldValidateMultipart,
+          );
+        };
   }
 
   /// Builds a typed [RequestContext] for the current route using the captured generics.

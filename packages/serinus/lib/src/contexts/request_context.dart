@@ -4,12 +4,12 @@ import 'dart:typed_data';
 
 import 'package:mime/mime.dart';
 
-import '../../serinus.dart';
 import '../containers/models_provider.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/content_type_extensions.dart';
 import '../http/http.dart';
+import '../mixins/object_mixins.dart';
 import 'base_context.dart';
 import 'response_context.dart';
 
@@ -243,7 +243,10 @@ class _BodyConverter {
           return value.toString();
         }
         if (modelProvider != null) {
-          final json = modelProvider!.toJsonModels.containsKey(value.runtimeType.toString())
+          final json =
+              modelProvider!.toJsonModels.containsKey(
+                value.runtimeType.toString(),
+              )
               ? modelProvider!.to(value)
               : null;
           if (json != null) {
@@ -326,12 +329,12 @@ class _BodyConverter {
     }
     if (_isListType(typeName)) {
       if (value is! List) {
-        throw BadRequestException(
-          'The element is not of the expected type',
-        );
+        throw BadRequestException('The element is not of the expected type');
       }
       if (typeName == 'List<Map<String, dynamic>>') {
-        return List<Map<String, dynamic>>.from(value.map((e) => _convertToMap(e)));
+        return List<Map<String, dynamic>>.from(
+          value.map((e) => _convertToMap(e)),
+        );
       }
       if (typeName == 'List<dynamic>') {
         return value;
@@ -340,7 +343,10 @@ class _BodyConverter {
     if (modelProvider != null) {
       if (value is FormData) {
         final map = {...value.fields, ...value.files};
-        return modelProvider!.from('$targetType', Map<String, dynamic>.from(map));
+        return modelProvider!.from(
+          '$targetType',
+          Map<String, dynamic>.from(map),
+        );
       }
       if (value is Map) {
         final mapped = value.map((key, val) => MapEntry('$key', val));
@@ -354,14 +360,10 @@ class _BodyConverter {
         return result;
       }
       if (value is List) {
-        throw BadRequestException(
-          'The element is not of the expected type',
-        );
+        throw BadRequestException('The element is not of the expected type');
       }
     }
-    throw BadRequestException(
-      'The element is not of the expected type',
-    );
+    throw BadRequestException('The element is not of the expected type');
   }
 
   Map<String, dynamic> _convertToMap(Object value) {
@@ -382,7 +384,9 @@ class _BodyConverter {
         return json;
       }
     }
-    throw BadRequestException('The element is not encodable to the correct type');
+    throw BadRequestException(
+      'The element is not encodable to the correct type',
+    );
   }
 
   static bool _isDynamicLike(String typeName) {

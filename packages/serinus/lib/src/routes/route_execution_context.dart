@@ -155,8 +155,8 @@ class RouteExecutionContext {
         WrappedResponse result = _processResult(responseData, executionContext);
         final currentResponseHeaders =
             (response.currentHeaders is SerinusHeaders)
-                ? response.currentHeaders.values
-                : (response.currentHeaders as HttpHeaders).toMap();
+            ? response.currentHeaders.values
+            : (response.currentHeaders as HttpHeaders).toMap();
         if (result.data is View) {
           request.emit(
             RequestEvent.data,
