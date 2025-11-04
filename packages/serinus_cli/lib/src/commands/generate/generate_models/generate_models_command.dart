@@ -198,12 +198,12 @@ class GenerateModelsCommand extends Command<int> {
               );
               m
                 ..name = 'toJsonModels'
-                ..returns = refer('Map<Type, Function>')
+                ..returns = refer('Map<String, Function>')
                 ..type = MethodType.getter
                 ..body = Code('''
                 return {
                   ${models.where((e) => e.hasToJson).map((e) {
-                  return '${e.name}: (model) => (model as ${e.name}).${e.toJson}()';
+                  return '"${e.name}": (model) => (model as ${e.name}).${e.toJson}()';
                 }).join(',\n')}
                 };
               ''');
@@ -216,12 +216,12 @@ class GenerateModelsCommand extends Command<int> {
               );
               m
                 ..name = 'fromJsonModels'
-                ..returns = refer('Map<Type, Function>')
+                ..returns = refer('Map<String, Function>')
                 ..type = MethodType.getter
                 ..body = Code('''
                 return {
                   ${models.where((e) => e.hasFromJson).map((e) {
-                  return '${e.name}: (json) => ${e.fromJson}(json)';
+                  return '"${e.name}": (json) => ${e.fromJson}(json)';
                 }).join(',\n')}
                 };
               ''');
