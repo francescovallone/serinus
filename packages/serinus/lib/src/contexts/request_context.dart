@@ -32,7 +32,7 @@ class RequestContext<TBody> extends BaseContext {
        _body = body,
        shouldValidateMultipart = shouldValidateMultipart,
        super(providers, hooksServices) {
-    this.body = body;
+    this.body = _converter.convert(_bodyType, body);
   }
 
   RequestContext._(
@@ -203,109 +203,6 @@ class RequestContext<TBody> extends BaseContext {
   }
 }
 
-abstract class TypeConverter<E> {
-  E fromValue(Object? input);
-}
-
-class IdentityConverter<E> extends TypeConverter<E> {
-  @override
-  E fromValue(Object? input) => input as E;
-}
-
-class ConverterRegistry {
-  // Map by Type (preferred) and by String name (fallback).
-  static final Map<Type, TypeConverter<dynamic>> _byType = {};
-  static final Map<String, TypeConverter<dynamic>> _byName = {};
-
-  static void registerType<E>(TypeConverter<E> converter) {
-    _byType[E] = converter;
-    _byName[_typeName(E)] = converter;
-  }
-
-  static TypeConverter<E>? getByType<E>(Type type) {
-    return _byType[type] as TypeConverter<E>?;
-  }
-
-  static TypeConverter<E>? getByName<E>(String name) {
-    final conv = _byName[name];
-    return conv as TypeConverter<E>?;
-  }
-
-  static String _typeName(Object t) => t.toString();
-}
-
-/// Try to extract the inner generic parameter name from "List<Something>"
-String? _extractListElementTypeNameFromTypeString(String tStr) {
-  // Basic parser: finds the top-level <...> inside the string and returns content.
-  final start = tStr.indexOf('<');
-  final end = tStr.lastIndexOf('>');
-  if (start == -1 || end == -1 || end <= start + 1) {
-    return null;
-  }
-  final inner = tStr.substring(start + 1, end).trim();
-  return inner.isEmpty ? null : inner;
-}
-
-/// The main generic function user asked for.
-T convertList<T>(Object? value) {
-  // Expect T to be something like List<E>
-  final runtimeType = _typeOf<T>();
-  final typeString = runtimeType.toString();
-
-  // If the runtime type string is just 'List' without generic args, no luck
-  final elemTypeName = _extractListElementTypeNameFromTypeString(typeString);
-
-  // If we can resolve a Type converter by Type directly, prefer that.
-  // Try to guess element type by parsing the string and looking up registry by name.
-  List<dynamic> converted;
-
-  if (value is! List) {
-    // Not a list: return empty list of correct typed List
-    converted = <dynamic>[];
-  } else {
-    // Best-effort: 1) try exact Type lookup for List<E> -> not helpful for elements
-    // 2) parse element type name and look up converter by name
-    TypeConverter? elemConverter;
-
-    if (elemTypeName != null) {
-      // Try direct by name
-      elemConverter = ConverterRegistry.getByName(elemTypeName);
-      // If name lookup fails, also try infer common dart types:
-      if (elemConverter == null) {
-        if (elemTypeName == 'int') elemConverter = IdentityConverter<int>();
-        if (elemTypeName == 'double') elemConverter = IdentityConverter<double>();
-        if (elemTypeName == 'String') elemConverter = IdentityConverter<String>();
-        if (elemTypeName == 'bool') elemConverter = IdentityConverter<bool>();
-      }
-    }
-
-    if (elemConverter != null) {
-      converted = value.map((e) => elemConverter!.fromValue(e)).toList();
-    } else {
-      // Last resort: try to cast each element to the expected element type by
-      // using a runtime Type for element if we can recover it (this is fragile)
-      // We'll try to derive a Type from the name if the registry has one
-      converted = value.cast<dynamic>().toList();
-    }
-  }
-
-  // Cast the list to T — if T is List<E> this will be a runtime cast.
-  return converted as T;
-}
-
-/// Robust explicit alternative: caller supplies element-type via generic parameter
-List<E> convertListWith<E>(Object? value) {
-  if (value is! List) {
-    return <E>[];
-  }
-  final conv = ConverterRegistry.getByType<E>(E);
-  if (conv != null) {
-    return value.map((e) => conv.fromValue(e)).toList();
-  }
-  // fallback to cast
-  return value.cast<E>().toList();
-}
-
 final _utf8Decoder = utf8.decoder;
 
 class _BodyConverter {
@@ -314,17 +211,20 @@ class _BodyConverter {
   final ModelProvider? modelProvider;
 
   Object? convert(Type targetType, Object? value) {
-    final typeName = targetType.toString();
+    var typeName = targetType.toString();
     if (_isDynamicLike(typeName)) {
       return value;
     }
+    final allowsNull = _allowsNull(typeName);
     if (value == null) {
-      if (_allowsNull(typeName)) {
+      if (allowsNull) {
         return null;
       }
       throw BadRequestException('Request body is empty');
     }
-
+    if (allowsNull) {
+      typeName = typeName.replaceAll('?', '');
+    }
     if (typeName == value.runtimeType.toString()) {
       return value;
     }
@@ -424,12 +324,17 @@ class _BodyConverter {
     if (_isMapType(typeName)) {
       return _convertToMap(value);
     }
-
     if (_isListType(typeName)) {
       if (value is! List) {
         throw BadRequestException(
           'The element is not of the expected type',
         );
+      }
+      if (typeName == 'List<Map<String, dynamic>>') {
+        return List<Map<String, dynamic>>.from(value.map((e) => _convertToMap(e)));
+      }
+      if (typeName == 'List<dynamic>') {
+        return value;
       }
     }
     if (modelProvider != null) {
@@ -439,10 +344,14 @@ class _BodyConverter {
       }
       if (value is Map) {
         final mapped = value.map((key, val) => MapEntry('$key', val));
-        return modelProvider!.from(
+        final result = modelProvider!.from(
           '$targetType',
           Map<String, dynamic>.from(mapped),
         );
+        if (allowsNull && result == null) {
+          return null;
+        }
+        return result;
       }
       if (value is List) {
         throw BadRequestException(

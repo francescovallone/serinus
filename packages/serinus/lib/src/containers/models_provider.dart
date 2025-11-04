@@ -8,6 +8,9 @@ abstract class ModelProvider {
 
   /// Converts a [Map<String, dynamic>] to a model of type [T]
   Object? from(String model, Map<String, dynamic> json) {
+    print(model);
+    print(json);
+    print(fromJsonModels);
     return fromJsonModels['$model']?.call(json);
   }
 

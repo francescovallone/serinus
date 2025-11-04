@@ -62,10 +62,6 @@ class RestRouteHandlerSpec<T, B>
     this.shouldValidateMultipart = false,
     this.isStatic = false,
   }) :  super(route, handler) {
-    if (B.toString().startsWith('List<')) {
-      throw StateError(
-          'The body type cannot be a List because of Dart limitations on generics. Use a wrapper class instead.');
-    }
     _requestContextBuilder = ({
       required Request request,
       required Map<Type, Provider> providers,

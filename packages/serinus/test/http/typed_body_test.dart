@@ -9,16 +9,13 @@ class _MockIncomingMessage extends Mock implements IncomingMessage {}
 
 class _MockModelProvider extends Mock implements ModelProvider {
   @override
-  Map<Type, Function> get fromJsonModels => {
-    TestObject: (json) => TestObject.fromJson(json),
+  Map<String, Function> get fromJsonModels => {
+    'TestObject': (json) => TestObject.fromJson(json),
   };
 
   @override
-  Object from(Type model, Map<String, dynamic> json) {
-    if (model == TestObject) {
-      return TestObject.fromJson(json);
-    }
-    throw UnsupportedError('Model not supported');
+  Object from(String model, Map<String, dynamic> json) {
+    return fromJsonModels['$model']?.call(json);
   }
 }
 
@@ -121,15 +118,15 @@ void main() {
       final request = _buildRequest();
       final context = RequestContext<dynamic>.withBody(
         request,
-        'original',
+        1,
         <Type, Provider>{},
         <Type, Object>{},
-        explicitType: String,
+        explicitType: int,
       );
 
       expect(
         () => context.body = {'unexpected': true},
-        throwsA(isA<PreconditionFailedException>()),
+        throwsA(isA<BadRequestException>()),
       );
     });
 

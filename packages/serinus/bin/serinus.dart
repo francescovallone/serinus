@@ -37,7 +37,7 @@ class AppController extends Controller {
       final provider = context.use<TestProvider>();
       return 'Counter: ${provider.counter}';
     });
-    on<String, MyObject>(Route.post('/echo'), (RequestContext<MyObject> context) async {
+    on<String, List<dynamic>>(Route.post('/echo'), (RequestContext<List<dynamic>> context) async {
       final mapBody = context.bodyAs<String>();
       return 'Echo: $mapBody ${context.body}';
     });
