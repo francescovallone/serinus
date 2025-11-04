@@ -138,26 +138,43 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
         }
         OpenApiOperation operation;
         if (route is ApiRoute) {
+          if (route.openApiVersion != version) {
+            continue;
+          }
           switch (version) {
             case OpenApiVersion.v2:
               operation = OperationObjectV2(
                 tags: [controllerName],
-                parameters: List<ParameterObjectV2>.from(parameters),
-                responses: {},
+                parameters: List<ParameterObjectV2>.from([
+                  ...parameters,
+                  if (route.parameters != null)
+                    ...route.parameters,
+                ]),
+                responses: {
+                  ...?route.responses,
+                },
               );
               break;
             case OpenApiVersion.v3_0:
               operation = OperationObjectV3(
                 tags: [controllerName],
-                parameters: List<ParameterObjectV3>.from(parameters),
-                responses: ResponsesV3({}),
+                parameters: List<ParameterObjectV3>.from([
+                  ...parameters,
+                  if (route.parameters != null)
+                    ...route.parameters,
+                ]),
+                responses: ResponsesV3({
+                  ...?route.responses?.responses,
+                }),
               );
               break;
             case OpenApiVersion.v3_1:
               operation = OperationObjectV31(
                 tags: [controllerName],
                 parameters: List<ParameterObjectV3>.from(parameters),
-                responses: ResponsesV31({}),
+                responses: ResponsesV31({
+                  ...?route.responses?.responses,
+                }),
               );
               break;
           }

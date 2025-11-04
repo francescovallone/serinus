@@ -17,37 +17,34 @@ class MyObject with JsonObject {
 }
 
 class TestMdProvider extends ModelProvider {
-  @override
-  Object from(Type model, Map<String, dynamic> json) {
-    return fromJsonModels[model]!(json);
-  }
 
   @override
-  Map<Type, Function> get fromJsonModels => {MyObject: MyObject.fromJson};
+  Map<String, Function> get fromJsonModels => {'MyObject': MyObject.fromJson};
 
   @override
-  Map<String, dynamic> to<T>(T model) {
-    return toJsonModels[T]!(model);
-  }
-
-  @override
-  Map<Type, Function> get toJsonModels => {
-    MyObject: (MyObject obj) => obj.toJson(),
+  Map<String, Function> get toJsonModels => {
+    'MyObject': (MyObject obj) => obj.toJson(),
   };
 }
 
 class HelloWorldRoute extends ApiRoute {
   HelloWorldRoute({super.queryParameters}) : super(path: '/');
+  
+  @override
+  OpenApiVersion get openApiVersion => OpenApiVersion.v2;
 }
 
 class PostRoute extends ApiRoute {
   PostRoute({required super.path}) : super(method: HttpMethod.post);
+  
+  @override
+  OpenApiVersion get openApiVersion => OpenApiVersion.v3_0;
 }
 
 class AppController extends Controller {
   AppController() : super('/') {
     on(
-      ApiRoute(path: '/', queryParameters: {'name': String}),
+      ApiRoute.v3(path: '/', queryParameters: {'name': String}),
       _handleHelloWorld,
     );
     on(Route.post('/post/<data>'), (RequestContext context) async {
