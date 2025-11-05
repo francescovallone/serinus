@@ -100,7 +100,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     if (config.globalPrefix != null) {
       savedFilePath.write('/${config.globalPrefix}');
     }
-    if (config.versioningOptions != null && config.versioningOptions!.type == VersioningType.uri) {
+    if (config.versioningOptions != null &&
+        config.versioningOptions!.type == VersioningType.uri) {
       savedFilePath.write(
         '/${config.versioningOptions!.versionPrefix}${config.versioningOptions!.version}',
       );
@@ -141,7 +142,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
         continue;
       }
       final Map<String, Map<String, OpenApiOperation>> operations = {};
-      final controllerDescriptions = result[controllerName] ?? const <RouteDescription>[];
+      final controllerDescriptions =
+          result[controllerName] ?? const <RouteDescription>[];
       var handlerIndex = 0;
       for (final entry in controller.routes.entries) {
         final route = entry.value.route;
@@ -220,7 +222,9 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
               break;
           }
         }
-        final description = handlerIndex < controllerDescriptions.length ? controllerDescriptions[handlerIndex] : null;
+        final description = handlerIndex < controllerDescriptions.length
+            ? controllerDescriptions[handlerIndex]
+            : null;
         handlerIndex++;
         if (description != null) {
           final responseKey = route.method == HttpMethod.post ? '201' : '200';
@@ -368,10 +372,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
             description.exceptions,
           );
         }
-        final Map<String, OpenApiOperation> methodOperations = _calculateOperationsBasedOnHttpMethod(
-          route.method,
-          operation,
-        );
+        final Map<String, OpenApiOperation> methodOperations =
+            _calculateOperationsBasedOnHttpMethod(route.method, operation);
         operations[fullPath]!.addAll(methodOperations);
         switch (version) {
           case OpenApiVersion.v2:
@@ -419,8 +421,12 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
               (param) => param.in_ == 'query' && param.name == entry.key,
             );
             final openApiType = _mapRuntimeTypeToOpenApiType(entry.value);
-            final typeString = openApiType.type == 'object' ? 'string' : openApiType.type;
-            final formatString = openApiType.type == 'object' ? null : openApiType.format;
+            final typeString = openApiType.type == 'object'
+                ? 'string'
+                : openApiType.type;
+            final formatString = openApiType.type == 'object'
+                ? null
+                : openApiType.format;
             existing.add(
               ParameterObjectV2(
                 name: entry.key,
@@ -453,7 +459,10 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           );
           for (final entry in queryParameters.entries) {
             existing.removeWhere(
-              (param) => param is ParameterObjectV3 && param.in_ == 'query' && param.name == entry.key,
+              (param) =>
+                  param is ParameterObjectV3 &&
+                  param.in_ == 'query' &&
+                  param.name == entry.key,
             );
             final openApiType = _mapRuntimeTypeToOpenApiType(entry.value);
             final schema = SchemaObjectV3(type: openApiType);
@@ -489,7 +498,10 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           );
           for (final entry in queryParameters.entries) {
             existing.removeWhere(
-              (param) => param is ParameterObjectV3 && param.in_ == 'query' && param.name == entry.key,
+              (param) =>
+                  param is ParameterObjectV3 &&
+                  param.in_ == 'query' &&
+                  param.name == entry.key,
             );
             final openApiType = _mapRuntimeTypeToOpenApiType(entry.value);
             final schema = SchemaObjectV3(type: openApiType);
@@ -618,7 +630,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
 
   ResponseObjectV2 _buildExceptionResponseV2(ExceptionResponse exception) {
     return ResponseObjectV2(
-      description: exception.message ?? exception.typeName ?? 'Serinus exception',
+      description:
+          exception.message ?? exception.typeName ?? 'Serinus exception',
       schema: SchemaObjectV2(
         type: OpenApiType.object(),
         properties: {
@@ -633,7 +646,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
 
   ResponseObjectV3 _buildExceptionResponseV3(ExceptionResponse exception) {
     return ResponseObjectV3(
-      description: exception.message ?? exception.typeName ?? 'Serinus exception',
+      description:
+          exception.message ?? exception.typeName ?? 'Serinus exception',
       content: {
         'application/json': MediaTypeObjectV3(
           schema: SchemaObjectV3(
@@ -703,7 +717,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     return path;
   }
 
-  Map<String, OpenApiOperation<Map<String, dynamic>>> _calculateOperationsBasedOnHttpMethod(
+  Map<String, OpenApiOperation<Map<String, dynamic>>>
+  _calculateOperationsBasedOnHttpMethod(
     HttpMethod method,
     OpenApiOperation<Map<String, dynamic>> operation,
   ) {

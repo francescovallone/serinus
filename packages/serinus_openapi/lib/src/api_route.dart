@@ -78,7 +78,8 @@ abstract class ApiRoute<Res, Params> extends Route {
 }
 
 /// API Route implementation for OpenAPI v2.
-class ApiRouteV2 extends ApiRoute<Map<String, ResponseObjectV2>, List<ParameterObjectV2>> {
+class ApiRouteV2
+    extends ApiRoute<Map<String, ResponseObjectV2>, List<ParameterObjectV2>> {
   /// The [apiSpec] property contains the API specification.
   /// The [ApiRoute] constructor is used to create a new instance of the [ApiRoute] class.
   ApiRouteV2({

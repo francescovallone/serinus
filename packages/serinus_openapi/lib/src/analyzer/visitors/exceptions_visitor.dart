@@ -255,7 +255,8 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     ConstructorDeclaration? constructor,
   ) {
     for (final argument in arguments) {
-      if (argument is NamedExpression && argument.name.label.name == 'statusCode') {
+      if (argument is NamedExpression &&
+          argument.name.label.name == 'statusCode') {
         final value = _evaluateIntConstant(argument.expression);
         if (value != null) {
           return value;
@@ -288,7 +289,8 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
 
   int? _statusCodeFromSuperInvocation(SuperConstructorInvocation invocation) {
     for (final argument in invocation.argumentList.arguments) {
-      if (argument is NamedExpression && argument.name.label.name == 'statusCode') {
+      if (argument is NamedExpression &&
+          argument.name.label.name == 'statusCode') {
         final value = _evaluateIntConstant(argument.expression);
         if (value != null) {
           return value;
@@ -374,7 +376,9 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     if (classDeclaration == null) {
       return null;
     }
-    final constructors = classDeclaration.members.whereType<ConstructorDeclaration>().toList();
+    final constructors = classDeclaration.members
+        .whereType<ConstructorDeclaration>()
+        .toList();
     if (constructors.isEmpty) {
       return null;
     }
@@ -402,11 +406,13 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     final messageConstructorParameter = constructorParameters.indexed.where((
       element,
     ) {
-      return ((element.$2.isPositional == true) || element.$2.isOptionalPositional == true) &&
+      return ((element.$2.isPositional == true) ||
+              element.$2.isOptionalPositional == true) &&
           element.$2.displayName == 'message';
     }).firstOrNull;
     for (final (index, argument) in arguments.indexed) {
-      if (argument is NamedExpression && argument.name.label.name == 'message') {
+      if (argument is NamedExpression &&
+          argument.name.label.name == 'message') {
         final value = _evaluateStringConstant(argument.expression);
         if (value != null) {
           return value;
@@ -419,7 +425,8 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
       }
     }
     if (arguments.isEmpty && messageConstructorParameter != null) {
-      final defaultValue = messageConstructorParameter.$2.computeConstantValue();
+      final defaultValue = messageConstructorParameter.$2
+          .computeConstantValue();
       return defaultValue?.toStringValue();
     }
     if (constructor == null) {
@@ -451,7 +458,8 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     ConstructorDeclaration constructor,
   ) {
     for (final argument in invocation.argumentList.arguments) {
-      if (argument is NamedExpression && argument.name.label.name == 'message') {
+      if (argument is NamedExpression &&
+          argument.name.label.name == 'message') {
         final literal = _evaluateStringConstant(argument.expression);
         if (literal != null) {
           return literal;

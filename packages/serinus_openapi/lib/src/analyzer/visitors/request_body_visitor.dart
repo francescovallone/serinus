@@ -26,7 +26,9 @@ class RequestBodyVisitor extends GeneralizingAstVisitor<void> {
         final dartType = first.type;
         final descriptor = _analyzer.schemaFromDartType(dartType);
         if (descriptor != null) {
-          final isNullable = dartType != null && dartType.nullabilitySuffix == NullabilitySuffix.question;
+          final isNullable =
+              dartType != null &&
+              dartType.nullabilitySuffix == NullabilitySuffix.question;
           result = RequestBodyInfo(
             schema: descriptor,
             contentType: _analyzer.inferContentType(descriptor),

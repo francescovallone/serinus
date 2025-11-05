@@ -43,8 +43,11 @@ class SwaggerUIOptions extends RenderOptions {
     this.domId = '#swagger-ui',
     this.themes,
     this.version = 'latest',
-  }) : cdn = cdn ?? 'https://unpkg.com/swagger-ui-dist@$version/swagger-ui-bundle.js',
-       theme = theme ?? 'https://unpkg.com/swagger-ui-dist@$version/swagger-ui.css';
+  }) : cdn =
+           cdn ??
+           'https://unpkg.com/swagger-ui-dist@$version/swagger-ui-bundle.js',
+       theme =
+           theme ?? 'https://unpkg.com/swagger-ui-dist@$version/swagger-ui.css';
 }
 
 /// The SwaggerUi class contains the needed information to generate the Swagger UI.

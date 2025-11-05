@@ -50,7 +50,8 @@ class Analyzer {
         if (!filePath.endsWith('.dart') || !filePath.contains('bin')) {
           continue;
         }
-        final SomeResolvedLibraryResult result = await context.currentSession.getResolvedLibrary(filePath);
+        final SomeResolvedLibraryResult result = await context.currentSession
+            .getResolvedLibrary(filePath);
         if (result is ResolvedLibraryResult) {
           final providerCollector = ModelProviderInvocationCollector(
             _resolveInterfaceType,
@@ -86,10 +87,13 @@ class Analyzer {
                   methods.add(child);
                 } else if (child is ConstructorDeclaration) {
                   constructors.add(child);
-                  final blockFunctionBody = child.childEntities.whereType<BlockFunctionBody>().firstOrNull;
+                  final blockFunctionBody = child.childEntities
+                      .whereType<BlockFunctionBody>()
+                      .firstOrNull;
                   if (blockFunctionBody != null) {
                     final block = blockFunctionBody.block;
-                    final statements = block.statements.whereType<ExpressionStatement>();
+                    final statements = block.statements
+                        .whereType<ExpressionStatement>();
                     final analyzedHandlers = _analyzeStatements(statements);
                     handlers.addAll(analyzedHandlers);
                   }
@@ -107,12 +111,14 @@ class Analyzer {
                     savedHandler.requestBody = analyzed.requestBody;
                   }
                   if (analyzed.responseContentType != null) {
-                    savedHandler.responseContentType = analyzed.responseContentType;
+                    savedHandler.responseContentType =
+                        analyzed.responseContentType;
                   }
                 }
               }
               if (isController) {
-                handlersByControllers[controllerName] = handlers.values.toList();
+                handlersByControllers[controllerName] = handlers.values
+                    .toList();
               }
             }
           }
@@ -205,11 +211,14 @@ class Analyzer {
     }
     final properties = <String, SchemaDescriptor>{};
     for (final field in element.fields) {
-      if (field.isStatic || field.isSynthetic || field.displayName.startsWith('_')) {
+      if (field.isStatic ||
+          field.isSynthetic ||
+          field.displayName.startsWith('_')) {
         continue;
       }
       final descriptor =
-          _schemaFromDartTypeInternal(field.type, visited) ?? SchemaDescriptor(type: OpenApiType.object());
+          _schemaFromDartTypeInternal(field.type, visited) ??
+          SchemaDescriptor(type: OpenApiType.object());
       properties[field.displayName] = descriptor;
     }
     visited.remove(element);
@@ -254,7 +263,8 @@ class Analyzer {
 
   bool _extendsModelProvider(InterfaceElement element) {
     return element.allSupertypes.any(
-      (superType) => superType.element.thisType.getDisplayString() == 'ModelProvider',
+      (superType) =>
+          superType.element.thisType.getDisplayString() == 'ModelProvider',
     );
   }
 
@@ -436,12 +446,16 @@ class Analyzer {
       return null;
     }
     if (expr is SetOrMapLiteral) {
-      return expr.isMap ? _schemaForMapLiteral(expr) : _schemaForSetLiteral(expr);
+      return expr.isMap
+          ? _schemaForMapLiteral(expr)
+          : _schemaForSetLiteral(expr);
     }
     if (expr is ListLiteral) {
       return _schemaForListLiteral(expr);
     }
-    if (expr is SimpleStringLiteral || expr is AdjacentStrings || expr is StringInterpolation) {
+    if (expr is SimpleStringLiteral ||
+        expr is AdjacentStrings ||
+        expr is StringInterpolation) {
       return SchemaDescriptor(type: OpenApiType.string());
     }
     if (expr is IntegerLiteral) {
@@ -465,7 +479,8 @@ class Analyzer {
       }
     }
 
-    return schemaFromDartType(expr.staticType) ?? SchemaDescriptor(type: OpenApiType.object());
+    return schemaFromDartType(expr.staticType) ??
+        SchemaDescriptor(type: OpenApiType.object());
   }
 
   SchemaDescriptor _schemaForMapLiteral(SetOrMapLiteral literal) {
@@ -475,7 +490,9 @@ class Analyzer {
         continue;
       }
       final key = _mapKeyToString(element.key);
-      final valueDescriptor = _inferSchemaFromExpression(element.value) ?? SchemaDescriptor(type: OpenApiType.object());
+      final valueDescriptor =
+          _inferSchemaFromExpression(element.value) ??
+          SchemaDescriptor(type: OpenApiType.object());
       properties[key] = valueDescriptor;
     }
     return SchemaDescriptor(
@@ -495,7 +512,9 @@ class Analyzer {
         descriptors.add(descriptor);
       }
     }
-    final itemDescriptor = descriptors.isEmpty ? SchemaDescriptor(type: OpenApiType.string()) : descriptors.first;
+    final itemDescriptor = descriptors.isEmpty
+        ? SchemaDescriptor(type: OpenApiType.string())
+        : descriptors.first;
     return SchemaDescriptor(type: OpenApiType.array(), items: itemDescriptor);
   }
 
@@ -556,7 +575,9 @@ class Analyzer {
 
     final display = type.getDisplayString();
     final nullable = type.nullabilitySuffix == NullabilitySuffix.question;
-    final coreDisplay = nullable ? display.substring(0, display.length - 1) : display;
+    final coreDisplay = nullable
+        ? display.substring(0, display.length - 1)
+        : display;
 
     SchemaDescriptor? wrapNullable(SchemaDescriptor? descriptor) {
       if (descriptor == null) {
@@ -575,7 +596,9 @@ class Analyzer {
 
     if (coreDisplay.startsWith('FutureOr<')) {
       final inner = _schemaFromDartTypeInternal(
-        type is InterfaceType && type.typeArguments.isNotEmpty ? type.typeArguments.first : null,
+        type is InterfaceType && type.typeArguments.isNotEmpty
+            ? type.typeArguments.first
+            : null,
         visited,
       );
       return wrapNullable(inner);
@@ -584,7 +607,9 @@ class Analyzer {
     if (type is InterfaceType) {
       final element = type.element;
       if (modelProviderTypes.contains(element)) {
-        final descriptor = modelTypeSchemas[element] ?? _buildSchemaDescriptorFromClass(type, visited);
+        final descriptor =
+            modelTypeSchemas[element] ??
+            _buildSchemaDescriptorFromClass(type, visited);
         return wrapNullable(descriptor);
       }
 
@@ -593,11 +618,15 @@ class Analyzer {
       }
 
       if (_isFutureInterface(type)) {
-        final typeArgument = type.typeArguments.isNotEmpty ? type.typeArguments.first : null;
+        final typeArgument = type.typeArguments.isNotEmpty
+            ? type.typeArguments.first
+            : null;
         return wrapNullable(_schemaFromDartTypeInternal(typeArgument, visited));
       }
       if (_isStreamInterface(type)) {
-        final typeArgument = type.typeArguments.isNotEmpty ? type.typeArguments.first : null;
+        final typeArgument = type.typeArguments.isNotEmpty
+            ? type.typeArguments.first
+            : null;
         final itemsDescriptor = _schemaFromDartTypeInternal(
           typeArgument,
           visited,
@@ -628,7 +657,9 @@ class Analyzer {
         return wrapNullable(SchemaDescriptor(type: OpenApiType.dateTime()));
       }
       if (type.isDartCoreList || _implementsIterable(type)) {
-        final typeArgument = type.typeArguments.isNotEmpty ? type.typeArguments.first : null;
+        final typeArgument = type.typeArguments.isNotEmpty
+            ? type.typeArguments.first
+            : null;
         final itemsDescriptor = _schemaFromDartTypeInternal(
           typeArgument,
           visited,
@@ -638,7 +669,9 @@ class Analyzer {
         );
       }
       if (type.isDartCoreMap) {
-        final valueType = type.typeArguments.length > 1 ? type.typeArguments[1] : null;
+        final valueType = type.typeArguments.length > 1
+            ? type.typeArguments[1]
+            : null;
         final valueDescriptor = _schemaFromDartTypeInternal(valueType, visited);
         return wrapNullable(
           SchemaDescriptor(
@@ -673,10 +706,14 @@ class Analyzer {
     if (a.type == b.type) {
       if (a.type == OpenApiType.object()) {
         final merged = <String, SchemaDescriptor>{};
-        for (final entry in a.properties?.entries ?? <MapEntry<String, SchemaDescriptor>>[]) {
+        for (final entry
+            in a.properties?.entries ??
+                <MapEntry<String, SchemaDescriptor>>[]) {
           merged[entry.key] = entry.value;
         }
-        for (final entry in b.properties?.entries ?? <MapEntry<String, SchemaDescriptor>>[]) {
+        for (final entry
+            in b.properties?.entries ??
+                <MapEntry<String, SchemaDescriptor>>[]) {
           merged.putIfAbsent(entry.key, () => entry.value);
         }
         return SchemaDescriptor(
@@ -703,7 +740,8 @@ class Analyzer {
     if (schema.type == OpenApiType.binary()) {
       return 'application/octet-stream';
     }
-    if (schema.type == OpenApiType.object() || schema.type == OpenApiType.array()) {
+    if (schema.type == OpenApiType.object() ||
+        schema.type == OpenApiType.array()) {
       return 'application/json';
     }
     return 'text/plain';
@@ -711,17 +749,20 @@ class Analyzer {
 
   bool _isUint8List(InterfaceType type) {
     final element = type.element;
-    return element.displayName == 'Uint8List' && element.library.displayName == 'dart.typed_data';
+    return element.displayName == 'Uint8List' &&
+        element.library.displayName == 'dart.typed_data';
   }
 
   bool _isFutureInterface(InterfaceType type) {
     final element = type.element;
-    return element.displayName == 'Future' && element.library.displayName == 'dart.async';
+    return element.displayName == 'Future' &&
+        element.library.displayName == 'dart.async';
   }
 
   bool _isStreamInterface(InterfaceType type) {
     final element = type.element;
-    return element.displayName == 'Stream' && element.library.displayName == 'dart.async';
+    return element.displayName == 'Stream' &&
+        element.library.displayName == 'dart.async';
   }
 
   bool _isListOfBytes(InterfaceType type) {
@@ -753,7 +794,9 @@ class Analyzer {
           (superType) => superType.element.displayName == 'JsonObject',
         ) ||
         type.methods.any(
-          (method) => method.displayName == 'toJson' || method.displayName == 'fromJson',
+          (method) =>
+              method.displayName == 'toJson' ||
+              method.displayName == 'fromJson',
         );
   }
 
@@ -763,6 +806,7 @@ class Analyzer {
 
   bool _isDateTime(InterfaceType type) {
     final element = type.element;
-    return element.displayName == 'DateTime' && element.library.displayName == 'dart.core';
+    return element.displayName == 'DateTime' &&
+        element.library.displayName == 'dart.core';
   }
 }
