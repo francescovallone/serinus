@@ -66,7 +66,7 @@ class AppModule extends Module {
     imports: [
       Module.composed<ConfigurableModule>(
       (CompositionContext context) async {
-        final config = context.get<ConfigService>();
+        final config = context.use<ConfigService>();
         return ConfigurableModule(config.apiKey);
       },
       injects: [ConfigService],
