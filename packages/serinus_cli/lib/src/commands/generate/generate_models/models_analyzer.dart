@@ -51,7 +51,9 @@ class ModelsAnalyzer {
             }
             if (!hasFromJson) {
               for (final s in deserializeKeywords) {
-                if (c.name!.contains(s.keyword) && !s.staticMethod && !c.isStatic) {
+                if (c.name!.contains(s.keyword) &&
+                    !s.staticMethod &&
+                    !c.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${c.name}';
                   break;
@@ -65,7 +67,9 @@ class ModelsAnalyzer {
             }
             if (!hasFromJson) {
               for (final s in deserializeKeywords) {
-                if (m.name!.contains(s.keyword) && s.staticMethod && m.isStatic) {
+                if (m.name!.contains(s.keyword) &&
+                    s.staticMethod &&
+                    m.isStatic) {
                   hasFromJson = true;
                   fromJson = '$name.${m.name}';
                   break;

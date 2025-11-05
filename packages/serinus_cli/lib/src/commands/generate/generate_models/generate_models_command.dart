@@ -92,10 +92,10 @@ class GenerateModelsCommand extends Command<int> {
     if (!modelProvider.existsSync()) {
       modelProvider.createSync(recursive: true);
     }
-    final deserializeKeywords = (modelsConfig?.deserializeKeywords ?? [])..add(
-      const DeserializeKeyword(keyword: 'fromJson'));
-    final serializeKeywords = (modelsConfig?.serializeKeywords ?? [])..add(
-      const SerializeKeyword(keyword: 'toJson'));
+    final deserializeKeywords = (modelsConfig?.deserializeKeywords ?? [])
+      ..add(const DeserializeKeyword(keyword: 'fromJson'));
+    final serializeKeywords = (modelsConfig?.serializeKeywords ?? [])
+      ..add(const SerializeKeyword(keyword: 'toJson'));
     final files = await _recursiveGetFiles(
       Directory('$path${Platform.pathSeparator}lib'),
       modelsConfig,

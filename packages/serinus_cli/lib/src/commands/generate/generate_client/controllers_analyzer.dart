@@ -67,7 +67,8 @@ class ControllersAnalyzer {
                   continue;
                 }
                 for (final fragment in <FormalParameterFragment>[
-                  ...member.declaredFragment?.formalParameters ?? <FormalParameterFragment>[],
+                  ...member.declaredFragment?.formalParameters ??
+                      <FormalParameterFragment>[],
                 ]) {
                   final element = fragment.element;
                   if ((element.name == 'path' &&
@@ -102,8 +103,7 @@ class ControllersAnalyzer {
                         element.toString().replaceAll('HttpMethod.', '');
                   }
                 }
-                final matches = superParamsRegex.allMatches(
-                    member.toSource());
+                final matches = superParamsRegex.allMatches(member.toSource());
                 for (final match in matches) {
                   final superCon = match.group(0);
                   if (superCon != null) {
@@ -209,7 +209,8 @@ class ControllersAnalyzer {
                 continue;
               }
               member.declaredFragment?.formalParameters.forEach((parameter) {
-                if (parameter.name == 'path' && parameter.element.isSuperFormal) {
+                if (parameter.name == 'path' &&
+                    parameter.element.isSuperFormal) {
                   controllerPath =
                       parameter.element.computeConstantValue()?.toStringValue();
                 }

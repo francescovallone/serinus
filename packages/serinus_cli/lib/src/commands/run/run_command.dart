@@ -114,7 +114,9 @@ class RunCommand extends Command<int> {
                 : File(path);
             return entity.existsSync() &&
                 FileSystemEntity.identicalSync(
-                    event.path, entity.absolute.path,);
+                  event.path,
+                  entity.absolute.path,
+                );
           });
       if (!shouldRestart) {
         return;

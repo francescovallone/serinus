@@ -47,7 +47,8 @@ class SerinusAnalyzer {
           final callForImports = elements.where(
             (e) => e.type == ElementType.module,
           );
-          final source = clazz.firstFragment.enclosingFragment?.source.contents.data;
+          final source =
+              clazz.firstFragment.enclosingFragment?.source.contents.data;
           if (callForImports.isNotEmpty && superclass == 'Module') {
             updates.add(
               getUpdates(

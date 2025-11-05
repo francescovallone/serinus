@@ -5,7 +5,6 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 class Config {
-
   final ModelsConfig? models;
   final ClientConfig? client;
   final WatcherConfig? watcher;
@@ -13,29 +12,34 @@ class Config {
   final String name;
   final Map<String, String> dependencies;
 
-  const Config({
-    required this.entrypoint,
-    required this.name,
-    this.models,
-    this.client,
-    this.watcher,
-    this.dependencies = const {}
-  });
+  const Config(
+      {required this.entrypoint,
+      required this.name,
+      this.models,
+      this.client,
+      this.watcher,
+      this.dependencies = const {}});
 
   factory Config.fromYaml(Map<String, dynamic> yaml) {
     return Config(
       entrypoint: yaml['entrypoint'] as String? ?? '',
       name: yaml['name'] as String? ?? '',
-      models: yaml['models'] != null ? ModelsConfig.fromYaml((yaml['models'] as YamlMap).value) : null,
-      client: yaml['client'] != null ? ClientConfig.fromYaml((yaml['client'] as YamlMap).value) : null,
-      watcher: yaml['watcher'] != null ? WatcherConfig.fromYaml((yaml['watcher'] as YamlMap).value) : null,
-      dependencies: Map<String, String>.from(yaml['dependencies'] as Map<dynamic, dynamic>? ?? {}),
+      models: yaml['models'] != null
+          ? ModelsConfig.fromYaml((yaml['models'] as YamlMap).value)
+          : null,
+      client: yaml['client'] != null
+          ? ClientConfig.fromYaml((yaml['client'] as YamlMap).value)
+          : null,
+      watcher: yaml['watcher'] != null
+          ? WatcherConfig.fromYaml((yaml['watcher'] as YamlMap).value)
+          : null,
+      dependencies: Map<String, String>.from(
+          yaml['dependencies'] as Map<dynamic, dynamic>? ?? {}),
     );
   }
 }
 
 class WatcherConfig {
-
   final List<String> whitelist;
 
   const WatcherConfig({
@@ -44,14 +48,13 @@ class WatcherConfig {
 
   factory WatcherConfig.fromYaml(Map<dynamic, dynamic> yaml) {
     return WatcherConfig(
-      whitelist: List<String>.from((yaml['whitelist'] as YamlList?)?.value ?? []),
+      whitelist:
+          List<String>.from((yaml['whitelist'] as YamlList?)?.value ?? []),
     );
   }
-
 }
 
 class ClientConfig {
-
   final bool verbose;
   final String language;
   final String httpClient;
@@ -69,11 +72,9 @@ class ClientConfig {
       httpClient: yaml['httpClient'] as String? ?? 'dio',
     );
   }
-
 }
 
 class ModelsConfig {
-
   final List<String> extensions;
   final List<DeserializeKeyword> deserializeKeywords;
   final List<SerializeKeyword> serializeKeywords;
@@ -86,16 +87,18 @@ class ModelsConfig {
 
   factory ModelsConfig.fromYaml(Map<dynamic, dynamic> yaml) {
     return ModelsConfig(
-      extensions: List<String>.from((yaml['extensions'] as YamlList?)?.value ?? []),
-      deserializeKeywords: ((yaml['deserialize_keywords'] as YamlList?)?.value ?? [])
-          .map((e) => DeserializeKeyword.fromYaml((e as YamlMap).value))
-          .toList(),
-      serializeKeywords: ((yaml['serialize_keywords'] as YamlList?)?.value ?? [])
-          .map((e) => SerializeKeyword.fromYaml((e as YamlMap).value))
-          .toList(),
+      extensions:
+          List<String>.from((yaml['extensions'] as YamlList?)?.value ?? []),
+      deserializeKeywords:
+          ((yaml['deserialize_keywords'] as YamlList?)?.value ?? [])
+              .map((e) => DeserializeKeyword.fromYaml((e as YamlMap).value))
+              .toList(),
+      serializeKeywords:
+          ((yaml['serialize_keywords'] as YamlList?)?.value ?? [])
+              .map((e) => SerializeKeyword.fromYaml((e as YamlMap).value))
+              .toList(),
     );
   }
-
 }
 
 class DeserializeKeyword {
