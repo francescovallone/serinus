@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0
+
+- Updated `serinus_serve_static` to be compatible with `serinus` version `2.x.x`.
+- 
+
 ## 1.0.5
 
 - Updated `serinus_serve_static` to be compatible with `serinus` version `1.x.x`.
