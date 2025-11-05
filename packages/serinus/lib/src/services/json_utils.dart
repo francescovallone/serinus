@@ -12,7 +12,8 @@ dynamic parseJsonToResponse(dynamic data, ModelProvider? provider) {
     return data;
   }
 
-  if (provider?.toJsonModels.containsKey(data.runtimeType) ?? false) {
+  if (provider?.toJsonModels.containsKey(data.runtimeType.toString()) ??
+      false) {
     return provider?.to(data);
   }
 
@@ -25,7 +26,9 @@ dynamic parseJsonToResponse(dynamic data, ModelProvider? provider) {
           key,
           value.map((e) => parseJsonToResponse(e.toJson(), provider)).toList(),
         );
-      } else if (provider?.toJsonModels.containsKey(value.runtimeType) ??
+      } else if (provider?.toJsonModels.containsKey(
+            value.runtimeType.toString(),
+          ) ??
           false) {
         return MapEntry(key, provider?.to(value));
       } else if (value is DateTime || value is DateTime?) {
@@ -43,7 +46,9 @@ dynamic parseJsonToResponse(dynamic data, ModelProvider? provider) {
         .map((e) {
           if (e is JsonObject) {
             return parseJsonToResponse(e.toJson(), provider);
-          } else if (provider?.toJsonModels.containsKey(e.runtimeType) ??
+          } else if (provider?.toJsonModels.containsKey(
+                e.runtimeType.toString(),
+              ) ??
               false) {
             return provider?.to(e);
           } else if (e is DateTime || e is DateTime?) {

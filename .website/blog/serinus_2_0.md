@@ -302,6 +302,14 @@ class UserController extends Controller {
 
 This feature simplifies the process of handling request and response data, making it easier to work with complex data structures.
 
+### Execution Context
+
+In addition to all these new features you might have seen that pipes, exception filters, middlewares and hooks have changed their APIs, using a more consistent approach based on the `ExecutionContext`.
+
+The reason behind this change is to provide a unified and expandable way to access request and application data across different components and across different layers of the application. The `ExecutionContext` serves as a central point for accessing request information, response manipulation, and other contextual data.
+
+What does this mean for you? Well, for starters if you were using any of these features you will need to update your code to use the new `ExecutionContext` API. But don't worry, we have provided [detailed documentation](/next/breaking-changes.html#_14-hooks-pipes-and-middlewares-now-use-the-executioncontext) to help you through the process.
+
 ## Internal Improvements
 
 Serinus 2.0 also includes numerous internal improvements and optimizations that enhance the overall performance and stability of the framework. The most important improvements include:
@@ -310,19 +318,15 @@ Serinus 2.0 also includes numerous internal improvements and optimizations that 
 - Strictly typed handlers and routes for enhanced type safety and developer experience.
 - Enhanced module system for better modularity and reusability.
 
-## Execution Context
-
-In addition to all these new features you might have seen that pipes, exception filters, middlewares and hooks have changed their APIs, using a more consistent approach based on the `ExecutionContext`.
-
-The reason behind this change is to provide a unified and expandable way to access request and application data across different components and across different layers of the application. The `ExecutionContext` serves as a central point for accessing request information, response manipulation, and other contextual data.
-
-What does this mean for you? Well, for starters if you were using any of these features you will need to update your code to use the new `ExecutionContext` API. But don't worry, we have provided detailed documentation and migration guides to help you through the process.
-
 ## Breaking Changes
 
 With the introduction of Serinus 2.0, there are several breaking changes that developers need to be aware of when upgrading their applications. These changes are necessary to accommodate the new features and improvements introduced in this release.
 
 All the breaking changes are documented in the [Breaking Changes](../next/breaking-changes) documentation page.
+
+## Other news
+
+Oh, before I forget, Globe has released a tutorial on how to deploy Serinus applications using their platform. You can check it out [here](https://docs.globe.dev/guides/serinus-backend-globe). Thank you Globe for the support and for believing in Serinus! 💙🐤
 
 ## Conclusion
 

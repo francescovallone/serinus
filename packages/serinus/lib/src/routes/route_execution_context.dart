@@ -289,7 +289,9 @@ class RouteExecutionContext {
       context.response.contentType ??= ContentType.json;
     }
 
-    if (modelProvider?.toJsonModels.containsKey(result.data.runtimeType.toString()) ??
+    if (modelProvider?.toJsonModels.containsKey(
+          result.data.runtimeType.toString(),
+        ) ??
         false) {
       final modelObj = modelProvider?.to(result.data);
       responseData = Uint8List.fromList(_jsonUtf8Encoder.convert(modelObj));
