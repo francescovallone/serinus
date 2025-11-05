@@ -3,11 +3,14 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
+/// Visitor that collects model provider invocations from method calls.
 class ModelProviderInvocationCollector extends RecursiveAstVisitor<void> {
+  /// Constructor
   ModelProviderInvocationCollector(this._typeResolver);
 
   final InterfaceType? Function(Expression?) _typeResolver;
 
+  /// Set of collected model provider interface elements.
   final Set<InterfaceElement> providers = {};
 
   @override
@@ -17,8 +20,7 @@ class ModelProviderInvocationCollector extends RecursiveAstVisitor<void> {
       return;
     }
     for (final argument in node.argumentList.arguments) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == 'modelProvider') {
+      if (argument is NamedExpression && argument.name.label.name == 'modelProvider') {
         final interfaceType = _typeResolver(argument.expression);
         if (interfaceType != null) {
           providers.add(interfaceType.element);

@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:openapi_types/openapi_types.dart';
 import 'package:serinus_openapi/src/analyzer/analyzer.dart';
 

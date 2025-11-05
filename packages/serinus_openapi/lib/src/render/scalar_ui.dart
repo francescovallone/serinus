@@ -1,15 +1,20 @@
 import 'dart:convert';
 
 import 'package:openapi_types/openapi_types.dart';
-import 'package:serinus_openapi/src/render/open_api_render_factory.dart';
+import 'open_api_render_factory.dart';
 
+/// Options for configuring the Scalar UI render.
 class ScalarUIOptions extends RenderOptions {
+  /// Custom CSS to style the Scalar UI.
   final String? customCss;
 
+  /// Constructor
   const ScalarUIOptions({this.customCss});
 }
 
+/// The [ScalarUIRender] class is used to render the Scalar UI.
 class ScalarUIRender extends Render<ScalarUIOptions> {
+  /// Default CSS for Scalar UI
   String get serinusCss => '''.light-mode {
 				--scalar-color-1: #3c3c43;
 				--scalar-color-2: #757575;

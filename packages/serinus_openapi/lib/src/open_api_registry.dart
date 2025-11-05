@@ -1,37 +1,48 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus_openapi/serinus_openapi.dart';
-import 'package:serinus_openapi/src/analyzer/models.dart';
-import 'analyzer/analyzer.dart';
 
+import '../serinus_openapi.dart';
+import 'analyzer/analyzer.dart';
+import 'analyzer/models.dart';
+
+/// The [OpenApiRegistry] class is responsible for generating and storing the OpenAPI document.
 class OpenApiRegistry extends Provider with OnApplicationBootstrap {
+  /// The application configuration.
   final ApplicationConfig config;
 
+  /// The OpenAPI version.
   final OpenApiVersion version;
 
-  final InfoObject info;
+  /// The OpenAPI document.
+  final OpenAPIDocument document;
 
+  /// The render options.
   final RenderOptions options;
 
+  /// The path where the OpenAPI document will be served.
   final String path;
 
   String? _content;
 
+  /// Whether to analyze the OpenAPI document.
   final bool analyze;
 
   Map<String, OpenApiPathItem> _paths = {};
 
+  /// The parse type for the OpenAPI document.
   final OpenApiParseType parseType;
 
+  /// The generated OpenAPI document content.
   String get content {
     return _content!;
   }
 
+  /// Constructor
   OpenApiRegistry(
     this.config,
     this.version,
-    this.info,
+    this.document,
     this.path,
     this.options,
     this.analyze, {
@@ -45,37 +56,51 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   }
 
   String _generateOpenApiDocument() {
-    late final OpenAPIDocument document;
+    final OpenAPIDocument document;
     switch (version) {
       case OpenApiVersion.v2:
+        final documentV2 = this.document as DocumentV2;
         document = DocumentV2(
-          info: info,
-          definitions: {},
+          info: documentV2.info,
+          definitions: documentV2.definitions,
           paths: Map<String, PathItemObjectV2>.from(_paths),
+          externalDocs: documentV2.externalDocs,
+          tags: documentV2.tags,
+          securityDefinitions: documentV2.securityDefinitions,
         );
         break;
       case OpenApiVersion.v3_0:
+        final documentV3 = this.document as DocumentV3;
         document = DocumentV3(
-          info: info,
+          info: documentV3.info,
           paths: Map<String, PathItemObjectV3>.from(_paths),
+          components: documentV3.components,
+          externalDocs: documentV3.externalDocs,
+          tags: documentV3.tags,
+          security: documentV3.security,
         );
         break;
       case OpenApiVersion.v3_1:
+        final documentV31 = this.document as DocumentV31;
         document = DocumentV31(
-          info: info as InfoObjectV31,
+          info: documentV31.info as InfoObjectV31,
           structure: PathsWebhooksComponentsV31(
             paths: Map<String, PathItemObjectV31>.from(_paths),
+            webhooks: documentV31.webhooks,
+            components: documentV31.components,
           ),
+          externalDocs: documentV31.externalDocs,
+          tags: documentV31.tags,
+          security: documentV31.security,
         );
         break;
     }
-    final rendererInstance = OpenApiRenderFactory.getRenderer(options);
+    final rendererInstance = getRenderer(options);
     final savedFilePath = StringBuffer();
     if (config.globalPrefix != null) {
       savedFilePath.write('/${config.globalPrefix}');
     }
-    if (config.versioningOptions != null &&
-        config.versioningOptions!.type == VersioningType.uri) {
+    if (config.versioningOptions != null && config.versioningOptions!.type == VersioningType.uri) {
       savedFilePath.write(
         '/${config.versioningOptions!.versionPrefix}${config.versioningOptions!.version}',
       );
@@ -116,8 +141,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
         continue;
       }
       final Map<String, Map<String, OpenApiOperation>> operations = {};
-      final controllerDescriptions =
-          result[controllerName] ?? const <RouteDescription>[];
+      final controllerDescriptions = result[controllerName] ?? const <RouteDescription>[];
       var handlerIndex = 0;
       for (final entry in controller.routes.entries) {
         final route = entry.value.route;
@@ -147,12 +171,9 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
                 tags: [controllerName],
                 parameters: List<ParameterObjectV2>.from([
                   ...parameters,
-                  if (route.parameters != null)
-                    ...route.parameters,
+                  if (route.parameters != null) ...route.parameters,
                 ]),
-                responses: {
-                  ...?route.responses,
-                },
+                responses: {...?route.responses},
               );
               break;
             case OpenApiVersion.v3_0:
@@ -160,21 +181,16 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
                 tags: [controllerName],
                 parameters: List<ParameterObjectV3>.from([
                   ...parameters,
-                  if (route.parameters != null)
-                    ...route.parameters,
+                  if (route.parameters != null) ...route.parameters,
                 ]),
-                responses: ResponsesV3({
-                  ...?route.responses?.responses,
-                }),
+                responses: ResponsesV3({...?route.responses?.responses}),
               );
               break;
             case OpenApiVersion.v3_1:
               operation = OperationObjectV31(
                 tags: [controllerName],
                 parameters: List<ParameterObjectV3>.from(parameters),
-                responses: ResponsesV31({
-                  ...?route.responses?.responses,
-                }),
+                responses: ResponsesV31({...?route.responses?.responses}),
               );
               break;
           }
@@ -204,9 +220,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
               break;
           }
         }
-        final description = handlerIndex < controllerDescriptions.length
-            ? controllerDescriptions[handlerIndex]
-            : null;
+        final description = handlerIndex < controllerDescriptions.length ? controllerDescriptions[handlerIndex] : null;
         handlerIndex++;
         if (description != null) {
           final responseKey = route.method == HttpMethod.post ? '201' : '200';
@@ -354,8 +368,10 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
             description.exceptions,
           );
         }
-        final Map<String, OpenApiOperation> methodOperations =
-            _calculateOperationsBasedOnHttpMethod(route.method, operation);
+        final Map<String, OpenApiOperation> methodOperations = _calculateOperationsBasedOnHttpMethod(
+          route.method,
+          operation,
+        );
         operations[fullPath]!.addAll(methodOperations);
         switch (version) {
           case OpenApiVersion.v2:
@@ -403,12 +419,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
               (param) => param.in_ == 'query' && param.name == entry.key,
             );
             final openApiType = _mapRuntimeTypeToOpenApiType(entry.value);
-            final typeString = openApiType.type == 'object'
-                ? 'string'
-                : openApiType.type;
-            final formatString = openApiType.type == 'object'
-                ? null
-                : openApiType.format;
+            final typeString = openApiType.type == 'object' ? 'string' : openApiType.type;
+            final formatString = openApiType.type == 'object' ? null : openApiType.format;
             existing.add(
               ParameterObjectV2(
                 name: entry.key,
@@ -441,10 +453,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           );
           for (final entry in queryParameters.entries) {
             existing.removeWhere(
-              (param) =>
-                  param is ParameterObjectV3 &&
-                  param.in_ == 'query' &&
-                  param.name == entry.key,
+              (param) => param is ParameterObjectV3 && param.in_ == 'query' && param.name == entry.key,
             );
             final openApiType = _mapRuntimeTypeToOpenApiType(entry.value);
             final schema = SchemaObjectV3(type: openApiType);
@@ -480,10 +489,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           );
           for (final entry in queryParameters.entries) {
             existing.removeWhere(
-              (param) =>
-                  param is ParameterObjectV3 &&
-                  param.in_ == 'query' &&
-                  param.name == entry.key,
+              (param) => param is ParameterObjectV3 && param.in_ == 'query' && param.name == entry.key,
             );
             final openApiType = _mapRuntimeTypeToOpenApiType(entry.value);
             final schema = SchemaObjectV3(type: openApiType);
@@ -612,8 +618,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
 
   ResponseObjectV2 _buildExceptionResponseV2(ExceptionResponse exception) {
     return ResponseObjectV2(
-      description:
-          exception.message ?? exception.typeName ?? 'Serinus exception',
+      description: exception.message ?? exception.typeName ?? 'Serinus exception',
       schema: SchemaObjectV2(
         type: OpenApiType.object(),
         properties: {
@@ -628,8 +633,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
 
   ResponseObjectV3 _buildExceptionResponseV3(ExceptionResponse exception) {
     return ResponseObjectV3(
-      description:
-          exception.message ?? exception.typeName ?? 'Serinus exception',
+      description: exception.message ?? exception.typeName ?? 'Serinus exception',
       content: {
         'application/json': MediaTypeObjectV3(
           schema: SchemaObjectV3(
@@ -687,10 +691,10 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   }
 
   String _normalizePath(String path) {
-    if (!path.startsWith("/")) {
-      path = "/$path";
+    if (!path.startsWith('/')) {
+      path = '/$path';
     }
-    if (path.endsWith("/") && path.length > 1) {
+    if (path.endsWith('/') && path.length > 1) {
       path = path.substring(0, path.length - 1);
     }
     if (path.contains(RegExp('([/]{2,})'))) {
@@ -699,8 +703,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     return path;
   }
 
-  Map<String, OpenApiOperation<Map<String, dynamic>>>
-  _calculateOperationsBasedOnHttpMethod(
+  Map<String, OpenApiOperation<Map<String, dynamic>>> _calculateOperationsBasedOnHttpMethod(
     HttpMethod method,
     OpenApiOperation<Map<String, dynamic>> operation,
   ) {

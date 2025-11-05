@@ -17,7 +17,6 @@ class MyObject with JsonObject {
 }
 
 class TestMdProvider extends ModelProvider {
-
   @override
   Map<String, Function> get fromJsonModels => {'MyObject': MyObject.fromJson};
 
@@ -29,14 +28,14 @@ class TestMdProvider extends ModelProvider {
 
 class HelloWorldRoute extends ApiRoute {
   HelloWorldRoute({super.queryParameters}) : super(path: '/');
-  
+
   @override
   OpenApiVersion get openApiVersion => OpenApiVersion.v2;
 }
 
 class PostRoute extends ApiRoute {
   PostRoute({required super.path}) : super(method: HttpMethod.post);
-  
+
   @override
   OpenApiVersion get openApiVersion => OpenApiVersion.v3_0;
 }

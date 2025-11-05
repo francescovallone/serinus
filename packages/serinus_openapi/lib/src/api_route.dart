@@ -1,7 +1,5 @@
-import 'package:openapi_types/commons.dart';
-import 'package:openapi_types/open_api_v2.dart';
 import 'package:serinus/serinus.dart';
-import 'package:serinus_openapi/serinus_openapi.dart';
+import '../serinus_openapi.dart';
 
 /// The [ApiRoute] class is used to define an API route.
 abstract class ApiRoute<Res, Params> extends Route {
@@ -15,14 +13,19 @@ abstract class ApiRoute<Res, Params> extends Route {
     this.parameters,
   });
 
+  /// Map of query parameter names to their types.
   final Map<String, Type> queryParameters;
 
+  /// The responses of the route.
   final Res? responses;
 
+  /// The parameters of the route.
   final Params? parameters;
 
+  /// The OpenAPI version of the route.
   OpenApiVersion get openApiVersion;
 
+  /// Factory method to create an [ApiRoute] instance based on the OpenAPI version.
   static ApiRouteV2 v2({
     required String path,
     HttpMethod method = HttpMethod.get,
@@ -39,6 +42,7 @@ abstract class ApiRoute<Res, Params> extends Route {
     );
   }
 
+  /// Factory method to create an [ApiRoute] instance for version 3.
   static ApiRouteV3 v3({
     required String path,
     HttpMethod method = HttpMethod.get,
@@ -55,6 +59,7 @@ abstract class ApiRoute<Res, Params> extends Route {
     );
   }
 
+  /// Factory method to create an [ApiRoute] instance for version 3.1.
   static ApiRouteV31 v31({
     required String path,
     HttpMethod method = HttpMethod.get,
@@ -70,9 +75,9 @@ abstract class ApiRoute<Res, Params> extends Route {
       parameters: parameters,
     );
   }
-  
 }
 
+/// API Route implementation for OpenAPI v2.
 class ApiRouteV2 extends ApiRoute<Map<String, ResponseObjectV2>, List<ParameterObjectV2>> {
   /// The [apiSpec] property contains the API specification.
   /// The [ApiRoute] constructor is used to create a new instance of the [ApiRoute] class.
@@ -86,9 +91,9 @@ class ApiRouteV2 extends ApiRoute<Map<String, ResponseObjectV2>, List<ParameterO
 
   @override
   OpenApiVersion get openApiVersion => OpenApiVersion.v2;
-
 }
 
+/// API Route implementation for OpenAPI v3.
 class ApiRouteV3 extends ApiRoute<ResponsesV3, List<ParameterObjectV3>> {
   /// The [apiSpec] property contains the API specification.
   /// The [ApiRoute] constructor is used to create a new instance of the [ApiRoute] class.
@@ -102,9 +107,9 @@ class ApiRouteV3 extends ApiRoute<ResponsesV3, List<ParameterObjectV3>> {
 
   @override
   OpenApiVersion get openApiVersion => OpenApiVersion.v3_0;
-
 }
 
+/// API Route implementation for OpenAPI v3.1.
 class ApiRouteV31 extends ApiRoute<ResponsesV31, List<ParameterObjectV3>> {
   /// The [apiSpec] property contains the API specification.
   /// The [ApiRoute] constructor is used to create a new instance of the [ApiRoute] class.
@@ -118,6 +123,4 @@ class ApiRouteV31 extends ApiRoute<ResponsesV31, List<ParameterObjectV3>> {
 
   @override
   OpenApiVersion get openApiVersion => OpenApiVersion.v3_1;
-
 }
-
