@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0
+
+- Updated `serinus_cli` to be compatible with `serinus` version `2.x.x`.
+
 ## 1.0.13
 
 - fix: properly kill the process tree in Windows when using the `run` command in the CLI. [#192](https://github.com/francescovallone/serinus/pull/192) by [mdex-geek](https://github.com/mdex-geek)
