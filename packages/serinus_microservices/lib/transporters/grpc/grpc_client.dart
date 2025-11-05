@@ -4,7 +4,7 @@ import 'package:grpc/grpc.dart';
 import 'package:serinus/serinus.dart';
 
 /// gRPC client options.
-/// 
+///
 /// - [host] The gRPC server host.
 /// - [port] The gRPC server port.
 /// - [clients] A function that receives the created [ClientChannel] and returns a list of gRPC clients.
@@ -12,10 +12,13 @@ import 'package:serinus/serinus.dart';
 class GrpcClientOptions extends TransportClientOptions {
   /// The gRPC server host.
   final String host;
+
   /// The gRPC server port.
   final int port;
+
   /// A function that receives the created [ClientChannel] and returns a list of gRPC clients.
   final List<Client> Function(ClientChannel channel)? clients;
+
   /// Optional gRPC [ChannelOptions] to customize the client channel.
   final ChannelOptions? channelOptions;
 
@@ -26,12 +29,10 @@ class GrpcClientOptions extends TransportClientOptions {
     this.clients,
     this.channelOptions,
   });
-
 }
 
 /// A gRPC transport client.
 class GrpcClient extends TransportClient<GrpcClientOptions> {
-
   /// Creates a gRPC client.
   GrpcClient(super.options);
 
@@ -47,7 +48,8 @@ class GrpcClient extends TransportClient<GrpcClientOptions> {
     _channel = ClientChannel(
       options.host,
       port: options.port,
-      options: options.channelOptions ??
+      options:
+          options.channelOptions ??
           ChannelOptions(
             credentials: ChannelCredentials.insecure(),
           ),
@@ -71,10 +73,9 @@ class GrpcClient extends TransportClient<GrpcClientOptions> {
     _channel = null;
     _clients.clear();
   }
-  
+
   @override
   Future<ResponsePacket?> send({required String pattern, required String id, Uint8List? payload}) {
     throw UnimplementedError('send is not implemented for GrpcClient.');
   }
-
 }

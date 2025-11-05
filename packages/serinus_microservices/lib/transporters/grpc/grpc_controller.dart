@@ -4,7 +4,6 @@ import 'package:serinus/serinus.dart';
 
 /// The [GrpcRoute] class is the gRPC
 class GrpcRoute extends Route {
-
   /// The [serviceName] property contains the name of the gRPC service.
   final Type serviceName;
 
@@ -45,21 +44,16 @@ class GrpcStreamHandler<Req extends GeneratedMessage, Res extends GeneratedMessa
 
 /// The [GrpcRouteSpec] class is used to define a gRPC route handler specification.
 abstract class GrpcRouteSpec<T, Req, Res> extends RouteHandlerSpec<T> {
-
   @override
   T get handler => super.handler;
-  
-  /// The [GrpcRouteSpec] constructor is used to create a new instance of the [GrpcRouteSpec] class.
-  GrpcRouteSpec(
-    super.route,
-    super.handler
-  );
 
+  /// The [GrpcRouteSpec] constructor is used to create a new instance of the [GrpcRouteSpec] class.
+  GrpcRouteSpec(super.route, super.handler);
 }
 
 /// The [GrpcRouteHandlerSpec] class is the gRPC route handler specification.
-class GrpcRouteHandlerSpec<Req extends GeneratedMessage, Res extends GeneratedMessage> extends GrpcRouteSpec<GrpcUnaryHandler, Req, Res> {
-
+class GrpcRouteHandlerSpec<Req extends GeneratedMessage, Res extends GeneratedMessage>
+    extends GrpcRouteSpec<GrpcUnaryHandler, Req, Res> {
   /// Creates a gRPC route handler specification.
   GrpcRouteHandlerSpec(
     GrpcRoute route,
@@ -68,8 +62,8 @@ class GrpcRouteHandlerSpec<Req extends GeneratedMessage, Res extends GeneratedMe
 }
 
 /// The [GrpcStreamRouteHandlerSpec] class is the gRPC streaming route handler specification.
-class GrpcStreamRouteHandlerSpec<Req extends GeneratedMessage, Res extends GeneratedMessage> extends GrpcRouteSpec<GrpcStreamHandler, Req, Res> {
-
+class GrpcStreamRouteHandlerSpec<Req extends GeneratedMessage, Res extends GeneratedMessage>
+    extends GrpcRouteSpec<GrpcStreamHandler, Req, Res> {
   /// Creates a gRPC stream route handler specification.
   GrpcStreamRouteHandlerSpec(
     GrpcRoute route,
@@ -79,13 +73,14 @@ class GrpcStreamRouteHandlerSpec<Req extends GeneratedMessage, Res extends Gener
 
 /// The [GrpcController] mixin is used to add gRPC routes to a controller.
 mixin GrpcController on Controller {
-
   /// The [grpcRoutes] property contains the gRPC routes of the controller.
   final Map<String, GrpcRouteSpec> grpcRoutes = {};
 
   /// Registers a gRPC route with the controller.
   void grpc<Req extends GeneratedMessage, Res extends GeneratedMessage>(
-      GrpcRoute route, Future<Res> Function(ServiceCall call, Req request, RpcContext context) handler,) {
+    GrpcRoute route,
+    Future<Res> Function(ServiceCall call, Req request, RpcContext context) handler,
+  ) {
     if (grpcRoutes.containsKey(route.path)) {
       throw StateError(
         'A gRPC method with name "${route.path}" is already registered in the controller.',
@@ -99,7 +94,9 @@ mixin GrpcController on Controller {
 
   /// Registers a gRPC streaming route with the controller.
   void grpcStream<Req extends GeneratedMessage, Res extends GeneratedMessage>(
-      GrpcRoute route, Stream<Res> Function(ServiceCall call, Stream<Req> requests, RpcContext context) handler,) {
+    GrpcRoute route,
+    Stream<Res> Function(ServiceCall call, Stream<Req> requests, RpcContext context) handler,
+  ) {
     if (grpcRoutes.containsKey(route.path)) {
       throw StateError(
         'A gRPC streaming method with name "${route.path}" is already registered in the controller.',
@@ -110,5 +107,4 @@ mixin GrpcController on Controller {
       handler,
     );
   }
-
 }

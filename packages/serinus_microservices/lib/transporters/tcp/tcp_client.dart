@@ -6,12 +6,13 @@ import 'dart:typed_data';
 import 'package:serinus/serinus.dart';
 
 /// TCP client options.
-/// 
+///
 /// - [host] The address to connect to.
 /// - [port] The port to connect to.
 class TcpClientOptions extends TransportClientOptions {
   /// The address to connect to.
   final InternetAddress host;
+
   /// The port to connect to.
   final int port;
 
@@ -24,7 +25,6 @@ class TcpClientOptions extends TransportClientOptions {
 
 /// A TCP transport client.
 class TcpClient extends TransportClient<TcpClientOptions> {
-
   /// Creates a TCP client.
   TcpClient(super.options);
 
@@ -50,7 +50,7 @@ class TcpClient extends TransportClient<TcpClientOptions> {
         _socket = null;
       });
     } catch (e, _) {
-      if(!_isRetrying) {
+      if (!_isRetrying) {
         _logger.warning('Failed to connect to TCP server, retrying with exponential backoff...');
         await _retry();
       }
@@ -90,16 +90,18 @@ class TcpClient extends TransportClient<TcpClientOptions> {
     required String id,
     Uint8List? payload,
   }) async {
-    if(_socket == null) {
+    if (_socket == null) {
       await connect();
     }
     final completer = Completer<ResponsePacket?>();
     _pendingRequests[id] = completer;
-    _socket?.write(jsonEncode({
-      'pattern': pattern,
-      'id': id,
-      'payload': payload != null ? base64Encode(payload) : null,
-    }));
+    _socket?.write(
+      jsonEncode({
+        'pattern': pattern,
+        'id': id,
+        'payload': payload != null ? base64Encode(payload) : null,
+      }),
+    );
     return completer.future;
   }
 
@@ -108,19 +110,20 @@ class TcpClient extends TransportClient<TcpClientOptions> {
     required String pattern,
     Uint8List? payload,
   }) async {
-    if(_socket == null) {
+    if (_socket == null) {
       await connect();
     }
-    _socket?.write(jsonEncode({
-      'pattern': pattern,
-      'payload': payload != null ? base64Encode(payload) : null,
-    }));
+    _socket?.write(
+      jsonEncode({
+        'pattern': pattern,
+        'payload': payload != null ? base64Encode(payload) : null,
+      }),
+    );
   }
-  
+
   @override
   Future<void> close() async {
     _socket?.destroy();
     _socket = null;
   }
-
 }

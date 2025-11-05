@@ -6,6 +6,7 @@ import 'grpc_controller.dart';
 sealed class GrpcPayload<T, R> {
   /// The gRPC service call.
   final ServiceCall call;
+
   /// The future request.
   final T futureRequest;
 
@@ -30,7 +31,6 @@ class GrpcPayloadUnitary<O> extends GrpcPayload<Future<O>, O> {
     }
     _request = await futureRequest;
     return _request!;
-
   }
 }
 
@@ -45,14 +45,11 @@ class GrpcPayloadStream<O> extends GrpcPayload<Stream<O>, O> {
   }
 }
 
-
-
 /// The [GrpcRouteContext] class is the gRPC route context.
 sealed class GrpcRouteContext<T> {
-
   /// The [handler] property contains the handler function.
   final T handler;
-  
+
   /// The [providers] property contains the providers available in the context.
   final Map<Type, Provider> providers;
 
@@ -76,7 +73,6 @@ sealed class GrpcRouteContext<T> {
     required this.pipes,
     this.streaming = false,
   });
-
 }
 
 /// The [GrpcRouteContextHandler] class is the gRPC route context for unary handlers.
@@ -142,8 +138,7 @@ class GrpcMessageResolver extends MessagesResolver {
               resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextHandler(
                 handler: entry.value.handler,
                 providers: {
-                  for (final providerEntry in module.providers)
-                    providerEntry.runtimeType: providerEntry,
+                  for (final providerEntry in module.providers) providerEntry.runtimeType: providerEntry,
                 },
                 hooks: entry.value.route.hooks.merge([
                   controllerEntry.hooks,
@@ -165,8 +160,7 @@ class GrpcMessageResolver extends MessagesResolver {
               resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextStreamHandler(
                 handler: entry.value.handler,
                 providers: {
-                  for (final providerEntry in module.providers)
-                    providerEntry.runtimeType: providerEntry,
+                  for (final providerEntry in module.providers) providerEntry.runtimeType: providerEntry,
                 },
                 hooks: entry.value.route.hooks.merge([
                   controllerEntry.hooks,
@@ -210,8 +204,7 @@ class GrpcMessageResolver extends MessagesResolver {
         HostType.rpc,
         routeContext.providers,
         {
-          for (final hook in routeContext.hooks.reqHooks)
-            hook.runtimeType: hook,
+          for (final hook in routeContext.hooks.reqHooks) hook.runtimeType: hook,
         },
         RpcArgumentsHost(packet),
       );
@@ -235,14 +228,12 @@ class GrpcMessageResolver extends MessagesResolver {
       }
     } on RpcException catch (e) {
       for (final filter in routeContext.exceptionFilters) {
-        if (filter.catchTargets.contains(e.runtimeType) ||
-            filter.catchTargets.isEmpty) {
+        if (filter.catchTargets.contains(e.runtimeType) || filter.catchTargets.isEmpty) {
           final executionContext = ExecutionContext(
             HostType.rpc,
             routeContext.providers,
             {
-              for (final hook in routeContext.hooks.reqHooks)
-                hook.runtimeType: hook,
+              for (final hook in routeContext.hooks.reqHooks) hook.runtimeType: hook,
             },
             RpcArgumentsHost(packet),
           );

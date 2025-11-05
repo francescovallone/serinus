@@ -2,28 +2,21 @@
 // ignore_for_file: avoid_print
 import 'package:serinus/serinus.dart';
 import 'package:serinus_microservices/transporters/tcp/tcp_transport.dart';
-class TestProvider extends Provider {
 
+class TestProvider extends Provider {
   int counter = 0;
 
   void increment() {
     counter++;
   }
-
 }
 
 class TestModule extends Module {
-  TestModule() : super(
-    providers: [TestProvider()],
-    exports: [TestProvider]
-  );
+  TestModule() : super(providers: [TestProvider()], exports: [TestProvider]);
 }
 
 class Test2Module extends Module {
-  Test2Module() : super(
-    imports: [TestModule()],
-    controllers: [Test2Controller()]
-  );
+  Test2Module() : super(imports: [TestModule()], controllers: [Test2Controller()]);
 }
 
 class Test2Controller extends Controller {
@@ -50,14 +43,8 @@ class AppController extends Controller with RpcController {
 }
 
 class AppModule extends Module {
-  
-  AppModule() : super(
-    imports: [Test2Module(), TestModule()],
-    controllers: [AppController()]
-  );
-
+  AppModule() : super(imports: [Test2Module(), TestModule()], controllers: [AppController()]);
 }
-
 
 void main(List<String> arguments) async {
   final application = await serinus.createMicroservice(

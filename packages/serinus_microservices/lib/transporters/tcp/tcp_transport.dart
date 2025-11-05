@@ -6,12 +6,11 @@ import 'package:serinus/serinus.dart';
 
 /// TCP transport options.
 class TcpOptions extends TransportOptions {
-
   /// The underlying TCP socket.
   final TcpSocket socket;
 
   /// Creates TCP transport options.
-  TcpOptions({required int port, TcpSocket? socket}): socket = socket ?? JsonSocket(), super(port);
+  TcpOptions({required int port, TcpSocket? socket}) : socket = socket ?? JsonSocket(), super(port);
 }
 
 /// TCP event class.
@@ -28,7 +27,6 @@ class TcpEvents extends TransportEvent {
 
 /// A TCP transport adapter.
 class TcpTransport extends TransportAdapter<TcpSocket, TcpOptions> {
-
   /// Creates a TCP transport adapter.
   TcpTransport(super.options);
 
@@ -49,7 +47,6 @@ class TcpTransport extends TransportAdapter<TcpSocket, TcpOptions> {
     await server?.listen(_handleData);
   }
 
-  
   Future<ResponsePacket?> _handleData(MessagePacket packet) async {
     try {
       if (packet.id != null) {
@@ -96,16 +93,14 @@ class TcpTransport extends TransportAdapter<TcpSocket, TcpOptions> {
     final routes = requestResponseRouter[context.message.pattern];
     if (routes == null) {
       return ResponsePacket(
-          pattern: context.message.pattern,
-          id: context.message.id,
-          payload: {'error': 'NO_HANDLER'},
-          isError: true);
-    }
-    final res = await routes(context);
-    return ResponsePacket(
         pattern: context.message.pattern,
         id: context.message.id,
-        payload: res.payload);
+        payload: {'error': 'NO_HANDLER'},
+        isError: true,
+      );
+    }
+    final res = await routes(context);
+    return ResponsePacket(pattern: context.message.pattern, id: context.message.id, payload: res.payload);
   }
 
   @override
@@ -114,14 +109,12 @@ class TcpTransport extends TransportAdapter<TcpSocket, TcpOptions> {
 
 /// Abstract TCP socket class.
 abstract class TcpSocket {
-
   final Map<String, Socket> _connections = {};
 
   /// The underlying server socket.
   ServerSocket? server;
 
-  StreamController<TcpEvents> get _controller =>
-      StreamController<TcpEvents>.broadcast();
+  StreamController<TcpEvents> get _controller => StreamController<TcpEvents>.broadcast();
 
   /// Stream of TCP events.
   Stream<TcpEvents> get status => _controller.stream;
@@ -147,51 +140,55 @@ abstract class TcpSocket {
     await server?.close();
     server = null;
   }
-
 }
 
 /// A TCP socket implementation that encodes and decodes messages as JSON.
 class JsonSocket extends TcpSocket {
-
   @override
   Future<void> listen(Future<ResponsePacket?> Function(MessagePacket data) onData) async {
     await for (final socket in server!) {
       final clientId = '${socket.remoteAddress.address}:${socket.remotePort}';
       _connections[clientId] = socket;
       _controller.add(TcpEvents('connected', clientId: clientId));
-      socket.listen((event) async {
-        final message = utf8.decode(event);
-        _controller.add(TcpEvents('data', clientId: clientId));
-        try {
-          final jsonMessage = json.decode(message);
-          if (jsonMessage is! Map<String, dynamic>) {
-            throw Exception('Invalid message format');
+      socket.listen(
+        (event) async {
+          final message = utf8.decode(event);
+          _controller.add(TcpEvents('data', clientId: clientId));
+          try {
+            final jsonMessage = json.decode(message);
+            if (jsonMessage is! Map<String, dynamic>) {
+              throw Exception('Invalid message format');
+            }
+            if (jsonMessage['pattern'] == null) {
+              socket.write(
+                json.encode(
+                  ResponsePacket(
+                    pattern: jsonMessage['pattern'],
+                    id: jsonMessage['id'],
+                    payload: {'error': 'MISSING_PATTERN'},
+                    isError: true,
+                  ).toJson(),
+                ),
+              );
+            }
+            final packet = MessagePacket.fromJson(json.decode(message) as Map<String, dynamic>);
+            final response = await onData(packet);
+            if (response != null) {
+              socket.write(json.encode(response.toJson()));
+            }
+          } catch (e) {
+            _controller.add(TcpEvents('error', clientId: clientId));
           }
-          if (jsonMessage['pattern'] == null) {
-            socket.write(json.encode(ResponsePacket(
-              pattern: jsonMessage['pattern'],
-              id: jsonMessage['id'],
-              payload: {'error': 'MISSING_PATTERN'},
-              isError: true,
-            ).toJson()));
-          }
-          final packet = MessagePacket.fromJson(
-              json.decode(message) as Map<String, dynamic>);
-          final response = await onData(packet);
-          if (response != null) {
-            socket.write(json.encode(response.toJson()));
-          }
-        } catch (e) {
+        },
+        onDone: () {
+          _controller.add(TcpEvents('disconnected', clientId: clientId));
+          _connections.remove(clientId);
+        },
+        onError: (error) {
           _controller.add(TcpEvents('error', clientId: clientId));
-        }
-      }, onDone: () {
-        _controller.add(TcpEvents('disconnected', clientId: clientId));
-        _connections.remove(clientId);
-      }, onError: (error) {
-        _controller.add(TcpEvents('error', clientId: clientId));
-        _connections.remove(clientId);
-      });
+          _connections.remove(clientId);
+        },
+      );
     }
   }
-  
 }

@@ -7,7 +7,6 @@ import 'grpc_message_handler.dart';
 
 /// The [SerinusInterceptor] class is the gRPC interceptor for Serinus.
 class SerinusInterceptor extends ServerInterceptor {
-
   /// The [transporter] instance is used to handle gRPC requests.
   final GrpcTransport transporter;
 
@@ -15,14 +14,18 @@ class SerinusInterceptor extends ServerInterceptor {
   SerinusInterceptor(this.transporter);
 
   @override
-  Stream<R> intercept<Q, R>(ServiceCall call, ServiceMethod<Q, R> method, Stream<Q> requests, ServerStreamingInvoker<Q, R> invoker) {
+  Stream<R> intercept<Q, R>(
+    ServiceCall call,
+    ServiceMethod<Q, R> method,
+    Stream<Q> requests,
+    ServerStreamingInvoker<Q, R> invoker,
+  ) {
     return transporter.handleRequest<Q, R>(call, method, requests);
   }
 }
 
 /// The [GrpcOptions] class is the gRPC transport options.
 class GrpcOptions extends TransportOptions {
-
   /// The list of gRPC services.
   final List<Service> services;
 
@@ -51,7 +54,6 @@ class GrpcOptions extends TransportOptions {
 
 /// A gRPC transport adapter.
 class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
-
   /// Creates a gRPC transport adapter.
   GrpcTransport(super.options);
 
@@ -72,7 +74,7 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
       services: options.services,
       codecRegistry: options.codecRegistry,
       keepAliveOptions: options.keepAliveOptions,
-      serverInterceptors: [SerinusInterceptor(this)]
+      serverInterceptors: [SerinusInterceptor(this)],
     );
   }
 
@@ -109,94 +111,100 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
     final methodName = pathSegments[2];
     final service = server?.lookupService(serviceName);
     final controller = StreamController<R>();
-    messagesResolver?.handleMessage(
-      RequestPacket(
-        pattern: '${service?.runtimeType}.$methodName',
-        id: serviceName,
-        payload: method.streamingRequest 
-          ? GrpcPayloadStream<O>(call, requests) 
-          : GrpcPayloadUnitary<O>(call, _toSingleFuture(requests)),
-      ),
-      this,
-    ).then((responsePacket) {
-      if (responsePacket == null) {
-        throw GrpcError.internal('No response received from handler');
-      }
-      if (responsePacket.isError) {
-        throw GrpcError.internal(
-          'Error from handler: ${responsePacket.payload}',
-        );
-      }
-      if (method.streamingResponse) {
-        if (method.streamingRequest) {
-          final responseStream = responsePacket.payload as Stream<R>;
-          responseStream.listen(
-            (event) {
-              controller.add(event);
-            },
-            onDone: () {
-              controller.close();
-            },
-            onError: (error) {
-              controller.addError(error);
-            },
-          );
-        } else {
-          if (responsePacket.payload is! Stream<R>) {
-            final response = responsePacket.payload as R;
-            controller.add(response);
-            controller.close();
-          } else {
-            final responseStream = responsePacket.payload as Stream<R>;
-            responseStream.listen(
-              (event) {
-                controller.add(event);
-              },
-              onDone: () {
-                controller.close();
-              },
-              onError: (error) {
-                controller.addError(error);
-              },
+    messagesResolver
+        ?.handleMessage(
+          RequestPacket(
+            pattern: '${service?.runtimeType}.$methodName',
+            id: serviceName,
+            payload: method.streamingRequest
+                ? GrpcPayloadStream<O>(call, requests)
+                : GrpcPayloadUnitary<O>(call, _toSingleFuture(requests)),
+          ),
+          this,
+        )
+        .then((responsePacket) {
+          if (responsePacket == null) {
+            throw GrpcError.internal('No response received from handler');
+          }
+          if (responsePacket.isError) {
+            throw GrpcError.internal(
+              'Error from handler: ${responsePacket.payload}',
             );
           }
-        }
-      } else {
-        if (method.streamingRequest) {
-          final response = responsePacket.payload as Stream<R>;
-          controller.addStream(response).then((_) {
-            controller.close();
-          }).catchError((error) {
-            controller.addError(error);
-          });
-        } else {
-          if (responsePacket.payload is! Stream<R>) {
-            final response = responsePacket.payload as R;
-            controller.add(response);
-            controller.close();
-          } else {
-            final responseStream = responsePacket.payload as Stream<R>;
-            responseStream.listen(
-              (event) {
-                controller.add(event);
-              },
-              onDone: () {
+          if (method.streamingResponse) {
+            if (method.streamingRequest) {
+              final responseStream = responsePacket.payload as Stream<R>;
+              responseStream.listen(
+                (event) {
+                  controller.add(event);
+                },
+                onDone: () {
+                  controller.close();
+                },
+                onError: (error) {
+                  controller.addError(error);
+                },
+              );
+            } else {
+              if (responsePacket.payload is! Stream<R>) {
+                final response = responsePacket.payload as R;
+                controller.add(response);
                 controller.close();
-              },
-              onError: (error) {
-                controller.addError(error);
-              },
-            );
+              } else {
+                final responseStream = responsePacket.payload as Stream<R>;
+                responseStream.listen(
+                  (event) {
+                    controller.add(event);
+                  },
+                  onDone: () {
+                    controller.close();
+                  },
+                  onError: (error) {
+                    controller.addError(error);
+                  },
+                );
+              }
+            }
+          } else {
+            if (method.streamingRequest) {
+              final response = responsePacket.payload as Stream<R>;
+              controller
+                  .addStream(response)
+                  .then((_) {
+                    controller.close();
+                  })
+                  .catchError((error) {
+                    controller.addError(error);
+                  });
+            } else {
+              if (responsePacket.payload is! Stream<R>) {
+                final response = responsePacket.payload as R;
+                controller.add(response);
+                controller.close();
+              } else {
+                final responseStream = responsePacket.payload as Stream<R>;
+                responseStream.listen(
+                  (event) {
+                    controller.add(event);
+                  },
+                  onDone: () {
+                    controller.close();
+                  },
+                  onError: (error) {
+                    controller.addError(error);
+                  },
+                );
+              }
+            }
           }
-        }
-      }
-    }).catchError((error) {
-      if (error is RpcException) {
-        controller.add(GrpcError.custom(14, error.message) as R);
-        return;
-      }
-      controller.addError(error);
-    });
+        })
+        .catchError((error) {
+          if (error is RpcException) {
+            controller.add(GrpcError.custom(14, error.message) as R);
+            return;
+          }
+          controller.addError(error);
+        });
     return controller.stream;
   }
 
@@ -215,9 +223,7 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
       return value;
     }
 
-    final future = stream
-        .fold<Q?>(null, ensureOnlyOneRequest)
-        .then(ensureOneRequest);
+    final future = stream.fold<Q?>(null, ensureOnlyOneRequest).then(ensureOneRequest);
     // Make sure errors on the future aren't unhandled, but return the original
     // future so the request handler can also get the error.
     _awaitAndCatch(future);
@@ -234,5 +240,4 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
 
   @override
   MessagesResolver? get messagesResolver => _messagesResolver;
-
 }
