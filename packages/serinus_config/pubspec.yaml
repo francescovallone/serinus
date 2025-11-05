@@ -1,9 +1,9 @@
 name: serinus_config
 description: A module for Serinus applications that exposes the dotenv package allowing you to load environment variables from a .env file.
-version: 1.0.6
+version: 2.0.0
 repository: https://github.com/francescovallone/serinus
-homepage: https://docs.serinus.app
-documentation: https://docs.serinus.app/plugins/configuration.html
+homepage: https://serinus.app/
+documentation: https://serinus.app/techniques/configuration.html
 topics:
   - server
   - httpserver
