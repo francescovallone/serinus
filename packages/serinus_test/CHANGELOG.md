@@ -1,3 +1,5 @@
-## 1.0.0
+# Changelog
+ 
+## 0.1.0
 
-- Initial version.
+- Initial release of Serinus Test package with basic testing utilities and helpers for Serinus applications.
