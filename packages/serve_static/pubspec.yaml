@@ -2,8 +2,8 @@ name: serinus_serve_static
 description: "A Serinus Plugin to serve static files in a Serinus Application"
 version: 2.0.0
 repository: https://github.com/francescovallone/serinus
-homepage: https://docs.serinus.app
-documentation: https://docs.serinus.app/plugins/serve_static.html
+homepage: https://serinus.app/
+documentation: https://serinus.app/techniques/serve_static.html
 tag: 
   - server
   - static

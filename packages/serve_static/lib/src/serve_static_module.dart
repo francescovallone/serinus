@@ -9,7 +9,6 @@ import 'serve_static_controller.dart';
 ///
 /// You can also use the constructor to initialize any dependencies that your plugin may have.
 class ServeStaticModule extends Module {
-
   /// The [rootPath] property contains the root path used to serve files.
   final String rootPath;
 
@@ -41,16 +40,15 @@ class ServeStaticModule extends Module {
     this.index = const ['index.html'],
     this.redirect = true,
   }) : super(
-    controllers: [
-      ServeStaticController(
-        rootPath,
-        routePath: '/$renderPath$serveRoot',
-        exclude: exclude,
-        extensions: extensions,
-        redirect: redirect,
-        index: index,
-      )
-    ]
-  );
-
+         controllers: [
+           ServeStaticController(
+             rootPath,
+             routePath: '/$renderPath$serveRoot',
+             exclude: exclude,
+             extensions: extensions,
+             redirect: redirect,
+             index: index,
+           ),
+         ],
+       );
 }
