@@ -18,7 +18,7 @@ resolution: workspace
 
 dependencies:
   dotenv: ^4.2.0
-  serinus: ^2.0.0-rc.4
+  serinus: ^2.0.0
   
 dev_dependencies:
   lints: "^6.0.0"

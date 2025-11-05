@@ -11,9 +11,10 @@ class AppModule extends Module {
           controllers: [AppController()],
           providers: [
             Provider.composed<AppProvider>(
-                (CompositionContext context) async =>
-                    AppProvider(context.use<ConfigService>()),
-                inject: [ConfigService],)
+              (CompositionContext context) async =>
+                  AppProvider(context.use<ConfigService>()),
+              inject: [ConfigService],
+            )
           ],
         );
 }

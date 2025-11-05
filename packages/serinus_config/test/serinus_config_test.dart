@@ -10,7 +10,7 @@ class TestRoute extends Route {
 }
 
 class MainController extends Controller {
-  MainController(): super('/') {
+  MainController() : super('/') {
     on(TestRoute(), (context) async {
       final configService = context.use<ConfigService>();
       final value = configService.getOrThrow(context.query['key'] ?? 'TEST');

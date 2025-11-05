@@ -18,14 +18,15 @@ class MainController extends Controller {
 class MainModule extends Module {
   MainModule()
       : super(imports: [
-        ConfigModule(
-          paths: ['.env'],
-          includePlatformEnvironment: false,
-          factories: [
-            (env) => TestConfig(env['TEST'] ?? ''),
-          ]
-        )
-      ], controllers: [MainController()]);
+          ConfigModule(
+              paths: ['.env'],
+              includePlatformEnvironment: false,
+              factories: [
+                (env) => TestConfig(env['TEST'] ?? ''),
+              ])
+        ], controllers: [
+          MainController()
+        ]);
 }
 
 void main() async {

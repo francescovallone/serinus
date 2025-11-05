@@ -70,7 +70,8 @@ class CircularDependencyModule extends Module {
         controllers: [],
         providers: [
           Provider.composed<TestProviderThree>(
-            (CompositionContext context) async => TestProviderThree(context.use<TestProvider>()),
+            (CompositionContext context) async =>
+                TestProviderThree(context.use<TestProvider>()),
             inject: [TestProvider],
           ),
         ],
@@ -128,9 +129,8 @@ class AnotherModule extends Module {
         controllers: [AnotherController()],
         providers: [
           Provider.composed<TestProviderTwo>(
-            (CompositionContext context) async => TestProviderTwo(
-              context.use<TestProviderThree>(),
-            ),
+            (CompositionContext context) async =>
+                TestProviderTwo(context.use<TestProviderThree>()),
             inject: [TestProviderThree],
           ),
           Provider.composed<TestProviderFour>(
@@ -293,10 +293,7 @@ void main(List<String> arguments) async {
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
-    logger: ConsoleLogger(
-      prefix: 'Serinus New Logger',
-      
-    ),
+    logger: ConsoleLogger(prefix: 'Serinus New Logger'),
   );
   await application.serve();
   await application.get('/provider');

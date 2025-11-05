@@ -8,8 +8,7 @@ import 'package:mime/mime.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
-class TestHttpSession extends MapBase<dynamic, dynamic>
-    implements HttpSession {
+class TestHttpSession extends MapBase<dynamic, dynamic> implements HttpSession {
   TestHttpSession() : _id = 'test-session-${_counter++}';
 
   static int _counter = 0;
@@ -94,16 +93,16 @@ class TestRequest extends IncomingMessage {
     required String host,
     required int port,
     Session? session,
-  })  : _method = method.toUpperCase(),
-        _uri = uri,
-        _headers = headers,
-        _bodyBytes = bodyBytes,
-        _cookies = List<Cookie>.unmodifiable(cookies),
-        _contentType = contentType,
-        _host = host,
-        _port = port,
-        _session = session ?? Session(TestHttpSession()),
-        _id = 'test-request-${_counter++}';
+  }) : _method = method.toUpperCase(),
+       _uri = uri,
+       _headers = headers,
+       _bodyBytes = bodyBytes,
+       _cookies = List<Cookie>.unmodifiable(cookies),
+       _contentType = contentType,
+       _host = host,
+       _port = port,
+       _session = session ?? Session(TestHttpSession()),
+       _id = 'test-request-${_counter++}';
 
   static int _counter = 0;
 
@@ -174,7 +173,7 @@ class TestRequest extends IncomingMessage {
     if (_bodyBytes.isEmpty) {
       return null;
     }
-  _jsonCache ??= jsonDecode(utf8.decode(_bodyBytes));
+    _jsonCache ??= jsonDecode(utf8.decode(_bodyBytes));
     return _jsonCache;
   }
 
@@ -258,14 +257,12 @@ class TestRequest extends IncomingMessage {
 
 class TestResponse
     extends OutgoingMessage<StreamController<List<int>>, SerinusHeaders> {
-  TestResponse({
-    required this.preserveHeaderCase,
-    String? poweredByHeader,
-  })  : _headers = SerinusHeaders({}),
-        _cookies = <Cookie>[],
-        _poweredByHeader = poweredByHeader,
-        _builder = BytesBuilder(),
-        super(StreamController<List<int>>.broadcast(sync: true)) {
+  TestResponse({required this.preserveHeaderCase, String? poweredByHeader})
+    : _headers = SerinusHeaders({}),
+      _cookies = <Cookie>[],
+      _poweredByHeader = poweredByHeader,
+      _builder = BytesBuilder(),
+      super(StreamController<List<int>>.broadcast(sync: true)) {
     if (poweredByHeader != null) {
       _headers.addAll({'x-powered-by': poweredByHeader});
     }
@@ -334,14 +331,17 @@ class TestResponse
 
   @override
   void addStream(Stream<List<int>> stream, {bool close = true}) {
-    stream.listen((chunk) {
-      _builder.add(chunk);
-      original.add(List<int>.from(chunk));
-    }, onDone: () {
-      if (close) {
-        _close();
-      }
-    });
+    stream.listen(
+      (chunk) {
+        _builder.add(chunk);
+        original.add(List<int>.from(chunk));
+      },
+      onDone: () {
+        if (close) {
+          _close();
+        }
+      },
+    );
   }
 
   @override
@@ -371,8 +371,7 @@ class TestResponse
       expect(
         bodyAsJson()['message'],
         exception.message,
-        reason:
-            'Expected response body is not "${exception.message}"',
+        reason: 'Expected response body is not "${exception.message}"',
       );
     }
   }
@@ -381,8 +380,7 @@ class TestResponse
     expect(
       this.statusCode,
       statusCode,
-      reason:
-          'Expected status code $statusCode but found ${this.statusCode}',
+      reason: 'Expected status code $statusCode but found ${this.statusCode}',
     );
   }
 
@@ -420,10 +418,9 @@ class TestResponse
   Future<void> redirect(Redirect redirect) async {
     _redirect = redirect;
     status(redirect.statusCode);
-    headers(
-      {HttpHeaders.locationHeader: redirect.location},
-      preserveHeaderCase: preserveHeaderCase,
-    );
+    headers({
+      HttpHeaders.locationHeader: redirect.location,
+    }, preserveHeaderCase: preserveHeaderCase);
     _close();
   }
 
@@ -460,7 +457,7 @@ class TestResponse
 }
 
 class SerinusTestHttpAdapter
-  extends HttpAdapter<void, TestRequest, TestResponse> {
+    extends HttpAdapter<void, TestRequest, TestResponse> {
   SerinusTestHttpAdapter({
     required super.host,
     required super.port,
@@ -528,14 +525,11 @@ class SerinusTestHttpAdapter
       properties.contentType ?? ContentType.html,
       preserveHeaderCase: preserveHeaderCase,
     );
-    response.headers(
-      {
-        HttpHeaders.contentLengthHeader: rendered.length.toString(),
-      },
-      preserveHeaderCase: preserveHeaderCase,
-    );
+    response.headers({
+      HttpHeaders.contentLengthHeader: rendered.length.toString(),
+    }, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
-  response.send(Uint8List.fromList(utf8.encode(rendered)));
+    response.send(Uint8List.fromList(utf8.encode(rendered)));
   }
 
   @override
@@ -555,10 +549,9 @@ class SerinusTestHttpAdapter
       preserveHeaderCase: preserveHeaderCase,
     );
     final length = properties.contentLength ?? data.length;
-    response.headers(
-      {HttpHeaders.contentLengthHeader: length.toString()},
-      preserveHeaderCase: preserveHeaderCase,
-    );
+    response.headers({
+      HttpHeaders.contentLengthHeader: length.toString(),
+    }, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
     if (data.isEmpty) {
       response.send();
@@ -630,8 +623,12 @@ class SerinusTestApplication extends SerinusApplication {
       normalizedHeaders[HttpHeaders.cookieHeader] = cookieHeader;
     }
     final resolvedBytes = await _encodeBody(body, encoding);
-    final resolvedContentType =
-        _resolveContentType(contentType, normalizedHeaders, body, encoding);
+    final resolvedContentType = _resolveContentType(
+      contentType,
+      normalizedHeaders,
+      body,
+      encoding,
+    );
     if (resolvedBytes.isNotEmpty) {
       normalizedHeaders.putIfAbsent(
         HttpHeaders.contentLengthHeader,
@@ -640,8 +637,8 @@ class SerinusTestApplication extends SerinusApplication {
     }
     if (!normalizedHeaders.containsKey(HttpHeaders.contentTypeHeader) &&
         resolvedContentType != null) {
-      normalizedHeaders[HttpHeaders.contentTypeHeader] =
-          resolvedContentType.toString();
+      normalizedHeaders[HttpHeaders.contentTypeHeader] = resolvedContentType
+          .toString();
     }
     final request = TestRequest(
       method: method,
@@ -793,7 +790,10 @@ class SerinusTestApplication extends SerinusApplication {
 
   T? getModule<T extends Module>() {
     // ignore: invalid_use_of_visible_for_testing_member
-    return container.modulesContainer.getModuleByToken(InjectionToken.fromType(T)) as T?;
+    return container.modulesContainer.getModuleByToken(
+          InjectionToken.fromType(T),
+        )
+        as T?;
   }
 
   Uri _resolveUri(String path, Map<String, String>? queryParameters) {
@@ -803,8 +803,9 @@ class SerinusTestApplication extends SerinusApplication {
       host: config.host,
       port: config.port,
       path: normalizedPath,
-      queryParameters:
-          queryParameters == null || queryParameters.isEmpty ? null : queryParameters,
+      queryParameters: queryParameters == null || queryParameters.isEmpty
+          ? null
+          : queryParameters,
     );
   }
 
