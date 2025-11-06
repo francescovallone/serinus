@@ -65,11 +65,11 @@ class AppModule extends Module {
   AppModule() : super(
     imports: [
       Module.composed<ConfigurableModule>(
-      (CompositionContext context) async {
-        final config = context.use<ConfigService>();
-        return ConfigurableModule(config.apiKey);
-      },
-      injects: [ConfigService],
+        (CompositionContext context) async {
+          final config = context.use<ConfigService>();
+          return ConfigurableModule(config.apiKey);
+        },
+        injects: [ConfigService],
       ),
     ],
     controllers: [
@@ -215,8 +215,8 @@ Learn more about Server-Sent Events in the [SSE Documentation](../sse/).
 
 ### Microservices
 
-Microservices is now a first-class citizen in Serinus 2.0 (finally!).
-To be honest they were in the roadmap since the very beginning but the implementation took longer than expected. With Serinus 2.0, we are excited to introduce a robust microservices module that allows developers to build scalable and distributed applications with ease.
+Microservices are now first-class citizens in Serinus 2.0 (finally!).
+To be honest they were in the roadmap since the very beginning but the implementation took longer than expected. With Serinus 2.0, we are excited to introduce a robust microservices system that allows developers to build scalable and distributed applications with ease.
 
 Currently it supports TCP and gRPC transport layers, with plans to add more in the future. (like MQTT, NATS and RabbitMQ)
 
