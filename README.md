@@ -71,7 +71,7 @@ If you want to contribute to Serinus, please read the [CONTRIBUTING](CONTRIBUTIN
 
 We would like to thank our sponsors for their support:
 
-<div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+<div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 0 auto;">
   <a href="https://github.com/chimon2000" target="_blank" rel="noopener">
 	<img src="https://avatars.githubusercontent.com/u/6907797?v=4" alt="Avatar: chimon2000" height="50"/>
   </a>
