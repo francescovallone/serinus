@@ -67,5 +67,15 @@ Serinus is licensed under the MIT license. See the [LICENSE](LICENSE) file for m
 
 If you want to contribute to Serinus, please read the [CONTRIBUTING](CONTRIBUTING.md) file.
 
+# Our amazing sponsors
+
+We would like to thank our sponsors for their support:
+
+<div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+  <a href="https://github.com/chimon2000" target="_blank" rel="noopener">
+	<img src="https://avatars.githubusercontent.com/u/6907797?v=4" alt="Avatar: chimon2000" height="50"/>
+  </a>
+</div>
+
 [repo_link]: https://github.com/francescovallone/serinus
 [documentation_link]: https://docs.serinus.app
