@@ -124,7 +124,7 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
       serverSide: true,
     );
     if (result == null || result.values.isEmpty) {
-      webSocket.close(
+      await webSocket.close(
         normalClosure,
         'No gateway found for the path: ${request.uri}',
       );
@@ -188,6 +188,9 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
 
   @override
   Future<void> close() async {
+    for (final client in [...(server?.values ?? <WebSocket>[])]) {
+      await client.close(normalClosure, 'Server is shutting down');
+    }
     server?.clear();
   }
 }
