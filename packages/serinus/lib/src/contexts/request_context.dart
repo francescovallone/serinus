@@ -153,9 +153,7 @@ class RequestContext<TBody> extends BaseContext {
       throw BadRequestException('The element is not of the expected type');
     }
     return List<T>.from(
-      (body as List).map(
-        (e) => _converter.convert(_typeOf<T>(), e) as T,
-      ),
+      (body as List).map((e) => _converter.convert(_typeOf<T>(), e) as T),
     );
   }
 

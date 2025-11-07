@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1
+
+- ci: add pana to serinus workflow
+- fix: gentle close the web socket connections when application shuts down
+- feat: add `bodyAsList<T>()` to parse lists of elements
+
 ## 2.0.0
 
 - feat: add ComposedModule to allow for better composition of modules.

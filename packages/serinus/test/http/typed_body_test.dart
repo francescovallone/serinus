@@ -118,11 +118,7 @@ void main() {
       final request = _buildRequest();
       final context = RequestContext<dynamic>.withBody(
         request,
-        [
-          'data',
-          'info',
-          'serinus',
-        ],
+        ['data', 'info', 'serinus'],
         <Type, Provider>{},
         <Type, Object>{},
       );
