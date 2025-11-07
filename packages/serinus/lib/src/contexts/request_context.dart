@@ -147,6 +147,18 @@ class RequestContext<TBody> extends BaseContext {
   /// Casts the current body to a different type.
   T bodyAs<T>() => _converter.convert(_typeOf<T>(), body) as T;
 
+  /// Casts the current body to a list of a different type.
+  List<T> bodyAsList<T>() {
+    if (body is! List) {
+      throw BadRequestException('The element is not of the expected type');
+    }
+    return List<T>.from(
+      (body as List).map(
+        (e) => _converter.convert(_typeOf<T>(), e) as T,
+      ),
+    );
+  }
+
   /// Replaces the underlying body, reusing the conversion rules.
   void replaceBody(Object? value) => body = value;
 

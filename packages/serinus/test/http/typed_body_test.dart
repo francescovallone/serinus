@@ -114,6 +114,26 @@ void main() {
       expect((body.first as Map<String, dynamic>)['name'], equals('serinus'));
     });
 
+    test('casts dynamic list to typed list of strings by using bodyAsList', () {
+      final request = _buildRequest();
+      final context = RequestContext<dynamic>.withBody(
+        request,
+        [
+          'data',
+          'info',
+          'serinus',
+        ],
+        <Type, Provider>{},
+        <Type, Object>{},
+      );
+
+      final body = context.bodyAsList<String>();
+
+      expect(body, hasLength(3));
+      expect(body.first, isA<String>());
+      expect(body.last, equals('serinus'));
+    });
+
     test('throws when body cannot be converted to expected type', () {
       final request = _buildRequest();
       final context = RequestContext<dynamic>.withBody(
