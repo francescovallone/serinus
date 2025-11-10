@@ -26,4 +26,7 @@ const computedPath = computed(() => {
 a {
 	text-decoration: none !important;
 }
+.border-t {
+	border-color: var(--vp-c-divider) !important;
+}
 </style>

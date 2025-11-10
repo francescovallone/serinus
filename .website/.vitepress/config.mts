@@ -29,7 +29,9 @@ export default defineConfig({
     hostname: 'https://serinus.app'
   },
   lastUpdated: true,
-  appearance: false,
+  appearance: {
+    initialValue: undefined
+  },
   ignoreDeadLinks: true,
   themeConfig: {
     // footer: {
@@ -220,7 +222,7 @@ export default defineConfig({
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
       { icon: 'twitter', link: 'https://twitter.com/avesboxx'},
-      { icon: 'discord', link: '/discord.html' }
+      { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ],
   },
 })

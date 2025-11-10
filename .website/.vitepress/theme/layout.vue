@@ -24,7 +24,14 @@ const prompt = computed(() =>
 
 <template>
     <DefaultTheme.Layout>
-        <template #doc-before>
+        <template #doc-footer-before>
+            <div class="flex flex-col mb-8 gap-4 border-t pt-4">
+                <h1 class="2xl:text-2xl text-lg font-semibold">Support Us</h1>
+                <p>Serinus is MIT licensed open-source project and it grows thanks to the community's support. If you want to support us and the project, read more <a href="/support" class="text-serinus hover:text-serinus-2 underline">here</a>.</p>
+                <div class="flex w-auto">
+                    <a href="https://github.com/sponsors/francescovallone" class="px-8 py-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">Become a sponsor</a>
+                </div>
+            </div>
             <div
                 id="open-serinus-in"
                 class="flex gap-2 sm:justify-end items-center font-mono pt-1 pr-0 text-gray-400 text-xs *:z-20 [&>a>svg]:size-4 sm:[&>a>svg]:size-5"
@@ -85,15 +92,6 @@ const prompt = computed(() =>
 						/>
 					</svg>
                 </a>
-            </div>
-        </template>
-        <template #doc-footer-before>
-            <div class="flex flex-col mb-8 gap-4 border-t pt-4">
-                <h1 class="2xl:text-2xl text-lg font-semibold">Support Us</h1>
-                <p>Serinus is MIT licensed open-source project and it grows thanks to the community's support. If you want to support us and the project, read more <a href="/support" class="text-serinus hover:text-serinus-2 underline">here</a>.</p>
-                <div class="flex w-auto">
-                    <a href="https://github.com/sponsors/francescovallone" class="px-8 py-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">Become a sponsor</a>
-                </div>
             </div>
         </template>
         <template #layout-bottom>
