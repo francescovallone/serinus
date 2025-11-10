@@ -255,7 +255,7 @@ div[class*="language-"]:not(.vp-doc .vp-code) {
 	color: #a3a3a3 !important;
 }
 
-.dark .VPSwitchAppearance[data-v-3c3cad28] .check {
+.dark .VPSwitchAppearance .check {
 	transform: unset !important;
 }
 
