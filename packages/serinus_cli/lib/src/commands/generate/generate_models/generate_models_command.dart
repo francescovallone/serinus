@@ -51,33 +51,37 @@ class GenerateModelsCommand extends Command<int> {
       _logger?.err('Failed to load project configuration: $e');
       return ExitCode.config.code;
     }
-    final modelProgress = _logger.progress('Generating models...');
-    final process = await Process.start(
-      'dart',
-      ['pub', 'run', 'build_runner', 'build', '-d'],
-    );
-    process.stderr.transform(utf8.decoder).listen(
-          (data) => _logger.info(
-            data.replaceAll('\n', ''),
-          ),
-        );
-    process.stdout.transform(utf8.decoder).listen(
-          (data) => _logger.info(
-            data.replaceAll('\n', ''),
-          ),
-        );
-    await process.exitCode;
-    modelProgress.complete('Models generated successfully!');
-    final modelProviderProgress = _logger.progress(
-      'Generating model provider...',
-    );
+    if (
+      config.devDependencies.isNotEmpty && config.devDependencies['build_runner'] != null
+    ) {
+      final modelProgress = _logger.progress(
+        'Run build_runner to generate models from third-party packages...',
+      );
+      final process = await Process.start(
+        'dart',
+        ['pub', 'run', 'build_runner', 'build', '-d'],
+      );
+      process.stderr.transform(utf8.decoder).listen(
+            _logger.err,
+          );
+      process.stdout.transform(utf8.decoder).listen(
+            (data) => _logger.info(
+              data.replaceAll('\n', ''),
+            ),
+          );
+      await process.exitCode;
+      modelProgress.complete('🐤 Models generated successfully!');
+    } else {
+      _logger.info(
+        'No build_runner dependency found. Skipping model generation from third-party packages.',
+      );
+    }
     await generateModelProvider(
       Directory.current.path,
       config.name,
       config,
       output,
     );
-    modelProviderProgress.complete('✨ Model provider generated successfully!');
     return ExitCode.success.code;
   }
 
@@ -87,6 +91,9 @@ class GenerateModelsCommand extends Command<int> {
     Config config, [
     String? output,
   ]) async {
+    final modelProviderProgress = _logger?.progress(
+      'Generating model provider...',
+    );
     final modelProvider = File('${output ?? path}/lib/model_provider.dart');
     final modelsConfig = config.models;
     if (!modelProvider.existsSync()) {
@@ -111,9 +118,14 @@ class GenerateModelsCommand extends Command<int> {
     );
     final modelProviderContent = await _getContent(models, name);
     modelProvider.writeAsStringSync(modelProviderContent);
-    _logger?.info(
-      '✨Added ${models.map((e) => e.name).join(', ')} to the model provider',
-    );
+    if (models.isEmpty) {
+      modelProviderProgress?.complete('🐤 No models found. Generated empty model provider...');
+    } else {
+      _logger?.info(
+        '🐤 Added ${models.map((e) => e.name).join(', ')} to the model provider',
+      );
+      modelProviderProgress?.complete('🐤 Model provider generated successfully!');
+    }
     return models;
   }
 
@@ -227,6 +239,10 @@ class GenerateModelsCommand extends Command<int> {
               ''');
             }),
           );
+          c.docs.addAll([
+            '/// The [${name.pascalCase}ModelProvider] is used to provide models for the Serinus application.',
+            '/// It contains mappings for serializing and deserializing models to and from JSON.',
+          ]);
         }),
       );
     });
