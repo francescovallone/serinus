@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1
+
+- fix(#200): fix config parsing when dependencies entries are nested map instead of simple strings. [#201](https://github.com/francescovallone/serinus/pull/201) by [francescovallone](https://github.com/francescovallone)
+
 ## 2.0.0
 
 - Updated `serinus_cli` to be compatible with `serinus` version `2.x.x`.
