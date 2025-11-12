@@ -31,7 +31,7 @@ class OpenApiController extends Controller {
 
   /// Constructor
   OpenApiController({required this.specPath, required String path})
-    : super(path) {
+    : super(path.startsWith('/') ? path : '/$path') {
     on(Route.get('/'), (RequestContext context) async {
       if (context.queryAs<bool>('raw') == true) {
         if (specPath.endsWith('.json')) {
