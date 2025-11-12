@@ -24,7 +24,7 @@ class RateLimiterHook extends Hook with OnBeforeHandle, OnResponse {
   RateLimiterHook({
     int? maxRequests,
     this.duration = const Duration(minutes: 1),
-  }) : maxRequests = maxRequests ?? double.infinity.toInt();
+  }) : maxRequests = maxRequests ?? double.maxFinite.toInt();
 
   @override
   Future<void> beforeHandle(ExecutionContext context) async {
