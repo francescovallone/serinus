@@ -23,6 +23,9 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   /// The path where the OpenAPI document will be served.
   final String path;
 
+  /// The file path where the OpenAPI specification will be saved.
+  final String filePath;
+
   String? _content;
 
   /// Whether to analyze the OpenAPI document.
@@ -44,6 +47,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     this.version,
     this.document,
     this.path,
+    this.filePath,
     this.options,
     this.analyze, {
     this.parseType = OpenApiParseType.yaml,
@@ -107,11 +111,9 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
       );
     }
     savedFilePath.write('/${path.startsWith('/') ? path.substring(1) : path}');
-    savedFilePath.write(
-      '/openapi/?raw=true',
-    );
+    savedFilePath.write('/?raw=true');
     final file = File(
-      'openapi.${parseType == OpenApiParseType.yaml ? 'yaml' : 'json'}',
+      filePath,
     );
     if (!file.existsSync()) {
       file.createSync(recursive: true);
@@ -120,7 +122,10 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     file.writeAsStringSync(
       parser.stringify(document, toYaml: parseType == OpenApiParseType.yaml),
     );
-    return rendererInstance.render(document, savedFilePath.toString().replaceAll('//', '/'));
+    return rendererInstance.render(
+      document,
+      savedFilePath.toString().replaceAll('//', '/'),
+    );
   }
 
   Future<void> _exploreModules() async {
