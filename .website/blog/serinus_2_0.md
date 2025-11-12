@@ -113,7 +113,7 @@ class AppModule extends Module {
 }
 ```
 
-With these changes, we belive that calling the plugin `serinus_swagger` is no longer appropriate, as it now supports multiple renderers and a more comprehensive OpenAPI integration. Therefore, we have renamed the package to `serinus_openapi` to better reflect its capabilities.
+With these changes, we believe that calling the plugin `serinus_swagger` is no longer appropriate, as it now supports multiple renderers and a more comprehensive OpenAPI integration. Therefore, we have renamed the package to `serinus_openapi` to better reflect its capabilities.
 
 Although this feature is still in its early stages, we are committed to expanding its capabilities and providing a comprehensive solution for API documentation and client generation.
 
