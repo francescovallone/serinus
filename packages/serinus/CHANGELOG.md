@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2
+
+- fix(#203): when default maxRequests is used in RateLimiterHook the app doesn't start up properly. [#204](https://github.com/francescovallone/serinus/pulls/204) by [francescovallone](https://github.com/francescovallone)
+
 ## 2.0.1
 
 - ci: add pana to serinus workflow

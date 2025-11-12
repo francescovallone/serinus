@@ -1,28 +1,38 @@
 ![Serinus Banner](https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/github-header.png)
 
-[![codecov](https://codecov.io/gh/francescovallone/serinus/branch/main/graph/badge.svg?token=A2337C1XGG)](https://codecov.io/gh/francescovallone/serinus)
-[![melos](https://img.shields.io/badge/maintained%20with-melos-f700ff.svg?style=flat-square)](https://github.com/invertase/melos)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/francescovallone/serinus/serinus_tests.yml?logo=dart&label=Tests)
-[![Discord](https://img.shields.io/discord/1099781506978807919?logo=discord&logoColor=white)](https://discord.gg/FPwH2fEUVF)
-[![CodeFactor](https://www.codefactor.io/repository/github/francescovallone/serinus/badge)](https://www.codefactor.io/repository/github/francescovallone/serinus)
+<p align="center">
+  <img src="https://img.shields.io/github/actions/workflow/status/francescovallone/serinus/serinus.yml?logo=dart&label=Tests" />
+  <img src="https://img.shields.io/discord/1099781506978807919?logo=discord&logoColor=white" alt="Discord" />
+  <img src="https://www.codefactor.io/repository/github/francescovallone/serinus/badge" alt="CodeFactor" />
+</p>
 
-Serinus is a framework written in Dart for building efficient and scalable server-side applications.
+# Serinus
 
-# Getting Started
+Serinus provides a powerful and flexible framework for building server-side applications in Dart. Our open-source Dart framework, packages, and tools make it easy to create high-performance, scalable, and maintainable applications.
 
 ## Installation
 
-To install Serinus you can use the following command:
+To install Serinus you can either install the official CLI tool globally using pub:
 
 ```bash
 dart pub global activate serinus_cli
 ```
 
+or add Serinus to your `pubspec.yaml` file:
+
+```bash
+dart pub add serinus
+```
+
 ## Create a new project
+
+If you have installed the Serinus CLI tool, you can create a new Serinus project using the following command:
 
 ```bash
 serinus create <project_name>
 ```
+
+This will bootstrap a new Serinus project in a directory named `<project_name>`.
 
 ## Run the project
 
@@ -49,7 +59,7 @@ In development mode the server will automatically restart when you change the so
 
 You can find the documentation [here][documentation_link].
 
-# License
+## License
 
 Serinus is licensed under the MIT license. See the [LICENSE](LICENSE) file for more info.
 
@@ -57,7 +67,7 @@ Serinus is licensed under the MIT license. See the [LICENSE](LICENSE) file for m
 
 If you want to contribute to Serinus, please read the [CONTRIBUTING](CONTRIBUTING.md) file.
 
-# Our amazing sponsors
+## Our amazing sponsors
 
 We would like to thank our sponsors for their support:
 
@@ -68,4 +78,4 @@ We would like to thank our sponsors for their support:
 </p>
 
 [repo_link]: https://github.com/francescovallone/serinus
-[documentation_link]: https://docs.serinus.app
+[documentation_link]: https://serinus.app
