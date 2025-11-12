@@ -66,7 +66,7 @@ function startTypingEffect(words, elementId, delay) {
                 <div class="flex flex-col lg:flex-row justify-center w-full lg:w-auto items-center gap-2 border-dashed border-2 border-gray-300 rounded-lg p-4 relative">
                     <div class="absolute -top-2 left-2 px-2 bg text-xs text-gray-400 rounded-md font-mono text-sm tracking-widest">HeroController()</div>
                     <a href="/introduction.html" class="bg-serinus hover:shadow-md transition-shadow px-8 py-4 rounded-md text-white text-center lg:text-start w-full lg:w-auto font-semibold">Get Started</a>
-                    <a href="/discord.html" class="px-8 py-4 hover:shadow-md transition-shadow font-semibold border w-full text-center lg:text-start lg:w-auto border-gray-300 rounded-md">Join the community</a>
+                    <a href="https://discord.gg/zydgnJ3ksJ" class="px-8 py-4 hover:shadow-md transition-shadow font-semibold border w-full text-center lg:text-start lg:w-auto border-gray-300 rounded-md">Join the community</a>
                 </div>
             </div>
             <div id="cli-command-copy" @click="copyCliCommand" class="flex gap-4 items-center cursor-pointer">
