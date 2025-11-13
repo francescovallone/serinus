@@ -71,9 +71,9 @@ class OpenApiModule extends Module {
 
   /// Allow an optimized analysis.
   /// The analyzer will ignore files with lastModified older than the creation date of the spec file
-  /// 
+  ///
   /// It is used if the file does not exists.
-  /// 
+  ///
   /// [Default: false]
   final bool optimizedAnalysis;
 
@@ -100,7 +100,7 @@ class OpenApiModule extends Module {
     RenderOptions options = const SwaggerUIOptions(),
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
-    bool optimizedAnalysis = false
+    bool optimizedAnalysis = false,
   }) {
     final DocumentV2 document = DocumentV2(
       info: info,
@@ -118,7 +118,7 @@ class OpenApiModule extends Module {
       options: options,
       analyze: analyze,
       parseType: parseType,
-      optimizedAnalysis: optimizedAnalysis
+      optimizedAnalysis: optimizedAnalysis,
     );
   }
 
@@ -134,7 +134,7 @@ class OpenApiModule extends Module {
     RenderOptions options = const SwaggerUIOptions(),
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
-    bool optimizedAnalysis = false
+    bool optimizedAnalysis = false,
   }) {
     final DocumentV3 document = DocumentV3(
       info: info,
@@ -167,7 +167,7 @@ class OpenApiModule extends Module {
     RenderOptions options = const SwaggerUIOptions(),
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
-    bool optimizedAnalysis = false
+    bool optimizedAnalysis = false,
   }) {
     final DocumentV31 document = DocumentV31(
       info: info,
@@ -183,7 +183,7 @@ class OpenApiModule extends Module {
       options: options,
       analyze: analyze,
       parseType: parseType,
-      optimizedAnalysis: optimizedAnalysis
+      optimizedAnalysis: optimizedAnalysis,
     );
   }
 
@@ -203,7 +203,7 @@ class OpenApiModule extends Module {
           options,
           analyze,
           parseType: parseType,
-          optimizedAnalysis: optimizedAnalysis
+          optimizedAnalysis: optimizedAnalysis,
         ),
       ],
     );

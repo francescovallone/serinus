@@ -34,7 +34,9 @@ class Analyzer {
   final Map<InterfaceElement, ClassDeclaration> classDeclarations = {};
 
   /// Analyzes the Dart code and extracts route information.
-  Future<Map<String, List<RouteDescription>>> analyze([int? modificationStamp]) async {
+  Future<Map<String, List<RouteDescription>>> analyze([
+    int? modificationStamp,
+  ]) async {
     modelTypeSchemas.clear();
     modelProviderTypes.clear();
     _registeredModelProviders.clear();

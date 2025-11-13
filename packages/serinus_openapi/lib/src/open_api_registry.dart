@@ -54,7 +54,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     this.options,
     this.analyze, {
     this.parseType = OpenApiParseType.yaml,
-    this.optimizedAnalysis = false
+    this.optimizedAnalysis = false,
   });
 
   @override
@@ -74,7 +74,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     final file = File(filePath);
     int? modificationStamp;
     if (file.existsSync() && optimizedAnalysis) {
-      modificationStamp = file.lastModifiedSync().millisecondsSinceEpoch;      
+      modificationStamp = file.lastModifiedSync().millisecondsSinceEpoch;
     }
     await _exploreModules(modificationStamp);
     _content = _generateOpenApiDocument(file, '$savedFilePath');
