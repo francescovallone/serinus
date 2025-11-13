@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.6
+
+- chore: remove print
+
 ## 1.0.5
 
 - fix: add analysis of request bodies when handler is a method of the controller

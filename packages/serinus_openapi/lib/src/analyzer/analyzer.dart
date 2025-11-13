@@ -361,16 +361,8 @@ class Analyzer {
     return handlers;
   }
 
-  // if (element.key is StringLiteral) {
-  //           final valueType = _resolveInterfaceType(element.value);
-  //           if (valueType != null) {
-  //             yield valueType;
-  //           }
-  //         }
-
   RouteDescription _analyzeFunctionBody(FunctionBody body) {
     final description = RouteDescription();
-    print(body);
     final requestInfo = _extractRequestBody(body);
     if (requestInfo != null) {
       description.requestBody = requestInfo;
