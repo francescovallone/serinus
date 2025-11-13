@@ -131,6 +131,28 @@ class Analyzer {
           if (analyzed.returnType != null) {
             savedHandler.returnType = analyzed.returnType;
           }
+          final contextParameter = method.parameters?.parameters.first;
+          if (contextParameter is SimpleFormalParameter) {
+            final contextType = contextParameter.type as NamedType;
+            final typeString = contextType.type?.getDisplayString();
+            final genericBody = RegExp(r'\<([^)]+)\>').firstMatch(typeString ?? '');
+            if (genericBody != null && genericBody.groupCount == 1) {
+              final bodyType = genericBody.group(1);
+              final bodyTypeInModelProvider = modelProviderTypes.where((e) => e.name == bodyType).firstOrNull;
+              if (bodyTypeInModelProvider != null) {
+                final dartType = bodyTypeInModelProvider.thisType;
+                final descriptor = schemaFromDartType(dartType);
+                if (descriptor != null) {
+                  final isNullable = dartType.nullabilitySuffix == NullabilitySuffix.question;
+                  analyzed.requestBody = RequestBodyInfo(
+                    schema: descriptor,
+                    contentType: inferContentType(descriptor),
+                    isRequired: !isNullable,
+                  );
+                }
+              }
+            }
+          }
           if (analyzed.requestBody != null) {
             savedHandler.requestBody = analyzed.requestBody;
           }
@@ -334,8 +356,16 @@ class Analyzer {
     return handlers;
   }
 
+  // if (element.key is StringLiteral) {
+  //           final valueType = _resolveInterfaceType(element.value);
+  //           if (valueType != null) {
+  //             yield valueType;
+  //           }
+  //         }
+
   RouteDescription _analyzeFunctionBody(FunctionBody body) {
     final description = RouteDescription();
+    print(body);
     final requestInfo = _extractRequestBody(body);
     if (requestInfo != null) {
       description.requestBody = requestInfo;

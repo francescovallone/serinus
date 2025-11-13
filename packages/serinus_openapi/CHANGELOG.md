@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- fix: add analysis of request bodies when handler is a method of the controller
+
 ## 1.0.4
 
 - feat: add `optimizedAnalysis` params to make the analyzer ignore files with lastModification older than the specification file.
