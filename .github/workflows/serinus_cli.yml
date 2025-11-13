@@ -6,7 +6,7 @@ on:
       - ".github/workflows/serinus_cli.yml"
       - "packages/serinus_cli/lib/**"
       - "packages/serinus_cli/test/**"
-      - "packages/serinus_cli/pubspec.yml"
+      - "packages/serinus_cli/pubspec.yaml"
   push:
     branches:
       - main
@@ -14,7 +14,7 @@ on:
       - ".github/workflows/serinus_cli.yml"
       - "packages/serinus_cli/lib/**"
       - "packages/serinus_cli/test/**"
-      - "packages/serinus_cli/pubspec.yml"
+      - "packages/serinus_cli/pubspec.yaml"
 jobs:
   build:    
     defaults:

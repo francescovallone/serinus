@@ -6,7 +6,7 @@ on:
       - ".github/workflows/serinus.yml"
       - "packages/serinus/lib/**"
       - "packages/serinus/test/**"
-      - "packages/serinus/pubspec.yml"
+      - "packages/serinus/pubspec.yaml"
   push:
     branches:
       - main
@@ -14,7 +14,7 @@ on:
       - ".github/workflows/serinus.yml"
       - "packages/serinus/lib/**"
       - "packages/serinus/test/**"
-      - "packages/serinus/pubspec.yml"
+      - "packages/serinus/pubspec.yaml"
 
 jobs:
   build:    
