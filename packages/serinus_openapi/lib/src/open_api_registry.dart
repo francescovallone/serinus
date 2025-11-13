@@ -644,6 +644,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           'statusCode': SchemaObjectV2(type: OpenApiType.int32()),
           'uri': SchemaObjectV2(type: OpenApiType.string()),
         },
+        example: exception.example,
       ),
       headers: {},
     );
@@ -662,6 +663,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
               'statusCode': SchemaObjectV3(type: OpenApiType.int32()),
               'uri': SchemaObjectV3(type: OpenApiType.string()),
             },
+            example: exception.example,
           ),
         ),
       },

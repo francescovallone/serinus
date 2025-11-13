@@ -8,7 +8,7 @@ analyzer:
     missing_return: error
   
 formatter:
-  page_width: 120
+  page_width: 80
   trailing_commas: preserve
 
 linter:

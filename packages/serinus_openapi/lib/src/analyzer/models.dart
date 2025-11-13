@@ -76,6 +76,7 @@ class ExceptionResponse {
     required this.statusCode,
     this.message,
     this.typeName,
+    this.example,
   });
 
   /// The HTTP status code of the response.
@@ -86,6 +87,9 @@ class ExceptionResponse {
 
   /// The type name of the response.
   final String? typeName;
+
+  /// An example of the response.
+  final Map<String, dynamic>? example;
 
   @override
   String toString() {

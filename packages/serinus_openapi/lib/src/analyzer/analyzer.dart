@@ -44,91 +44,94 @@ class Analyzer {
       includedPaths: [file.absolute.path],
     );
     final handlersByControllers = <String, List<RouteDescription>>{};
+    final libraries = <ResolvedLibraryResult>[];
     for (final context in collection.contexts) {
       final analyzedFiles = context.contextRoot.analyzedFiles();
       for (final filePath in analyzedFiles) {
         if (!filePath.endsWith('.dart') || !filePath.contains('bin')) {
           continue;
         }
-        final SomeResolvedLibraryResult result = await context.currentSession
-            .getResolvedLibrary(filePath);
+        final result = await context.currentSession.getResolvedLibrary(filePath);
         if (result is ResolvedLibraryResult) {
-          final providerCollector = ModelProviderInvocationCollector(
-            _resolveInterfaceType,
-          );
-          final classDeclarations = <InterfaceElement, ClassDeclaration>{};
-          for (final unit in result.units) {
-            unit.unit.accept(providerCollector);
-            for (final declaration in unit.unit.declarations) {
-              if (declaration is ClassDeclaration) {
-                final element = declaration.declaredFragment;
-                if (element != null) {
-                  classDeclarations[element.element] = declaration;
-                  classDeclarations[element.element] = declaration;
-                }
-              }
-              final methods = <MethodDeclaration>[];
-              final constructors = <ConstructorDeclaration>[];
-              final handlers = <String, RouteDescription>{};
-              bool isController = false;
-              String controllerName = '';
-              for (final child in declaration.childEntities) {
-                if (child is ExtendsClause) {
-                  if (child.superclass.name.value() != 'Controller') {
-                    break;
-                  } else {
-                    isController = true;
-                  }
-                }
-                if (child is Token && child.type == TokenType.IDENTIFIER) {
-                  controllerName = child.value().toString();
-                }
-                if (child is MethodDeclaration) {
-                  methods.add(child);
-                } else if (child is ConstructorDeclaration) {
-                  constructors.add(child);
-                  final blockFunctionBody = child.childEntities
-                      .whereType<BlockFunctionBody>()
-                      .firstOrNull;
-                  if (blockFunctionBody != null) {
-                    final block = blockFunctionBody.block;
-                    final statements = block.statements
-                        .whereType<ExpressionStatement>();
-                    final analyzedHandlers = _analyzeStatements(statements);
-                    handlers.addAll(analyzedHandlers);
-                  }
-                }
-              }
-              for (final method in methods) {
-                final methodName = method.name.lexeme;
-                final savedHandler = handlers[methodName];
-                if (savedHandler != null) {
-                  final analyzed = _analyzeFunctionBody(method.body);
-                  if (analyzed.returnType != null) {
-                    savedHandler.returnType = analyzed.returnType;
-                  }
-                  if (analyzed.requestBody != null) {
-                    savedHandler.requestBody = analyzed.requestBody;
-                  }
-                  if (analyzed.responseContentType != null) {
-                    savedHandler.responseContentType =
-                        analyzed.responseContentType;
-                  }
-                }
-              }
-              if (isController) {
-                handlersByControllers[controllerName] = handlers.values
-                    .toList();
-              }
-            }
-          }
-          for (final providerElement in providerCollector.providers) {
-            final declaration = classDeclarations[providerElement];
-            if (declaration != null) {
-              _registerModelProviderDeclaration(providerElement, declaration);
+          libraries.add(result);
+        }
+      }
+    }
+    for (final library in libraries) {
+      final providerCollector = ModelProviderInvocationCollector(
+        _resolveInterfaceType,
+      );
+      for (final unit in library.units) {
+        unit.unit.accept(providerCollector);
+        for (final declaration in unit.unit.declarations) {
+          if (declaration is ClassDeclaration) {
+            final element = declaration.declaredFragment;
+            if (element != null) {
+              classDeclarations[element.element] = declaration;
             }
           }
         }
+      }
+      for (final providerElement in providerCollector.providers) {
+        final declaration = classDeclarations[providerElement];
+        if (declaration != null) {
+          _registerModelProviderDeclaration(providerElement, declaration);
+        }
+      }
+    }
+    for (final classDeclaration in classDeclarations.values) {
+      final methods = <MethodDeclaration>[];
+      final constructors = <ConstructorDeclaration>[];
+      final handlers = <String, RouteDescription>{};
+      bool isController = false;
+      String controllerName = '';
+      for (final child in classDeclaration.childEntities) {
+        if (child is ExtendsClause) {
+          if (child.superclass.name.value() != 'Controller') {
+            break;
+          } else {
+            isController = true;
+          }
+        }
+        if (child is Token && child.type == TokenType.IDENTIFIER) {
+          controllerName = child.value().toString();
+        }
+        if (child is MethodDeclaration) {
+          methods.add(child);
+        } else if (child is ConstructorDeclaration) {
+          constructors.add(child);
+          final blockFunctionBody = child.childEntities
+              .whereType<BlockFunctionBody>()
+              .firstOrNull;
+          if (blockFunctionBody != null) {
+            final block = blockFunctionBody.block;
+            final statements = block.statements
+                .whereType<ExpressionStatement>();
+            final analyzedHandlers = _analyzeStatements(statements);
+            handlers.addAll(analyzedHandlers);
+          }
+        }
+      }
+      for (final method in methods) {
+        final methodName = method.name.lexeme;
+        final savedHandler = handlers[methodName];
+        if (savedHandler != null) {
+          final analyzed = _analyzeFunctionBody(method.body);
+          if (analyzed.returnType != null) {
+            savedHandler.returnType = analyzed.returnType;
+          }
+          if (analyzed.requestBody != null) {
+            savedHandler.requestBody = analyzed.requestBody;
+          }
+          if (analyzed.responseContentType != null) {
+            savedHandler.responseContentType =
+                analyzed.responseContentType;
+          }
+        }
+      }
+      if (isController) {
+        handlersByControllers[controllerName] = handlers.values
+            .toList();
       }
     }
     return handlersByControllers;
@@ -165,9 +168,16 @@ class Analyzer {
     if (expression is SetOrMapLiteral && expression.isMap) {
       for (final element in expression.elements) {
         if (element is MapLiteralEntry) {
-          final interface = _resolveInterfaceType(element.key);
-          if (interface != null) {
-            yield interface;
+          if (element.key is StringLiteral) {
+            final valueType = _resolveInterfaceType(element.value);
+            if (valueType != null) {
+              yield valueType;
+            }
+          } else {
+            final interface = _resolveInterfaceType(element.key);
+            if (interface != null) {
+              yield interface;
+            }
           }
         }
       }
@@ -236,6 +246,12 @@ class Analyzer {
       final annotationType = expression.type.type;
       if (annotationType is InterfaceType) {
         return annotationType;
+      }
+    }
+    if (expression is ConstructorReference) {
+      final type = expression.constructorName.type.element;
+      if (type is InterfaceElement) {
+        return type.thisType;
       }
     }
     if (expression is Identifier) {
@@ -594,7 +610,7 @@ class Analyzer {
       return wrapNullable(_schemaFromDartTypeInternal(type.bound, visited));
     }
 
-    if (coreDisplay.startsWith('FutureOr<')) {
+    if (coreDisplay.startsWith('Future<')) {
       final inner = _schemaFromDartTypeInternal(
         type is InterfaceType && type.typeArguments.isNotEmpty
             ? type.typeArguments.first

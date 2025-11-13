@@ -46,8 +46,8 @@ class AppController extends Controller {
       ApiRoute.v3(path: '/', queryParameters: {'name': String}),
       _handleHelloWorld,
     );
-    on(Route.post('/post/<data>'), (RequestContext context) async {
-      final body = context.bodyAs<MyObject>();
+    on(Route.post('/post/<data>'), (RequestContext<MyObject> context) async {
+      final body = context.body;
       if (body.name.isEmpty) {
         throw BadRequestException('Name cannot be empty');
       }
@@ -55,8 +55,11 @@ class AppController extends Controller {
     });
   }
 
-  Future<String> _handleHelloWorld(RequestContext context) async {
-    return 'Hello world';
+  Future<List<MyObject>> _handleHelloWorld(RequestContext context) async {
+    return [
+      MyObject('Alice'),
+      MyObject('Bob'),
+    ];
   }
 }
 

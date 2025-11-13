@@ -2,8 +2,92 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:serinus/serinus.dart';
 import '../analyzer.dart';
 import '../models.dart';
+
+final _exceptionsMap = {
+  'BadRequestException': (
+    400,
+    BadRequestException().toJson()
+  ),
+  'UnauthorizedException': (
+    401,
+    UnauthorizedException().toJson()
+  ),
+  'ForbiddenException': (
+    403,
+    ForbiddenException().toJson()
+  ),
+  'NotFoundException': (
+    404,
+    NotFoundException().toJson()
+  ),
+  'MethodNotAllowedException': (
+    405,
+    MethodNotAllowedException().toJson()
+  ),
+  'NotAcceptableException': (
+    406,
+    NotAcceptableException().toJson()
+  ),
+  'RequestTimeoutException': (
+    408,
+    RequestTimeoutException().toJson()
+  ),
+  'ConflictException': (
+    409,
+    ConflictException().toJson()
+  ),
+  'GoneException': (
+    410,
+    GoneException().toJson()
+  ),
+  'PreconditionFailedException': (
+    412,
+    PreconditionFailedException().toJson()
+  ),
+  'PayloadTooLargeException': (
+    413,
+    PayloadTooLargeException().toJson()
+  ),
+  'UnsupportedMediaTypeException': (
+    415,
+    UnsupportedMediaTypeException().toJson()
+  ),
+  'UnprocessableEntityException': (
+    422,
+    UnprocessableEntityException().toJson()
+  ),
+  'TooManyRequestsException': (
+    429,
+    TooManyRequestsException().toJson()
+  ),
+  'InternalServerErrorException': (
+    500,
+    InternalServerErrorException().toJson()
+  ),
+  'NotImplementedException': (
+    501,
+    NotImplementedException().toJson()
+  ),
+  'BadGatewayException': (
+    502,
+    BadGatewayException().toJson()
+  ),
+  'ServiceUnavailableException': (
+    503,
+    ServiceUnavailableException().toJson()
+  ),
+  'GatewayTimeoutException': (
+    504,
+    GatewayTimeoutException().toJson()
+  ),
+  'HttpVersionNotSupportedException': (
+    505,
+    HttpVersionNotSupportedException().toJson()
+  ),
+};
 
 /// Visitor that collects exception responses from throw expressions.
 class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
@@ -32,6 +116,47 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     if (!_isSerinusExceptionType(staticType)) {
       return null;
     }
+    final name = staticType.getDisplayString();
+    if (_exceptionsMap.containsKey(name)) {
+      final (statusCode, example) = _exceptionsMap[name]!;
+      final message = _inferExceptionMessage(
+        expression,
+        staticType,
+        null,
+        null,
+      );
+      return ExceptionResponse(
+        statusCode: statusCode,
+        message: message,
+        typeName: name,
+        example: {
+          'statusCode': statusCode,
+          'message': message ?? example['message'],
+        },
+      );
+    }
+    final superTypes = staticType.allSupertypes;
+    for (final superType in superTypes) {
+      final superName = superType.getDisplayString();
+      if (_exceptionsMap.containsKey(superName)) {
+        final (statusCode, example) = _exceptionsMap[superName]!;
+        final message = _inferExceptionMessage(
+          expression,
+          staticType,
+          null,
+          null,
+        );
+        return ExceptionResponse(
+          statusCode: statusCode,
+          message: message,
+          typeName: name,
+          example: {
+            'statusCode': statusCode,
+            'message': message ?? example['message'],
+          },
+        );
+      }
+    }
     final classDeclaration = _findClassDeclaration(staticType);
     final constructorName = _constructorNameFromExpression(expression);
     final statusCode = _inferExceptionStatusCode(
@@ -49,11 +174,14 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
       classDeclaration,
       constructorName,
     );
-    final typeName = staticType.getDisplayString();
     return ExceptionResponse(
       statusCode: statusCode,
       message: message,
-      typeName: typeName,
+      typeName: name,
+      example: {
+        'statusCode': statusCode,
+        'message': message,
+      },
     );
   }
 

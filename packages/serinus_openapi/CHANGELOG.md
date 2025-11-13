@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- fix: Correctly document built-in and custom exceptions in OpenAPI spec.
+
 ## 1.0.2
 
 - fix(#205): Ensure SwaggerUI Render works correctly out of the box.
