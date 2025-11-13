@@ -1,11 +1,20 @@
 name: Serinus CLI Tests
 
 on:
-  push:
   pull_request:
+    paths:
+      - ".github/workflows/serinus_cli.yaml"
+      - "packages/serinus_cli/lib/**"
+      - "packages/serinus_cli/test/**"
+      - "packages/serinus_cli/pubspec.yaml"
+  push:
     branches:
       - main
-
+    paths:
+      - ".github/workflows/serinus_cli.yaml"
+      - "packages/serinus_cli/lib/**"
+      - "packages/serinus_cli/test/**"
+      - "packages/serinus_cli/pubspec.yaml"
 jobs:
   build:    
     defaults:

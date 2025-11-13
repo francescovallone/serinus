@@ -1,10 +1,20 @@
 name: Serinus Tests
 
 on:
-  push:
   pull_request:
+    paths:
+      - ".github/workflows/serinus.yaml"
+      - "packages/serinus/lib/**"
+      - "packages/serinus/test/**"
+      - "packages/serinus/pubspec.yaml"
+  push:
     branches:
       - main
+    paths:
+      - ".github/workflows/serinus.yaml"
+      - "packages/serinus/lib/**"
+      - "packages/serinus/test/**"
+      - "packages/serinus/pubspec.yaml"
 
 jobs:
   build:    
