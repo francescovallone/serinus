@@ -56,10 +56,7 @@ class AppController extends Controller {
   }
 
   Future<List<MyObject>> _handleHelloWorld(RequestContext context) async {
-    return [
-      MyObject('Alice'),
-      MyObject('Bob'),
-    ];
+    return [MyObject('Alice'), MyObject('Bob')];
   }
 }
 

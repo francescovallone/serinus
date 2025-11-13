@@ -112,9 +112,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     }
     savedFilePath.write('/${path.startsWith('/') ? path.substring(1) : path}');
     savedFilePath.write('/?raw=true');
-    final file = File(
-      filePath,
-    );
+    final file = File(filePath);
     if (!file.existsSync()) {
       file.createSync(recursive: true);
     }

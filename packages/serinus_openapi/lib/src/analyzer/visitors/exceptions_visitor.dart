@@ -7,85 +7,37 @@ import '../analyzer.dart';
 import '../models.dart';
 
 final _exceptionsMap = {
-  'BadRequestException': (
-    400,
-    BadRequestException().toJson()
-  ),
-  'UnauthorizedException': (
-    401,
-    UnauthorizedException().toJson()
-  ),
-  'ForbiddenException': (
-    403,
-    ForbiddenException().toJson()
-  ),
-  'NotFoundException': (
-    404,
-    NotFoundException().toJson()
-  ),
-  'MethodNotAllowedException': (
-    405,
-    MethodNotAllowedException().toJson()
-  ),
-  'NotAcceptableException': (
-    406,
-    NotAcceptableException().toJson()
-  ),
-  'RequestTimeoutException': (
-    408,
-    RequestTimeoutException().toJson()
-  ),
-  'ConflictException': (
-    409,
-    ConflictException().toJson()
-  ),
-  'GoneException': (
-    410,
-    GoneException().toJson()
-  ),
-  'PreconditionFailedException': (
-    412,
-    PreconditionFailedException().toJson()
-  ),
-  'PayloadTooLargeException': (
-    413,
-    PayloadTooLargeException().toJson()
-  ),
+  'BadRequestException': (400, BadRequestException().toJson()),
+  'UnauthorizedException': (401, UnauthorizedException().toJson()),
+  'ForbiddenException': (403, ForbiddenException().toJson()),
+  'NotFoundException': (404, NotFoundException().toJson()),
+  'MethodNotAllowedException': (405, MethodNotAllowedException().toJson()),
+  'NotAcceptableException': (406, NotAcceptableException().toJson()),
+  'RequestTimeoutException': (408, RequestTimeoutException().toJson()),
+  'ConflictException': (409, ConflictException().toJson()),
+  'GoneException': (410, GoneException().toJson()),
+  'PreconditionFailedException': (412, PreconditionFailedException().toJson()),
+  'PayloadTooLargeException': (413, PayloadTooLargeException().toJson()),
   'UnsupportedMediaTypeException': (
     415,
-    UnsupportedMediaTypeException().toJson()
+    UnsupportedMediaTypeException().toJson(),
   ),
   'UnprocessableEntityException': (
     422,
-    UnprocessableEntityException().toJson()
+    UnprocessableEntityException().toJson(),
   ),
-  'TooManyRequestsException': (
-    429,
-    TooManyRequestsException().toJson()
-  ),
+  'TooManyRequestsException': (429, TooManyRequestsException().toJson()),
   'InternalServerErrorException': (
     500,
-    InternalServerErrorException().toJson()
+    InternalServerErrorException().toJson(),
   ),
-  'NotImplementedException': (
-    501,
-    NotImplementedException().toJson()
-  ),
-  'BadGatewayException': (
-    502,
-    BadGatewayException().toJson()
-  ),
-  'ServiceUnavailableException': (
-    503,
-    ServiceUnavailableException().toJson()
-  ),
-  'GatewayTimeoutException': (
-    504,
-    GatewayTimeoutException().toJson()
-  ),
+  'NotImplementedException': (501, NotImplementedException().toJson()),
+  'BadGatewayException': (502, BadGatewayException().toJson()),
+  'ServiceUnavailableException': (503, ServiceUnavailableException().toJson()),
+  'GatewayTimeoutException': (504, GatewayTimeoutException().toJson()),
   'HttpVersionNotSupportedException': (
     505,
-    HttpVersionNotSupportedException().toJson()
+    HttpVersionNotSupportedException().toJson(),
   ),
 };
 
@@ -178,10 +130,7 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
       statusCode: statusCode,
       message: message,
       typeName: name,
-      example: {
-        'statusCode': statusCode,
-        'message': message,
-      },
+      example: {'statusCode': statusCode, 'message': message},
     );
   }
 

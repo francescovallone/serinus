@@ -51,7 +51,9 @@ class Analyzer {
         if (!filePath.endsWith('.dart') || !filePath.contains('bin')) {
           continue;
         }
-        final result = await context.currentSession.getResolvedLibrary(filePath);
+        final result = await context.currentSession.getResolvedLibrary(
+          filePath,
+        );
         if (result is ResolvedLibraryResult) {
           libraries.add(result);
         }
@@ -124,14 +126,12 @@ class Analyzer {
             savedHandler.requestBody = analyzed.requestBody;
           }
           if (analyzed.responseContentType != null) {
-            savedHandler.responseContentType =
-                analyzed.responseContentType;
+            savedHandler.responseContentType = analyzed.responseContentType;
           }
         }
       }
       if (isController) {
-        handlersByControllers[controllerName] = handlers.values
-            .toList();
+        handlersByControllers[controllerName] = handlers.values.toList();
       }
     }
     return handlersByControllers;
