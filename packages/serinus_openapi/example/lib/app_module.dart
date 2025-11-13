@@ -14,6 +14,7 @@ class AppModule extends Module {
                 version: '1.0.0',
                 description: 'An example of Serinus with OpenAPI integration',
               ),
+              analyze: true
             )
           ],
           controllers: [AppController()],
