@@ -135,15 +135,20 @@ class Analyzer {
           if (contextParameter is SimpleFormalParameter) {
             final contextType = contextParameter.type as NamedType;
             final typeString = contextType.type?.getDisplayString();
-            final genericBody = RegExp(r'\<([^)]+)\>').firstMatch(typeString ?? '');
+            final genericBody = RegExp(
+              r'\<([^)]+)\>',
+            ).firstMatch(typeString ?? '');
             if (genericBody != null && genericBody.groupCount == 1) {
               final bodyType = genericBody.group(1);
-              final bodyTypeInModelProvider = modelProviderTypes.where((e) => e.name == bodyType).firstOrNull;
+              final bodyTypeInModelProvider = modelProviderTypes
+                  .where((e) => e.name == bodyType)
+                  .firstOrNull;
               if (bodyTypeInModelProvider != null) {
                 final dartType = bodyTypeInModelProvider.thisType;
                 final descriptor = schemaFromDartType(dartType);
                 if (descriptor != null) {
-                  final isNullable = dartType.nullabilitySuffix == NullabilitySuffix.question;
+                  final isNullable =
+                      dartType.nullabilitySuffix == NullabilitySuffix.question;
                   analyzed.requestBody = RequestBodyInfo(
                     schema: descriptor,
                     contentType: inferContentType(descriptor),

@@ -9,13 +9,12 @@ class AppModule extends Module {
       : super(
           imports: [
             OpenApiModule.v3(
-              InfoObject(
-                title: 'Serinus OpenAPI Example',
-                version: '1.0.0',
-                description: 'An example of Serinus with OpenAPI integration',
-              ),
-              analyze: true
-            )
+                InfoObject(
+                  title: 'Serinus OpenAPI Example',
+                  version: '1.0.0',
+                  description: 'An example of Serinus with OpenAPI integration',
+                ),
+                analyze: true)
           ],
           controllers: [AppController()],
           providers: [AppProvider()],
