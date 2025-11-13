@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.4
+
+- feat: add `optimizedAnalysis` params to make the analyzer ignore files with lastModification older than the specification file.
+- fix: remove wrongful condition in the first if.
+
 ## 1.0.3
 
 - fix: Correctly document built-in and custom exceptions in OpenAPI spec.

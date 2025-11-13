@@ -36,9 +36,7 @@ jobs:
 
       - name: 🧪 Run Tests
         run: |
-          dart pub global activate coverage
-          export SERINUS_TEST=true
-          dart test --coverage=coverage
+          dart test
       
       # - name: 📊 Check Code Coverage
       #   uses: VeryGoodOpenSource/very_good_coverage@v2

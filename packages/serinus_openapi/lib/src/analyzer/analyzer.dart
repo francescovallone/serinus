@@ -34,7 +34,7 @@ class Analyzer {
   final Map<InterfaceElement, ClassDeclaration> classDeclarations = {};
 
   /// Analyzes the Dart code and extracts route information.
-  Future<Map<String, List<RouteDescription>>> analyze() async {
+  Future<Map<String, List<RouteDescription>>> analyze([int? modificationStamp]) async {
     modelTypeSchemas.clear();
     modelProviderTypes.clear();
     _registeredModelProviders.clear();
@@ -48,7 +48,14 @@ class Analyzer {
     for (final context in collection.contexts) {
       final analyzedFiles = context.contextRoot.analyzedFiles();
       for (final filePath in analyzedFiles) {
-        if (!filePath.endsWith('.dart') || !filePath.contains('bin')) {
+        if (!filePath.endsWith('.dart')) {
+          continue;
+        }
+        final fileResult = await context.currentSession.getFile(filePath);
+        if (fileResult is FileResult &&
+            modificationStamp != null &&
+            fileResult.file.exists &&
+            fileResult.file.modificationStamp < modificationStamp) {
           continue;
         }
         final result = await context.currentSession.getResolvedLibrary(

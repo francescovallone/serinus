@@ -69,6 +69,14 @@ class OpenApiModule extends Module {
   /// The parse type for the OpenAPI document.
   final OpenApiParseType parseType;
 
+  /// Allow an optimized analysis.
+  /// The analyzer will ignore files with lastModified older than the creation date of the spec file
+  /// 
+  /// It is used if the file does not exists.
+  /// 
+  /// [Default: false]
+  final bool optimizedAnalysis;
+
   OpenApiModule._(
     this._document, {
     this.path = 'openapi',
@@ -77,6 +85,7 @@ class OpenApiModule extends Module {
     this.options = const SwaggerUIOptions(),
     this.analyze = false,
     this.parseType = OpenApiParseType.yaml,
+    this.optimizedAnalysis = false,
   });
 
   /// Factory method to create an [OpenApiModule] for OpenAPI v2.
@@ -91,6 +100,7 @@ class OpenApiModule extends Module {
     RenderOptions options = const SwaggerUIOptions(),
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
+    bool optimizedAnalysis = false
   }) {
     final DocumentV2 document = DocumentV2(
       info: info,
@@ -108,6 +118,7 @@ class OpenApiModule extends Module {
       options: options,
       analyze: analyze,
       parseType: parseType,
+      optimizedAnalysis: optimizedAnalysis
     );
   }
 
@@ -123,6 +134,7 @@ class OpenApiModule extends Module {
     RenderOptions options = const SwaggerUIOptions(),
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
+    bool optimizedAnalysis = false
   }) {
     final DocumentV3 document = DocumentV3(
       info: info,
@@ -139,6 +151,7 @@ class OpenApiModule extends Module {
       version: OpenApiVersion.v3_0,
       options: options,
       analyze: analyze,
+      optimizedAnalysis: optimizedAnalysis,
       parseType: parseType,
     );
   }
@@ -154,6 +167,7 @@ class OpenApiModule extends Module {
     RenderOptions options = const SwaggerUIOptions(),
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
+    bool optimizedAnalysis = false
   }) {
     final DocumentV31 document = DocumentV31(
       info: info,
@@ -169,6 +183,7 @@ class OpenApiModule extends Module {
       options: options,
       analyze: analyze,
       parseType: parseType,
+      optimizedAnalysis: optimizedAnalysis
     );
   }
 
@@ -188,6 +203,7 @@ class OpenApiModule extends Module {
           options,
           analyze,
           parseType: parseType,
+          optimizedAnalysis: optimizedAnalysis
         ),
       ],
     );

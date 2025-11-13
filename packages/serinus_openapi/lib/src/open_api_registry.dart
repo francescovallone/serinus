@@ -36,6 +36,9 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   /// The parse type for the OpenAPI document.
   final OpenApiParseType parseType;
 
+  /// Check if the user wants to execute an optimized analysis
+  final bool optimizedAnalysis;
+
   /// The generated OpenAPI document content.
   String get content {
     return _content!;
@@ -51,15 +54,33 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     this.options,
     this.analyze, {
     this.parseType = OpenApiParseType.yaml,
+    this.optimizedAnalysis = false
   });
 
   @override
   Future<void> onApplicationBootstrap() async {
-    await _exploreModules();
-    _content = _generateOpenApiDocument();
+    final savedFilePath = StringBuffer();
+    if (config.globalPrefix != null) {
+      savedFilePath.write('/${config.globalPrefix}');
+    }
+    if (config.versioningOptions != null &&
+        config.versioningOptions!.type == VersioningType.uri) {
+      savedFilePath.write(
+        '/${config.versioningOptions!.versionPrefix}${config.versioningOptions!.version}',
+      );
+    }
+    savedFilePath.write('/${path.startsWith('/') ? path.substring(1) : path}');
+    savedFilePath.write('/?raw=true');
+    final file = File(filePath);
+    int? modificationStamp;
+    if (file.existsSync() && optimizedAnalysis) {
+      modificationStamp = file.lastModifiedSync().millisecondsSinceEpoch;      
+    }
+    await _exploreModules(modificationStamp);
+    _content = _generateOpenApiDocument(file, '$savedFilePath');
   }
 
-  String _generateOpenApiDocument() {
+  String _generateOpenApiDocument(File file, String savedFilePath) {
     final OpenAPIDocument document;
     switch (version) {
       case OpenApiVersion.v2:
@@ -100,19 +121,6 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
         break;
     }
     final rendererInstance = getRenderer(options);
-    final savedFilePath = StringBuffer();
-    if (config.globalPrefix != null) {
-      savedFilePath.write('/${config.globalPrefix}');
-    }
-    if (config.versioningOptions != null &&
-        config.versioningOptions!.type == VersioningType.uri) {
-      savedFilePath.write(
-        '/${config.versioningOptions!.versionPrefix}${config.versioningOptions!.version}',
-      );
-    }
-    savedFilePath.write('/${path.startsWith('/') ? path.substring(1) : path}');
-    savedFilePath.write('/?raw=true');
-    final file = File(filePath);
     if (!file.existsSync()) {
       file.createSync(recursive: true);
     }
@@ -122,15 +130,15 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     );
     return rendererInstance.render(
       document,
-      savedFilePath.toString().replaceAll('//', '/'),
+      savedFilePath.replaceAll('//', '/'),
     );
   }
 
-  Future<void> _exploreModules() async {
+  Future<void> _exploreModules([int? modificationStamp]) async {
     final result = <String, List<RouteDescription>>{};
     if (analyze) {
       final analyzer = Analyzer(version);
-      result.addAll(await analyzer.analyze());
+      result.addAll(await analyzer.analyze(modificationStamp));
     }
     final controllers = <Controller>[];
     final paths = <String, OpenApiPathItem>{};
