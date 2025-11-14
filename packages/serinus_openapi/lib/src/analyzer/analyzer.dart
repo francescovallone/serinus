@@ -63,7 +63,7 @@ class Analyzer {
                 .startsWith('/example')) {
           continue;
         }
-        final fileResult = await context.currentSession.getFile(filePath);
+        final fileResult = context.currentSession.getFile(filePath);
         if (fileResult is FileResult &&
             modificationStamp != null &&
             fileResult.file.exists &&
