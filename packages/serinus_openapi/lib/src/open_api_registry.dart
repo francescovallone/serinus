@@ -87,17 +87,25 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     if (!analyze) {
       if (file.existsSync()) {
         _content = file.readAsStringSync();
-        _generateOpenApiDocument(file, '$savedFilePath', reuseCurrentFile: true);
+        _generateOpenApiDocument(
+          file,
+          '$savedFilePath',
+          reuseCurrentFile: true,
+        );
       } else {
         throw Exception(
           'The OpenAPI specification file does not exist at $filePath. '
           'Please enable analysis to generate the file.',
         );
-      } 
+      }
     }
   }
 
-  String _generateOpenApiDocument(File file, String savedFilePath, {bool reuseCurrentFile = false}) {
+  String _generateOpenApiDocument(
+    File file,
+    String savedFilePath, {
+    bool reuseCurrentFile = false,
+  }) {
     final OpenAPIDocument document;
     final OpenApiParser parser = OpenApiParser();
     if (!reuseCurrentFile) {
