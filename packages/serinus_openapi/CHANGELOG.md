@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.8
+
+- feat: add generation of OpenAPI type from simple object augmented with JsonObject without needing to adding it to the model provider.
+- fix: issue with parsing models in modelProvider.
+- fix: if analyze is false, it won't regenerate the specification file.
+
 ## 1.0.7
 
 - feat: add `includePaths` param to specify which paths to include in the analysis. By default it includes 'lib' and 'bin' folders.

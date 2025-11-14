@@ -45,8 +45,8 @@ class Analyzer {
     FileSystemEntity file = Directory.current;
     final collection = AnalysisContextCollection(
       includedPaths: [
-        '${file.absolute.path}/lib',
-        '${file.absolute.path}/bin',
+        '${file.absolute.path}${Platform.pathSeparator}lib',
+        '${file.absolute.path}${Platform.pathSeparator}bin',
         ...?includePaths,
       ],
     );
@@ -263,6 +263,7 @@ class Analyzer {
     if (expression == null) {
       return null;
     }
+
     if (expression is TypeLiteral) {
       final annotationType = expression.type.type;
       if (annotationType is InterfaceType) {
@@ -294,6 +295,12 @@ class Analyzer {
         return null;
       }
       return staticType;
+    }
+    if (staticType is FunctionType) {
+      if (staticType.returnType.getDisplayString() == 'Map<String, dynamic>') {
+        return staticType.formalParameters.firstOrNull?.type as InterfaceType?;
+      }
+      return staticType.returnType as InterfaceType?;
     }
     return null;
   }
@@ -473,7 +480,6 @@ class Analyzer {
         );
         break;
     }
-
     return description;
   }
 
@@ -508,7 +514,6 @@ class Analyzer {
 
   SchemaDescriptor? _inferSchemaFromExpression(Expression expression) {
     final expr = _normalizeExpression(expression);
-
     if (expr is AwaitExpression) {
       return _inferSchemaFromExpression(expr.expression);
     }
@@ -642,7 +647,6 @@ class Analyzer {
     if (type == null) {
       return null;
     }
-
     final display = type.getDisplayString();
     final nullable = type.nullabilitySuffix == NullabilitySuffix.question;
     final coreDisplay = nullable
@@ -676,7 +680,7 @@ class Analyzer {
 
     if (type is InterfaceType) {
       final element = type.element;
-      if (modelProviderTypes.contains(element)) {
+      if (modelProviderTypes.where((e) => e.name == coreDisplay).isNotEmpty) {
         final descriptor =
             modelTypeSchemas[element] ??
             _buildSchemaDescriptorFromClass(type, visited);
@@ -751,7 +755,12 @@ class Analyzer {
         );
       }
       if (_implementsJsonObject(type)) {
-        return wrapNullable(SchemaDescriptor(type: OpenApiType.object()));
+        return wrapNullable(
+          SchemaDescriptor(
+            type: OpenApiType.object(),
+            properties: _generatePropertiesFromJsonObject(type, visited),
+          ),
+        );
       }
       return wrapNullable(SchemaDescriptor(type: OpenApiType.object()));
     }
@@ -878,5 +887,25 @@ class Analyzer {
     final element = type.element;
     return element.displayName == 'DateTime' &&
         element.library.displayName == 'dart.core';
+  }
+
+  Map<String, SchemaDescriptor>? _generatePropertiesFromJsonObject(
+    InterfaceType type,
+    Set<InterfaceElement> visited,
+  ) {
+    final element = type.element;
+    final properties = <String, SchemaDescriptor>{};
+    for (final field in element.fields) {
+      if (field.isStatic ||
+          field.isSynthetic ||
+          field.displayName.startsWith('_')) {
+        continue;
+      }
+      final descriptor =
+          _schemaFromDartTypeInternal(field.type, visited) ??
+          SchemaDescriptor(type: OpenApiType.object());
+      properties[field.displayName] = descriptor;
+    }
+    return properties.isEmpty ? null : properties;
   }
 }

@@ -80,55 +80,76 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     if (file.existsSync() && optimizedAnalysis) {
       modificationStamp = file.lastModifiedSync().millisecondsSinceEpoch;
     }
-    await _exploreModules(modificationStamp);
-    _content = _generateOpenApiDocument(file, '$savedFilePath');
+    if (analyze) {
+      await _exploreModules(modificationStamp);
+      _content = _generateOpenApiDocument(file, '$savedFilePath');
+    }
+    if (!analyze) {
+      if (file.existsSync()) {
+        _content = file.readAsStringSync();
+        _generateOpenApiDocument(file, '$savedFilePath', reuseCurrentFile: true);
+      } else {
+        throw Exception(
+          'The OpenAPI specification file does not exist at $filePath. '
+          'Please enable analysis to generate the file.',
+        );
+      } 
+    }
   }
 
-  String _generateOpenApiDocument(File file, String savedFilePath) {
+  String _generateOpenApiDocument(File file, String savedFilePath, {bool reuseCurrentFile = false}) {
     final OpenAPIDocument document;
-    switch (version) {
-      case OpenApiVersion.v2:
-        final documentV2 = this.document as DocumentV2;
-        document = DocumentV2(
-          info: documentV2.info,
-          definitions: documentV2.definitions,
-          paths: Map<String, PathItemObjectV2>.from(_paths),
-          externalDocs: documentV2.externalDocs,
-          tags: documentV2.tags,
-          securityDefinitions: documentV2.securityDefinitions,
-        );
-        break;
-      case OpenApiVersion.v3_0:
-        final documentV3 = this.document as DocumentV3;
-        document = DocumentV3(
-          info: documentV3.info,
-          paths: Map<String, PathItemObjectV3>.from(_paths),
-          components: documentV3.components,
-          externalDocs: documentV3.externalDocs,
-          tags: documentV3.tags,
-          security: documentV3.security,
-        );
-        break;
-      case OpenApiVersion.v3_1:
-        final documentV31 = this.document as DocumentV31;
-        document = DocumentV31(
-          info: documentV31.info as InfoObjectV31,
-          structure: PathsWebhooksComponentsV31(
-            paths: Map<String, PathItemObjectV31>.from(_paths),
-            webhooks: documentV31.webhooks,
-            components: documentV31.components,
-          ),
-          externalDocs: documentV31.externalDocs,
-          tags: documentV31.tags,
-          security: documentV31.security,
-        );
-        break;
+    final OpenApiParser parser = OpenApiParser();
+    if (!reuseCurrentFile) {
+      switch (version) {
+        case OpenApiVersion.v2:
+          final documentV2 = this.document as DocumentV2;
+          document = DocumentV2(
+            info: documentV2.info,
+            definitions: documentV2.definitions,
+            paths: Map<String, PathItemObjectV2>.from(_paths),
+            externalDocs: documentV2.externalDocs,
+            tags: documentV2.tags,
+            securityDefinitions: documentV2.securityDefinitions,
+          );
+          break;
+        case OpenApiVersion.v3_0:
+          final documentV3 = this.document as DocumentV3;
+          document = DocumentV3(
+            info: documentV3.info,
+            paths: Map<String, PathItemObjectV3>.from(_paths),
+            components: documentV3.components,
+            externalDocs: documentV3.externalDocs,
+            tags: documentV3.tags,
+            security: documentV3.security,
+          );
+          break;
+        case OpenApiVersion.v3_1:
+          final documentV31 = this.document as DocumentV31;
+          document = DocumentV31(
+            info: documentV31.info as InfoObjectV31,
+            structure: PathsWebhooksComponentsV31(
+              paths: Map<String, PathItemObjectV31>.from(_paths),
+              webhooks: documentV31.webhooks,
+              components: documentV31.components,
+            ),
+            externalDocs: documentV31.externalDocs,
+            tags: documentV31.tags,
+            security: documentV31.security,
+          );
+          break;
+      }
+    } else {
+      if (parseType == OpenApiParseType.yaml) {
+        document = parser.parseFromYaml(file.readAsStringSync());
+      } else {
+        document = parser.parseFromJson(file.readAsStringSync());
+      }
     }
     final rendererInstance = getRenderer(options);
     if (!file.existsSync()) {
       file.createSync(recursive: true);
     }
-    final OpenApiParser parser = OpenApiParser();
     file.writeAsStringSync(
       parser.stringify(document, toYaml: parseType == OpenApiParseType.yaml),
     );
@@ -140,10 +161,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
 
   Future<void> _exploreModules([int? modificationStamp]) async {
     final result = <String, List<RouteDescription>>{};
-    if (analyze) {
-      final analyzer = Analyzer(version);
-      result.addAll(await analyzer.analyze(modificationStamp));
-    }
+    final analyzer = Analyzer(version);
+    result.addAll(await analyzer.analyze(modificationStamp));
     final controllers = <Controller>[];
     final paths = <String, OpenApiPathItem>{};
     final globalPrefix = config.globalPrefix;

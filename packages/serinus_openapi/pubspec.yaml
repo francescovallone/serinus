@@ -1,6 +1,6 @@
 name: serinus_openapi
 description: A Serinus plugin to generate OpenAPI documentation from your Serinus app.
-version: 1.0.7
+version: 1.0.8
 repository: https://github.com/francescovallone/serinus
 homepage: https://serinus.app
 documentation: https://serinus.app/openapi
