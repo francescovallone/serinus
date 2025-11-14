@@ -39,6 +39,9 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   /// Check if the user wants to execute an optimized analysis
   final bool optimizedAnalysis;
 
+  /// List of paths to include in the analysis.
+  final List<String> includePaths;
+
   /// The generated OpenAPI document content.
   String get content {
     return _content!;
@@ -55,6 +58,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     this.analyze, {
     this.parseType = OpenApiParseType.yaml,
     this.optimizedAnalysis = false,
+    this.includePaths = const [],
   });
 
   @override

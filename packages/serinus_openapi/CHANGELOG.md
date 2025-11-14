@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.7
+
+- feat: add `includePaths` param to specify which paths to include in the analysis. By default it includes 'lib' and 'bin' folders.
+- fix: both methods and functions parameters can now be analyzed for request bodies.
+
 ## 1.0.6
 
 - chore: remove print

@@ -36,6 +36,7 @@ class Analyzer {
   /// Analyzes the Dart code and extracts route information.
   Future<Map<String, List<RouteDescription>>> analyze([
     int? modificationStamp,
+    List<String>? includePaths,
   ]) async {
     modelTypeSchemas.clear();
     modelProviderTypes.clear();
@@ -43,14 +44,23 @@ class Analyzer {
     classDeclarations.clear();
     FileSystemEntity file = Directory.current;
     final collection = AnalysisContextCollection(
-      includedPaths: [file.absolute.path],
+      includedPaths: [
+        '${file.absolute.path}/lib',
+        '${file.absolute.path}/bin',
+        ...?includePaths,
+      ],
     );
     final handlersByControllers = <String, List<RouteDescription>>{};
     final libraries = <ResolvedLibraryResult>[];
     for (final context in collection.contexts) {
       final analyzedFiles = context.contextRoot.analyzedFiles();
       for (final filePath in analyzedFiles) {
-        if (!filePath.endsWith('.dart')) {
+        if (!filePath.endsWith('.dart') ||
+            filePath.endsWith('.g.dart') ||
+            filePath
+                .replaceAll(file.absolute.path, '')
+                .replaceAll('\\', '/')
+                .startsWith('/example')) {
           continue;
         }
         final fileResult = await context.currentSession.getFile(filePath);
@@ -87,6 +97,7 @@ class Analyzer {
         final declaration = classDeclarations[providerElement];
         if (declaration != null) {
           _registerModelProviderDeclaration(providerElement, declaration);
+          classDeclarations.remove(providerElement);
         }
       }
     }
@@ -94,16 +105,14 @@ class Analyzer {
       final methods = <MethodDeclaration>[];
       final constructors = <ConstructorDeclaration>[];
       final handlers = <String, RouteDescription>{};
-      bool isController = false;
+      final isController =
+          classDeclaration.extendsClause?.superclass.name.value() ==
+          'Controller';
+      if (!isController) {
+        continue;
+      }
       String controllerName = '';
       for (final child in classDeclaration.childEntities) {
-        if (child is ExtendsClause) {
-          if (child.superclass.name.value() != 'Controller') {
-            break;
-          } else {
-            isController = true;
-          }
-        }
         if (child is Token && child.type == TokenType.IDENTIFIER) {
           controllerName = child.value().toString();
         }
@@ -127,36 +136,12 @@ class Analyzer {
         final methodName = method.name.lexeme;
         final savedHandler = handlers[methodName];
         if (savedHandler != null) {
-          final analyzed = _analyzeFunctionBody(method.body);
+          final analyzed = _analyzeFunctionBody(
+            method.body,
+            method.parameters!,
+          );
           if (analyzed.returnType != null) {
             savedHandler.returnType = analyzed.returnType;
-          }
-          final contextParameter = method.parameters?.parameters.first;
-          if (contextParameter is SimpleFormalParameter) {
-            final contextType = contextParameter.type as NamedType;
-            final typeString = contextType.type?.getDisplayString();
-            final genericBody = RegExp(
-              r'\<([^)]+)\>',
-            ).firstMatch(typeString ?? '');
-            if (genericBody != null && genericBody.groupCount == 1) {
-              final bodyType = genericBody.group(1);
-              final bodyTypeInModelProvider = modelProviderTypes
-                  .where((e) => e.name == bodyType)
-                  .firstOrNull;
-              if (bodyTypeInModelProvider != null) {
-                final dartType = bodyTypeInModelProvider.thisType;
-                final descriptor = schemaFromDartType(dartType);
-                if (descriptor != null) {
-                  final isNullable =
-                      dartType.nullabilitySuffix == NullabilitySuffix.question;
-                  analyzed.requestBody = RequestBodyInfo(
-                    schema: descriptor,
-                    contentType: inferContentType(descriptor),
-                    isRequired: !isNullable,
-                  );
-                }
-              }
-            }
           }
           if (analyzed.requestBody != null) {
             savedHandler.requestBody = analyzed.requestBody;
@@ -355,17 +340,50 @@ class Analyzer {
       if (expr is SimpleIdentifier) {
         handlers[expr.name] = RouteDescription();
       } else if (expr is FunctionExpression) {
-        handlers[expr.toSource()] = _analyzeFunctionBody(expr.body);
+        handlers[expr.toSource()] = _analyzeFunctionBody(
+          expr.body,
+          expr.parameters!,
+        );
       }
     }
     return handlers;
   }
 
-  RouteDescription _analyzeFunctionBody(FunctionBody body) {
+  RouteDescription _analyzeFunctionBody(
+    FunctionBody body,
+    FormalParameterList parameters,
+  ) {
     final description = RouteDescription();
     final requestInfo = _extractRequestBody(body);
     if (requestInfo != null) {
       description.requestBody = requestInfo;
+    }
+    final contextParameter = parameters.parameters.first;
+    if (contextParameter is SimpleFormalParameter) {
+      final contextType = contextParameter.type as NamedType;
+      final typeString = contextType.type?.getDisplayString();
+      final genericBody = RegExp(
+        r'\<([^)]+)\>',
+      ).firstMatch(typeString ?? '');
+      if (genericBody != null && genericBody.groupCount == 1) {
+        final bodyType = genericBody.group(1);
+        final bodyTypeInModelProvider = modelProviderTypes
+            .where((e) => e.name == bodyType)
+            .firstOrNull;
+        if (bodyTypeInModelProvider != null) {
+          final dartType = bodyTypeInModelProvider.thisType;
+          final descriptor = schemaFromDartType(dartType);
+          if (descriptor != null) {
+            final isNullable =
+                dartType.nullabilitySuffix == NullabilitySuffix.question;
+            description.requestBody = RequestBodyInfo(
+              schema: descriptor,
+              contentType: inferContentType(descriptor),
+              isRequired: !isNullable,
+            );
+          }
+        }
+      }
     }
     final exceptionResponses = _collectExceptionResponses(body);
     if (exceptionResponses.isNotEmpty) {

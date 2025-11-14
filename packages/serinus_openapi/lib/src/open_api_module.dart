@@ -77,6 +77,13 @@ class OpenApiModule extends Module {
   /// [Default: false]
   final bool optimizedAnalysis;
 
+  /// List of paths to include in the analysis.
+  ///
+  /// By Default it includes 'lib' and 'bin' folders.
+  ///
+  /// Remember that paths must be absolute to [Directory.current]
+  final List<String> includePaths;
+
   OpenApiModule._(
     this._document, {
     this.path = 'openapi',
@@ -86,6 +93,7 @@ class OpenApiModule extends Module {
     this.analyze = false,
     this.parseType = OpenApiParseType.yaml,
     this.optimizedAnalysis = false,
+    this.includePaths = const [],
   });
 
   /// Factory method to create an [OpenApiModule] for OpenAPI v2.
@@ -101,6 +109,7 @@ class OpenApiModule extends Module {
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
     bool optimizedAnalysis = false,
+    List<String> includePaths = const [],
   }) {
     final DocumentV2 document = DocumentV2(
       info: info,
@@ -119,6 +128,7 @@ class OpenApiModule extends Module {
       analyze: analyze,
       parseType: parseType,
       optimizedAnalysis: optimizedAnalysis,
+      includePaths: includePaths,
     );
   }
 
@@ -135,6 +145,7 @@ class OpenApiModule extends Module {
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
     bool optimizedAnalysis = false,
+    List<String> includePaths = const [],
   }) {
     final DocumentV3 document = DocumentV3(
       info: info,
@@ -153,6 +164,7 @@ class OpenApiModule extends Module {
       analyze: analyze,
       optimizedAnalysis: optimizedAnalysis,
       parseType: parseType,
+      includePaths: includePaths,
     );
   }
 
@@ -168,6 +180,7 @@ class OpenApiModule extends Module {
     bool analyze = false,
     OpenApiParseType parseType = OpenApiParseType.yaml,
     bool optimizedAnalysis = false,
+    List<String> includePaths = const [],
   }) {
     final DocumentV31 document = DocumentV31(
       info: info,
@@ -184,6 +197,7 @@ class OpenApiModule extends Module {
       analyze: analyze,
       parseType: parseType,
       optimizedAnalysis: optimizedAnalysis,
+      includePaths: includePaths,
     );
   }
 
@@ -204,6 +218,7 @@ class OpenApiModule extends Module {
           analyze,
           parseType: parseType,
           optimizedAnalysis: optimizedAnalysis,
+          includePaths: includePaths,
         ),
       ],
     );
