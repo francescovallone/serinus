@@ -298,9 +298,14 @@ class Analyzer {
     }
     if (staticType is FunctionType) {
       if (staticType.returnType.getDisplayString() == 'Map<String, dynamic>') {
-        return staticType.formalParameters.firstOrNull?.type as InterfaceType?;
+        final firstParamType = staticType.formalParameters.firstOrNull?.type;
+        if (firstParamType is InterfaceType) {
+          return firstParamType;
+        }
       }
-      return staticType.returnType as InterfaceType?;
+      if (staticType.returnType is InterfaceType) {
+        return staticType.returnType as InterfaceType;
+      }
     }
     return null;
   }

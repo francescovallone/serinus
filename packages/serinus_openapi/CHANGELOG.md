@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.9
+
+- fix: fix issue when model in model provider is dynamic
+
 ## 1.0.8
 
 - feat: add generation of OpenAPI type from simple object augmented with JsonObject without needing to adding it to the model provider.
