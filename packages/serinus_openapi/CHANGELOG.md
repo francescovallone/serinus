@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.10
+
+- fix: add exception responses in method handler analysis
+
 ## 1.0.9
 
 - fix: fix issue when model in model provider is dynamic
