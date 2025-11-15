@@ -149,6 +149,14 @@ class Analyzer {
           if (analyzed.responseContentType != null) {
             savedHandler.responseContentType = analyzed.responseContentType;
           }
+          if (analyzed.exceptions.isNotEmpty) {
+            for (final entry in analyzed.exceptions.entries) {
+              savedHandler.exceptions.putIfAbsent(
+                entry.key,
+                () => entry.value,
+              );
+            }
+          }
         }
       }
       if (isController) {
