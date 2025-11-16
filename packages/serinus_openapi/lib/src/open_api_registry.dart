@@ -86,8 +86,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     }
     if (!analyze) {
       if (file.existsSync()) {
-        _content = file.readAsStringSync();
-        _generateOpenApiDocument(
+        _content = _generateOpenApiDocument(
           file,
           '$savedFilePath',
           reuseCurrentFile: true,
