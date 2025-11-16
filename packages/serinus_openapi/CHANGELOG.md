@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.11
+
+- fix(#206): OpenAPI UI not rendering when `analyze: false` in production. [#207](https://github.com/francescovallone/serinus/pull/207) by [developerjamiu](https://github.com/developerjamiu)
+
 ## 1.0.10
 
 - fix: add exception responses in method handler analysis
