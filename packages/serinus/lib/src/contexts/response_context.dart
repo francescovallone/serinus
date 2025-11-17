@@ -138,6 +138,22 @@ class ResponseContext extends BaseContext {
     _cookies.addAll(cookies);
   }
 
+  Object? _body;
+
+  /// The [body] property contains the body of the response.
+  /// It can be of any type, depending on the content type of the response.
+  Object? get body => _body;
+
+  set body(Object? value) {
+    if (_closed) {
+      throw StateError(
+        'Response context has been closed and cannot be modified.',
+      );
+    }
+    _body = value;
+    close();
+  }
+
   /// The [close] method is used to close the response context.
   /// This method should be called when the response will be sent back to the client forcefully without completing the request.
   /// It prevents further modifications to the response context.

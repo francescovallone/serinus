@@ -67,8 +67,8 @@ void main() {
       final token = InjectionToken.fromModule(module);
       final result = router.checkRouteByPathAndMethod('/', HttpMethod.get);
 
-      expect(result.spec, isNotNull);
-      final routeContext = result.spec!.route;
+      expect(result?.spec, isNotNull);
+      final routeContext = result!.spec.route;
       expect(routeContext.moduleToken, equals(token));
       expect(routeContext.moduleScope.token, equals(token));
     });

@@ -129,14 +129,11 @@ final class RoutesExplorer {
   /// Returns a [RouteContext] and the handler function if the route exists,
   /// otherwise returns null.
   ({
-    ({RouteContext route, HandlerFunction handler})? spec,
+    ({RouteContext route, HandlerFunction handler}) spec,
     Map<String, dynamic> params,
   })?
   getRoute(String path, HttpMethod method) {
     final result = _router.checkRouteByPathAndMethod(path, method);
-    if (result.spec == null) {
-      return null;
-    }
     return result;
   }
 }

@@ -81,7 +81,7 @@ final class RpcArgumentsHost extends ArgumentsHost {
 }
 
 /// The execution context for a request, WebSocket message, SSE message, or RPC message.
-final class ExecutionContext extends BaseContext {
+final class ExecutionContext<T extends ArgumentsHost> extends BaseContext {
   /// The [ExecutionContext] constructor is used to create a new instance of the [ExecutionContext] class.
   ExecutionContext(
     this.hostType,
@@ -98,7 +98,7 @@ final class ExecutionContext extends BaseContext {
   }
 
   /// The underlying arguments host (either HTTP, WebSocket, SSE, or RPC).
-  final ArgumentsHost argumentsHost;
+  final T argumentsHost;
 
   /// Metadata associated with the current context.
   final Map<String, Metadata> metadata = {};
