@@ -91,7 +91,10 @@ class RouteExecutionContext {
           if (executionContext.response.closed) {
             await _responseController.sendResponse(
               response,
-              processResult(WrappedResponse(executionContext.response.body), executionContext),
+              processResult(
+                WrappedResponse(executionContext.response.body),
+                executionContext,
+              ),
               executionContext.response,
               viewEngine: viewEngine,
             );
@@ -289,7 +292,7 @@ class RouteExecutionContext {
       await hook.beforeHandle(executionContext);
     }
   }
-  
+
   /// The [processResult] method is used to process the result of a route handler.
   /// It converts the result to the appropriate format based on the content type
   WrappedResponse processResult(

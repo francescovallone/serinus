@@ -301,8 +301,7 @@ class WebSocketAdapter extends WsAdapter {
       }
       try {
         final wsContext = context.switchToWs();
-        wsContext.currentMessage =
-            context.argumentsHost.message ?? message;
+        wsContext.currentMessage = context.argumentsHost.message ?? message;
         await gatewayScope.gateway.onMessage(message, wsContext);
       } on WsException catch (e) {
         if (gatewayScope.exceptionFilters.isEmpty) {

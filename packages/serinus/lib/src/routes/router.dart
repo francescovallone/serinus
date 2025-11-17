@@ -52,7 +52,8 @@ final class Router {
   ({
     ({RouteContext route, HandlerFunction handler}) spec,
     Map<String, dynamic> params,
-  })? checkRouteByPathAndMethod(String path, HttpMethod method) {
+  })?
+  checkRouteByPathAndMethod(String path, HttpMethod method) {
     final result = _routeTree.lookup(
       HttpMethod.toSpanner(method),
       Uri.parse(path),

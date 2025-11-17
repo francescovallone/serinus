@@ -85,7 +85,10 @@ class RoutesResolver {
   }
 
   /// The [sendExceptionResponse] method is used to send an exception response.
-  Future<void> sendExceptionResponse(SerinusException exception, OutgoingMessage response) async {
+  Future<void> sendExceptionResponse(
+    SerinusException exception,
+    OutgoingMessage response,
+  ) async {
     return _container.applicationRef.reply(
       response,
       WrappedResponse(utf8.encode(jsonEncode(exception.toJson()))),
@@ -93,7 +96,12 @@ class RoutesResolver {
     );
   }
 
-  Future<void> _handleException(SerinusException exception, IncomingMessage request, OutgoingMessage response, [Map<String, dynamic>? routeParams]) async {
+  Future<void> _handleException(
+    SerinusException exception,
+    IncomingMessage request,
+    OutgoingMessage response, [
+    Map<String, dynamic>? routeParams,
+  ]) async {
     final wrappedRequest = Request(request, routeParams ?? {});
     final providers = {
       for (var provider in _container.modulesContainer.globalProviders)
@@ -124,14 +132,11 @@ class RoutesResolver {
                 ? (response.currentHeaders as SerinusHeaders).values
                 : (response.currentHeaders as HttpHeaders).toMap(),
           ),
-      )
+      ),
     );
     for (final filter in _container.config.globalExceptionFilters) {
       if (filter.catchTargets.contains(exception.runtimeType)) {
-        await filter.onException(
-          executionContext,
-          exception,
-        );
+        await filter.onException(executionContext, exception);
         if (executionContext.response.closed) {
           request.emit(
             RequestEvent.data,
@@ -148,7 +153,9 @@ class RoutesResolver {
           return _container.applicationRef.reply(
             response,
             _routeExecutionContext.processResult(
-              WrappedResponse(executionContext.response.body ?? exception.toJson()),
+              WrappedResponse(
+                executionContext.response.body ?? exception.toJson(),
+              ),
               executionContext,
             ),
             executionContext.response,
@@ -174,7 +181,9 @@ class RoutesResolver {
         return _container.applicationRef.reply(
           response,
           _routeExecutionContext.processResult(
-            WrappedResponse(executionContext.response.body ?? exception.message),
+            WrappedResponse(
+              executionContext.response.body ?? exception.message,
+            ),
             executionContext,
           ),
           executionContext.response,
@@ -203,7 +212,10 @@ class RoutesResolver {
     );
   }
 
-  Future<void> _notFound(IncomingMessage request, OutgoingMessage response) async {
+  Future<void> _notFound(
+    IncomingMessage request,
+    OutgoingMessage response,
+  ) async {
     _logger.verbose('No route found for ${request.method} ${request.uri}');
     final wrappedRequest = Request(request, {});
     final reqHooks = _container.config.globalHooks.reqHooks;
@@ -243,10 +255,8 @@ class RoutesResolver {
         return _container.applicationRef.reply(
           response,
           _routeExecutionContext.processResult(
-            WrappedResponse(
-              executionContext.response.body
-            ),
-            executionContext
+            WrappedResponse(executionContext.response.body),
+            executionContext,
           ),
           executionContext.response,
         );
