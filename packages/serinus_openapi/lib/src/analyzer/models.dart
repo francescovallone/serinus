@@ -144,6 +144,9 @@ final class RouteDescription {
   /// The response content type of the route.
   String? responseContentType;
 
+  /// The operation ID of the route.
+  String? operationId;
+
   /// The exceptions that can be thrown by the route.
   final Map<int, ExceptionResponse> exceptions;
 

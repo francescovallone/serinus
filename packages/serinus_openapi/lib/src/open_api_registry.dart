@@ -309,10 +309,26 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
                     summary: opV2.summary,
                     description: opV2.description,
                     externalDocs: opV2.externalDocs,
-                    operationId: opV2.operationId,
+                    operationId: opV2.operationId ?? description.operationId,
                     parameters: params,
                     responses: opV2.responses,
                     consumes: consumes,
+                    produces: opV2.produces,
+                    security: opV2.security,
+                    extensions: opV2.extensions,
+                  );
+                }
+                if (description.operationId != null) {
+                  final opV2 = operation;
+                  operation = OperationObjectV2(
+                    tags: opV2.tags,
+                    summary: opV2.summary,
+                    description: opV2.description,
+                    externalDocs: opV2.externalDocs,
+                    operationId: description.operationId,
+                    parameters: opV2.parameters,
+                    responses: opV2.responses,
+                    consumes: opV2.consumes,
                     produces: opV2.produces,
                     security: opV2.security,
                     extensions: opV2.extensions,
@@ -351,9 +367,26 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
                     summary: opV3.summary,
                     description: opV3.description,
                     externalDocs: opV3.externalDocs,
-                    operationId: opV3.operationId,
+                    operationId: opV3.operationId ?? description.operationId,
                     parameters: opV3.parameters,
                     requestBody: requestBody,
+                    responses: opV3.responses,
+                    deprecated: opV3.deprecated,
+                    security: opV3.security,
+                    servers: opV3.servers,
+                    extensions: opV3.extensions,
+                  );
+                }
+                if (description.operationId != null) {
+                  final opV3 = operation;
+                  operation = OperationObjectV3(
+                    tags: opV3.tags,
+                    summary: opV3.summary,
+                    description: opV3.description,
+                    externalDocs: opV3.externalDocs,
+                    operationId: description.operationId,
+                    parameters: opV3.parameters,
+                    requestBody: opV3.requestBody,
                     responses: opV3.responses,
                     deprecated: opV3.deprecated,
                     security: opV3.security,
@@ -395,9 +428,27 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
                     summary: opV31.summary,
                     description: opV31.description,
                     externalDocs: opV31.externalDocs,
-                    operationId: opV31.operationId,
+                    operationId: opV31.operationId ?? description.operationId,
                     parameters: opV31.parameters,
                     requestBody: requestBody,
+                    responses: opV31.responses,
+                    callbacks: opV31.callbacks,
+                    deprecated: opV31.deprecated,
+                    security: opV31.security,
+                    extensions: opV31.extensions,
+                  );
+                }
+                if (description.operationId != null) {
+                  final opV31 = operation;
+                  operation = OperationObjectV31(
+                    servers: opV31.servers,
+                    tags: opV31.tags,
+                    summary: opV31.summary,
+                    description: opV31.description,
+                    externalDocs: opV31.externalDocs,
+                    operationId: description.operationId,
+                    parameters: opV31.parameters,
+                    requestBody: opV31.requestBody,
                     responses: opV31.responses,
                     callbacks: opV31.callbacks,
                     deprecated: opV31.deprecated,

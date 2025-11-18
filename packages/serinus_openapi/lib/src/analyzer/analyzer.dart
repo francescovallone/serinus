@@ -157,6 +157,9 @@ class Analyzer {
               );
             }
           }
+          savedHandler.operationId = (analyzed.operationId ?? methodName).startsWith('_')
+              ? (analyzed.operationId ?? methodName).substring(1)
+              : (analyzed.operationId ?? methodName);
         }
       }
       if (isController) {
