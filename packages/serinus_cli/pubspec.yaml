@@ -18,6 +18,7 @@ dependencies:
   mason: ^0.1.1
   mason_logger: ^0.3.3
   meta: ^1.17.0
+  openapi_types: ^2.0.1
   path: ^1.9.1
   pub_updater: ^0.5.0
   watcher: ^1.1.4
