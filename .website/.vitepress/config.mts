@@ -1,24 +1,71 @@
 import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
+
+const description = "Serinus is a framework written in Dart for building efficient and scalable server-side applications."
 export default defineConfig({
   title: "Serinus",
   titleTemplate: ':title - Serinus | The Flutter modular Backend Framework',
-  description: "Serinus is a framework written in Dart for building efficient and scalable server-side applications.",
+  description,
   head: [
     ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/serinus-icon-32x32.png"}],
     ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png"}],
     [
-      'script', 
-      {},
-      `
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "qsba56yrau");
-      `
-  ]
+            'meta',
+            {
+                name: 'viewport',
+                content: 'width=device-width,initial-scale=1,user-scalable=no'
+            }
+        ],
+        [
+            'meta',
+            {
+                property: 'og:image',
+                content: 'https://serinus.app/cover.jpg'
+            }
+        ],
+        [
+            'meta',
+            {
+                property: 'og:image:width',
+                content: '1600'
+            }
+        ],
+        [
+            'meta',
+            {
+                property: 'og:image:height',
+                content: '900'
+            }
+        ],
+        [
+            'meta',
+            {
+                property: 'twitter:card',
+                content: 'summary_large_image'
+            }
+        ],
+        [
+            'meta',
+            {
+                property: 'twitter:image',
+                content: 'https://serinus.app/cover.jpg'
+            }
+        ],
+        [
+            'meta',
+            {
+                property: 'og:title',
+                content: 'Serinus'
+            }
+        ],
+        [
+            'meta',
+            {
+                property: 'og:description',
+                content: description
+            }
+        ]
   ],
   markdown: {
     image: {
