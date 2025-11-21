@@ -6,6 +6,7 @@ import 'package:collection/collection.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
+import '../exceptions/exceptions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
 import '../utils/wrapped_response.dart';
@@ -111,8 +112,12 @@ class SerinusHttpAdapter
         }
         onRequest(request, response);
       }
-    } catch (e) {
-      rethrow;
+    } catch (e, stackTrace) {
+      if (onError != null && e is SerinusException) {
+        onError(e, stackTrace);
+      } else {
+        rethrow;
+      }
     }
   }
 

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:meta/meta.dart';
 
+import '../../serinus.dart';
 import '../adapters/adapters.dart';
 import '../containers/serinus_container.dart';
 import '../engines/view_engine.dart';
@@ -277,16 +278,6 @@ class SerinusApplication extends Application {
       server.listen(
         onRequest: (request, response) =>
             _routesResolver!.handle(request, response),
-        onError: (e, stackTrace) {
-          if (abortOnError) {
-            throw e;
-          }
-          _logger.severe(
-            'Error occurred while handling request',
-            OptionalParameters(error: e, stackTrace: stackTrace),
-          );
-          return null; // Handle error as needed
-        },
       );
       await _container.emitHook<OnApplicationReady>();
     } on SocketException catch (e) {

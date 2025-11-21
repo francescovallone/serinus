@@ -50,9 +50,9 @@ final class Router {
   ///
   /// The method will return the route data and the parameters of the route.
   ({
-    ({RouteContext route, HandlerFunction handler})? spec,
+    ({RouteContext route, HandlerFunction handler}) spec,
     Map<String, dynamic> params,
-  })
+  })?
   checkRouteByPathAndMethod(String path, HttpMethod method) {
     final result = _routeTree.lookup(
       HttpMethod.toSpanner(method),
@@ -60,7 +60,7 @@ final class Router {
     );
     final route = result?.values.firstOrNull;
     if (route == null) {
-      return (spec: null, params: {});
+      return null;
     }
     return (
       spec: (route: route.$1, handler: route.$2),

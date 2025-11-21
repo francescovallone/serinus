@@ -100,7 +100,7 @@ void main() async {
           '/test',
           HttpMethod.get,
         );
-        expect(result.spec?.route, routeContext);
+        expect(result?.spec.route, routeContext);
       },
     );
 
@@ -141,7 +141,7 @@ void main() async {
           '/test',
           HttpMethod.post,
         );
-        expect(result.spec?.route, isNull);
+        expect(result?.spec.route, isNull);
       },
     );
   });

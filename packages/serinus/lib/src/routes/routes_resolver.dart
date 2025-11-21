@@ -71,77 +71,202 @@ class RoutesResolver {
       request.path.stripEndSlash(),
       HttpMethod.parse(request.method),
     );
-    if (route == null) {
-      _logger.verbose('No route found for ${request.method} ${request.uri}');
-      final wrappedRequest = Request(request, {});
-      final data =
-          _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??
-          NotFoundException(
-            'Route not found for ${request.method} ${request.uri}',
-            request.uri,
-          );
-      final reqHooks = _container.config.globalHooks.reqHooks;
-      final providers = {
-        for (var provider in _container.modulesContainer.globalProviders)
-          provider.runtimeType: provider,
-      };
-      final executionContext = ExecutionContext(
-        HostType.http,
-        providers,
-        _container.config.globalHooks.services,
-        HttpArgumentsHost(wrappedRequest),
-      );
-      final requestContext = await RequestContext.create<dynamic>(
-        request: wrappedRequest,
-        providers: providers,
-        hooksServices: _container.config.globalHooks.services,
-        modelProvider: _container.config.modelProvider,
-        rawBody: _container.applicationRef.rawBody,
-      );
-      executionContext.attachHttpContext(requestContext);
-      executionContext.response
-        ..statusCode = HttpStatus.notFound
-        ..contentType = ContentType.json;
-      for (final hook in reqHooks) {
-        await hook.onRequest(executionContext);
+    try {
+      if (route != null) {
+        await route.spec.handler(request, response, route.params);
+        return;
       }
-      for (final filter in _container.config.globalExceptionFilters) {
-        if (filter.catchTargets.contains(data.runtimeType) ||
-            filter.catchTargets.isEmpty) {
-          await filter.onException(executionContext, data);
+      await _notFound(request, response);
+    } on SerinusException catch (e) {
+      await _handleException(e, request, response, route?.params);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// The [sendExceptionResponse] method is used to send an exception response.
+  Future<void> sendExceptionResponse(
+    SerinusException exception,
+    OutgoingMessage response,
+  ) async {
+    return _container.applicationRef.reply(
+      response,
+      WrappedResponse(utf8.encode(jsonEncode(exception.toJson()))),
+      ResponseContext({}, {}),
+    );
+  }
+
+  Future<void> _handleException(
+    SerinusException exception,
+    IncomingMessage request,
+    OutgoingMessage response, [
+    Map<String, dynamic>? routeParams,
+  ]) async {
+    final wrappedRequest = Request(request, routeParams ?? {});
+    final providers = {
+      for (var provider in _container.modulesContainer.globalProviders)
+        provider.runtimeType: provider,
+    };
+    final executionContext = ExecutionContext(
+      HostType.http,
+      providers,
+      _container.config.globalHooks.services,
+      HttpArgumentsHost(wrappedRequest),
+    );
+    final requestContext = await RequestContext.create<dynamic>(
+      request: wrappedRequest,
+      providers: providers,
+      hooksServices: _container.config.globalHooks.services,
+      modelProvider: _container.config.modelProvider,
+      rawBody: _container.applicationRef.rawBody,
+    );
+    executionContext.attachHttpContext(requestContext);
+    executionContext.response.statusCode = exception.statusCode;
+    request.emit(
+      RequestEvent.error,
+      EventData(
+        data: exception,
+        properties: executionContext.response
+          ..headers.addAll(
+            (response.currentHeaders is SerinusHeaders)
+                ? (response.currentHeaders as SerinusHeaders).values
+                : (response.currentHeaders as HttpHeaders).toMap(),
+          ),
+      ),
+    );
+    for (final filter in _container.config.globalExceptionFilters) {
+      if (filter.catchTargets.contains(exception.runtimeType)) {
+        await filter.onException(executionContext, exception);
+        if (executionContext.response.closed) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..headers.addAll(
+                  (response.currentHeaders is SerinusHeaders)
+                      ? (response.currentHeaders as SerinusHeaders).values
+                      : (response.currentHeaders as HttpHeaders).toMap(),
+                ),
+            ),
+          );
+          return _container.applicationRef.reply(
+            response,
+            _routeExecutionContext.processResult(
+              WrappedResponse(
+                executionContext.response.body ?? exception.toJson(),
+              ),
+              executionContext,
+            ),
+            executionContext.response,
+          );
         }
       }
-      final resHooks = _container.config.globalHooks.resHooks;
-      final wrappedData = WrappedResponse(
-        utf8.encode(jsonEncode(data.toJson())),
-      );
-      for (final hook in resHooks) {
-        await hook.onResponse(executionContext, wrappedData);
-      }
-      request.emit(
-        RequestEvent.error,
-        EventData(data: data, properties: executionContext.response),
-      );
-      request.emit(
-        RequestEvent.close,
-        EventData(
-          data: data,
-          properties: executionContext.response
-            ..headers.addAll(
-              (response.currentHeaders is SerinusHeaders)
-                  ? (response.currentHeaders as SerinusHeaders).values
-                  : (response.currentHeaders as HttpHeaders).toMap(),
-            ),
-        ),
-      );
-      _container.applicationRef.reply(
-        response,
-        wrappedData,
-        executionContext.response,
-      );
-      return;
     }
-    await route.spec?.handler(request, response, route.params);
+    for (final hook in _container.config.globalHooks.resHooks) {
+      await hook.onResponse(executionContext, WrappedResponse(exception));
+      if (executionContext.response.closed) {
+        request.emit(
+          RequestEvent.data,
+          EventData(
+            data: executionContext.response.body,
+            properties: executionContext.response
+              ..headers.addAll(
+                (response.currentHeaders is SerinusHeaders)
+                    ? (response.currentHeaders as SerinusHeaders).values
+                    : (response.currentHeaders as HttpHeaders).toMap(),
+              ),
+          ),
+        );
+        return _container.applicationRef.reply(
+          response,
+          _routeExecutionContext.processResult(
+            WrappedResponse(
+              executionContext.response.body ?? exception.message,
+            ),
+            executionContext,
+          ),
+          executionContext.response,
+        );
+      }
+    }
+    request.emit(
+      RequestEvent.data,
+      EventData(
+        data: executionContext.response.body,
+        properties: executionContext.response
+          ..headers.addAll(
+            (response.currentHeaders is SerinusHeaders)
+                ? (response.currentHeaders as SerinusHeaders).values
+                : (response.currentHeaders as HttpHeaders).toMap(),
+          ),
+      ),
+    );
+    return _container.applicationRef.reply(
+      response,
+      _routeExecutionContext.processResult(
+        WrappedResponse(executionContext.response.body ?? exception.message),
+        executionContext,
+      ),
+      executionContext.response,
+    );
+  }
+
+  Future<void> _notFound(
+    IncomingMessage request,
+    OutgoingMessage response,
+  ) async {
+    _logger.verbose('No route found for ${request.method} ${request.uri}');
+    final wrappedRequest = Request(request, {});
+    final reqHooks = _container.config.globalHooks.reqHooks;
+    final providers = {
+      for (var provider in _container.modulesContainer.globalProviders)
+        provider.runtimeType: provider,
+    };
+    final executionContext = ExecutionContext(
+      HostType.http,
+      providers,
+      _container.config.globalHooks.services,
+      HttpArgumentsHost(wrappedRequest),
+    );
+    final requestContext = await RequestContext.create<dynamic>(
+      request: wrappedRequest,
+      providers: providers,
+      hooksServices: _container.config.globalHooks.services,
+      modelProvider: _container.config.modelProvider,
+      rawBody: _container.applicationRef.rawBody,
+    );
+    executionContext.attachHttpContext(requestContext);
+    for (final hook in reqHooks) {
+      await hook.onRequest(executionContext);
+      if (executionContext.response.closed) {
+        request.emit(
+          RequestEvent.data,
+          EventData(
+            data: executionContext.response.body,
+            properties: executionContext.response
+              ..headers.addAll(
+                (response.currentHeaders is SerinusHeaders)
+                    ? (response.currentHeaders as SerinusHeaders).values
+                    : (response.currentHeaders as HttpHeaders).toMap(),
+              ),
+          ),
+        );
+        return _container.applicationRef.reply(
+          response,
+          _routeExecutionContext.processResult(
+            WrappedResponse(executionContext.response.body),
+            executionContext,
+          ),
+          executionContext.response,
+        );
+      }
+    }
+    throw _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??
+        NotFoundException(
+          'Route not found for ${request.method} ${request.uri}',
+          request.uri,
+        );
   }
 }
 

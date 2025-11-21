@@ -80,7 +80,7 @@ class WebsocketRegistry extends Provider
                 response,
                 WrappedResponse(''),
                 ResponseContext({}, {})
-                  ..statusCode = 200
+                  ..statusCode = 404
                   ..contentType = ContentType.text,
               );
             },

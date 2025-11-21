@@ -146,7 +146,7 @@ void main() {
         );
         explorer.resolveRoutes();
         final result = router.checkRouteByPathAndMethod('/v1', HttpMethod.get);
-        expect(result.spec?.route.path, '/v1/');
+        expect(result?.spec.route.path, '/v1/');
       },
     );
 
@@ -173,7 +173,7 @@ void main() {
         );
         explorer.resolveRoutes();
         final result = router.checkRouteByPathAndMethod('/api', HttpMethod.get);
-        expect(result.spec?.route.path, '/api/');
+        expect(result?.spec.route.path, '/api/');
       },
     );
 
@@ -267,7 +267,7 @@ void main() {
           '/api/v1',
           HttpMethod.get,
         );
-        expect(result.spec?.route.path, '/api/v1/');
+        expect(result?.spec.route.path, '/api/v1/');
       },
     );
   });

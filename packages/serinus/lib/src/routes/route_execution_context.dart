@@ -91,7 +91,10 @@ class RouteExecutionContext {
           if (executionContext.response.closed) {
             await _responseController.sendResponse(
               response,
-              WrappedResponse(null),
+              processResult(
+                WrappedResponse(executionContext.response.body),
+                executionContext,
+              ),
               executionContext.response,
               viewEngine: viewEngine,
             );
@@ -117,7 +120,7 @@ class RouteExecutionContext {
             response,
             onDataReceived: (data) async {
               await _executeOnResponse(context, executionContext!, data);
-              data = _processResult(data, executionContext);
+              data = processResult(data, executionContext);
               request.emit(
                 RequestEvent.data,
                 EventData(data: data, properties: executionContext.response),
@@ -152,48 +155,49 @@ class RouteExecutionContext {
         final responseData = WrappedResponse(handlerResult);
         await _executeAfterHandle(executionContext, context, responseData);
         await _executeOnResponse(context, executionContext, responseData);
-        WrappedResponse result = _processResult(responseData, executionContext);
+        WrappedResponse result = processResult(responseData, executionContext);
         final currentResponseHeaders =
             (response.currentHeaders is SerinusHeaders)
             ? response.currentHeaders.values
             : (response.currentHeaders as HttpHeaders).toMap();
-        if (result.data is View) {
+        final data = result.data;
+        if (data is View) {
           request.emit(
             RequestEvent.data,
-            EventData(data: result.data, properties: executionContext.response),
+            EventData(data: data, properties: executionContext.response),
           );
           request.emit(
             RequestEvent.close,
             EventData(
-              data: result.data,
+              data: data,
               properties: executionContext.response
                 ..addHeaders(currentResponseHeaders),
             ),
           );
           await _responseController.render(
             response,
-            result.data as View,
+            data,
             executionContext.response,
           );
-        } else if (result.data is Redirect) {
+        } else if (data is Redirect) {
           request.emit(
             RequestEvent.redirect,
             EventData(data: result.data, properties: executionContext.response),
           );
           await _responseController.redirect(
             response,
-            result.data as Redirect,
+            data,
             executionContext.response,
           );
         } else {
           request.emit(
             RequestEvent.data,
-            EventData(data: result.data, properties: executionContext.response),
+            EventData(data: data, properties: executionContext.response),
           );
           request.emit(
             RequestEvent.close,
             EventData(
-              data: result.data,
+              data: data,
               properties: executionContext.response
                 ..addHeaders(currentResponseHeaders),
             ),
@@ -217,14 +221,23 @@ class RouteExecutionContext {
         );
         executionContext.response.statusCode = e.statusCode;
         executionContext.response.contentType ??= ContentType.json;
-        await _executeOnException(executionContext, context, e);
+        final result = await _executeOnException(executionContext, context, e);
+        if (result != null) {
+          await _responseController.sendResponse(
+            response,
+            processResult(result, executionContext),
+            executionContext.response,
+            viewEngine: viewEngine,
+          );
+          return;
+        }
         await _executeOnResponse(context, executionContext, WrappedResponse(e));
         if (errorHandler != null) {
           final errorResponse = errorHandler(e, stackTrace);
           if (errorResponse != null) {
             await _responseController.sendResponse(
               response,
-              _processResult(WrappedResponse(errorResponse), executionContext),
+              processResult(WrappedResponse(errorResponse), executionContext),
               executionContext.response,
               viewEngine: viewEngine,
             );
@@ -241,7 +254,7 @@ class RouteExecutionContext {
     };
   }
 
-  Future<void> _executeOnException(
+  Future<WrappedResponse?> _executeOnException(
     ExecutionContext executionContext,
     RouteContext context,
     SerinusException exception,
@@ -250,8 +263,15 @@ class RouteExecutionContext {
       if (filter.catchTargets.contains(exception.runtimeType) ||
           filter.catchTargets.isEmpty) {
         await filter.onException(executionContext, exception);
+        if (executionContext.response.closed) {
+          break;
+        }
       }
     }
+    if (executionContext.response.body != null) {
+      return WrappedResponse(executionContext.response.body);
+    }
+    return null;
   }
 
   Future<void> _executeAfterHandle(
@@ -273,7 +293,9 @@ class RouteExecutionContext {
     }
   }
 
-  WrappedResponse _processResult(
+  /// The [processResult] method is used to process the result of a route handler.
+  /// It converts the result to the appropriate format based on the content type
+  WrappedResponse processResult(
     WrappedResponse result,
     ExecutionContext context,
   ) {
