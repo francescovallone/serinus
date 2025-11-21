@@ -206,6 +206,7 @@ export default defineConfig({
               { text: 'Docker', link: 'docker' },
               { text: 'Globe', link: 'globe' },
               { text: 'VPS', link: 'vps' },
+              { text: 'Cloud Run', link: 'cloud_run' },
             ],
           },
           {
