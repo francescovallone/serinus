@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.4
+
+- fix: `ResponseContext#body` now does not close the response when set, allowing for proper response handling in hooks and middlewares.
+
 ## 2.0.3
 
 - fix: add `ResponseContext#body` to early close the response on hooks, exceptions, and middlewares.

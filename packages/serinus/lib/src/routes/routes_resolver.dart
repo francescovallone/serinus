@@ -137,7 +137,7 @@ class RoutesResolver {
     for (final filter in _container.config.globalExceptionFilters) {
       if (filter.catchTargets.contains(exception.runtimeType)) {
         await filter.onException(executionContext, exception);
-        if (executionContext.response.closed) {
+        if (executionContext.response.body != null) {
           request.emit(
             RequestEvent.data,
             EventData(
@@ -161,11 +161,30 @@ class RoutesResolver {
             executionContext.response,
           );
         }
+        if (executionContext.response.closed) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..headers.addAll(
+                  (response.currentHeaders is SerinusHeaders)
+                      ? (response.currentHeaders as SerinusHeaders).values
+                      : (response.currentHeaders as HttpHeaders).toMap(),
+                ),
+            ),
+          );
+          return _container.applicationRef.reply(
+            response,
+            WrappedResponse(null),
+            executionContext.response,
+          );
+        }
       }
     }
     for (final hook in _container.config.globalHooks.resHooks) {
       await hook.onResponse(executionContext, WrappedResponse(exception));
-      if (executionContext.response.closed) {
+      if (executionContext.response.body != null) {
         request.emit(
           RequestEvent.data,
           EventData(
@@ -186,6 +205,25 @@ class RoutesResolver {
             ),
             executionContext,
           ),
+          executionContext.response,
+        );
+      }
+      if (executionContext.response.closed) {
+        request.emit(
+          RequestEvent.data,
+          EventData(
+            data: executionContext.response.body,
+            properties: executionContext.response
+              ..headers.addAll(
+                (response.currentHeaders is SerinusHeaders)
+                    ? (response.currentHeaders as SerinusHeaders).values
+                    : (response.currentHeaders as HttpHeaders).toMap(),
+              ),
+          ),
+        );
+        return _container.applicationRef.reply(
+          response,
+          WrappedResponse(null),
           executionContext.response,
         );
       }
@@ -239,7 +277,7 @@ class RoutesResolver {
     executionContext.attachHttpContext(requestContext);
     for (final hook in reqHooks) {
       await hook.onRequest(executionContext);
-      if (executionContext.response.closed) {
+      if (executionContext.response.body != null) {
         request.emit(
           RequestEvent.data,
           EventData(
@@ -258,6 +296,25 @@ class RoutesResolver {
             WrappedResponse(executionContext.response.body),
             executionContext,
           ),
+          executionContext.response,
+        );
+      }
+      if (executionContext.response.closed) {
+        request.emit(
+          RequestEvent.data,
+          EventData(
+            data: executionContext.response.body,
+            properties: executionContext.response
+              ..headers.addAll(
+                (response.currentHeaders is SerinusHeaders)
+                    ? (response.currentHeaders as SerinusHeaders).values
+                    : (response.currentHeaders as HttpHeaders).toMap(),
+              ),
+          ),
+        );
+        return _container.applicationRef.reply(
+          response,
+          WrappedResponse(null),
           executionContext.response,
         );
       }

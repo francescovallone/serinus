@@ -12,6 +12,26 @@ class TestProvider extends Provider {
   }
 }
 
+class NotFoundFilter extends ExceptionFilter { 
+  NotFoundFilter() : super(catchTargets: [NotFoundException]); 
+
+  @override 
+  Future<void> onException( 
+    ExecutionContext<ArgumentsHost> context, 
+    Exception exception
+  ) async { 
+    if (exception is NotFoundException) { 
+    context.response 
+      ..statusCode = 404 
+      ..body = { 
+        'message': 'path not found', 
+        'path': exception.uri.toString() 
+      }; 
+    //..close(); 
+    } 
+  }
+}
+
 class TestModule extends Module {
   TestModule() : super(providers: [TestProvider()], exports: [TestProvider]);
 }
@@ -91,6 +111,7 @@ void main(List<String> arguments) async {
     modelProvider: MyModelProvider(),
   );
   application.enableShutdownHooks();
+  application.use(NotFoundFilter());
   // application.trace(ServerTimingTracer());
   await application.serve();
 }

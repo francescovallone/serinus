@@ -88,13 +88,22 @@ class RouteExecutionContext {
         executionContext.attachHttpContext(requestContext);
         for (final hook in context.reqHooks) {
           await hook.onRequest(executionContext);
-          if (executionContext.response.closed) {
+          if (executionContext.response.body != null) {
             await _responseController.sendResponse(
               response,
               processResult(
                 WrappedResponse(executionContext.response.body),
                 executionContext,
               ),
+              executionContext.response,
+              viewEngine: viewEngine,
+            );
+            return;
+          }
+          if (executionContext.response.closed) {
+            await _responseController.sendResponse(
+              response,
+              WrappedResponse(null),
               executionContext.response,
               viewEngine: viewEngine,
             );
@@ -263,13 +272,13 @@ class RouteExecutionContext {
       if (filter.catchTargets.contains(exception.runtimeType) ||
           filter.catchTargets.isEmpty) {
         await filter.onException(executionContext, exception);
+        if (executionContext.response.body != null) {
+          return WrappedResponse(executionContext.response.body);
+        }
         if (executionContext.response.closed) {
-          break;
+          return null;
         }
       }
-    }
-    if (executionContext.response.body != null) {
-      return WrappedResponse(executionContext.response.body);
     }
     return null;
   }

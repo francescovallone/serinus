@@ -274,7 +274,7 @@ class WebSocketAdapter extends WsAdapter {
     }
     for (final hook in hooks.reqHooks) {
       await hook.onRequest(context);
-      if (context.response.closed) {
+      if (context.response.body != null || context.response.closed) {
         request.emit(
           RequestEvent.data,
           EventData(
