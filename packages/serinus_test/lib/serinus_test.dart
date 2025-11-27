@@ -253,6 +253,9 @@ class TestRequest extends IncomingMessage {
 
   @override
   String get webSocketKey => _webSocketKey ?? '';
+  
+  @override
+  bool get fresh => true;
 }
 
 class TestResponse
@@ -535,6 +538,7 @@ class SerinusTestHttpAdapter
   @override
   Future<void> reply(
     TestResponse response,
+    TestRequest request,
     WrappedResponse body,
     ResponseContext properties,
   ) async {

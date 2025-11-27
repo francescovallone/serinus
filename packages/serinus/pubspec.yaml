@@ -34,6 +34,7 @@ dependencies:
   shelf: ^1.4.2
   acanthis: ^1.4.4
   secure_session: ^1.0.5
+  crypto: ^3.0.7
 
 dev_dependencies:
   mocktail: ^1.0.4

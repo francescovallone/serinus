@@ -47,6 +47,9 @@ abstract class OutgoingMessage<T, THeaders> {
   /// This method is used to get the current headers of the response.
   THeaders get currentHeaders;
 
+  /// The [statusCode] property is used to get the status code of the response.
+  int get statusCode;
+
   /// This method is used to redirect the response to a new location.
   Future<void> redirect(Redirect redirect);
 }
@@ -95,6 +98,9 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
     }
     original.statusCode = statusCode;
   }
+
+  @override
+  int get statusCode => original.statusCode;
 
   @override
   void contentType(ContentType contentType, {bool preserveHeaderCase = true}) {

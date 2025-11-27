@@ -38,7 +38,9 @@ class ResponseContext extends BaseContext {
     _statusCode = value;
   }
 
-  final SerinusHeaders _headers = SerinusHeaders({});
+  final SerinusHeaders _headers = SerinusHeaders({
+    
+  });
 
   /// The [headers] property contains the headers of the response.
   /// It is a [SerinusHeaders] object that allows to add, remove and modify headers.

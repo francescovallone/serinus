@@ -91,6 +91,7 @@ class RouteExecutionContext {
           if (executionContext.response.body != null) {
             await _responseController.sendResponse(
               response,
+              request,
               processResult(
                 WrappedResponse(executionContext.response.body),
                 executionContext,
@@ -103,6 +104,7 @@ class RouteExecutionContext {
           if (executionContext.response.closed) {
             await _responseController.sendResponse(
               response,
+              request,
               WrappedResponse(null),
               executionContext.response,
               viewEngine: viewEngine,
@@ -136,6 +138,7 @@ class RouteExecutionContext {
               );
               await _responseController.sendResponse(
                 response,
+                request,
                 data,
                 executionContext.response,
                 viewEngine: viewEngine,
@@ -213,6 +216,7 @@ class RouteExecutionContext {
           );
           await _responseController.sendResponse(
             response,
+            request,
             result,
             executionContext.response,
             viewEngine: viewEngine,
@@ -234,6 +238,7 @@ class RouteExecutionContext {
         if (result != null) {
           await _responseController.sendResponse(
             response,
+            request,
             processResult(result, executionContext),
             executionContext.response,
             viewEngine: viewEngine,
@@ -246,6 +251,7 @@ class RouteExecutionContext {
           if (errorResponse != null) {
             await _responseController.sendResponse(
               response,
+              request,
               processResult(WrappedResponse(errorResponse), executionContext),
               executionContext.response,
               viewEngine: viewEngine,
@@ -254,6 +260,7 @@ class RouteExecutionContext {
         } else {
           await _responseController.sendResponse(
             response,
+            request,
             WrappedResponse(jsonEncode(e.toJson())),
             executionContext.response,
             viewEngine: viewEngine,

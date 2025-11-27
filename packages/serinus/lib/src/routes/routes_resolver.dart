@@ -87,10 +87,12 @@ class RoutesResolver {
   /// The [sendExceptionResponse] method is used to send an exception response.
   Future<void> sendExceptionResponse(
     SerinusException exception,
+    IncomingMessage request,
     OutgoingMessage response,
   ) async {
     return _container.applicationRef.reply(
       response,
+      request,
       WrappedResponse(utf8.encode(jsonEncode(exception.toJson()))),
       ResponseContext({}, {}),
     );
@@ -152,6 +154,7 @@ class RoutesResolver {
           );
           return _container.applicationRef.reply(
             response,
+            request,
             _routeExecutionContext.processResult(
               WrappedResponse(
                 executionContext.response.body ?? exception.toJson(),
@@ -176,6 +179,7 @@ class RoutesResolver {
           );
           return _container.applicationRef.reply(
             response,
+            request,
             WrappedResponse(null),
             executionContext.response,
           );
@@ -199,6 +203,7 @@ class RoutesResolver {
         );
         return _container.applicationRef.reply(
           response,
+          request,
           _routeExecutionContext.processResult(
             WrappedResponse(
               executionContext.response.body ?? exception.message,
@@ -223,6 +228,7 @@ class RoutesResolver {
         );
         return _container.applicationRef.reply(
           response,
+          request,
           WrappedResponse(null),
           executionContext.response,
         );
@@ -242,6 +248,7 @@ class RoutesResolver {
     );
     return _container.applicationRef.reply(
       response,
+      request,
       _routeExecutionContext.processResult(
         WrappedResponse(executionContext.response.body ?? exception.message),
         executionContext,
@@ -292,6 +299,7 @@ class RoutesResolver {
         );
         return _container.applicationRef.reply(
           response,
+          request,
           _routeExecutionContext.processResult(
             WrappedResponse(executionContext.response.body),
             executionContext,
@@ -314,6 +322,7 @@ class RoutesResolver {
         );
         return _container.applicationRef.reply(
           response,
+          request,
           WrappedResponse(null),
           executionContext.response,
         );
