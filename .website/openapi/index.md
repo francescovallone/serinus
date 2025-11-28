@@ -41,3 +41,35 @@ class AppModule extends Module {
 
 As you can see we are using a factory constructor called `v3` to create an OpenAPI 3 specification. You can provide an `InfoObject` which contains metadata about your API.
 
+Doing this will generate a **minimal** OpenAPI specification. To generate a more complete specification, you can enable the analysis of your controllers and routes by setting the `analyze` parameter to `true`.
+
+```dart
+OpenApiModule.v3(
+  InfoObject(
+    title: 'Serinus OpenAPI Example',
+    version: '1.0.0',
+    description: 'An example of Serinus with OpenAPI integration',
+  ),
+  analyze: true,
+)
+```
+
+This will analyze your controllers and routes to generate a more complete OpenAPI specification, including paths, parameters, request bodies, and responses.
+
+## Changing the Specification Path
+
+By default, the OpenAPI specification file is saved in the current working directory. You can change this by providing a custom path using the `specFileSavePath` parameter.
+
+```dart
+OpenApiModule.v3(
+  InfoObject(
+    title: 'Serinus OpenAPI Example',
+    version: '1.0.0',
+    description: 'An example of Serinus with OpenAPI integration',
+  ),
+  analyze: true,
+  specFileSavePath: 'openapi_spec/',
+)
+```
+
+This will save the OpenAPI specification file in the `openapi_spec/` directory.

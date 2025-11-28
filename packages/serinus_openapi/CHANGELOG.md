@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.13
+
+- fix: ensure OpenAPI spec is generated when analyze is false but the spec file does not exist.
+
 ## 1.0.12
 
 - feat: add operationId to analyzed method handler and use it in OpenAPI generation.

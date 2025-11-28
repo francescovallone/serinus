@@ -87,11 +87,6 @@ class AppModule extends Module {
               version: '1.0.0',
               description: 'This is my API',
             ),
-            path: '/api',
-            analyze: true,
-            options: ScalarUIOptions(),
-            specFileSavePath: 'openapi_spec/',
-            parseType: OpenApiParseType.json,
           ),
         ],
       );

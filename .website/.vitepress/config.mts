@@ -177,7 +177,8 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Introduction', link: '/' },
-              { text: 'Renderer', link: '/renderer' },
+              { text: 'Renderer', link: 'renderer' },
+              { text: 'Advanced usage', link: 'advanced_usage' },
             ]
           },
           {
@@ -200,17 +201,6 @@ export default defineConfig({
               { text: 'Run', link: 'run' },
               { text: 'Deploy', link: 'deploy' },
             ]
-          },
-          { 
-            text: 'Open API', 
-            collapsed: true,
-            base: '/open-api/',
-            items: [
-              { text: 'Introduction', link: 'introduction' },
-              { text: 'Document', link: 'document' },
-              { text: 'Api Specification', link: 'api_spec' },
-              { text: 'Components', link: 'components' },
-            ],
           },
           {
             text: 'Recipes',

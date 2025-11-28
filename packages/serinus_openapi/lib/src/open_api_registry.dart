@@ -92,10 +92,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           reuseCurrentFile: true,
         );
       } else {
-        throw Exception(
-          'The OpenAPI specification file does not exist at $filePath. '
-          'Please enable analysis to generate the file.',
-        );
+        await _exploreModules();
+        _content = _generateOpenApiDocument(file, '$savedFilePath');
       }
     }
   }
@@ -169,7 +167,9 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   Future<void> _exploreModules([int? modificationStamp]) async {
     final result = <String, List<RouteDescription>>{};
     final analyzer = Analyzer(version);
-    result.addAll(await analyzer.analyze(modificationStamp));
+    if (analyze) {
+      result.addAll(await analyzer.analyze(modificationStamp));
+    }
     final controllers = <Controller>[];
     final paths = <String, OpenApiPathItem>{};
     final globalPrefix = config.globalPrefix;
