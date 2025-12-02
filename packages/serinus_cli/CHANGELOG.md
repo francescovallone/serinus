@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.2
+
+- fix(#211): ignore non-dart files when generating models.
+
 ## 2.0.1
 
 - fix(#201): fix config parsing when dependencies entries are nested map instead of simple strings. [#202](https://github.com/francescovallone/serinus/pull/202) by [francescovallone](https://github.com/francescovallone)
