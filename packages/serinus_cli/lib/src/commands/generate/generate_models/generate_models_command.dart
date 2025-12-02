@@ -146,6 +146,9 @@ class GenerateModelsCommand extends Command<int> {
     final generatedEntities = <String>[];
     for (final entity in entities) {
       if (entity is File) {
+        if (!entity.path.endsWith('.dart')) {
+          continue;
+        }
         final path = entity.path
             .replaceAll(dir.path, '')
             .replaceAll(Platform.pathSeparator, '');

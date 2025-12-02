@@ -145,7 +145,6 @@ Future<Config> getProjectConfiguration(
   if (!pubspec.existsSync()) {
     throw const StdinException('No pubspec.yaml file found');
   }
-  final configFile = File(path.join(Directory.current.path, 'config.yaml'));
   final pubspecContent = await pubspec.readAsString();
   final pubspecYaml = loadYaml(pubspecContent) as YamlMap;
   final pubspecMap = Map<String, dynamic>.from(
@@ -156,27 +155,12 @@ Future<Config> getProjectConfiguration(
     pubspecMap['entrypoint'] =
         'bin/${pubspecYaml['name'] as String? ?? 'serinus_app'}.dart';
   }
-  if (configFile.existsSync()) {
-    logger
-      ..warn('The file config.yaml is deprecated.')
-      ..warn(
-        'Go to https://serinus.app/ to learn more about the new configuration approaches.',
-      );
-    final configContent = await configFile.readAsString();
-    final result = {
-      ...Map<String, dynamic>.from(loadYaml(configContent) as Map),
-      ...pubspecMap,
-      'name': pubspecYaml['name'] as String? ?? 'serinus_app',
-      if (deps) ... {
-        'dependencies': pubspecYaml['dependencies'],
-        'devDependencies': pubspecYaml['dev_dependencies'],
-      }
-    };
-    return Config.fromYaml(result);
-  }
   return Config.fromYaml({
     ...pubspecMap,
     'name': pubspecYaml['name'] as String? ?? 'serinus_app',
-    if (deps) 'dependencies': pubspecYaml['dependencies'],
+    if (deps) ... { 
+      'dependencies': pubspecYaml['dependencies'],
+      'devDependencies': pubspecYaml['dev_dependencies'],
+    }
   });
 }
