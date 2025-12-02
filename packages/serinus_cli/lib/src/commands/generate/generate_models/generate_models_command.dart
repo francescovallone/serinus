@@ -51,9 +51,8 @@ class GenerateModelsCommand extends Command<int> {
       _logger?.err('Failed to load project configuration: $e');
       return ExitCode.config.code;
     }
-    if (
-      config.devDependencies.isNotEmpty && config.devDependencies['build_runner'] != null
-    ) {
+    if (config.devDependencies.isNotEmpty &&
+        config.devDependencies['build_runner'] != null) {
       final modelProgress = _logger.progress(
         'Run build_runner to generate models from third-party packages...',
       );
@@ -119,12 +118,14 @@ class GenerateModelsCommand extends Command<int> {
     final modelProviderContent = await _getContent(models, name);
     modelProvider.writeAsStringSync(modelProviderContent);
     if (models.isEmpty) {
-      modelProviderProgress?.complete('🐤 No models found. Generated empty model provider...');
+      modelProviderProgress
+          ?.complete('🐤 No models found. Generated empty model provider...');
     } else {
       _logger?.info(
         '🐤 Added ${models.map((e) => e.name).join(', ')} to the model provider',
       );
-      modelProviderProgress?.complete('🐤 Model provider generated successfully!');
+      modelProviderProgress
+          ?.complete('🐤 Model provider generated successfully!');
     }
     return models;
   }

@@ -13,34 +13,33 @@ class Config {
   final Map<String, dynamic> dependencies;
   final Map<String, dynamic> devDependencies;
 
-  const Config(
-      {required this.entrypoint,
-      required this.name,
-      this.models,
-      this.client,
-      this.watcher,
-      this.dependencies = const {},
-      this.devDependencies = const {},
+  const Config({
+    required this.entrypoint,
+    required this.name,
+    this.models,
+    this.client,
+    this.watcher,
+    this.dependencies = const {},
+    this.devDependencies = const {},
   });
 
   factory Config.fromYaml(Map<String, dynamic> yaml) {
     return Config(
-      entrypoint: yaml['entrypoint'] as String? ?? '',
-      name: yaml['name'] as String? ?? '',
-      models: yaml['models'] != null
-          ? ModelsConfig.fromYaml((yaml['models'] as YamlMap).value)
-          : null,
-      client: yaml['client'] != null
-          ? ClientConfig.fromYaml((yaml['client'] as YamlMap).value)
-          : null,
-      watcher: yaml['watcher'] != null
-          ? WatcherConfig.fromYaml((yaml['watcher'] as YamlMap).value)
-          : null,
-      dependencies: Map<String, dynamic>.from(
-          yaml['dependencies'] as Map<dynamic, dynamic>? ?? {}),
-      devDependencies: Map<String, dynamic>.from(
-          yaml['devDependencies'] as Map<dynamic, dynamic>? ?? {})
-    );
+        entrypoint: yaml['entrypoint'] as String? ?? '',
+        name: yaml['name'] as String? ?? '',
+        models: yaml['models'] != null
+            ? ModelsConfig.fromYaml((yaml['models'] as YamlMap).value)
+            : null,
+        client: yaml['client'] != null
+            ? ClientConfig.fromYaml((yaml['client'] as YamlMap).value)
+            : null,
+        watcher: yaml['watcher'] != null
+            ? WatcherConfig.fromYaml((yaml['watcher'] as YamlMap).value)
+            : null,
+        dependencies: Map<String, dynamic>.from(
+            yaml['dependencies'] as Map<dynamic, dynamic>? ?? {}),
+        devDependencies: Map<String, dynamic>.from(
+            yaml['devDependencies'] as Map<dynamic, dynamic>? ?? {}));
   }
 }
 
@@ -158,7 +157,7 @@ Future<Config> getProjectConfiguration(
   return Config.fromYaml({
     ...pubspecMap,
     'name': pubspecYaml['name'] as String? ?? 'serinus_app',
-    if (deps) ... { 
+    if (deps) ...{
       'dependencies': pubspecYaml['dependencies'],
       'devDependencies': pubspecYaml['dev_dependencies'],
     }
