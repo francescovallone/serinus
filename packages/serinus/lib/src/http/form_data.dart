@@ -47,12 +47,13 @@ class FormData {
 
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
   static Future<FormData> parseMultipart({
-    required HttpRequest request,
+    required Stream<List<int>> request,
+    required String contentType,
     Future<void> Function(MimeMultipart part)? onPart,
   }) async {
     try {
       final mediaType = MediaType.parse(
-        request.headers[HttpHeaders.contentTypeHeader]!.join(';'),
+        contentType,
       );
       final boundary = mediaType.parameters['boundary'];
       final parts = _getMultiparts(request, boundary);
@@ -111,7 +112,7 @@ class FormData {
   }
 
   static Stream<MimeMultipart> _getMultiparts(
-    HttpRequest request,
+    Stream<List<int>> request,
     String? boundary,
   ) {
     if (boundary == null) {

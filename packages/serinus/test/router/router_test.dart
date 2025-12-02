@@ -1,13 +1,25 @@
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/contexts/route_context.dart';
-import 'package:serinus/src/routes/router.dart';
+import 'package:serinus/src/router/router.dart';
 import 'package:spanner/spanner.dart';
 import 'package:test/test.dart';
 
-import '../commons/form_data_test.dart';
+
+class TestRoute extends Route {
+  TestRoute({required super.path, super.method = HttpMethod.get});
+}
 
 class TestController extends Controller {
-  TestController([super.path = '/']);
+  TestController() :super('/');
+}
+
+class TestModule extends Module {
+  TestModule({
+    super.controllers,
+    super.imports,
+    super.providers,
+    super.exports,
+  });
 }
 
 void main() async {
@@ -96,11 +108,13 @@ void main() async {
           context: routeContext,
           handler: (request, response, params) async => '',
         );
-        final result = router.checkRouteByPathAndMethod(
+        final result = router.lookup(
           '/test',
           HttpMethod.get,
         );
-        expect(result?.spec.route, routeContext);
+        expect(result, isA<Found>());
+        final found = result as Found;
+        expect(found.spec.context.path, equals('/test'));
       },
     );
 
@@ -137,11 +151,11 @@ void main() async {
           context: routeContext,
           handler: (request, response, params) async => '',
         );
-        final result = router.checkRouteByPathAndMethod(
+        final result = router.lookup(
           '/test',
           HttpMethod.post,
         );
-        expect(result?.spec.route, isNull);
+        expect(result, isA<MethodNotAllowed>());
       },
     );
   });

@@ -3,6 +3,8 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/router/router.dart';
+import 'package:spanner/spanner.dart';
 
 class TestProvider extends Provider {
   int counter = 0;
@@ -32,7 +34,7 @@ class Test2Controller extends Controller {
 }
 
 class AppController extends Controller {
-  AppController() : super('/app') {
+  AppController() : super('/') {
     on<String, dynamic>(Route.get('/'), (RequestContext context) async {
       final provider = context.use<TestProvider>();
       return 'Counter: ${provider.counter}';
