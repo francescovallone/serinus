@@ -1,5 +1,6 @@
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/contexts/route_context.dart';
+import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
 import 'package:spanner/spanner.dart';
 import 'package:test/test.dart';
@@ -112,9 +113,9 @@ void main() async {
           '/test',
           HttpMethod.get,
         );
-        expect(result, isA<Found>());
-        final found = result as Found;
-        expect(found.spec.context.path, equals('/test'));
+        expect(result, isA<FoundRoute>());
+        final found = result as FoundRoute<RouterEntry>;
+        expect(found.values.first.context.path, equals('/test'));
       },
     );
 
@@ -155,7 +156,7 @@ void main() async {
           '/test',
           HttpMethod.post,
         );
-        expect(result, isA<MethodNotAllowed>());
+        expect(result, isA<MethodNotAllowedRoute>());
       },
     );
   });

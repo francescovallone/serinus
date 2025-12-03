@@ -1,6 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
+import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
 import 'package:serinus/src/routes/route_execution_context.dart';
 import 'package:serinus/src/routes/route_response_controller.dart';
@@ -146,8 +147,8 @@ void main() {
         );
         explorer.resolveRoutes();
         final result = router.lookup('/v1', HttpMethod.get);
-        expect(result, isA<Found>());
-        expect((result as Found).spec.context.path, '/v1/');
+        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect((result as FoundRoute<RouterEntry>).values.first.context.path, '/v1/');
       },
     );
 
@@ -174,8 +175,8 @@ void main() {
         );
         explorer.resolveRoutes();
         final result = router.lookup('/api', HttpMethod.get);
-        expect(result, isA<Found>());
-        expect((result as Found).spec.context.path, '/api/');
+        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect((result as FoundRoute<RouterEntry>).values.first.context.path, '/api/');
       },
     );
 
@@ -269,8 +270,8 @@ void main() {
           '/api/v1',
           HttpMethod.get,
         );
-        expect(result, isA<Found>());
-        expect((result as Found).spec.context.path, '/api/v1/');
+        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect((result as FoundRoute<RouterEntry>).values.first.context.path, '/api/v1/');
       },
     );
   });

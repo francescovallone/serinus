@@ -9,11 +9,12 @@ import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
 import '../extensions/string_extensions.dart';
 import '../http/http.dart';
+import '../router/atlas.dart';
+import '../router/router.dart';
 import '../services/logger_service.dart';
 import '../utils/wrapped_response.dart';
 import 'route_execution_context.dart';
 import 'route_response_controller.dart';
-import '../router/router.dart';
 import 'routes_explorer.dart';
 
 /// The [RoutesResolver] class is responsible for resolving the routes of the application.
@@ -72,15 +73,19 @@ class RoutesResolver {
       HttpMethod.parse(request.method),
     );
     try {
-      if (route is Found) {
-        await route.spec.handler(request, response, route.params);
+      if (route is FoundRoute) {
+        await route.values.first.handler(
+          request,
+          response,
+          route.params,
+        );
         return;
       }
-      if (route is NotFound) {
+      if (route is NotFoundRoute) {
         await _notFound(request, response);
         return;
       }
-      if (route is MethodNotAllowed) {
+      if (route is MethodNotAllowedRoute) {
         await _methodNotAllowed(request, response);
         return;
       }

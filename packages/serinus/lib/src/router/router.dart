@@ -53,58 +53,23 @@ final class Router {
   /// The [method] parameter is the method of the route.
   ///
   /// The method will return the route data and the parameters of the route.
-  LookupResult lookup(String path, HttpMethod method) {
-    final result = _routeTree.lookup(
+  AtlasResult<RouterEntry> lookup(String path, HttpMethod method) {
+    return _routeTree.lookup(
       method,
       path,
-    );
-    if (!result.routeExists) {
-      return NotFound(path);
-    }
-    if (!result.hasHandler) {
-      return MethodNotAllowed(path);
-    }
-    final route = result.values.firstOrNull;
-    if (route == null) {
-      return NotFound(path);
-    }
-    return Found(
-      params: result.params,
-      spec: route,
     );
   }
 }
 
-sealed class LookupResult {
-  final Map<String, dynamic> params;
-  const LookupResult({required this.params});
-}
-
-class NotFound extends LookupResult {
-  final String path;
-  const NotFound(this.path) : super(params: const {});
-}
-
-class MethodNotAllowed extends LookupResult {
-  final String path;
-
-  const MethodNotAllowed(this.path) : super(params: const {});
-}
-
-class Found extends LookupResult {
-  final RouterEntry spec;
-
-  const Found({
-    required super.params,
-    required this.spec,
-  });
-}
-
+/// The [RouterEntry] class is used to store the route context and the handler function.
 class RouterEntry {
 
+  /// The [context] property contains the route context.
   final RouteContext context;
+  /// The [handler] property contains the handler function.
   final HandlerFunction handler;
 
+  /// The [RouterEntry] constructor is used to create a new instance of the [RouterEntry] class.
   RouterEntry({
     required this.context,
     required this.handler,

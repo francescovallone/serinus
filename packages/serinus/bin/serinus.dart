@@ -3,8 +3,6 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/router/router.dart';
-import 'package:spanner/spanner.dart';
 
 class TestProvider extends Provider {
   int counter = 0;

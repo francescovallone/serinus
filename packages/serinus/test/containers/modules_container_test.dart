@@ -1,6 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
+import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
 import 'package:serinus/src/routes/route_execution_context.dart';
 import 'package:serinus/src/routes/route_response_controller.dart';
@@ -66,8 +67,8 @@ void main() {
 
       final token = InjectionToken.fromModule(module);
       final result = router.lookup('/', HttpMethod.get);
-      expect(result, isA<Found>());
-      final routeContext = (result as Found).spec.context;
+      expect(result, isA<FoundRoute>());
+      final routeContext = (result as FoundRoute).values.first.context;
       expect(routeContext.moduleToken, equals(token));
       expect(routeContext.moduleScope.token, equals(token));
     });
