@@ -127,6 +127,7 @@ final class Atlas<T> {
   /// - `hasHandler`: Whether a handler exists for the specific method
   /// - `values`: List of matching handlers
   /// - `params`: Map of extracted parameters
+  @pragma('vm:prefer-inline')
   AtlasResult<T> lookup(HttpMethod method, String path) {
     final segments = _parsePathSegments(path);
     final params = <ParamAndValue>[];
@@ -166,6 +167,7 @@ final class Atlas<T> {
   }
 
   /// Checks if a node has any handler registered.
+  @pragma('vm:prefer-inline')
   bool _hasAnyHandler(AtlasNode<T> node) {
     for (final handler in node.handlers) {
       if (handler != null) {
