@@ -155,9 +155,9 @@ final class Atlas<T> {
     if (handlers.isEmpty) {
       // Route exists but no handler for this method
       if (_hasAnyHandler(node)) {
-        return MethodNotAllowedRoute();
+        return AtlasResult.methodNotAllowed();
       }
-      return NotFoundRoute();
+      return AtlasResult.notFound();
     }
 
     return FoundRoute(
