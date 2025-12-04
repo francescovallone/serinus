@@ -783,7 +783,6 @@ final class ModulesContainer {
         if (currentScope.module.isGlobal) {
           globalProviders.add(result);
         }
-        print('Registering provider: ${result.runtimeType}');
         _providers[result.runtimeType] = result;
         _scopedProviders[result.runtimeType] = currentScope;
         currentScope.addToProviders(result);
@@ -897,7 +896,6 @@ final class ModulesContainer {
 
   /// Gets a provider by its type
   T? get<T extends Provider>() {
-    print(_providers);
     return _providers[T] as T?;
   }
 
