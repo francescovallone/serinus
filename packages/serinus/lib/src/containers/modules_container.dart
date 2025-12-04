@@ -34,6 +34,11 @@ final class ModulesContainer {
 
   final List<_ProviderDependencies> _providerDependencies = [];
 
+  /// Maps custom provider tokens to their actual implementation types.
+  /// This is used when a [ClassProvider] or [ValueProvider] registers
+  /// an implementation under a different token type.
+  final Map<Type, Type> _customProviderTokens = {};
+
   /// The list of all the global providers registered in the application
   final List<Provider> globalProviders = [];
 
@@ -85,10 +90,17 @@ final class ModulesContainer {
         (controller) => (module: currentScope.module, controller: controller),
       ),
     );
+    // First, process CustomProviders (ClassProvider, ValueProvider) to extract actual instances
+    final processedProviders = _processCustomProviders(currentScope.providers);
+    currentScope.providers
+      ..clear()
+      ..addAll(processedProviders);
+    
     final split = currentScope.providers.splitBy<ComposedProvider>();
     for (final provider in split.notOfType) {
-      final providerType = provider.runtimeType;
-      final providerToken = InjectionToken.fromType(providerType);
+      final providerType = _customProviderTokens[provider.runtimeType] ??
+          provider.runtimeType;
+      final providerToken = InjectionToken.fromProvider(provider);
       final existingScope = _scopedProviders[providerType];
       if (existingScope != null) {
         _attachExistingProviderToScope(
@@ -99,18 +111,18 @@ final class ModulesContainer {
         continue;
       }
       await initIfUnregistered(provider);
-      _providers[provider.runtimeType] = provider;
+      _providers[providerType] = provider;
       currentScope.instanceMetadata[providerToken] = InstanceWrapper(
         name: providerToken,
         metadata: ClassMetadataNode(
           type: InjectableType.provider,
           sourceModuleName: token,
-          exported: currentScope.exports.contains(provider.runtimeType),
+          exported: currentScope.exports.contains(providerType),
           composed: false,
         ),
         host: token,
       );
-      _scopedProviders[provider.runtimeType] = currentScope;
+      _scopedProviders[providerType] = currentScope;
       if (currentScope.module.isGlobal) {
         globalProviders.add(provider);
       }
@@ -295,6 +307,25 @@ final class ModulesContainer {
     }
     _refreshUnifiedProviders();
     calculateModuleDistances();
+  }
+
+  /// Processes [CustomProvider] instances and extracts the actual provider.
+  ///
+  /// This handles:
+  /// - [ClassProvider]: Registers the [useClass] instance under the token type
+  /// - Regular providers: Keeps as-is
+  Set<Provider> _processCustomProviders(Iterable<Provider> providers) {
+    final result = <Provider>{};
+    for (final provider in providers) {
+      switch (provider) {
+        case ClassProvider(:final useClass, :final token):
+          result.add(useClass);
+          _customProviderTokens[useClass.runtimeType] = token;
+        default:
+          result.add(provider);
+      }
+    }
+    return result;
   }
 
   void _refreshUnifiedProviders() {
@@ -748,10 +779,11 @@ final class ModulesContainer {
         _replaceModuleProviderInstance(currentScope, replacement: result);
         logger.info('Initialized ${provider.type} in ${module.runtimeType}');
         await initIfUnregistered(result);
-        final providerToken = InjectionToken.fromType(result.runtimeType);
+        final providerToken = InjectionToken.fromProvider(provider);
         if (currentScope.module.isGlobal) {
           globalProviders.add(result);
         }
+        print('Registering provider: ${result.runtimeType}');
         _providers[result.runtimeType] = result;
         _scopedProviders[result.runtimeType] = currentScope;
         currentScope.addToProviders(result);
@@ -865,6 +897,7 @@ final class ModulesContainer {
 
   /// Gets a provider by its type
   T? get<T extends Provider>() {
+    print(_providers);
     return _providers[T] as T?;
   }
 
