@@ -375,6 +375,75 @@ void main() {
         expect(singleResult.values, contains('wildcard-handler'));
         expect(multiResult.values, contains('tail-handler'));
       });
+
+      test('should backtrack from more specific static route to more general parametric route', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/:entity/:id', '1');
+        atlas.add(HttpMethod.get, '/users/:id/profile', '2');
+
+        // /users/1 should match /:entity/:id since /users/:id/profile requires /profile
+        final result = atlas.lookup(HttpMethod.get, '/users/1');
+
+        expect(result, isA<FoundRoute<String>>());
+        expect(result.values, contains('1'));
+        expect(result.params['entity'], 'users');
+        expect(result.params['id'], '1');
+      });
+
+      test('should match exact user request: /:entity/:id vs /users/:id/profile', () {
+        final atlas = Atlas<int>();
+        atlas.add(HttpMethod.get, '/:entity/:id', 1);
+        atlas.add(HttpMethod.get, '/users/:id/profile', 2);
+
+        final result = atlas.lookup(HttpMethod.get, '/users/1');
+
+        expect(result, isA<FoundRoute<int>>());
+        expect(result.values.first, 1);
+        expect(result.params['entity'], 'users');
+        expect(result.params['id'], '1');
+      });
+
+      test('should match more specific route when path is complete', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/:entity/:id', '1');
+        atlas.add(HttpMethod.get, '/users/:id/profile', '2');
+
+        // /users/1/profile should match /users/:id/profile
+        final result = atlas.lookup(HttpMethod.get, '/users/1/profile');
+
+        expect(result, isA<FoundRoute<String>>());
+        expect(result.values, contains('2'));
+        expect(result.params['id'], '1');
+      });
+
+      test('should backtrack through multiple static segments', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/:a/:b', 'generic');
+        atlas.add(HttpMethod.get, '/api/:version/users', 'specific');
+
+        // /api/v1 should match /:a/:b since /api/:version/users requires /users
+        final result = atlas.lookup(HttpMethod.get, '/api/v1');
+
+        expect(result, isA<FoundRoute<String>>());
+        expect(result.values, contains('generic'));
+        expect(result.params['a'], 'api');
+        expect(result.params['b'], 'v1');
+      });
+
+      test('should backtrack with mixed static and parametric segments', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/users/:id', 'users-id');
+        atlas.add(HttpMethod.get, '/users/:id/settings', 'users-settings');
+        atlas.add(HttpMethod.get, '/:entity/:id', 'generic');
+
+        final usersResult = atlas.lookup(HttpMethod.get, '/users/123');
+        final settingsResult = atlas.lookup(HttpMethod.get, '/users/123/settings');
+        final genericResult = atlas.lookup(HttpMethod.get, '/posts/456');
+
+        expect(usersResult.values, contains('users-id'));
+        expect(settingsResult.values, contains('users-settings'));
+        expect(genericResult.values, contains('generic'));
+      });
     });
 
     group('Complex Routes', () {

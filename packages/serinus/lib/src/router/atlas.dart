@@ -157,6 +157,7 @@ final class Atlas<T> {
       if (_hasAnyHandler(node)) {
         return AtlasResult.methodNotAllowed();
       }
+      // This should not happen as _matchPath checks for handlers
       return AtlasResult.notFound();
     }
 
@@ -272,6 +273,16 @@ final class Atlas<T> {
 
   /// Recursively matches a path against the tree.
   /// Returns the matched node and extracted parameters, or null if no match.
+  /// 
+  /// Matching priority:
+  /// 1. Static/literal matches (highest priority)
+  /// 2. Parametric matches
+  /// 3. Wildcard matches
+  /// 4. Tail wildcard matches (lowest priority)
+  /// 
+  /// The algorithm backtracks when a partial match fails, trying lower priority
+  /// alternatives to ensure the most specific route is found. A match is only
+  /// considered successful if the final node has at least one handler.
   (AtlasNode<T>, List<ParamAndValue>)? _matchPath(
     AtlasNode<T> node,
     List<String> segments,
@@ -281,12 +292,16 @@ final class Atlas<T> {
   ) {
     // Base case: all segments consumed
     if (index >= segments.length) {
-      return (node, params);
+      // Only return this node if it has at least one handler
+      // This enables backtracking when a path matches structurally but has no handler
+      if (_hasAnyHandler(node)) {
+        return (node, params);
+      }
+      return null;
     }
 
     final segment = segments[index];
 
-    // 1. Try exact static match first (fastest path)
     final staticChild = node.getChild(segment);
     if (staticChild != null) {
       final result = _matchPath(staticChild, segments, index + 1, params, method);
@@ -295,7 +310,6 @@ final class Atlas<T> {
       }
     }
 
-    // 2. Try parametric match
     if (node.paramChild != null) {
       final paramNode = node.paramChild!;
       final paramValue = _extractParamValue(paramNode, segment);
@@ -312,10 +326,10 @@ final class Atlas<T> {
         if (result != null) {
           return result;
         }
+        // If parametric match path failed, continue to try wildcard alternatives
       }
     }
 
-    // 3. Try wildcard match (matches single segment)
     if (node.wildcardChild != null) {
       final newParams = List<ParamAndValue>.from(params)
         ..add((name: '*', value: segment));
@@ -329,14 +343,17 @@ final class Atlas<T> {
       if (result != null) {
         return result;
       }
+      // If wildcard match path failed, continue to try tail wildcard
     }
 
-    // 4. Try tail wildcard match (matches remaining segments)
     if (node.tailWildcardChild != null) {
       final remainingPath = segments.sublist(index).join('/');
       final newParams = List<ParamAndValue>.from(params)
         ..add((name: '**', value: remainingPath));
-      return (node.tailWildcardChild!, newParams);
+      // Tail wildcard always consumes remaining segments, so check for handler
+      if (_hasAnyHandler(node.tailWildcardChild!)) {
+        return (node.tailWildcardChild!, newParams);
+      }
     }
 
     return null;
