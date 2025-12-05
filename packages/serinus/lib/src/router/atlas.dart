@@ -120,6 +120,8 @@ final class Atlas<T> {
     return true;
   }
 
+  final _handlersCache = <String, AtlasResult<T>>{};
+
   /// Looks up a route matching the given [method] and [path].
   /// 
   /// Returns an [AtlasResult] containing:
@@ -129,6 +131,10 @@ final class Atlas<T> {
   /// - `params`: Map of extracted parameters
   @pragma('vm:prefer-inline')
   AtlasResult<T> lookup(HttpMethod method, String path) {
+    final cacheKey = '${method.index}|$path';
+    if (_handlersCache.containsKey(cacheKey)) {
+      return _handlersCache[cacheKey]!;
+    }
     final segments = _parsePathSegments(path);
     final params = <ParamAndValue>[];
 
@@ -160,8 +166,10 @@ final class Atlas<T> {
       // This should not happen as _matchPath checks for handlers
       return AtlasResult.notFound();
     }
-
-    return FoundRoute(
+    if (_handlersCache.length > 10000) {
+      _handlersCache.remove(_handlersCache.keys.first);
+    }
+    return _handlersCache[cacheKey] ??= FoundRoute(
       values: handlers,
       rawParams: extractedParams,
     );
