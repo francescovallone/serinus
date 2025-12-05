@@ -74,11 +74,7 @@ class RoutesResolver {
     );
     try {
       if (route is FoundRoute) {
-        await route.values.first.handler(
-          request,
-          response,
-          route.params,
-        );
+        await route.values.first.handler(request, response, route.params);
         return;
       }
       if (route is NotFoundRoute) {
@@ -280,8 +276,11 @@ class RoutesResolver {
           request.uri,
         );
   }
-  
-  Future<void> _methodNotAllowed(IncomingMessage request, OutgoingMessage response) async {
+
+  Future<void> _methodNotAllowed(
+    IncomingMessage request,
+    OutgoingMessage response,
+  ) async {
     _logger.verbose('Method not allowed for ${request.method} ${request.uri}');
     final wrappedRequest = Request(request, {});
     final reqHooks = _container.config.globalHooks.reqHooks;

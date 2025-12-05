@@ -5,13 +5,12 @@ import 'package:serinus/src/router/router.dart';
 import 'package:spanner/spanner.dart';
 import 'package:test/test.dart';
 
-
 class TestRoute extends Route {
   TestRoute({required super.path, super.method = HttpMethod.get});
 }
 
 class TestController extends Controller {
-  TestController() :super('/');
+  TestController() : super('/');
 }
 
 class TestModule extends Module {
@@ -109,10 +108,7 @@ void main() async {
           context: routeContext,
           handler: (request, response, params) async => '',
         );
-        final result = router.lookup(
-          '/test',
-          HttpMethod.get,
-        );
+        final result = router.lookup('/test', HttpMethod.get);
         expect(result, isA<FoundRoute>());
         final found = result as FoundRoute<RouterEntry>;
         expect(found.values.first.context.path, equals('/test'));
@@ -152,10 +148,7 @@ void main() async {
           context: routeContext,
           handler: (request, response, params) async => '',
         );
-        final result = router.lookup(
-          '/test',
-          HttpMethod.post,
-        );
+        final result = router.lookup('/test', HttpMethod.post);
         expect(result, isA<MethodNotAllowedRoute>());
       },
     );

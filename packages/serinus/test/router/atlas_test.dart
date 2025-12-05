@@ -83,14 +83,17 @@ void main() {
         expect(deleteResult.values, contains('delete-handler'));
       });
 
-      test('should return MethodNotAllowedRoute when method not registered', () {
-        final atlas = Atlas<String>();
-        atlas.add(HttpMethod.get, '/users', 'get-handler');
+      test(
+        'should return MethodNotAllowedRoute when method not registered',
+        () {
+          final atlas = Atlas<String>();
+          atlas.add(HttpMethod.get, '/users', 'get-handler');
 
-        final result = atlas.lookup(HttpMethod.post, '/users');
+          final result = atlas.lookup(HttpMethod.post, '/users');
 
-        expect(result, isA<MethodNotAllowedRoute<String>>());
-      });
+          expect(result, isA<MethodNotAllowedRoute<String>>());
+        },
+      );
 
       test('should match HttpMethod.all for any method', () {
         final atlas = Atlas<String>();
@@ -302,7 +305,10 @@ void main() {
         final atlas = Atlas<String>();
         atlas.add(HttpMethod.get, '/assets/**', 'handler');
 
-        final result = atlas.lookup(HttpMethod.get, '/assets/images/icons/logo.png');
+        final result = atlas.lookup(
+          HttpMethod.get,
+          '/assets/images/icons/logo.png',
+        );
 
         expect(result, isA<FoundRoute<String>>());
         expect(result.params['**'], 'images/icons/logo.png');
@@ -320,7 +326,7 @@ void main() {
 
       test('should throw when adding children to tail wildcard', () {
         final atlas = Atlas<String>();
-        
+
         expect(
           () => atlas.add(HttpMethod.get, '/files/**/extra', 'handler'),
           throwsA(isA<ArgumentError>()),
@@ -332,7 +338,10 @@ void main() {
         atlas.add(HttpMethod.get, '/files/**', 'wildcard-handler');
         atlas.add(HttpMethod.get, '/files/specific', 'specific-handler');
 
-        final wildcardResult = atlas.lookup(HttpMethod.get, '/files/random/path');
+        final wildcardResult = atlas.lookup(
+          HttpMethod.get,
+          '/files/random/path',
+        );
         final specificResult = atlas.lookup(HttpMethod.get, '/files/specific');
 
         expect(wildcardResult.values, contains('wildcard-handler'));
@@ -376,32 +385,38 @@ void main() {
         expect(multiResult.values, contains('tail-handler'));
       });
 
-      test('should backtrack from more specific static route to more general parametric route', () {
-        final atlas = Atlas<String>();
-        atlas.add(HttpMethod.get, '/:entity/:id', '1');
-        atlas.add(HttpMethod.get, '/users/:id/profile', '2');
+      test(
+        'should backtrack from more specific static route to more general parametric route',
+        () {
+          final atlas = Atlas<String>();
+          atlas.add(HttpMethod.get, '/:entity/:id', '1');
+          atlas.add(HttpMethod.get, '/users/:id/profile', '2');
 
-        // /users/1 should match /:entity/:id since /users/:id/profile requires /profile
-        final result = atlas.lookup(HttpMethod.get, '/users/1');
+          // /users/1 should match /:entity/:id since /users/:id/profile requires /profile
+          final result = atlas.lookup(HttpMethod.get, '/users/1');
 
-        expect(result, isA<FoundRoute<String>>());
-        expect(result.values, contains('1'));
-        expect(result.params['entity'], 'users');
-        expect(result.params['id'], '1');
-      });
+          expect(result, isA<FoundRoute<String>>());
+          expect(result.values, contains('1'));
+          expect(result.params['entity'], 'users');
+          expect(result.params['id'], '1');
+        },
+      );
 
-      test('should match exact user request: /:entity/:id vs /users/:id/profile', () {
-        final atlas = Atlas<int>();
-        atlas.add(HttpMethod.get, '/:entity/:id', 1);
-        atlas.add(HttpMethod.get, '/users/:id/profile', 2);
+      test(
+        'should match exact user request: /:entity/:id vs /users/:id/profile',
+        () {
+          final atlas = Atlas<int>();
+          atlas.add(HttpMethod.get, '/:entity/:id', 1);
+          atlas.add(HttpMethod.get, '/users/:id/profile', 2);
 
-        final result = atlas.lookup(HttpMethod.get, '/users/1');
+          final result = atlas.lookup(HttpMethod.get, '/users/1');
 
-        expect(result, isA<FoundRoute<int>>());
-        expect(result.values.first, 1);
-        expect(result.params['entity'], 'users');
-        expect(result.params['id'], '1');
-      });
+          expect(result, isA<FoundRoute<int>>());
+          expect(result.values.first, 1);
+          expect(result.params['entity'], 'users');
+          expect(result.params['id'], '1');
+        },
+      );
 
       test('should match more specific route when path is complete', () {
         final atlas = Atlas<String>();
@@ -437,7 +452,10 @@ void main() {
         atlas.add(HttpMethod.get, '/:entity/:id', 'generic');
 
         final usersResult = atlas.lookup(HttpMethod.get, '/users/123');
-        final settingsResult = atlas.lookup(HttpMethod.get, '/users/123/settings');
+        final settingsResult = atlas.lookup(
+          HttpMethod.get,
+          '/users/123/settings',
+        );
         final genericResult = atlas.lookup(HttpMethod.get, '/posts/456');
 
         expect(usersResult.values, contains('users-id'));
@@ -454,8 +472,14 @@ void main() {
         atlas.add(HttpMethod.get, '/users/<id>/files/**', 'files-handler');
 
         final userResult = atlas.lookup(HttpMethod.get, '/users/123');
-        final postsResult = atlas.lookup(HttpMethod.get, '/users/123/posts/latest');
-        final filesResult = atlas.lookup(HttpMethod.get, '/users/123/files/docs/report.pdf');
+        final postsResult = atlas.lookup(
+          HttpMethod.get,
+          '/users/123/posts/latest',
+        );
+        final filesResult = atlas.lookup(
+          HttpMethod.get,
+          '/users/123/files/docs/report.pdf',
+        );
 
         expect(userResult.params['id'], '123');
         expect(postsResult.params['id'], '123');
@@ -487,7 +511,11 @@ void main() {
         final atlas = Atlas<String>();
         atlas.add(HttpMethod.get, '/api/users', 'users-handler');
         atlas.add(HttpMethod.get, '/api/users/<id>', 'user-handler');
-        atlas.add(HttpMethod.get, '/api/users/<id>/posts', 'user-posts-handler');
+        atlas.add(
+          HttpMethod.get,
+          '/api/users/<id>/posts',
+          'user-posts-handler',
+        );
         atlas.add(HttpMethod.get, '/api/posts', 'posts-handler');
         atlas.add(HttpMethod.get, '/api/posts/<id>', 'post-handler');
 
@@ -495,10 +523,7 @@ void main() {
           atlas.lookup(HttpMethod.get, '/api/users').values,
           contains('users-handler'),
         );
-        expect(
-          atlas.lookup(HttpMethod.get, '/api/users/1').params['id'],
-          '1',
-        );
+        expect(atlas.lookup(HttpMethod.get, '/api/users/1').params['id'], '1');
         expect(
           atlas.lookup(HttpMethod.get, '/api/users/1/posts').values,
           contains('user-posts-handler'),
@@ -507,10 +532,7 @@ void main() {
           atlas.lookup(HttpMethod.get, '/api/posts').values,
           contains('posts-handler'),
         );
-        expect(
-          atlas.lookup(HttpMethod.get, '/api/posts/2').params['id'],
-          '2',
-        );
+        expect(atlas.lookup(HttpMethod.get, '/api/posts/2').params['id'], '2');
       });
     });
 
@@ -575,9 +597,9 @@ void main() {
 
       test('should return add success status', () {
         final atlas = Atlas<String>();
-        
+
         final result = atlas.add(HttpMethod.get, '/test', 'handler');
-        
+
         expect(result, isTrue);
       });
     });
@@ -656,7 +678,7 @@ void main() {
     group('Performance Considerations', () {
       test('should handle many routes efficiently', () {
         final atlas = Atlas<int>();
-        
+
         // Add 1000 routes
         for (var i = 0; i < 1000; i++) {
           atlas.add(HttpMethod.get, '/route$i', i);
@@ -675,7 +697,7 @@ void main() {
 
       test('should handle routes with shared prefixes efficiently', () {
         final atlas = Atlas<int>();
-        
+
         // Add routes with common prefixes
         for (var i = 0; i < 100; i++) {
           atlas.add(HttpMethod.get, '/api/v1/users/$i', i);

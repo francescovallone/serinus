@@ -38,11 +38,11 @@ void main() async {
           stringBuffer.write('\r\n');
           stringBuffer.write('bar\r\n');
           stringBuffer.write('--boundary--\r\n');
-          
+
           final body = await FormData.parseMultipart(
-            request: Stream<List<int>>.fromIterable(
-              [utf8.encode(stringBuffer.toString())],
-            ),
+            request: Stream<List<int>>.fromIterable([
+              utf8.encode(stringBuffer.toString()),
+            ]),
             contentType: 'multipart/form-data; boundary=boundary',
           );
           expect(body.fields, equals({'foo': 'bar'}));
@@ -57,18 +57,15 @@ void main() async {
           stringBuffer.write('\r\n');
           stringBuffer.write('bar\r\n');
           stringBuffer.write('--boundary--\r\n');
-          
+
           final body = await FormData.parseMultipart(
-            request: Stream<List<int>>.fromIterable(
-              [utf8.encode(stringBuffer.toString())],
-            ),
+            request: Stream<List<int>>.fromIterable([
+              utf8.encode(stringBuffer.toString()),
+            ]),
             onPart: (part) async {
               expect(part, isA<MimeMultipart>());
               final contentDisposition = part.headers['content-disposition'];
-              expect(
-                contentDisposition,
-                equals('form-data; name="foo"'),
-              );
+              expect(contentDisposition, equals('form-data; name="foo"'));
             },
             contentType: 'multipart/form-data; boundary=boundary',
           );

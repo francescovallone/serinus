@@ -3,7 +3,7 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/router/atlas.dart';
 
 class AtlasBenchmarks extends PerfBenchmarkBase {
-  AtlasBenchmarks(): super('Atlas Lookup Benchmark');
+  AtlasBenchmarks() : super('Atlas Lookup Benchmark');
 
   final atlas = Atlas<int>();
 
@@ -15,16 +15,16 @@ class AtlasBenchmarks extends PerfBenchmarkBase {
       atlas.add(HttpMethod.get, '/api/v2/users/$i', i + 2000);
     }
   }
-  
+
   @override
   void run() {
-
     final result = atlas.lookup(HttpMethod.get, '/api/v1/users/500');
     if (result.values.first != 500) {
-      throw Exception('Benchmark failed: expected 500, got ${result.values.first}');
+      throw Exception(
+        'Benchmark failed: expected 500, got ${result.values.first}',
+      );
     }
   }
-
 }
 
 void main() {

@@ -6,9 +6,11 @@ import '../extensions/string_extensions.dart';
 import '../versioning.dart';
 import 'atlas.dart';
 
-
 /// [RouteInformation] is a utility type that contains the route context and the parameters of the route.
-typedef RouteInformation<T extends RouteHandlerSpec> = ({RouteContext<T>? route, Map<String, dynamic> params});
+typedef RouteInformation<T extends RouteHandlerSpec> = ({
+  RouteContext<T>? route,
+  Map<String, dynamic> params,
+});
 
 /// The [Router] class is used to create the router in the application.
 final class Router {
@@ -40,10 +42,7 @@ final class Router {
     _routeTree.add(
       context.method,
       path.stripEndSlash(),
-      RouterEntry(
-        context: context,
-        handler: handler,
-      ),
+      RouterEntry(context: context, handler: handler),
     );
   }
 
@@ -54,25 +53,18 @@ final class Router {
   ///
   /// The method will return the route data and the parameters of the route.
   AtlasResult<RouterEntry> lookup(String path, HttpMethod method) {
-    return _routeTree.lookup(
-      method,
-      path,
-    );
+    return _routeTree.lookup(method, path);
   }
 }
 
 /// The [RouterEntry] class is used to store the route context and the handler function.
 class RouterEntry {
-
   /// The [context] property contains the route context.
   final RouteContext context;
+
   /// The [handler] property contains the handler function.
   final HandlerFunction handler;
 
   /// The [RouterEntry] constructor is used to create a new instance of the [RouterEntry] class.
-  RouterEntry({
-    required this.context,
-    required this.handler,
-  });
-
+  RouterEntry({required this.context, required this.handler});
 }

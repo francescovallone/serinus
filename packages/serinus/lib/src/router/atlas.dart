@@ -5,11 +5,10 @@ import 'node.dart';
 typedef ParamAndValue = ({String name, String? value});
 
 /// Result of a route lookup operation in the Atlas router.
-/// 
+///
 /// Contains information about whether a route was found, the handler values,
 /// and any extracted parameters from the route path.
 abstract class AtlasResult<T> {
-
   /// The handler values associated with the matched route.
   final List<T> values;
 
@@ -20,10 +19,8 @@ abstract class AtlasResult<T> {
   Map<String, dynamic>? _paramsCache;
 
   /// Creates a new [AtlasResult] instance.
-  AtlasResult({
-    required this.values,
-    required List<ParamAndValue> rawParams,
-  }) : _rawParams = rawParams;
+  AtlasResult({required this.values, required List<ParamAndValue> rawParams})
+    : _rawParams = rawParams;
 
   /// Parameters extracted from the route, lazily computed and cached.
   Map<String, dynamic> get params {
@@ -47,10 +44,7 @@ abstract class AtlasResult<T> {
 /// Result indicating a successful route match with associated handlers.
 final class FoundRoute<T> extends AtlasResult<T> {
   /// Creates a new [FoundRoute] instance.
-  FoundRoute({
-    required super.values,
-    required super.rawParams,
-  });
+  FoundRoute({required super.values, required super.rawParams});
 }
 
 /// Result indicating that no matching route was found.
@@ -98,14 +92,14 @@ final class Atlas<T> {
   }
 
   /// Adds a route to the router with the given [method], [path], and [handler].
-  /// 
+  ///
   /// The path can contain:
   /// - Static segments: `/users/list`
   /// - Parameters: `/users/<id>`
   /// - Parameters with prefix/suffix: `/files/<name>.json`
   /// - Wildcards: `/files/*`
   /// - Tail wildcards: `/assets/**`
-  /// 
+  ///
   /// Returns `true` if the route was added successfully.
   bool add(HttpMethod method, String path, T handler) {
     final segments = _parsePathSegments(path);
@@ -123,7 +117,7 @@ final class Atlas<T> {
   final _handlersCache = <String, AtlasResult<T>>{};
 
   /// Looks up a route matching the given [method] and [path].
-  /// 
+  ///
   /// Returns an [AtlasResult] containing:
   /// - `routeExists`: Whether any route matches the path
   /// - `hasHandler`: Whether a handler exists for the specific method
@@ -259,8 +253,9 @@ final class Atlas<T> {
     }
 
     // Try angle bracket syntax (supports prefix/suffix)
-    final angleBracketMatch =
-        ParamNode.angleBracketDefnsRegExp.firstMatch(segment);
+    final angleBracketMatch = ParamNode.angleBracketDefnsRegExp.firstMatch(
+      segment,
+    );
     if (angleBracketMatch != null) {
       final prefix = angleBracketMatch.group(1);
       final name = angleBracketMatch.group(2)!;
@@ -281,13 +276,13 @@ final class Atlas<T> {
 
   /// Recursively matches a path against the tree.
   /// Returns the matched node and extracted parameters, or null if no match.
-  /// 
+  ///
   /// Matching priority:
   /// 1. Static/literal matches (highest priority)
   /// 2. Parametric matches
   /// 3. Wildcard matches
   /// 4. Tail wildcard matches (lowest priority)
-  /// 
+  ///
   /// The algorithm backtracks when a partial match fails, trying lower priority
   /// alternatives to ensure the most specific route is found. A match is only
   /// considered successful if the final node has at least one handler.
@@ -312,7 +307,13 @@ final class Atlas<T> {
 
     final staticChild = node.getChild(segment);
     if (staticChild != null) {
-      final result = _matchPath(staticChild, segments, index + 1, params, method);
+      final result = _matchPath(
+        staticChild,
+        segments,
+        index + 1,
+        params,
+        method,
+      );
       if (result != null) {
         return result;
       }
@@ -380,7 +381,9 @@ final class Atlas<T> {
     }
 
     final startIndex = prefix?.length ?? 0;
-    final endIndex = suffix != null ? segment.length - suffix.length : segment.length;
+    final endIndex = suffix != null
+        ? segment.length - suffix.length
+        : segment.length;
 
     if (startIndex >= endIndex) {
       return null;
@@ -399,11 +402,11 @@ final class Atlas<T> {
   //   final nodeType = switch (node) {
   //     TailWildcardNode() => '[**]',
   //     WildcardNode() => '[*]',
-  //     ParamNode(name: final n, prefix: final p, suffix: final s) => 
+  //     ParamNode(name: final n, prefix: final p, suffix: final s) =>
   //       '[<$n>${p != null ? ' prefix:$p' : ''}${s != null ? ' suffix:$s' : ''}]',
   //     _ => '[static]',
   //   };
-    
+
   //   final handlers = node.handlers
   //       .asMap()
   //       .entries
@@ -411,16 +414,16 @@ final class Atlas<T> {
   //       .map((e) => HttpMethod.values[e.key].name)
   //       .join(', ');
   //   final handlerInfo = handlers.isNotEmpty ? ' handlers: [$handlers]' : '';
-    
+
   //   print('$prefix$connector$nodeType$handlerInfo');
-    
+
   //   final children = <(String, AtlasNode<T>)>[
   //     ...node.staticChildren.entries.map((e) => (e.key, e.value)),
   //     if (node.paramChild != null) ('<param>', node.paramChild!),
   //     if (node.wildcardChild != null) ('*', node.wildcardChild!),
   //     if (node.tailWildcardChild != null) ('**', node.tailWildcardChild!),
   //   ];
-    
+
   //   for (var i = 0; i < children.length; i++) {
   //     final (key, child) = children[i];
   //     final childPrefix = prefix + (isLast ? '    ' : '│   ');

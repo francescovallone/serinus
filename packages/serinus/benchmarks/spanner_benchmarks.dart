@@ -19,7 +19,9 @@ class SpannerBenchmarks extends PerfBenchmarkBase {
   void run() {
     final result = spanner.lookup(HTTPMethod.GET, '/api/v1/users/500');
     if (result?.values.first != 500) {
-      throw Exception('Benchmark failed: expected 500, got ${result?.values.first}');
+      throw Exception(
+        'Benchmark failed: expected 500, got ${result?.values.first}',
+      );
     }
   }
 }

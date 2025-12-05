@@ -1,7 +1,7 @@
 import '../enums/http_method.dart';
 
 /// Internal node class for the Atlas radix tree.
-/// 
+///
 /// Each node can have:
 /// - Static children: exact match paths stored in a map
 /// - Parameter child: a single parametric segment
@@ -13,7 +13,11 @@ class AtlasNode<T> {
   final Map<String, AtlasNode<T>> staticChildren = {};
 
   /// Handlers for each HTTP method, indexed by method ordinal.
-  final List<T?> handlers = List.filled(HttpMethod.values.length, null, growable: false);
+  final List<T?> handlers = List.filled(
+    HttpMethod.values.length,
+    null,
+    growable: false,
+  );
 
   /// The parametric child node, if any.
   ParamNode<T>? paramChild;
@@ -97,7 +101,9 @@ class ParamNode<T> extends DynamicSegment<T> {
   /// 1. Prefix (characters before `<`)
   /// 2. Parameter name (inside `<>`)
   /// 3. Suffix (characters after `>`)
-  static final RegExp angleBracketDefnsRegExp = RegExp(r'([^<]*)<(\w+)>([^<]*)');
+  static final RegExp angleBracketDefnsRegExp = RegExp(
+    r'([^<]*)<(\w+)>([^<]*)',
+  );
 
   /// Regex to parse colon parametric segment.
   /// Colon params must be the entire segment (no prefix/suffix support).
@@ -119,15 +125,11 @@ class ParamNode<T> extends DynamicSegment<T> {
   final String name;
 
   /// Creates a new parametric node.
-  ParamNode(
-    this.name, {
-    this.prefix,
-    this.suffix,
-  });
+  ParamNode(this.name, {this.prefix, this.suffix});
 }
 
 /// Wildcard segment that matches any single path segment.
-/// 
+///
 /// Example: `/files/*` matches `/files/image.png` but not `/files/a/b`
 class WildcardNode<T> extends DynamicSegment<T> {
   /// The key used to represent a wildcard in route definitions.
@@ -135,9 +137,9 @@ class WildcardNode<T> extends DynamicSegment<T> {
 }
 
 /// Tail wildcard segment that matches all remaining path segments.
-/// 
+///
 /// Example: `/assets/**` matches `/assets/images/logo.png`
-/// 
+///
 /// Tail wildcards cannot have children since they consume all remaining segments.
 class TailWildcardNode<T> extends DynamicSegment<T> {
   /// The key used to represent a tail wildcard in route definitions.

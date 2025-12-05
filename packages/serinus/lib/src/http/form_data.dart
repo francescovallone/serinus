@@ -52,9 +52,7 @@ class FormData {
     Future<void> Function(MimeMultipart part)? onPart,
   }) async {
     try {
-      final mediaType = MediaType.parse(
-        contentType,
-      );
+      final mediaType = MediaType.parse(contentType);
       final boundary = mediaType.parameters['boundary'];
       final parts = _getMultiparts(request, boundary);
       RegExp regex = RegExp('([a-zA-Z0-9-_]+)="(.*?)"');

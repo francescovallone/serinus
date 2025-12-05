@@ -148,7 +148,10 @@ void main() {
         explorer.resolveRoutes();
         final result = router.lookup('/v1', HttpMethod.get);
         expect(result, isA<FoundRoute<RouterEntry>>());
-        expect((result as FoundRoute<RouterEntry>).values.first.context.path, '/v1/');
+        expect(
+          (result as FoundRoute<RouterEntry>).values.first.context.path,
+          '/v1/',
+        );
       },
     );
 
@@ -176,7 +179,10 @@ void main() {
         explorer.resolveRoutes();
         final result = router.lookup('/api', HttpMethod.get);
         expect(result, isA<FoundRoute<RouterEntry>>());
-        expect((result as FoundRoute<RouterEntry>).values.first.context.path, '/api/');
+        expect(
+          (result as FoundRoute<RouterEntry>).values.first.context.path,
+          '/api/',
+        );
       },
     );
 
@@ -266,12 +272,12 @@ void main() {
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
-        final result = router.lookup(
-          '/api/v1',
-          HttpMethod.get,
-        );
+        final result = router.lookup('/api/v1', HttpMethod.get);
         expect(result, isA<FoundRoute<RouterEntry>>());
-        expect((result as FoundRoute<RouterEntry>).values.first.context.path, '/api/v1/');
+        expect(
+          (result as FoundRoute<RouterEntry>).values.first.context.path,
+          '/api/v1/',
+        );
       },
     );
   });

@@ -278,9 +278,10 @@ class InternalRequest extends IncomingMessage {
   }) async {
     if (contentType.isMultipart) {
       return FormData.parseMultipart(
-        request: original, 
-        contentType: original.headers.value(HttpHeaders.contentTypeHeader) ?? '', 
-        onPart: onPart
+        request: original,
+        contentType:
+            original.headers.value(HttpHeaders.contentTypeHeader) ?? '',
+        onPart: onPart,
       );
     } else if (contentType.isUrlEncoded) {
       return FormData.parseUrlEncoded(body());
