@@ -307,7 +307,7 @@ class RouteExecutionContext {
     // sending code doesn't re-encode and we avoid double-encoding.
     if (result.data?.canBeJson() ?? false) {
       final prepared = parseJsonToResponse(result.data, modelProvider);
-      responseData = Uint8List.fromList(_jsonUtf8Encoder.convert(prepared));
+      responseData = _jsonUtf8Encoder.convert(prepared);
       context.response.contentType ??= ContentType.json;
     }
 
@@ -316,7 +316,7 @@ class RouteExecutionContext {
         ) ??
         false) {
       final modelObj = modelProvider?.to(result.data);
-      responseData = Uint8List.fromList(_jsonUtf8Encoder.convert(modelObj));
+      responseData = _jsonUtf8Encoder.convert(modelObj);
       context.response.contentType ??= ContentType.json;
     }
 

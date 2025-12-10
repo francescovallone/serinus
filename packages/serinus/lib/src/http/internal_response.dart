@@ -135,6 +135,7 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
 
   @override
   void addStream(Stream<List<int>> stream, {bool close = true}) {
+    original.bufferOutput = true;
     original.addStream(stream).then((_) {
       if (close) {
         original.close();

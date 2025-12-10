@@ -32,10 +32,13 @@ class Test2Controller extends Controller {
 }
 
 class AppController extends Controller {
-  AppController() : super('/app') {
-    on<String, dynamic>(Route.get('/'), (RequestContext context) async {
-      final provider = context.use<TestProvider>();
-      return 'Counter: ${provider.counter}';
+  AppController() : super('/') {
+    on<Map<String, dynamic>, dynamic>(Route.get('/'), (RequestContext context) async {
+      return {
+        'message': 'Hello, Serinus!',
+        'time': DateTime.now().toIso8601String(),
+        'complexObject': MyObject('example', 42),
+      };
     });
     on<String, List<dynamic>>(Route.post('/echo'), (
       RequestContext<List<dynamic>> context,

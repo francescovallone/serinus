@@ -1,5 +1,4 @@
 import 'dart:io' as io;
-import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 
@@ -141,40 +140,31 @@ class SerinusHttpAdapter
     ResponseContext properties,
   ) async {
     response.cookies.addAll(properties.cookies);
-    response.headers(
-      properties.headers.asMap(),
-      preserveHeaderCase: preserveHeaderCase,
-    );
-    Uint8List responseBody = Uint8List(0);
-    response.contentType(
-      properties.contentType ?? io.ContentType.text,
-      preserveHeaderCase: preserveHeaderCase,
-    );
+    List<int> responseBody = List.empty(growable: true);
     final bodyData = body.data;
     if (bodyData is io.File) {
-      response.contentType(
-        properties.contentType ??
-            io.ContentType.parse('application/octet-stream'),
-        preserveHeaderCase: preserveHeaderCase,
-      );
       response.headers({
         'transfer-encoding': 'chunked',
+        'content-type': properties.contentType?.toString() ??
+            'application/octet-stream',
       }, preserveHeaderCase: preserveHeaderCase);
       final readPipe = bodyData.openRead();
       return response.addStream(readPipe);
     }
     responseBody = _convertData(body, response, properties);
     if (responseBody.isEmpty) {
-      responseBody = Uint8List(0);
+      responseBody = <int>[];
     }
     response.headers({
       io.HttpHeaders.contentLengthHeader: responseBody.length.toString(),
-    }, preserveHeaderCase: preserveHeaderCase);
+      'content-type': properties.contentType?.toString() ??
+          'text/plain; charset=utf-8',
+    }..addAll(properties.headers.asMap()), preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
-    return response.send(responseBody);
+    return response.addStream(Stream.value(responseBody));
   }
 
-  Uint8List _convertData(
+  List<int> _convertData(
     WrappedResponse data,
     InternalResponse response,
     ResponseContext properties,
@@ -189,7 +179,7 @@ class SerinusHttpAdapter
       response.headers({
         io.HttpHeaders.transferEncodingHeader: 'chunked',
       }, preserveHeaderCase: preserveHeaderCase);
-    }
+    } 
     return data.toBytes();
   }
 

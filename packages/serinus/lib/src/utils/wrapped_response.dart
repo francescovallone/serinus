@@ -4,6 +4,8 @@ import 'dart:typed_data';
 
 import '../extensions/object_extensions.dart';
 
+final JsonUtf8Encoder _jsonUtf8Encoder = JsonUtf8Encoder();
+
 /// The [WrappedResponse] class is used to wrap the response data.
 class WrappedResponse {
   /// The wrapped data.
@@ -13,7 +15,7 @@ class WrappedResponse {
   WrappedResponse(this.data);
 
   /// Convert the data to bytes.
-  Uint8List toBytes() {
+  List<int> toBytes() {
     if (data == null) {
       return Uint8List(0);
     }
@@ -30,7 +32,7 @@ class WrappedResponse {
     }
     // If data was JSON-serializable but wasn't encoded earlier, fall back to encoding here.
     if (data!.canBeJson()) {
-      return jsonEncode(data).toBytes();
+      return _jsonUtf8Encoder.convert(data);
     }
     // Fallback: string representation
     return utf8.encode(data.toString()) as Uint8List? ?? Uint8List(0);

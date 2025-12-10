@@ -166,9 +166,9 @@ class Request {
       return body;
     }
 
-    final parsedBody = _original.body();
 
     if (contentType.isUrlEncoded) {
+      final parsedBody = _original.body();
       final formData = FormData.parseUrlEncoded(parsedBody);
       _setBody(formData);
       return body;
@@ -182,7 +182,7 @@ class Request {
       }
     }
 
-    final trimmed = parsedBody.trimLeft();
+    final trimmed = _original.body().trimLeft();
     if (trimmed.isNotEmpty) {
       final firstChar = trimmed.codeUnitAt(0);
       if (firstChar == 123 || firstChar == 91) {
@@ -202,11 +202,11 @@ class Request {
     }
 
     if (contentType.mimeType.startsWith('text/')) {
-      _setBody(parsedBody);
+      _setBody(_original.body());
       return body;
     }
 
-    _setBody(parsedBody);
+    _setBody(_original.body());
     return body;
   }
 

@@ -225,6 +225,8 @@ class InternalRequest extends IncomingMessage {
     return InternalResponse(original.response);
   }
 
+  String? _bodyCache;
+
   /// This method is used to get the body of the request as a [String]
   ///
   /// Example:
@@ -233,8 +235,10 @@ class InternalRequest extends IncomingMessage {
   /// ```
   @override
   String body() {
-    return utf8.decode(_bytes ?? Uint8List(0));
+    return _bodyCache ??= utf8.decode(_bytes ?? Uint8List(0));
   }
+
+  dynamic _jsonCache;
 
   /// This method is used to get the body of the request as a [dynamic] json object
   ///
@@ -245,7 +249,7 @@ class InternalRequest extends IncomingMessage {
   @override
   dynamic json() {
     try {
-      return utf8JsonDecoder.convert(_bytes!);
+      return _jsonCache ??= utf8JsonDecoder.convert(_bytes!);
     } catch (e) {
       return null;
     }
@@ -272,14 +276,16 @@ class InternalRequest extends IncomingMessage {
     yield List<int>.from(_bytes ?? Uint8List(0));
   }
 
+  FormData? _formDataCache;
+
   @override
   Future<FormData> formData({
     Future<void> Function(MimeMultipart part)? onPart,
   }) async {
     if (contentType.isMultipart) {
-      return FormData.parseMultipart(request: original, onPart: onPart);
+      return _formDataCache ??= await FormData.parseMultipart(request: original, onPart: onPart);
     } else if (contentType.isUrlEncoded) {
-      return FormData.parseUrlEncoded(body());
+      return _formDataCache ??= FormData.parseUrlEncoded(body());
     } else {
       throw BadRequestException(
         'The content type is not supported for form data',
