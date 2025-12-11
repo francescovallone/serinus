@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.1.0
+
+**Released on:** Unreleased
+
+### Features
+
+- Add `ClassProvider` to allow inheritance in providers. Now it is possible to pass a class as a provider and have it injected as its subclass. This allows for better abstraction and separation of concerns in the application architecture.
+- Add `etag` to requests to allow for better caching strategies and reduce bandwidth usage.
+- Replace Spanner with Atlas as the default router for Serinus applications. Atlas provides better performance and more features compared to Spanner allowing for something more robust and flexible routing system.
+- Allows to disable versioning on specific routes or controllers. This provides more flexibility in managing API versions and allows for better control over the versioning strategy.
+
+### Fixes
+
+- Fix WebSocket upgrade handling to prevent wrongful exceptions during connection upgrades.
+
 ## 2.0.3
 
 - fix: add `ResponseContext#body` to early close the response on hooks, exceptions, and middlewares.
