@@ -41,6 +41,9 @@ abstract class OutgoingMessage<T, THeaders> {
   /// The [headers] method is used to set the headers of the response.
   void headers(Map<String, String> headers, {bool preserveHeaderCase = true});
 
+  /// The [header] method is used to set a single header of the response.
+  void header(String key, String value, {bool preserveHeaderCase = true});
+
   /// This method is used to flush all the buffered content and then to close the response stream.
   Future<void> flushAndClose();
 
@@ -115,6 +118,15 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
   }
 
   @override
+  void header(String key, String value, {bool preserveHeaderCase = true}) {
+    original.headers.set(
+      key,
+      value,
+      preserveHeaderCase: preserveHeaderCase,
+    );
+  }
+
+  @override
   Future<void> flushAndClose() async {
     await original.flush();
     original.close();
@@ -134,13 +146,12 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
   }
 
   @override
-  void addStream(Stream<List<int>> stream, {bool close = true}) {
+  Future<void> addStream(Stream<List<int>> stream, {bool close = true}) async {
     original.bufferOutput = true;
-    original.addStream(stream).then((_) {
-      if (close) {
-        original.close();
-        _isClosed = true;
-      }
-    });
+    await original.addStream(stream);
+    if (close) {
+      await original.close();
+      _isClosed = true;
+    }
   }
 }

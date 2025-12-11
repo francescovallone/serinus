@@ -299,7 +299,7 @@ class InternalRequest extends IncomingMessage {
     if (method != 'GET') {
       return false;
     }
-    final connection = original.headers.value('Connection');
+    final connection = original.headers['connection']?.join(',');
     if (connection == null) {
       return false;
     }

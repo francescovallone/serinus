@@ -35,7 +35,7 @@ class SerinusHeaders<T> {
 
   /// The [asMap] method is used to get the headers as a map.
   Map<String, String> asMap() {
-    return Map.unmodifiable(values);
+    return values;
   }
 
   /// The [addAll] method is used to add all the values available in the [headers] parameter.

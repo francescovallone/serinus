@@ -142,6 +142,11 @@ class SerinusHttpAdapter
     response.cookies.addAll(properties.cookies);
     List<int> responseBody = List.empty(growable: true);
     final bodyData = body.data;
+    final headers = properties.headers.asMap()..addAll({
+      'content-type': properties.contentType?.toString() ??
+          'text/plain; charset=utf-8',
+    });
+    response.headers(headers, preserveHeaderCase: preserveHeaderCase);
     if (bodyData is io.File) {
       response.headers({
         'transfer-encoding': 'chunked',
