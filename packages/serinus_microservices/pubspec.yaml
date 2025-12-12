@@ -1,6 +1,6 @@
 name: serinus_microservices
 description: Microservice transporters and clients for Serinus framework.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/francescovallone/serinus
 homepage: https://serinus.app
 documentation: https://serinus.app/microservices/
@@ -18,8 +18,8 @@ resolution: workspace
 
 dependencies:
   serinus: ^2.0.0
-  grpc: ^4.3.0
-  protobuf: ^5.0.0
+  grpc: ^5.1.0
+  protobuf: ^6.0.0
 
 dev_dependencies:
   lints: ^6.0.0
