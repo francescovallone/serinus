@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.4
+
+- feat: add `SerinusHeaders#asFullMap()` to get all the headers including the original request headers as an unmodifiable map.
+
 ## 2.0.3
 
 - fix: add `ResponseContext#body` to early close the response on hooks, exceptions, and middlewares.

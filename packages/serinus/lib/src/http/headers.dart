@@ -38,6 +38,13 @@ class SerinusHeaders<T> {
     return Map.unmodifiable(values);
   }
 
+  /// The [asFullMap] method is used to get all the headers as a map.
+  Map<String, String> asFullMap() {
+    final fullMap = Map<String, String>.from(_requestHeaders);
+    fullMap.addAll(values);
+    return Map.unmodifiable(fullMap);
+  }
+
   /// The [addAll] method is used to add all the values available in the [headers] parameter.
   void addAll(Map<String, String> headers) {
     values.addAll(headers);
