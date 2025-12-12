@@ -3,6 +3,7 @@
 ## 2.0.4
 
 - feat: add `SerinusHeaders#asFullMap()` to get all the headers including the original request headers as an unmodifiable map.
+- chore: update dependencies.
 
 ## 2.0.3
 
