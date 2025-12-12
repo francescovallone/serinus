@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.3
+
+- chore: update dependencies.
+
 ## 2.0.2
 
 - fix(#211): ignore non-dart files when generating models.
