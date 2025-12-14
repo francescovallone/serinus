@@ -4,6 +4,7 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 // ignore: implementation_imports
@@ -222,17 +223,18 @@ class ControllersAnalyzer {
           final className = declaration.name.stringValue ?? declaration.name;
           if (controllerPath == null) {
             final params = superParamsRegex.allMatches(declaration.toSource());
-            final superCons = params.first.group(0);
+            final superCons = params.isNotEmpty ? params.first.group(0) : null;
             final ps = superCons
                 ?.replaceAll('super(', '')
                 .replaceAll(')', '')
                 .split('path:')
-                .lastOrNull
-                ?.trim()
+                .last
+                .trim()
                 .replaceAll("'", '');
-            if (ps == null) {
+            if (ps == null || ps.isEmpty) {
               logger.warn(
-                  'The controller ($className) path is null or cannot be parsed! Skipping.');
+                'The controller ($className) path is null or cannot be parsed! Skipping.',
+              );
               continue;
             }
             controllerPath = ps;
@@ -261,15 +263,20 @@ class ControllersAnalyzer {
         for (final entity in child.block.childEntities) {
           if (entity is ExpressionStatement) {
             if (entity.expression is MethodInvocation) {
+              final invocation = entity.expression as MethodInvocation;
+              final invocationName = invocation.methodName.name;
+              if (invocationName != 'on' && invocationName != 'onStatic') {
+                continue;
+              }
               var route = Route();
-              final methodInvocation = entity.expression as MethodInvocation;
-              for (final arg in methodInvocation.argumentList.arguments) {
+              for (final arg in invocation.argumentList.arguments) {
                 if (arg is InstanceCreationExpression &&
                     userRoutes
                         .containsKey(arg.staticType?.getDisplayString())) {
                   if (arg.argumentList.arguments.isEmpty) {
                     route = Route.fromUserRoute(
-                        userRoutes[arg.staticType?.getDisplayString()]!);
+                      userRoutes[arg.staticType?.getDisplayString()]!,
+                    );
                   }
                 }
                 if (arg is InstanceCreationExpression &&
@@ -297,7 +304,10 @@ class ControllersAnalyzer {
                   }
                 }
                 if (arg is FunctionExpression) {
-                  route.returnType = arg.declaredFragment?.element.returnType;
+                  route..returnType =
+                      route.returnType ?? arg.declaredFragment?.element.returnType
+                  ..bodyType = route.bodyType ??
+                      _extractRequestBodyType(arg.parameters?.parameters);
                 }
                 if (arg is NamedExpression) {
                   if (arg.name.label.name == 'body') {
@@ -305,13 +315,15 @@ class ControllersAnalyzer {
                   }
                 }
                 if (arg is SimpleIdentifier) {
-                  final m = methods
-                      .where((e) =>
-                          (e.name.stringValue ?? e.name.toString()) ==
-                          (arg.token.stringValue ?? arg.token.toString()))
-                      .firstOrNull;
+                  final m = methods.where(
+                    (e) =>
+                        (e.name.stringValue ?? e.name.toString()) ==
+                        (arg.token.stringValue ?? arg.token.toString()),
+                  ).firstOrNull;
                   if (m != null) {
-                    route.returnType = m.returnType?.type;
+                    route..returnType = route.returnType ?? m.returnType?.type
+                    ..bodyType = route.bodyType ??
+                        _extractRequestBodyType(m.parameters?.parameters);
                   }
                 }
               }
@@ -324,6 +336,27 @@ class ControllersAnalyzer {
       }
     }
     return routes;
+  }
+
+  String? _extractRequestBodyType(Iterable<FormalParameter>? parameters) {
+    if (parameters == null) {
+      return null;
+    }
+    for (final parameter in parameters) {
+      final type = parameter.declaredFragment?.element.type;
+      if (type is ParameterizedType &&
+          type.element?.name == 'RequestContext' &&
+          type.typeArguments.isNotEmpty) {
+        final stringType = type.typeArguments.first
+            .getDisplayString();
+        if (type.typeArguments.first.nullabilitySuffix ==
+            NullabilitySuffix.question) {
+          return stringType.substring(0, stringType.length - 1);
+        }
+        return stringType;
+      }
+    }
+    return null;
   }
 
   ParamRecord _singleParamDefn(RegExpMatch m) {

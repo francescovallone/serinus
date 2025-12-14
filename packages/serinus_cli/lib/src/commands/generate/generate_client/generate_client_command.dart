@@ -6,6 +6,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:serinus_cli/src/commands/generate/generate_client/controllers_analyzer.dart';
 import 'package:serinus_cli/src/commands/generate/recase.dart';
 import 'package:serinus_cli/src/utils/config.dart';
@@ -28,7 +29,22 @@ class GenerateClientCommand extends Command<int> {
       ..addOption(
         'output',
         abbr: 'o',
-        mandatory: true,
+        help: 'Output folder (relative to project) for generated client',
+      )
+      ..addOption(
+        'base-url',
+        abbr: 'b',
+        help: 'Base URL used by the generated client',
+      )
+      ..addOption(
+        'http-client',
+        abbr: 'c',
+        help: 'HTTP client to target (dio, http)',
+      )
+      ..addOption(
+        'language',
+        abbr: 'l',
+        help: 'Client language',
       )
       ..addFlag(
         'verbose',
@@ -49,23 +65,22 @@ class GenerateClientCommand extends Command<int> {
     ),
   };
 
-  Directory? get output {
-    if (argResults.arguments.isEmpty) {
-      throw UsageException(
-        'The output cannot be null.',
-        usage,
-      );
-    }
-    final item = argResults.option('output');
+  Directory? _resolveOutputDirectory(Config config) {
+    final rawOutput = argResults.option('output') ?? config.client?.output;
+    final target = rawOutput?.isNotEmpty ?? false ? rawOutput! : 'client';
     try {
-      final outputDirectory = Directory.fromUri(
-        Uri.file(
-          item!.contains('/lib') ? item : 'lib/$item',
-          windows: Platform.isWindows,
-        ),
+      final normalized = target.contains('${Platform.pathSeparator}lib') ||
+              target.startsWith('lib${Platform.pathSeparator}') ||
+              target.startsWith('lib/')
+          ? target
+          : p.join('lib', target);
+      final absolutePath = p.normalize(
+        p.isAbsolute(normalized)
+            ? normalized
+            : p.join(Directory.current.path, normalized),
       );
-      return outputDirectory;
-    } catch (e) {
+      return Directory(absolutePath);
+    } catch (_) {
       _logger?.err('The provided output is not a valid directory');
       return null;
     }
@@ -101,29 +116,27 @@ class GenerateClientCommand extends Command<int> {
       _logger?.err('Failed to load project configuration: $e');
       return ExitCode.config.code;
     }
-    if (output == null) {
+    final outputDirectory = _resolveOutputDirectory(config);
+    if (outputDirectory == null) {
       return ExitCode.usage.code;
     }
-    const language = 'Dart';
-    const httpClient = 'dio';
-    // final language = (config['client']['language'] as String?) ??
-    //     _logger?.chooseOne<String>(
-    //       'Client language',
-    //       choices: [
-    //         'Dart',
-    //         // 'JS/TS',
-    //       ],
-    //       defaultValue: 'Dart',
-    //     );
-    // final httpClient = (config['client']['httpClient'] as String?) ??
-    //     _logger?.chooseOne(
-    //       'Which HTTP Client do you prefer?',
-    //       choices: [
-    //         if (language == 'JS/TS') ...['fetch'],
-    //         if (language == 'Dart') ...['dio', 'http'],
-    //       ],
-    //       defaultValue: language == 'JS/TS' ? 'fetch' : 'dio',
-    //     );
+    final language = (argResults.option('language') ??
+            config.client?.language ??
+            'Dart')
+        .trim();
+    final httpClient = (argResults.option('http-client') ??
+            config.client?.httpClient ??
+            'dio')
+        .toLowerCase()
+        .trim();
+    final baseUrl = (argResults.option('base-url') ??
+            config.client?.baseUrl ??
+            'http://localhost:3000')
+        .trim();
+    final verbose = argResults.flag('verbose') || (config.client?.verbose ?? false);
+    if (language.toLowerCase() != 'dart') {
+      _logger.warn('Only Dart client generation is supported for now.');
+    }
     if (!libraries.containsKey(httpClient)) {
       _logger.err(
           '''The http client $httpClient is not supported. If you want it to be supported please click here: https://github.com/francescovallone/serinus/issues/new?assignees=&labels=feature&projects=&template=feature.md&title=feat%3A+Add%20$httpClient%20support%20to%20the%20client%20generation%20command''');
@@ -157,7 +170,9 @@ class GenerateClientCommand extends Command<int> {
       language,
       httpClient,
       controllers,
-      config.client?.verbose ?? argResults.flag('verbose'),
+      verbose,
+      output: outputDirectory,
+      baseUrl: baseUrl,
     );
     return ExitCode.success.code;
   }
@@ -199,25 +214,35 @@ class GenerateClientCommand extends Command<int> {
     return content.contains('class') && content.contains('extends Route');
   }
 
-  Future<void> _generateClientCode(String? language, String? httpClient,
-      Map<String, Controller> controllers, bool verbose) async {
-    if (!output!.existsSync()) {
-      output?.createSync(recursive: true);
+  Future<void> _generateClientCode(
+    String? language,
+    String? httpClient,
+    Map<String, Controller> controllers,
+    bool verbose, {
+    required Directory output,
+    required String baseUrl,
+  }) async {
+    if (!output.existsSync()) {
+      output.createSync(recursive: true);
     }
-    await _generateControllers(language, httpClient, controllers,
-        '${output!.absolute.path}${Platform.pathSeparator}', verbose);
+    await _generateControllers(
+      language,
+      httpClient,
+      controllers,
+      output,
+      verbose,
+    );
     await _generateClient(
       language,
       httpClient,
       controllers.keys,
-      File(
-        '${output!.absolute.path}${Platform.pathSeparator}client.dart',
-      ),
+      File(p.join(output.absolute.path, 'client.dart')),
+      baseUrl,
     );
   }
 
   Future<void> _generateClient(String? language, String? httpClient,
-      Iterable<String> controllers, File file) async {
+      Iterable<String> controllers, File file, String baseUrl) async {
     if (!file.existsSync()) {
       file.createSync();
     }
@@ -248,7 +273,7 @@ class GenerateClientCommand extends Command<int> {
               ..name = 'baseUrl'
               ..type = const Reference('String')
               ..modifier = FieldModifier.final$
-              ..assignment = const Code("'http://localhost:3000'");
+              ..assignment = Code("'${_escapeSingleQuotes(baseUrl)}'");
           }));
           c.buildSingleton('SerinusClient');
           c.methods.addAll([
@@ -361,9 +386,14 @@ _isInitialized = true;
     file.writeAsStringSync(content);
   }
 
-  Future<void> _generateControllers(String? language, String? httpClient,
-      Map<String, Controller> controllers, String path, bool verbose) async {
-    final controllersDirectory = Directory('${path}controllers');
+  Future<void> _generateControllers(
+    String? language,
+    String? httpClient,
+    Map<String, Controller> controllers,
+    Directory output,
+    bool verbose,
+  ) async {
+    final controllersDirectory = Directory(p.join(output.path, 'controllers'));
     if (!controllersDirectory.existsSync()) {
       controllersDirectory.createSync(recursive: true);
     }
@@ -407,11 +437,16 @@ _isInitialized = true;
               ...controller.value.routes.map((e) {
                 return Method((m) {
                   String? returnType;
+                  final bodyType = e.bodyType?.trim();
+                  final normalizedBodyType = bodyType?.replaceAll(
+                    dartTypesRegex,
+                    'Map<String, dynamic>',
+                  );
                   if (e.returnType == null) {
                     returnType = 'Future<dynamic>';
                   } else {
                     returnType = e.returnType
-                        ?.getDisplayString()
+                        ?.getDisplayString(withNullability: true)
                         .replaceAll(dartTypesRegex, 'Map<String, dynamic>');
                   }
                   m
@@ -432,11 +467,12 @@ _isInitialized = true;
                             ..type = const Reference('String');
                         });
                       }),
-                      if (e.bodyType != null)
+                      if (normalizedBodyType != null &&
+                          normalizedBodyType.isNotEmpty)
                         Parameter((p) {
                           p
                             ..name = 'body'
-                            ..type = Reference(e.bodyType);
+                            ..type = Reference(normalizedBodyType);
                         }),
                     ])
                     ..optionalParameters.addAll([
@@ -454,7 +490,7 @@ _isInitialized = true;
 return client.${e.method!.toLowerCase()}<${returnType?.replaceAll('Future<', '').replaceFirst('>', '') ?? 'dynamic'}>(
   '\$basePath${e.path}', 
   queryParameters: ${_stringifyQueryParameters(e.queryParamters)},
-  ${e.bodyType != null ? 'data: body' : ''}
+  ${normalizedBodyType != null && normalizedBodyType.isNotEmpty ? 'data: body' : ''}
 );
 ''',
                     );
@@ -477,7 +513,11 @@ return client.${e.method!.toLowerCase()}<${returnType?.replaceAll('Future<', '')
             .toString(),
       );
       final controllerFile = File(
-          '${controllersDirectory.absolute.path}${Platform.pathSeparator}${ReCase(controller.key).getSnakeCase()}.dart');
+        p.join(
+          controllersDirectory.absolute.path,
+          '${ReCase(controller.key).getSnakeCase()}.dart',
+        ),
+      );
       if (!controllerFile.existsSync()) {
         controllerFile.createSync();
       }
@@ -528,6 +568,10 @@ return client.${e.method!.toLowerCase()}<${returnType?.replaceAll('Future<', '')
         ''';
     }
     return '';
+  }
+
+  String _escapeSingleQuotes(String input) {
+    return input.replaceAll("'", "\\'");
   }
 
   String _stringifyQueryParameters(Map<String, dynamic> queryParamters) {

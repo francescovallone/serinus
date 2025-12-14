@@ -5,13 +5,6 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 class Config {
-  final ModelsConfig? models;
-  final ClientConfig? client;
-  final WatcherConfig? watcher;
-  final String? entrypoint;
-  final String name;
-  final Map<String, dynamic> dependencies;
-  final Map<String, dynamic> devDependencies;
 
   const Config({
     required this.entrypoint,
@@ -41,10 +34,16 @@ class Config {
         devDependencies: Map<String, dynamic>.from(
             yaml['devDependencies'] as Map<dynamic, dynamic>? ?? {}));
   }
+  final ModelsConfig? models;
+  final ClientConfig? client;
+  final WatcherConfig? watcher;
+  final String? entrypoint;
+  final String name;
+  final Map<String, dynamic> dependencies;
+  final Map<String, dynamic> devDependencies;
 }
 
 class WatcherConfig {
-  final List<String> whitelist;
 
   const WatcherConfig({
     required this.whitelist,
@@ -56,17 +55,17 @@ class WatcherConfig {
           List<String>.from((yaml['whitelist'] as YamlList?)?.value ?? []),
     );
   }
+  final List<String> whitelist;
 }
 
 class ClientConfig {
-  final bool verbose;
-  final String language;
-  final String httpClient;
 
   const ClientConfig({
     required this.verbose,
     required this.language,
     required this.httpClient,
+    required this.output,
+    required this.baseUrl,
   });
 
   factory ClientConfig.fromYaml(Map<dynamic, dynamic> yaml) {
@@ -74,14 +73,18 @@ class ClientConfig {
       verbose: yaml['verbose'] as bool? ?? false,
       language: yaml['language'] as String? ?? 'Dart',
       httpClient: yaml['httpClient'] as String? ?? 'dio',
+      output: yaml['output'] as String? ?? 'client',
+      baseUrl: yaml['baseUrl'] as String? ?? 'http://localhost:3000',
     );
   }
+  final bool verbose;
+  final String language;
+  final String httpClient;
+  final String output;
+  final String baseUrl;
 }
 
 class ModelsConfig {
-  final List<String> extensions;
-  final List<DeserializeKeyword> deserializeKeywords;
-  final List<SerializeKeyword> serializeKeywords;
 
   const ModelsConfig({
     required this.extensions,
@@ -103,11 +106,12 @@ class ModelsConfig {
               .toList(),
     );
   }
+  final List<String> extensions;
+  final List<DeserializeKeyword> deserializeKeywords;
+  final List<SerializeKeyword> serializeKeywords;
 }
 
 class DeserializeKeyword {
-  final String keyword;
-  final bool staticMethod;
 
   const DeserializeKeyword({
     required this.keyword,
@@ -120,10 +124,11 @@ class DeserializeKeyword {
       staticMethod: yaml['static_method'] as bool? ?? false,
     );
   }
+  final String keyword;
+  final bool staticMethod;
 }
 
 class SerializeKeyword {
-  final String keyword;
 
   const SerializeKeyword({
     required this.keyword,
@@ -134,6 +139,7 @@ class SerializeKeyword {
       keyword: yaml['keyword'] as String? ?? '',
     );
   }
+  final String keyword;
 }
 
 Future<Config> getProjectConfiguration(
