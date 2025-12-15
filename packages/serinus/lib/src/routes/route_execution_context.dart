@@ -49,16 +49,14 @@ class RouteExecutionContext {
   /// It takes a [RouteContext] and optional parameters such as [errorHandler], [notFoundHandler], and [rawBody].
   /// The [errorHandler] is used to handle errors that occur during the request processing.
   /// The [rawBody] parameter indicates whether the body should be treated as raw binary data
-  HandlerFunction describe<T extends RouteHandlerSpec>(
+  Future<void> describe<T extends RouteHandlerSpec>(
     RouteContext<T> context, {
+    required IncomingMessage request,
+    required OutgoingMessage response,
+    required Map<String, dynamic> params,
     ErrorHandler? errorHandler,
     bool rawBody = false,
-  }) {
-    return (
-      IncomingMessage request,
-      OutgoingMessage response,
-      Map<String, dynamic> params,
-    ) async {
+  }) async {
       ExecutionContext? executionContext;
       try {
         final wrappedRequest = Request(request, params);
@@ -251,7 +249,6 @@ class RouteExecutionContext {
           );
         }
       }
-    };
   }
 
   Future<WrappedResponse?> _executeOnException(

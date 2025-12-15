@@ -38,7 +38,6 @@ class RoutesResolver {
     _explorer = RoutesExplorer(
       _container,
       Router(_container.config.versioningOptions),
-      _routeExecutionContext,
     );
   }
 
@@ -73,7 +72,7 @@ class RoutesResolver {
     );
     try {
       if (route != null) {
-        await route.spec.handler(request, response, route.params);
+        await _routeExecutionContext.describe(route.spec, request: request, response: response, params: route.params);
         return;
       }
       await _notFound(request, response);

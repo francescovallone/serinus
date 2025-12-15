@@ -6,7 +6,6 @@ import '../core/core.dart';
 import '../enums/enums.dart';
 import '../extensions/string_extensions.dart';
 import '../services/logger_service.dart';
-import 'route_execution_context.dart';
 import 'router.dart';
 
 /// The [RoutesExplorer] class is used to explore the routes of the application.
@@ -14,9 +13,6 @@ final class RoutesExplorer {
   final SerinusContainer _container;
 
   final Router _router;
-
-  final RouteExecutionContext _routeExecutionContext;
-
   /// The [ApplicationConfig] object.
   /// It is used to get the global prefix and the versioning options.
 
@@ -24,7 +20,6 @@ final class RoutesExplorer {
   const RoutesExplorer(
     this._container,
     this._router,
-    this._routeExecutionContext,
   );
 
   /// The [resolveRoutes] method is used to resolve the routes of the application.
@@ -102,11 +97,6 @@ final class RoutesExplorer {
       );
       _router.registerRoute(
         context: context,
-        handler: _routeExecutionContext.describe(
-          context,
-          errorHandler: _container.config.errorHandler,
-          rawBody: _container.applicationRef.rawBody,
-        ),
       );
       logger.info('Mapped {$routePath, $routeMethod} route');
     }
@@ -129,7 +119,7 @@ final class RoutesExplorer {
   /// Returns a [RouteContext] and the handler function if the route exists,
   /// otherwise returns null.
   ({
-    ({RouteContext route, HandlerFunction handler}) spec,
+    RouteContext spec,
     Map<String, dynamic> params,
   })?
   getRoute(String path, HttpMethod method) {

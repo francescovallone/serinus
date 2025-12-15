@@ -22,7 +22,6 @@ final class Router {
   /// The [registerRoute] method is used to register a route in the router.
   void registerRoute({
     required RouteContext context,
-    required HandlerFunction handler,
   }) {
     final path = context.path.stripEndSlash().addLeadingSlash();
     final routeExists = _routeTree.lookup(HTTPMethod.ALL, Uri.parse(path));
@@ -39,7 +38,7 @@ final class Router {
     _routeTree.addRoute(
       HttpMethod.toSpanner(context.method),
       path.stripEndSlash(),
-      (context, handler),
+      context,
     );
   }
 
@@ -50,7 +49,7 @@ final class Router {
   ///
   /// The method will return the route data and the parameters of the route.
   ({
-    ({RouteContext route, HandlerFunction handler}) spec,
+    RouteContext spec,
     Map<String, dynamic> params,
   })?
   checkRouteByPathAndMethod(String path, HttpMethod method) {
@@ -63,7 +62,7 @@ final class Router {
       return null;
     }
     return (
-      spec: (route: route.$1, handler: route.$2),
+      spec: route,
       params: result?.params ?? {},
     );
   }
