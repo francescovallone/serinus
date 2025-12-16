@@ -15,7 +15,6 @@ import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
-import '../services/json_utils.dart';
 import '../utils/wrapped_response.dart';
 import 'route_response_controller.dart';
 
@@ -49,6 +48,7 @@ class RouteExecutionContext {
   /// It takes a [RouteContext] and optional parameters such as [errorHandler], [notFoundHandler], and [rawBody].
   /// The [errorHandler] is used to handle errors that occur during the request processing.
   /// The [rawBody] parameter indicates whether the body should be treated as raw binary data
+  @pragma('vm:prefer-inline')
   Future<void> describe<T extends RouteHandlerSpec>(
     RouteContext<T> context, {
     required IncomingMessage request,
@@ -153,12 +153,11 @@ class RouteExecutionContext {
         final responseData = WrappedResponse(handlerResult);
         await _executeAfterHandle(executionContext, context, responseData);
         await _executeOnResponse(context, executionContext, responseData);
-        WrappedResponse result = processResult(responseData, executionContext);
         final currentResponseHeaders =
             (response.currentHeaders is SerinusHeaders)
             ? response.currentHeaders.values
             : (response.currentHeaders as HttpHeaders).toMap();
-        final data = result.data;
+        final data = responseData.data;
         if (data is View) {
           request.emit(
             RequestEvent.data,
@@ -180,7 +179,7 @@ class RouteExecutionContext {
         } else if (data is Redirect) {
           request.emit(
             RequestEvent.redirect,
-            EventData(data: result.data, properties: executionContext.response),
+            EventData(data: responseData.data, properties: executionContext.response),
           );
           await _responseController.redirect(
             response,
@@ -202,7 +201,7 @@ class RouteExecutionContext {
           );
           await _responseController.sendResponse(
             response,
-            result,
+            processResult(responseData, executionContext),
             executionContext.response,
             viewEngine: viewEngine,
           );
@@ -303,8 +302,7 @@ class RouteExecutionContext {
     // Prefer to produce bytes for JSON-able and model objects here, so downstream
     // sending code doesn't re-encode and we avoid double-encoding.
     if (result.data?.canBeJson() ?? false) {
-      final prepared = parseJsonToResponse(result.data, modelProvider);
-      responseData = _jsonUtf8Encoder.convert(prepared);
+      responseData = _jsonUtf8Encoder.convert(result.data);
       context.response.contentType ??= ContentType.json;
     }
 

@@ -1,8 +1,6 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
-import 'package:serinus/src/routes/route_execution_context.dart';
-import 'package:serinus/src/routes/route_response_controller.dart';
 import 'package:serinus/src/routes/router.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
@@ -41,7 +39,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
@@ -65,7 +62,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
@@ -89,7 +85,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         final path = 'test';
         final normalizedPath = explorer.normalizePath(path);
@@ -112,7 +107,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         final path = '/test//test';
         final normalizedPath = explorer.normalizePath(path);
@@ -142,11 +136,10 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
         final result = router.checkRouteByPathAndMethod('/v1', HttpMethod.get);
-        expect(result?.spec.route.path, '/v1/');
+        expect(result?.spec.path, '/v1/');
       },
     );
 
@@ -169,11 +162,10 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
         final result = router.checkRouteByPathAndMethod('/api', HttpMethod.get);
-        expect(result?.spec.route.path, '/api/');
+        expect(result?.spec.path, '/api/');
       },
     );
 
@@ -260,14 +252,13 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
         final result = router.checkRouteByPathAndMethod(
           '/api/v1',
           HttpMethod.get,
         );
-        expect(result?.spec.route.path, '/api/v1/');
+        expect(result?.spec.path, '/api/v1/');
       },
     );
   });

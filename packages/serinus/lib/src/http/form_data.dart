@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 
@@ -84,11 +85,11 @@ class FormData {
           );
           await files[name]!.read();
         } else {
-          final bytes = (await part.toList()).fold(
-            <int>[],
-            (p, e) => p..addAll(e),
-          );
-          fields[name] = utf8.decode(bytes);
+          final builder = BytesBuilder(copy: false);
+          await for (final chunk in part) {
+            builder.add(chunk);
+          }
+          fields[name] = utf8.decode(builder.takeBytes());
         }
       }
       return FormData(
@@ -138,10 +139,10 @@ class UploadedFile with JsonObject {
   /// The name of the file
   final String name;
 
-  final List<int> _data = [];
+  Uint8List _data = Uint8List(0);
 
   /// The [buffer] property is used to get the bytes buffer of the file
-  List<int> get buffer => _data;
+  Uint8List get buffer => _data;
 
   /// The [data] property is used to get the strigified data of the file
   String get data => utf8.decode(_data);
@@ -151,9 +152,11 @@ class UploadedFile with JsonObject {
 
   /// This method is used to read the file as a string
   Future<void> read() async {
+    final builder = BytesBuilder(copy: false);
     await for (final part in stream) {
-      _data.addAll(part);
+      builder.add(part);
     }
+    _data = builder.takeBytes();
   }
 
   /// Generates a [File] from the [UploadedFile] object provided the path.

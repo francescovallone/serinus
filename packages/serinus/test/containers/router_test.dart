@@ -58,7 +58,6 @@ void main() async {
         );
         router.registerRoute(
           context: routeContext,
-          handler: (request, response, params) async => '',
         );
       },
     );
@@ -94,13 +93,12 @@ void main() async {
         );
         router.registerRoute(
           context: routeContext,
-          handler: (request, response, params) async => '',
         );
         final result = router.checkRouteByPathAndMethod(
           '/test',
           HttpMethod.get,
         );
-        expect(result?.spec.route, routeContext);
+        expect(result?.spec, routeContext);
       },
     );
 
@@ -135,13 +133,12 @@ void main() async {
         );
         router.registerRoute(
           context: routeContext,
-          handler: (request, response, params) async => '',
         );
         final result = router.checkRouteByPathAndMethod(
           '/test',
           HttpMethod.post,
         );
-        expect(result?.spec.route, isNull);
+        expect(result?.spec, isNull);
       },
     );
   });

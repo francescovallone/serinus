@@ -38,12 +38,12 @@ class ResponseContext extends BaseContext {
     _statusCode = value;
   }
 
-  final SerinusHeaders _headers = SerinusHeaders({});
+  final Map<String, String> _headers = {};
 
   /// The [headers] property contains the headers of the response.
   /// It is a [SerinusHeaders] object that allows to add, remove and modify headers.
   /// The headers are lazy loaded, meaning they will only be fetched when requested.
-  SerinusHeaders get headers => _headers;
+  Map<String, String> get headers => _headers;
 
   ContentType? _contentType;
 
@@ -193,10 +193,10 @@ final class ResponseProperties {
   int? _contentLength;
 
   /// The [headers] property contains the headers of the response.
-  final SerinusHeaders _headers = SerinusHeaders({});
+  final Map<String, String> _headers = {};
 
   /// The [headers] getter is used to get the headers of the response.
-  SerinusHeaders get headers => _headers;
+  Map<String, String> get headers => _headers;
 
   /// The [cookies] property contains the cookies that should be sent back to the client.
   final List<Cookie> _cookies = [];

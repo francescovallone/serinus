@@ -1,8 +1,6 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
-import 'package:serinus/src/routes/route_execution_context.dart';
-import 'package:serinus/src/routes/route_response_controller.dart';
 import 'package:serinus/src/routes/router.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
@@ -57,10 +55,7 @@ void main() {
       await container.modulesContainer.registerModules(module);
 
       final router = Router(localConfig.versioningOptions);
-      final executionContext = RouteExecutionContext(
-        RouteResponseController(adapter),
-      );
-      final explorer = RoutesExplorer(container, router, executionContext);
+      final explorer = RoutesExplorer(container, router);
 
       explorer.resolveRoutes();
 
@@ -68,7 +63,7 @@ void main() {
       final result = router.checkRouteByPathAndMethod('/', HttpMethod.get);
 
       expect(result?.spec, isNotNull);
-      final routeContext = result!.spec.route;
+      final routeContext = result!.spec;
       expect(routeContext.moduleToken, equals(token));
       expect(routeContext.moduleScope.token, equals(token));
     });

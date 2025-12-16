@@ -9,7 +9,6 @@ import 'package:mime/mime.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/content_type_extensions.dart';
-import '../extensions/iterable_extansions.dart';
 import 'form_data.dart';
 import 'headers.dart';
 import 'internal_response.dart';
@@ -35,6 +34,9 @@ abstract class IncomingMessage {
 
   /// The headers of the request.
   SerinusHeaders get headers;
+
+  /// Maximum body size in bytes (default: 10MB). Override to customize.
+  static int maxBodySize = 10 * 1024 * 1024;
 
   /// The query parameters of the request.
   Map<String, String> get queryParameters;
@@ -184,7 +186,7 @@ class InternalRequest extends IncomingMessage {
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
   factory InternalRequest.from(HttpRequest request, int port, String host) {
     return InternalRequest(
-      headers: SerinusHeaders(request.headers.toMap()),
+      headers: SerinusHeaders(request.headers),
       original: request,
       port: port,
       host: host,
@@ -262,8 +264,16 @@ class InternalRequest extends IncomingMessage {
     if (_bytes != null) {
       return _bytes!;
     }
-    final byteBuffer = BytesBuilder();
-    await for (var part in original) {
+    final byteBuffer = BytesBuilder(copy: false);
+    var totalSize = 0;
+    await for (final part in original) {
+      totalSize += part.length;
+      if (totalSize > IncomingMessage.maxBodySize) {
+        throw PayloadTooLargeException(
+          'Request body size exceeds the maximum limit of ${IncomingMessage.maxBodySize} bytes',
+          uri,
+        );
+      }
       byteBuffer.add(part);
     }
     _bytes = byteBuffer.takeBytes();

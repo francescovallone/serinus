@@ -128,7 +128,7 @@ class SerinusHttpAdapter
   ) async {
     response.headers({
       io.HttpHeaders.locationHeader: redirect.location,
-      ...properties.headers.asMap(),
+      ...properties.headers,
     }, preserveHeaderCase: preserveHeaderCase);
     return response.redirect(redirect);
   }
@@ -140,9 +140,12 @@ class SerinusHttpAdapter
     ResponseContext properties,
   ) async {
     response.cookies.addAll(properties.cookies);
-    List<int> responseBody = List.empty(growable: true);
+    var responseBody = List<int>.empty(growable: true);
     final bodyData = body.data;
-    final headers = properties.headers.asMap()..addAll({
+    if (bodyData is List<int>) {
+      responseBody = bodyData;
+    }
+    final headers = properties.headers..addAll({
       'content-type': properties.contentType?.toString() ??
           'text/plain; charset=utf-8',
     });
@@ -156,7 +159,9 @@ class SerinusHttpAdapter
       final readPipe = bodyData.openRead();
       return response.addStream(readPipe);
     }
-    responseBody = _convertData(body, response, properties);
+    if (bodyData is! List<int>) {
+      responseBody = _convertData(body, response, properties);
+    }
     if (responseBody.isEmpty) {
       responseBody = <int>[];
     }
@@ -164,7 +169,7 @@ class SerinusHttpAdapter
       io.HttpHeaders.contentLengthHeader: responseBody.length.toString(),
       'content-type': properties.contentType?.toString() ??
           'text/plain; charset=utf-8',
-    }..addAll(properties.headers.asMap()), preserveHeaderCase: preserveHeaderCase);
+    }..addAll(properties.headers), preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
     return response.addStream(Stream.value(responseBody));
   }
@@ -199,7 +204,7 @@ class SerinusHttpAdapter
     }
     response.cookies.addAll(properties.cookies);
     response.headers(
-      properties.headers.asMap(),
+      properties.headers,
       preserveHeaderCase: preserveHeaderCase,
     );
     final result = await viewEngine!.render(view);
