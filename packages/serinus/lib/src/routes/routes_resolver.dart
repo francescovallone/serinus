@@ -7,7 +7,6 @@ import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
-import '../extensions/string_extensions.dart';
 import '../http/http.dart';
 import '../services/logger_service.dart';
 import '../utils/wrapped_response.dart';
@@ -28,6 +27,8 @@ class RoutesResolver {
 
   late final RouteExecutionContext _routeExecutionContext;
 
+  late final Map<Type, Provider> _globalProviders;
+
   /// Constructor for the [RoutesResolver] class.
   RoutesResolver(this._container) {
     _routeExecutionContext = RouteExecutionContext(
@@ -45,6 +46,10 @@ class RoutesResolver {
   ///
   /// It resolves the routes of the controllers and registers them in the router.
   void resolve() {
+    _globalProviders = {
+      for (var provider in _container.modulesContainer.globalProviders)
+        provider.runtimeType: provider,
+    };
     final mappedControllers = <Controller, _ControllerSpec>{
       for (final entry in _container.modulesContainer.controllers)
         entry.controller: _ControllerSpec(entry.controller.path, entry.module),
@@ -67,7 +72,7 @@ class RoutesResolver {
   /// If a route is found, it calls the handler of the route with the request and response.
   Future<void> handle(IncomingMessage request, OutgoingMessage response) async {
     final route = _explorer.getRoute(
-      request.path.stripEndSlash(),
+      request.uri,
       HttpMethod.parse(request.method),
     );
     try {
@@ -218,19 +223,15 @@ class RoutesResolver {
     _logger.verbose('No route found for ${request.method} ${request.uri}');
     final wrappedRequest = Request(request, {});
     final reqHooks = _container.config.globalHooks.reqHooks;
-    final providers = {
-      for (var provider in _container.modulesContainer.globalProviders)
-        provider.runtimeType: provider,
-    };
     final executionContext = ExecutionContext(
       HostType.http,
-      providers,
+      _globalProviders,
       _container.config.globalHooks.services,
       HttpArgumentsHost(wrappedRequest),
     );
     final requestContext = await RequestContext.create<dynamic>(
       request: wrappedRequest,
-      providers: providers,
+      providers: _globalProviders,
       hooksServices: _container.config.globalHooks.services,
       modelProvider: _container.config.modelProvider,
       rawBody: _container.applicationRef.rawBody,

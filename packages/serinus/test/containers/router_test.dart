@@ -95,7 +95,7 @@ void main() async {
           context: routeContext,
         );
         final result = router.checkRouteByPathAndMethod(
-          '/test',
+          Uri.parse('/test'),
           HttpMethod.get,
         );
         expect(result?.spec, routeContext);
@@ -135,7 +135,7 @@ void main() async {
           context: routeContext,
         );
         final result = router.checkRouteByPathAndMethod(
-          '/test',
+          Uri.parse('/test'),
           HttpMethod.post,
         );
         expect(result?.spec, isNull);

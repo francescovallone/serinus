@@ -60,7 +60,7 @@ void main() {
       explorer.resolveRoutes();
 
       final token = InjectionToken.fromModule(module);
-      final result = router.checkRouteByPathAndMethod('/', HttpMethod.get);
+      final result = router.checkRouteByPathAndMethod(Uri.parse('/'), HttpMethod.get);
 
       expect(result?.spec, isNotNull);
       final routeContext = result!.spec;

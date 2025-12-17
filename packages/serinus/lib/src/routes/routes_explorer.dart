@@ -122,8 +122,8 @@ final class RoutesExplorer {
     RouteContext spec,
     Map<String, dynamic> params,
   })?
-  getRoute(String path, HttpMethod method) {
-    final result = _router.checkRouteByPathAndMethod(path, method);
+  getRoute(Uri uri, HttpMethod method) {
+    final result = _router.checkRouteByPathAndMethod(uri, method);
     return result;
   }
 }

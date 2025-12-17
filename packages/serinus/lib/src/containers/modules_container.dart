@@ -1115,7 +1115,7 @@ class ModuleScope {
     IncomingMessage request,
     RouteContext routeContext,
   ) {
-    return _middlewaresToRoutes[routeId]?.call(request, routeContext) ?? [];
+    return _middlewaresToRoutes[routeId]?.call(request, routeContext) ?? <Middleware>[];
   }
 
   @override

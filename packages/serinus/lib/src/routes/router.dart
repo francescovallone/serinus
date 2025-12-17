@@ -52,10 +52,10 @@ final class Router {
     RouteContext spec,
     Map<String, dynamic> params,
   })?
-  checkRouteByPathAndMethod(String path, HttpMethod method) {
+  checkRouteByPathAndMethod(Uri uri, HttpMethod method) {
     final result = _routeTree.lookup(
       HttpMethod.toSpanner(method),
-      Uri.parse(path),
+      uri,
     );
     final route = result?.values.firstOrNull;
     if (route == null) {
