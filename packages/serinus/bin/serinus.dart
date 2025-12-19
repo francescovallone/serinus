@@ -90,6 +90,7 @@ void main(List<String> arguments) async {
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
+    logLevels: {LogLevel.none},
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );

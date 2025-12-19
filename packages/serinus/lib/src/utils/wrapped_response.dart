@@ -23,7 +23,7 @@ class WrappedResponse {
       return data as Uint8List;
     }
     // Primitive types
-    if (data.runtimeType.isPrimitive()) {
+    if (data is String || data is num || data is bool) {
       return data?.toBytes() ?? Uint8List(0);
     }
     // File

@@ -1,5 +1,4 @@
 import '../containers/models_provider.dart';
-import '../extensions/object_extensions.dart';
 import '../mixins/mixins.dart';
 
 /// Utility function to parse a json to a response.
@@ -8,7 +7,7 @@ dynamic parseJsonToResponse(dynamic data, ModelProvider? provider) {
     return null;
   }
 
-  if ((data as Object).runtimeType.isPrimitive()) {
+  if (data is String || data is num || data is bool) {
     return data;
   }
 

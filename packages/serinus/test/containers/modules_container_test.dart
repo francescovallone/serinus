@@ -1,7 +1,8 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
-import 'package:serinus/src/routes/router.dart';
+import 'package:serinus/src/router/atlas.dart';
+import 'package:serinus/src/router/router.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
 
@@ -60,10 +61,9 @@ void main() {
       explorer.resolveRoutes();
 
       final token = InjectionToken.fromModule(module);
-      final result = router.checkRouteByPathAndMethod(Uri.parse('/'), HttpMethod.get);
-
-      expect(result?.spec, isNotNull);
-      final routeContext = result!.spec;
+      final result = router.lookup('/', HttpMethod.get);
+      expect(result, isA<FoundRoute>());
+      final routeContext = (result as FoundRoute).values.first.context;
       expect(routeContext.moduleToken, equals(token));
       expect(routeContext.moduleScope.token, equals(token));
     });

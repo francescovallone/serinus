@@ -293,7 +293,7 @@ class InternalRequest extends IncomingMessage {
     Future<void> Function(MimeMultipart part)? onPart,
   }) async {
     if (contentType.isMultipart) {
-      return _formDataCache ??= await FormData.parseMultipart(request: original, onPart: onPart);
+      return _formDataCache ??= await FormData.parseMultipart(request: original, contentType: contentType.value, onPart: onPart);
     } else if (contentType.isUrlEncoded) {
       return _formDataCache ??= FormData.parseUrlEncoded(body());
     } else {

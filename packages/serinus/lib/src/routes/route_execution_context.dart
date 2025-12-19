@@ -25,7 +25,7 @@ class RouteExecutionContext {
   /// It provides methods to send responses, redirect, and render views.
   final RouteResponseController _responseController;
 
-  static JsonUtf8Encoder _jsonUtf8Encoder = JsonUtf8Encoder();
+  static final JsonUtf8Encoder _jsonUtf8Encoder = JsonUtf8Encoder();
 
   /// The [modelProvider] is used to convert models to and from JSON.
   /// It is optional and can be null if models are not used in the application.
@@ -80,19 +80,21 @@ class RouteExecutionContext {
           rawBody: rawBody,
         );
         executionContext.attachHttpContext(requestContext);
-        for (final hook in context.reqHooks) {
-          await hook.onRequest(executionContext);
-          if (executionContext.response.closed) {
-            await _responseController.sendResponse(
-              response,
-              processResult(
-                WrappedResponse(executionContext.response.body),
-                executionContext,
-              ),
-              executionContext.response,
-              viewEngine: viewEngine,
-            );
-            return;
+        if (context.reqHooks.isNotEmpty) {
+          for (final hook in context.reqHooks) {
+            await hook.onRequest(executionContext);
+            if (executionContext.response.closed) {
+              await _responseController.sendResponse(
+                response,
+                processResult(
+                  WrappedResponse(executionContext.response.body),
+                  executionContext,
+                ),
+                executionContext.response,
+                viewEngine: viewEngine,
+              );
+              return;
+            }
           }
         }
         if (context.metadata.isNotEmpty) {
@@ -105,7 +107,7 @@ class RouteExecutionContext {
             await pipe.transform(executionContext);
           }
         }
-        final middlewares = context.getMiddlewares(request);
+        final middlewares = context.getMiddlewares(request).toList(growable: false);
         if (middlewares.isNotEmpty) {
           final executor = MiddlewareExecutor();
           await executor.execute(
@@ -271,6 +273,9 @@ class RouteExecutionContext {
     RouteContext context,
     WrappedResponse response,
   ) async {
+    if (context.afterHooks.isEmpty) {
+      return;
+    }
     for (final hook in context.afterHooks) {
       await hook.afterHandle(executionContext, response);
     }
@@ -280,6 +285,9 @@ class RouteExecutionContext {
     ExecutionContext executionContext,
     RouteContext context,
   ) async {
+    if (context.beforeHooks.isEmpty) {
+      return;
+    }
     for (final hook in context.beforeHooks) {
       await hook.beforeHandle(executionContext);
     }
@@ -291,31 +299,31 @@ class RouteExecutionContext {
     WrappedResponse result,
     ExecutionContext context,
   ) {
-    Object? responseData;
-    if (result.data == null) {
+    final data = result.data;
+    if (data == null) {
       return result;
     }
+
+    Object? responseData;
+
     // Prefer to produce bytes for JSON-able and model objects here, so downstream
     // sending code doesn't re-encode and we avoid double-encoding.
-    if (result.data?.canBeJson() ?? false) {
-      responseData = _jsonUtf8Encoder.convert(result.data);
+    if (data.canBeJson()) {
+      responseData = _jsonUtf8Encoder.convert(data);
       context.response.contentType ??= ContentType.json;
+    } else {
+      final modelKey = data.runtimeType.toString();
+      final models = modelProvider?.toJsonModels;
+      if (models != null && models.containsKey(modelKey)) {
+        final modelObj = modelProvider?.to(data);
+        responseData = _jsonUtf8Encoder.convert(modelObj);
+        context.response.contentType ??= ContentType.json;
+      } else if (data is Uint8List || data is File) {
+        context.response.contentType ??= ContentType.binary;
+      }
     }
 
-    if (modelProvider?.toJsonModels.containsKey(
-          result.data.runtimeType.toString(),
-        ) ??
-        false) {
-      final modelObj = modelProvider?.to(result.data);
-      responseData = _jsonUtf8Encoder.convert(modelObj);
-      context.response.contentType ??= ContentType.json;
-    }
-
-    if (result.data is Uint8List || result.data is File) {
-      context.response.contentType ??= ContentType.binary;
-    }
-
-    result.data = responseData ?? result.data;
+    result.data = responseData ?? data;
     return result;
   }
 
@@ -324,6 +332,9 @@ class RouteExecutionContext {
     ExecutionContext executionContext,
     WrappedResponse responseData,
   ) async {
+    if (context.resHooks.isEmpty) {
+      return;
+    }
     for (final hook in context.resHooks) {
       await hook.onResponse(executionContext, responseData);
     }
