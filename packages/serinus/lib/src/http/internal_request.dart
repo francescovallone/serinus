@@ -222,7 +222,7 @@ class InternalRequest extends IncomingMessage {
     required this.original,
     required this.port,
     required this.host,
-  }) : id = '${original.hashCode}-${DateTime.timestamp()}';
+  }) : id = 'req-${DateTime.now().microsecondsSinceEpoch}-${original.hashCode}';
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {
