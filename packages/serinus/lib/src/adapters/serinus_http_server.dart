@@ -1,7 +1,5 @@
 import 'dart:io' as io;
 
-import 'package:collection/collection.dart';
-
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
@@ -140,38 +138,46 @@ class SerinusHttpAdapter
     ResponseContext properties,
   ) async {
     response.cookies.addAll(properties.cookies);
-    var responseBody = List<int>.empty(growable: true);
+    final contentTypeValue = properties.contentTypeString ??
+        properties.contentType?.toString() ??
+        'text/plain; charset=utf-8';
+    final headers = {
+      ...properties.headers,
+      'content-type': contentTypeValue,
+    };
+
     final bodyData = body.data;
-    if (bodyData is List<int>) {
-      responseBody = bodyData;
-    }
-    final headers = properties.headers..addAll({
-      'content-type': properties.contentType?.toString() ??
-          'text/plain; charset=utf-8',
-    });
-    response.headers(headers, preserveHeaderCase: preserveHeaderCase);
     if (bodyData is io.File) {
       response.headers({
-        'transfer-encoding': 'chunked',
-        'content-type': properties.contentType?.toString() ??
+        ...headers,
+        io.HttpHeaders.transferEncodingHeader: 'chunked',
+        'content-type': properties.contentTypeString ??
+            properties.contentType?.toString() ??
             'application/octet-stream',
       }, preserveHeaderCase: preserveHeaderCase);
+      response.status(properties.statusCode);
       final readPipe = bodyData.openRead();
       return response.addStream(readPipe);
     }
-    if (bodyData is! List<int>) {
+
+    var responseBody = List<int>.empty(growable: true);
+    if (bodyData is List<int>) {
+      responseBody = bodyData;
+    } else {
       responseBody = _convertData(body, response, properties);
     }
+
     if (responseBody.isEmpty) {
       responseBody = <int>[];
     }
+
+    final contentLength = properties.contentLength ?? responseBody.length;
     response.headers({
-      io.HttpHeaders.contentLengthHeader: responseBody.length.toString(),
-      'content-type': properties.contentType?.toString() ??
-          'text/plain; charset=utf-8',
-    }..addAll(properties.headers), preserveHeaderCase: preserveHeaderCase);
+      ...headers,
+      io.HttpHeaders.contentLengthHeader: contentLength.toString(),
+    }, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
-    return response.addStream(Stream.value(responseBody));
+    response.send(responseBody);
   }
 
   List<int> _convertData(
@@ -179,17 +185,6 @@ class SerinusHttpAdapter
     InternalResponse response,
     ResponseContext properties,
   ) {
-    final coding = response.currentHeaders['transfer-encoding']?.join(';');
-    if ((coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) ||
-        (properties.statusCode >= 200 &&
-            properties.statusCode != 204 &&
-            properties.statusCode != 304 &&
-            properties.contentLength == null &&
-            properties.contentType?.mimeType != 'multipart/byteranges')) {
-      response.headers({
-        io.HttpHeaders.transferEncodingHeader: 'chunked',
-      }, preserveHeaderCase: preserveHeaderCase);
-    } 
     return data.toBytes();
   }
 

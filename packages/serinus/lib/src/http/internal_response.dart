@@ -147,7 +147,8 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
 
   @override
   Future<void> addStream(Stream<List<int>> stream, {bool close = true}) async {
-    original.bufferOutput = true;
+    // Allow streaming without buffering the entire response in memory.
+    original.bufferOutput = false;
     await original.addStream(stream);
     if (close) {
       await original.close();

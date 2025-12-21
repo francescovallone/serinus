@@ -46,9 +46,13 @@ class ResponseContext extends BaseContext {
   Map<String, String> get headers => _headers;
 
   ContentType? _contentType;
+  String? _contentTypeString;
 
   /// The [contentType] property contains the content type of the response.
   ContentType? get contentType => _contentType;
+
+  /// Cached string representation of the content type to avoid repeated allocations.
+  String? get contentTypeString => _contentTypeString;
 
   /// Allow to change the content type of the response.
   /// If the content type is set to null, it will remove the content type header from the response.
@@ -60,8 +64,10 @@ class ResponseContext extends BaseContext {
     }
     _contentType = value;
     if (value != null) {
-      headers[HttpHeaders.contentTypeHeader] = value.toString();
+      _contentTypeString = value.toString();
+      headers[HttpHeaders.contentTypeHeader] = _contentTypeString!;
     } else {
+      _contentTypeString = null;
       headers.remove(HttpHeaders.contentTypeHeader);
     }
   }

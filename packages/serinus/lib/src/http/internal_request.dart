@@ -143,17 +143,20 @@ class InternalRequest extends IncomingMessage {
   @override
   final String id;
 
-  @override
-  String get path => uri.path;
+  // Cache the parsed URI to avoid repeated Uri.parse work on hot paths.
+  late final Uri _uri = original.requestedUri;
 
   @override
-  Uri get uri => original.requestedUri;
+  String get path => _uri.path;
+
+  @override
+  Uri get uri => _uri;
 
   @override
   String get method => original.method;
 
   @override
-  List<String> get segments => original.requestedUri.pathSegments;
+  List<String> get segments => _uri.pathSegments;
 
   /// The [original] property contains the [HttpRequest] object from dart:io
   final HttpRequest original;
@@ -170,8 +173,7 @@ class InternalRequest extends IncomingMessage {
   Uint8List? _bytes;
 
   @override
-  Map<String, String> get queryParameters =>
-      original.requestedUri.queryParameters;
+  Map<String, String> get queryParameters => _uri.queryParameters;
 
   @override
   ContentType get contentType =>

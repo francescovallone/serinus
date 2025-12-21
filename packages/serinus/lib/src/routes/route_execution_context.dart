@@ -25,8 +25,6 @@ class RouteExecutionContext {
   /// It provides methods to send responses, redirect, and render views.
   final RouteResponseController _responseController;
 
-  static final JsonUtf8Encoder _jsonUtf8Encoder = JsonUtf8Encoder();
-
   /// The [modelProvider] is used to convert models to and from JSON.
   /// It is optional and can be null if models are not used in the application.
   final ModelProvider? modelProvider;
@@ -309,14 +307,16 @@ class RouteExecutionContext {
     // Prefer to produce bytes for JSON-able and model objects here, so downstream
     // sending code doesn't re-encode and we avoid double-encoding.
     if (data.canBeJson()) {
-      responseData = _jsonUtf8Encoder.convert(data);
+      responseData = sharedJsonUtf8Encoder.convert(data);
+      result.isEncoded = true;
       context.response.contentType ??= ContentType.json;
     } else {
       final modelKey = data.runtimeType.toString();
       final models = modelProvider?.toJsonModels;
       if (models != null && models.containsKey(modelKey)) {
         final modelObj = modelProvider?.to(data);
-        responseData = _jsonUtf8Encoder.convert(modelObj);
+        responseData = sharedJsonUtf8Encoder.convert(modelObj);
+        result.isEncoded = true;
         context.response.contentType ??= ContentType.json;
       } else if (data is Uint8List || data is File) {
         context.response.contentType ??= ContentType.binary;
