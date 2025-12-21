@@ -33,15 +33,12 @@ class Test2Controller extends Controller {
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on<String, dynamic>(Route.get('/'), (RequestContext context) async {
-      final provider = context.use<TestProvider>();
-      return 'Counter: ${provider.counter}';
-    });
-    on<String, List<dynamic>>(Route.post('/echo'), (
-      RequestContext<List<dynamic>> context,
+    // Optional path parameters, for the first time on Dart!
+    on<Map<String, dynamic>, dynamic>(Route.get('/data/:id?'), (
+      RequestContext<dynamic> context,
     ) async {
-      final mapBody = context.bodyAs<String>();
-      return 'Echo: $mapBody ${context.body}';
+      final id = context.paramAs<int?>('id');
+      return {'message': 'Data for id: $id'};
     });
   }
 }

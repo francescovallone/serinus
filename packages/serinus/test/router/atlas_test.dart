@@ -225,6 +225,52 @@ void main() {
       });
     });
 
+    group('Optional Parameters', () {
+      test('should match optional parameter with and without value', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/data/<value>?', 'handler');
+
+        final withValue = atlas.lookup(HttpMethod.get, '/data/1');
+        final withoutValue = atlas.lookup(HttpMethod.get, '/data');
+
+        expect(withValue, isA<FoundRoute<String>>());
+        expect(withValue.params['value'], '1');
+        expect(withoutValue, isA<FoundRoute<String>>());
+        expect(withoutValue.params['value'], isNull);
+      });
+
+      test('should support optional colon syntax', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/users/:id?', 'handler');
+
+        final withValue = atlas.lookup(HttpMethod.get, '/users/42');
+        final withoutValue = atlas.lookup(HttpMethod.get, '/users');
+
+        expect(withValue.params['id'], '42');
+        expect(withoutValue.params['id'], isNull);
+      });
+
+      test('should throw when optional route conflicts with static route', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/data', 'base');
+
+        expect(
+          () => atlas.add(HttpMethod.get, '/data/<value>?', 'optional'),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+
+      test('should throw when static route conflicts with optional route', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/data/<value>?', 'optional');
+
+        expect(
+          () => atlas.add(HttpMethod.get, '/data', 'base'),
+          throwsA(isA<ArgumentError>()),
+        );
+      });
+    });
+
     group('Conflicting Parameters', () {
       test('should throw when adding :id after <id> at same level', () {
         final atlas = Atlas<String>();

@@ -97,6 +97,7 @@ final class Atlas<T> {
   /// - Static segments: `/users/list`
   /// - Parameters: `/users/<id>`
   /// - Parameters with prefix/suffix: `/files/<name>.json`
+  /// - Optional parameters: `/users/<id>?` or `/users/:id?`
   /// - Wildcards: `/files/*`
   /// - Tail wildcards: `/assets/**`
   ///
@@ -104,10 +105,60 @@ final class Atlas<T> {
   bool add(HttpMethod method, String path, T handler) {
     final segments = _parsePathSegments(path);
     var currentNode = _root;
+    AtlasNode<T>? optionalParent;
+    ParamNode<T>? optionalParamNode;
 
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
+      final parentBeforeInsert = currentNode;
       currentNode = _insertSegment(currentNode, segment);
+
+      final isLastSegment = i == segments.length - 1;
+      if (isLastSegment &&
+          currentNode is ParamNode<T> &&
+          currentNode.optional) {
+        optionalParent = parentBeforeInsert;
+        optionalParamNode = currentNode;
+      }
+    }
+
+    // When the last segment is optional we register the handler on the
+    // param node and on its parent to allow matching with and without
+    // the optional segment.
+    if (optionalParent != null && optionalParamNode != null) {
+      if (_conflictsWithOptional(optionalParent, method)) {
+        throw ArgumentError(
+          'Conflicting optional route "$path": a route without the optional '
+          'segment is already registered.',
+        );
+      }
+      if (_conflictsWithOptional(optionalParamNode, method)) {
+        throw ArgumentError(
+          'Route "$path" with method ${method.toString()} is already registered.',
+        );
+      }
+
+      optionalParamNode.handlers[method.index] = handler;
+      optionalParent.handlers[method.index] = handler;
+      return true;
+    }
+
+    // Guard against registering a static route that conflicts with an
+    // existing optional parameter route at the same level.
+    final optionalChild = currentNode.paramChild;
+    if (optionalChild != null &&
+        optionalChild.optional &&
+        _conflictsWithOptional(optionalChild, method)) {
+      throw ArgumentError(
+        'Conflicting route "$path": an optional parameter route already '
+        'handles this path.',
+      );
+    }
+
+    if (_hasHandlerConflict(currentNode, method)) {
+      throw ArgumentError(
+        'Route "$path" with method ${method.toString()} is already registered.',
+      );
     }
 
     currentNode.handlers[method.index] = handler;
@@ -180,6 +231,27 @@ final class Atlas<T> {
     return false;
   }
 
+  /// Returns true when the exact [method] is already registered on [node].
+  @pragma('vm:prefer-inline')
+  bool _hasHandlerConflict(AtlasNode<T> node, HttpMethod method) {
+    if (method == HttpMethod.all) {
+      return node.handlers[HttpMethod.all.index] != null;
+    }
+    return node.handlers[method.index] != null;
+  }
+
+  /// Returns true when an optional route would overlap an existing handler.
+  ///
+  /// This treats `all` as a conflict for any specific method.
+  @pragma('vm:prefer-inline')
+  bool _conflictsWithOptional(AtlasNode<T> node, HttpMethod method) {
+    if (method == HttpMethod.all) {
+      return _hasAnyHandler(node);
+    }
+    return node.handlers[method.index] != null ||
+        node.handlers[HttpMethod.all.index] != null;
+  }
+
   static final _pathsCache = <String, List<String>>{};
 
   /// Parses a path string into segments.
@@ -246,15 +318,20 @@ final class Atlas<T> {
   /// - Angle bracket: `<id>`, `prefix_<id>`, `<id>.suffix`
   /// - Colon: `:id` (no prefix/suffix support)
   ParamNode<T> _parseParamSegment(String segment) {
+    final isOptional = segment.endsWith('?');
+    final normalizedSegment = isOptional
+        ? segment.substring(0, segment.length - 1)
+        : segment;
+
     // Try colon syntax first (simpler, must be entire segment)
-    final colonMatch = ParamNode.colonDefnsRegExp.firstMatch(segment);
+    final colonMatch = ParamNode.colonDefnsRegExp.firstMatch(normalizedSegment);
     if (colonMatch != null) {
-      return ParamNode<T>(colonMatch.group(1)!);
+      return ParamNode<T>(colonMatch.group(1)!, optional: isOptional);
     }
 
     // Try angle bracket syntax (supports prefix/suffix)
     final angleBracketMatch = ParamNode.angleBracketDefnsRegExp.firstMatch(
-      segment,
+      normalizedSegment,
     );
     if (angleBracketMatch != null) {
       final prefix = angleBracketMatch.group(1);
@@ -264,6 +341,7 @@ final class Atlas<T> {
         name,
         prefix: prefix?.isNotEmpty == true ? prefix : null,
         suffix: suffix?.isNotEmpty == true ? suffix : null,
+        optional: isOptional,
       );
     }
 
@@ -295,6 +373,15 @@ final class Atlas<T> {
   ) {
     // Base case: all segments consumed
     if (index >= segments.length) {
+      final optionalParam = node.paramChild;
+      if (optionalParam != null &&
+          optionalParam.optional &&
+          _hasAnyHandler(optionalParam)) {
+        final newParams = List<ParamAndValue>.from(params)
+          ..add((name: optionalParam.name, value: null));
+        return (optionalParam, newParams);
+      }
+
       // Only return this node if it has at least one handler
       // This enables backtracking when a path matches structurally but has no handler
       if (_hasAnyHandler(node)) {
@@ -336,6 +423,21 @@ final class Atlas<T> {
           return result;
         }
         // If parametric match path failed, continue to try wildcard alternatives
+      }
+
+      if (paramNode.optional) {
+        final optionalParams = List<ParamAndValue>.from(params)
+          ..add((name: paramNode.name, value: null));
+        final optionalResult = _matchPath(
+          paramNode,
+          segments,
+          index,
+          optionalParams,
+          method,
+        );
+        if (optionalResult != null) {
+          return optionalResult;
+        }
       }
     }
 

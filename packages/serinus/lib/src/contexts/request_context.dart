@@ -202,14 +202,19 @@ class RequestContext<TBody> extends BaseContext {
 
   /// Retrieves a route parameter by name, or all parameters if no name is provided.
   /// It tries to convert the parameter to the specified type [T].
-  T? paramAs<T>([String? name]) {
+  T paramAs<T>([String? name]) {
     if (name == null) {
       return _converter.convert(_typeOf<T>(), params) as T;
     }
-    if (!params.containsKey(name)) {
-      return null;
+    final value = params[name];
+    if (value == null) {
+      final acceptNull = T.runtimeType.toString().endsWith('?');
+      if (acceptNull) {
+        return value;
+      }
+      throw ArgumentError('Path parameter $name not found');
     }
-    return _converter.convert(_typeOf<T>(), params[name]) as T;
+    return _converter.convert(_typeOf<T>(), value) as T;
   }
 }
 

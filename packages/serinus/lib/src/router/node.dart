@@ -86,14 +86,17 @@ sealed class DynamicSegment<T> extends AtlasNode<T> {}
 /// - `file_<name>.txt` captures with both prefix and suffix
 class ParamNode<T> extends DynamicSegment<T> {
   /// Regex to identify parametric segments using angle bracket syntax: `<id>`
-  static final RegExp angleBracketParamRegExp = RegExp(r'<[^>]+>');
+  /// The optional `?` suffix marks the segment as optional.
+  static final RegExp angleBracketParamRegExp = RegExp(r'<[^>]+>\??');
 
   /// Regex to identify parametric segments using colon syntax: `:id`
-  /// Matches a colon followed by word characters, not preceded by other word chars
-  static final RegExp colonParamRegExp = RegExp(r':([\w]+)');
+  /// Matches a colon followed by word characters, not preceded by other word chars.
+  /// The optional `?` suffix marks the segment as optional.
+  static final RegExp colonParamRegExp = RegExp(r':([\w]+)\??');
 
-  /// Combined regex to identify any parametric segment (either syntax).
-  static final RegExp paramRegExp = RegExp(r'(<[^>]+>|:[\w]+)');
+  /// Combined regex to identify any parametric segment (either syntax),
+  /// including the optional `?` suffix.
+  static final RegExp paramRegExp = RegExp(r'(<[^>]+>\??|:[\w]+\??)');
 
   /// Regex to parse angle bracket parametric segment components.
   ///
@@ -124,8 +127,11 @@ class ParamNode<T> extends DynamicSegment<T> {
   /// The parameter name used as the key in the params map.
   final String name;
 
+  /// Whether this parameter segment is optional (e.g. `<id>?` or `:id?`).
+  final bool optional;
+
   /// Creates a new parametric node.
-  ParamNode(this.name, {this.prefix, this.suffix});
+  ParamNode(this.name, {this.prefix, this.suffix, this.optional = false});
 }
 
 /// Wildcard segment that matches any single path segment.
