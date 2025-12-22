@@ -17,6 +17,9 @@ import 'session.dart';
 /// The UTF-8 JSON decoder.
 final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 
+/// The default maximum body size in bytes.
+const int kDefaultMaxBodySize = 10 * 1024 * 1024; // 10MB
+
 /// The [IncomingMessage] interface defines the methods and properties that a request must implement.
 /// It is used to parse the request and provide access to its properties.
 abstract class IncomingMessage {
@@ -36,7 +39,7 @@ abstract class IncomingMessage {
   SerinusHeaders get headers;
 
   /// Maximum body size in bytes (default: 10MB). Override to customize.
-  static int maxBodySize = 10 * 1024 * 1024;
+  static int maxBodySize = kDefaultMaxBodySize;
 
   /// The query parameters of the request.
   Map<String, String> get queryParameters;
@@ -276,7 +279,7 @@ class InternalRequest extends IncomingMessage {
     // Early rejection if Content-Length exceeds limit
     if (declaredLength > maxSize) {
       throw PayloadTooLargeException(
-        'Request body size exceeds the maximum limit of $maxSize bytes',
+        'Request body size exceeds the limit',
         uri,
       );
     }

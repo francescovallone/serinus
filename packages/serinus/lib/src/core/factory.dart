@@ -4,6 +4,7 @@ import '../adapters/adapters.dart';
 import '../constants.dart';
 import '../containers/models_provider.dart';
 import '../enums/log_level.dart';
+import '../http/http.dart';
 import '../microservices/microservices.dart';
 import '../services/logger_service.dart';
 import 'core.dart';
@@ -30,6 +31,7 @@ final class SerinusFactory {
     bool enableCompression = true,
     bool rawBody = false,
     NotFoundHandler? notFoundHandler,
+    int bodySizeLimit = kDefaultMaxBodySize,
   }) async {
     final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
     final serverHost = Platform.environment['HOST'] ?? host;
@@ -42,6 +44,7 @@ final class SerinusFactory {
       rawBody: rawBody,
       notFoundHandler: notFoundHandler,
     );
+    IncomingMessage.maxBodySize = bodySizeLimit;
     await server.init();
     final app = SerinusApplication(
       entrypoint: entrypoint,
