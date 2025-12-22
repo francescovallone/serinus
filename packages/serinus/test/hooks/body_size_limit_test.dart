@@ -31,7 +31,7 @@ class TestModule extends Module {
 }
 
 void main() {
-  group('$BodySizeLimitHook', () {
+  group('BodySizeLimitHook', () {
     SerinusApplication? app;
     final controller = TestController();
     setUpAll(() async {
@@ -40,6 +40,7 @@ void main() {
         entrypoint: TestModule(controllers: [controller]),
         logLevels: {LogLevel.none},
       );
+      // ignore: deprecated_member_use_from_same_package
       app?.use(BodySizeLimitHook(maxSize: 5));
       await app?.serve();
     });

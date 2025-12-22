@@ -133,7 +133,7 @@ void main() {
         );
         final response = await request.close();
         expect(response.statusCode, 200);
-        expect(response.headers.toMap().containsKey('x-middleware'), true);
+        expect(response.headers.value('x-middleware') != null, true);
       },
     );
 
@@ -146,7 +146,7 @@ void main() {
         final response = await request.close();
         expect(response.statusCode, 200);
         expect(
-          response.headers.toMap().containsKey('x-shelf-middleware'),
+          response.headers.value('x-shelf-middleware') != null,
           true,
         );
       },

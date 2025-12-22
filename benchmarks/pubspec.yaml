@@ -5,15 +5,14 @@ publish_to: none
 # repository: https://github.com/my_org/my_repo
 
 environment:
-  sdk: ^3.3.3
+  sdk: ^3.9.0
 
 # Add regular dependencies here.
 dependencies:
   # dart_frog: ^1.1.0
   http: ^1.2.1
-  serinus: 
-    path: ../packages/serinus
-  shelf: ^1.4.1
+  serinus: ^2.0.3
+  shelf: ^1.4.2
   benchmark_harness: ^2.2.2 
   # vania: ^0.4.1
   # pharaoh: ^0.0.7

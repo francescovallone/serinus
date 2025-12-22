@@ -3,30 +3,37 @@ import 'dart:typed_data';
 
 import '../mixins/object_mixins.dart';
 
-/// This extension is used to parse a [Map] to a [String] and convert a [Map] to a [Map<String, dynamic>]
+/// Lightweight helpers for JSON suitability and byte conversion.
 extension ObjectExtensions on Object {
-  /// This method is used to check if the object can be converted to a json.
+  /// Check if the object can be JSON-encoded without needing a custom encoder.
+  /// Avoids runtimeType.toString() to prevent AbstractType.toString overhead.
   bool canBeJson() {
-    if (this is Uint8List || runtimeType.isPrimitive()) {
+    final value = this;
+    // Reject obvious non-JSON fast paths
+    if (value is Uint8List || value is String || value is num || value is bool) {
       return false;
     }
-    return this is Map ||
-        this is Iterable<Map> ||
-        this is JsonObject ||
-        this is Iterable<JsonObject> ||
-        this is Iterable;
+    if (value is Map) {
+      return true;
+    }
+    if (value is JsonObject) {
+      return true;
+    }
+    if (value is Iterable<JsonObject>) {
+      return true;
+    }
+    if (value is Iterable<Map>) {
+      return true;
+    }
+    // Generic Iterable is acceptable for JSON encoding
+    if (value is Iterable) {
+      return true;
+    }
+    return false;
   }
 
-  /// Convert an object to bytes
+  /// Convert an object to bytes via UTF-8 encoding.
   Uint8List toBytes() {
     return utf8.encode('$this');
-  }
-}
-
-/// Extension for the Type type
-extension TypeExtensions on Type {
-  /// This method is used to check if the type is a primitive type.
-  bool isPrimitive() {
-    return [String, num, bool].contains(this);
   }
 }

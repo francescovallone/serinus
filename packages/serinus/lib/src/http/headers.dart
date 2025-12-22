@@ -1,3 +1,5 @@
+import 'dart:io';
+
 /// The [SerinusHeaders] are a helper class to expose the headers in the Serinus Framework.
 ///
 /// The class is used mainly to get and add headers to the request.
@@ -7,7 +9,7 @@ class SerinusHeaders<T> {
   /// The [chunkedTransferEncoding] property is used to set the chunked transfer encoding of the headers.
   bool chunkedTransferEncoding = false;
 
-  final Map<String, String> _requestHeaders;
+  final HttpHeaders _requestHeaders;
 
   /// The [values] currently available
   final Map<String, String> values = {};
@@ -17,14 +19,16 @@ class SerinusHeaders<T> {
 
   /// Operator to get a value by its [key]
   String? operator [](String key) {
-    var value = values[key];
-    if (value != null) {
-      return value;
+    final cached = values[key];
+    if (cached != null) {
+      return cached;
     }
-    value ??= _requestHeaders[key];
-    if (value != null) {
-      values[key] = value;
+    final headerValues = _requestHeaders[key];
+    if (headerValues == null) { 
+      return null;
     }
+    final value = headerValues.join(', ');
+    values[key] = value;
     return value;
   }
 
@@ -35,7 +39,7 @@ class SerinusHeaders<T> {
 
   /// The [asMap] method is used to get the headers as a map.
   Map<String, String> asMap() {
-    return Map.unmodifiable(values);
+    return values;
   }
 
   /// The [asFullMap] method is used to get all the headers as a map.

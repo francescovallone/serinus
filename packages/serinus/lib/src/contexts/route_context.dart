@@ -40,6 +40,12 @@ class RouteContext<T extends RouteHandlerSpec> {
   /// The [moduleScope] is used to store the scope of the module.
   final ModuleScope moduleScope;
 
+  /// The [providers] property contains the providers of the module.
+  late final Map<Type, Provider> providers = {
+    for (var provider in moduleScope.unifiedProviders)
+      provider.runtimeType: provider,
+  };
+
   /// Internal cache for metadata defined at controller and route level.
   late final List<Metadata> _metadataCache = [
     ...controller.metadata,

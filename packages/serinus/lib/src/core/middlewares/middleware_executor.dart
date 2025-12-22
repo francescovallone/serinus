@@ -18,8 +18,11 @@ class MiddlewareExecutor {
     if (middlewares.isEmpty) {
       return;
     }
-    for (int i = 0; i < middlewares.length; i++) {
-      final middleware = middlewares.elementAt(i);
+    final middlewareList =
+        middlewares is List<Middleware> ? middlewares : middlewares.toList();
+    final length = middlewareList.length;
+    for (int i = 0; i < length; i++) {
+      final middleware = middlewareList[i];
       await middleware.use(context, ([data]) async {
         if (data != null) {
           final responseData = data is WrappedResponse
@@ -28,7 +31,7 @@ class MiddlewareExecutor {
           await onDataReceived(responseData);
           return;
         }
-        if (i == middlewares.length - 1) {
+        if (i == length - 1) {
           completer.complete();
         }
       });

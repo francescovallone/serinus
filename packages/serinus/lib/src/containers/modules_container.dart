@@ -255,11 +255,15 @@ final class ModulesContainer {
       do {
         _refreshUnifiedProviders();
         progress = false;
-        if (await initializeComposedModules(entrypoint)) {
+        final resolvedByComposedModules = await initializeComposedModules(
+          entrypoint,
+        );
+        if (resolvedByComposedModules) {
           progress = true;
         }
         _refreshUnifiedProviders();
-        if (await initializeComposedProviders()) {
+        final resolvedByComposedProviders = await initializeComposedProviders();
+        if (resolvedByComposedProviders) {
           progress = true;
         }
         _refreshUnifiedProviders();
@@ -1111,7 +1115,7 @@ class ModuleScope {
     IncomingMessage request,
     RouteContext routeContext,
   ) {
-    return _middlewaresToRoutes[routeId]?.call(request, routeContext) ?? [];
+    return _middlewaresToRoutes[routeId]?.call(request, routeContext) ?? <Middleware>[];
   }
 
   @override

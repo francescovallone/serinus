@@ -29,11 +29,13 @@ class TestObject {
   }
 }
 
+class MockHttpHeaders extends Mock implements HttpHeaders {}
+
 Request _buildRequest({ContentType? contentType}) {
   final incoming = _MockIncomingMessage();
   final effectiveContentType = contentType ?? ContentType.json;
   when(() => incoming.queryParameters).thenReturn({});
-  when(() => incoming.headers).thenReturn(SerinusHeaders({}));
+  when(() => incoming.headers).thenReturn(SerinusHeaders(MockHttpHeaders()));
   when(() => incoming.contentType).thenReturn(effectiveContentType);
   when(() => incoming.method).thenReturn('POST');
   when(() => incoming.path).thenReturn('/');
