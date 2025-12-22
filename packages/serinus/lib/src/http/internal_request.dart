@@ -140,6 +140,8 @@ abstract class IncomingMessage {
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
 
 class InternalRequest extends IncomingMessage {
+  static int _idCounter = 0;
+
   @override
   final String id;
 
@@ -175,9 +177,10 @@ class InternalRequest extends IncomingMessage {
   @override
   Map<String, String> get queryParameters => _uri.queryParameters;
 
+  late final ContentType _contentType = original.headers.contentType ?? ContentType('text', 'plain');
+
   @override
-  ContentType get contentType =>
-      original.headers.contentType ?? ContentType('text', 'plain');
+  ContentType get contentType => _contentType;
 
   @override
   String webSocketKey = '';
@@ -222,7 +225,7 @@ class InternalRequest extends IncomingMessage {
     required this.original,
     required this.port,
     required this.host,
-  }) : id = 'req-${DateTime.now().microsecondsSinceEpoch}-${original.hashCode}';
+  }) : id = 'req-${original.hashCode^++_idCounter}';
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {
@@ -266,20 +269,50 @@ class InternalRequest extends IncomingMessage {
     if (_bytes != null) {
       return _bytes!;
     }
-    final byteBuffer = BytesBuilder(copy: false);
+
+    final maxSize = IncomingMessage.maxBodySize;
+    final declaredLength = contentLength;
+
+    // Early rejection if Content-Length exceeds limit
+    if (declaredLength > maxSize) {
+      throw PayloadTooLargeException(
+        'Request body size exceeds the maximum limit of $maxSize bytes',
+        uri,
+      );
+    }
+
+    // Fast path: trusted Content-Length within limits - skip per-chunk validation
+    if (declaredLength > 0) {
+      final chunks = await original.toList();
+      if (chunks.isEmpty) {
+        return _bytes = Uint8List(0);
+      }
+      // Single-chunk optimization: avoid BytesBuilder overhead
+      if (chunks.length == 1) {
+        final chunk = chunks.first;
+        return _bytes = chunk;
+      }
+      final buffer = BytesBuilder(copy: false);
+      for (final chunk in chunks) {
+        buffer.add(chunk);
+      }
+      return _bytes = buffer.takeBytes();
+    }
+
+    // Unknown length - validate as we read
+    final buffer = BytesBuilder(copy: false);
     var totalSize = 0;
-    await for (final part in original) {
-      totalSize += part.length;
-      if (totalSize > IncomingMessage.maxBodySize) {
+    await for (final chunk in original) {
+      totalSize += chunk.length;
+      if (totalSize > maxSize) {
         throw PayloadTooLargeException(
-          'Request body size exceeds the maximum limit of ${IncomingMessage.maxBodySize} bytes',
+          'Request body size exceeds the maximum limit of $maxSize bytes',
           uri,
         );
       }
-      byteBuffer.add(part);
+      buffer.add(chunk);
     }
-    _bytes = byteBuffer.takeBytes();
-    return _bytes!;
+    return _bytes = buffer.takeBytes();
   }
 
   /// This method is used to get the body of the request as a [Stream<List<int>>]

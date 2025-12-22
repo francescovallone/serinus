@@ -20,14 +20,14 @@ class Request {
   /// It accepts an [IncomingMessage] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
-  Request(this._original, [Map<String, dynamic> params = const {}]) {
-    this.params = params;
-    _query.addAll(_original.queryParameters);
-  }
+  Request(this._original, [this._routeParams = const {}]);
+
+  Map<String, dynamic> _routeParams;
 
   /// This method is used to set the parameters of the request.
   set params(Map<String, dynamic> params) {
-    _params.addAll(params);
+    _params ??= {};
+    _params!.addAll(params);
   }
 
   /// The id of the request.
@@ -46,9 +46,9 @@ class Request {
   SerinusHeaders get headers => _original.headers;
 
   /// The query parameters of the request.
-  Map<String, dynamic> get query => _query;
+  Map<String, dynamic> get query => _query ??= Map.of(_original.queryParameters);
 
-  final Map<String, dynamic> _query = {};
+  Map<String, dynamic>? _query;
 
   /// The session of the request.
   Session get session => _original.session;
@@ -57,7 +57,7 @@ class Request {
   HttpConnectionInfo? get clientInfo => _original.clientInfo;
 
   /// The params of the request.
-  Map<String, dynamic> get params => _params;
+  Map<String, dynamic> get params => _params ?? _routeParams;
 
   /// The content type of the request.
   ContentType get contentType => _original.contentType;
@@ -85,8 +85,7 @@ class Request {
   /// The cookies of the request.
   List<Cookie> get cookies => _original.cookies;
 
-  /// The params of the request.
-  final Map<String, dynamic> _params = {};
+  Map<String, dynamic>? _params;
 
   final Map<String, dynamic> _data = {};
 

@@ -67,9 +67,7 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
   bool get isClosed => _isClosed;
 
   /// The [InternalResponse] constructor is used to create a new instance of the [InternalResponse] class.
-  InternalResponse(super.original, {this.baseUrl}) {
-    original.headers.chunkedTransferEncoding = false;
-  }
+  InternalResponse(super.original, {this.baseUrl});
 
   @override
   Future<Socket> detachSocket({bool writeHeaders = false}) {

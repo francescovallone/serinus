@@ -10,13 +10,21 @@ final JsonUtf8Encoder sharedJsonUtf8Encoder = JsonUtf8Encoder();
 /// The [WrappedResponse] class is used to wrap the response data.
 class WrappedResponse {
   /// The wrapped data.
-  Object? data;
+  Object? _data;
+
+  /// Get the wrapped data.
+  Object? get data => _data;
+
+  set data(Object? value) {
+    _data = value;
+    isEncoded = false;
+  }
 
   /// Indicates whether [data] has already been encoded to bytes.
   bool isEncoded;
 
   /// Create a new [WrappedResponse] instance with the given data.
-  WrappedResponse(this.data, {this.isEncoded = false});
+  WrappedResponse(this._data, {this.isEncoded = false});
 
   /// Convert the data to bytes.
   List<int> toBytes() {
