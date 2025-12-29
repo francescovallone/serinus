@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import Tailwind from '@tailwindcss/vite'
 
 // https://vitepress.dev/reference/site-config
 
@@ -11,61 +12,68 @@ export default defineConfig({
     ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/serinus-icon-32x32.png"}],
     ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png"}],
     [
-            'meta',
-            {
-                name: 'viewport',
-                content: 'width=device-width,initial-scale=1,user-scalable=no'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:image',
-                content: 'https://serinus.app/cover.jpg'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:image:width',
-                content: '1600'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:image:height',
-                content: '900'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'twitter:card',
-                content: 'summary_large_image'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'twitter:image',
-                content: 'https://serinus.app/cover.jpg'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:title',
-                content: 'Serinus'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:description',
-                content: description
-            }
-        ]
+        'meta',
+        {
+            name: 'viewport',
+            content: 'width=device-width,initial-scale=1,user-scalable=no'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:image',
+            content: 'https://serinus.app/cover.jpg'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:image:width',
+            content: '1600'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:image:height',
+            content: '900'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'twitter:card',
+            content: 'summary_large_image'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'twitter:image',
+            content: 'https://serinus.app/cover.jpg'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:title',
+            content: 'Serinus'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:description',
+            content: description
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'keywords',
+            content: 'serinus, dart serinus, serinus framework, serinus dart framework, serinus backend, serinus backend framework, dart backend framework, dart backend, flutter backend, flutter backend framework'
+        }
+    ],
   ],
   markdown: {
     image: {
@@ -263,4 +271,7 @@ export default defineConfig({
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ],
   },
+  vite: {
+    plugins: [Tailwind()]
+  }
 })

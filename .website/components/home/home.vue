@@ -5,7 +5,7 @@ import Partners from './partners.vue'
 import Highlights from './highlights.vue'
 import Features from './features.vue'
 import Spotlights from './spotlight.vue'
-import { plugins } from './data/ecosystem';
+import { plugins } from '../data/ecosystem';
 </script>
 
 <template>

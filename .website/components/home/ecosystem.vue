@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { plugins } from './data/ecosystem.ts';
+import { plugins } from '../data/ecosystem.ts';
 
 const currentPlugin = ref(plugins[0]);
 
@@ -67,6 +67,7 @@ ol {
 }
 </style>
 <style>
+@reference "tailwindcss";
 .tabs::-webkit-scrollbar {
   display: none;
 }

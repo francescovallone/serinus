@@ -18,12 +18,15 @@ head:
     - property: 'og:image'
       content: https://serinus.app/serinus.webp
   - - meta
-    - property: 'twitter:image'
-      content: https://serinus.app/serinus.webp
+    - property: 'twitter:card'
+      content: 'https://serinus.app/cover.jpg'
+  - - meta
+    - name: 'twitter:image'
+      content: 'https://serinus.app/cover.jpg'
 ---
 
 <script setup>
-  import Home from './components/home.vue';
+  import Home from './components/home/home.vue';
 </script>
 
 <Home>
