@@ -67,10 +67,17 @@ class RoutesResolver {
   /// If no route is found, it returns a 404 Not Found response.
   /// If a route is found, it calls the handler of the route with the request and response.
   Future<void> handle(IncomingMessage request, OutgoingMessage response) async {
+    final method = HttpMethod.parse(request.method);
     final route = _explorer.getRoute(
       request.path.stripEndSlash(),
-      HttpMethod.parse(request.method),
+      method,
     );
+    final observePlan = route?.spec.route.observePlan ??
+        _container.config.observeConfig.resolveForRoute(
+          routeId: '::not_found',
+          controllerType: Object,
+          method: method,
+        );
     try {
       if (route != null) {
         await route.spec.handler(request, response, route.params);
@@ -78,7 +85,13 @@ class RoutesResolver {
       }
       await _notFound(request, response);
     } on SerinusException catch (e) {
-      await _handleException(e, request, response, route?.params);
+      await _handleException(
+        e,
+        request,
+        response,
+        route?.params,
+        observePlan,
+      );
     } catch (e) {
       rethrow;
     }
@@ -101,6 +114,7 @@ class RoutesResolver {
     IncomingMessage request,
     OutgoingMessage response, [
     Map<String, dynamic>? routeParams,
+    ResolvedObservePlan observePlan = const ResolvedObservePlan.disabled(),
   ]) async {
     final wrappedRequest = Request(request, routeParams ?? {});
     final providers = {
@@ -121,6 +135,9 @@ class RoutesResolver {
       rawBody: _container.applicationRef.rawBody,
     );
     executionContext.attachHttpContext(requestContext);
+    final observeHandle = observePlan.activate(requestContext);
+    executionContext.observe = observeHandle;
+    requestContext.observe = observeHandle;
     executionContext.response.statusCode = exception.statusCode;
     request.emit(
       RequestEvent.error,
@@ -136,7 +153,15 @@ class RoutesResolver {
     );
     for (final filter in _container.config.globalExceptionFilters) {
       if (filter.catchTargets.contains(exception.runtimeType)) {
-        await filter.onException(executionContext, exception);
+        if (observeHandle != null) {
+          await observeHandle.stepAsync(
+            'global.exception.filter',
+            () => filter.onException(executionContext, exception),
+            phase: ObservePhase.exception,
+          );
+        } else {
+          await filter.onException(executionContext, exception);
+        }
         if (executionContext.response.closed) {
           request.emit(
             RequestEvent.data,
@@ -150,7 +175,7 @@ class RoutesResolver {
                 ),
             ),
           );
-          return _container.applicationRef.reply(
+          await _container.applicationRef.reply(
             response,
             _routeExecutionContext.processResult(
               WrappedResponse(
@@ -160,11 +185,21 @@ class RoutesResolver {
             ),
             executionContext.response,
           );
+          await _container.config.observeConfig.flush(executionContext);
+          return;
         }
       }
     }
     for (final hook in _container.config.globalHooks.resHooks) {
-      await hook.onResponse(executionContext, WrappedResponse(exception));
+      if (observeHandle != null) {
+        await observeHandle.stepAsync(
+          'global.response',
+          () => hook.onResponse(executionContext, WrappedResponse(exception)),
+          phase: ObservePhase.response,
+        );
+      } else {
+        await hook.onResponse(executionContext, WrappedResponse(exception));
+      }
       if (executionContext.response.closed) {
         request.emit(
           RequestEvent.data,
@@ -178,7 +213,7 @@ class RoutesResolver {
               ),
           ),
         );
-        return _container.applicationRef.reply(
+        await _container.applicationRef.reply(
           response,
           _routeExecutionContext.processResult(
             WrappedResponse(
@@ -188,6 +223,8 @@ class RoutesResolver {
           ),
           executionContext.response,
         );
+        await _container.config.observeConfig.flush(executionContext);
+        return;
       }
     }
     request.emit(
@@ -202,7 +239,7 @@ class RoutesResolver {
           ),
       ),
     );
-    return _container.applicationRef.reply(
+    await _container.applicationRef.reply(
       response,
       _routeExecutionContext.processResult(
         WrappedResponse(executionContext.response.body ?? exception.message),
@@ -210,6 +247,7 @@ class RoutesResolver {
       ),
       executionContext.response,
     );
+    await _container.config.observeConfig.flush(executionContext);
   }
 
   Future<void> _notFound(
@@ -237,8 +275,24 @@ class RoutesResolver {
       rawBody: _container.applicationRef.rawBody,
     );
     executionContext.attachHttpContext(requestContext);
+    final resolvedPlan = _container.config.observeConfig.resolveForRoute(
+      routeId: '::not_found',
+      controllerType: Object,
+      method: HttpMethod.parse(request.method),
+    );
+    final observeHandle = resolvedPlan.activate(requestContext);
+    executionContext.observe = observeHandle;
+    requestContext.observe = observeHandle;
     for (final hook in reqHooks) {
-      await hook.onRequest(executionContext);
+      if (observeHandle != null) {
+        await observeHandle.stepAsync(
+          'global.request',
+          () => hook.onRequest(executionContext),
+          phase: ObservePhase.requestHook,
+        );
+      } else {
+        await hook.onRequest(executionContext);
+      }
       if (executionContext.response.closed) {
         request.emit(
           RequestEvent.data,
@@ -252,7 +306,7 @@ class RoutesResolver {
               ),
           ),
         );
-        return _container.applicationRef.reply(
+        await _container.applicationRef.reply(
           response,
           _routeExecutionContext.processResult(
             WrappedResponse(executionContext.response.body),
@@ -260,6 +314,8 @@ class RoutesResolver {
           ),
           executionContext.response,
         );
+        await _container.config.observeConfig.flush(executionContext);
+        return;
       }
     }
     throw _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??

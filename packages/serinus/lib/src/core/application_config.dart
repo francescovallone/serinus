@@ -10,11 +10,10 @@ import '../containers/modules_container.dart';
 import '../engines/view_engine.dart';
 import '../global_prefix.dart';
 import '../microservices/transports/transports.dart';
-import '../services/tracers_service.dart';
 import '../versioning.dart';
 import 'exception_filter.dart';
 import 'pipe.dart' as s;
-import 'tracer.dart';
+import 'observe.dart';
 
 /// The configuration for the application
 /// This is used to configure the application
@@ -135,23 +134,18 @@ final class ApplicationConfig {
   /// The model provider for the application
   final ModelProvider? modelProvider;
 
-  /// The tracer for the application
-  final TracersService tracerService = TracersService();
-
+  /// Observability configuration.
+  ObserveConfig observeConfig;
   /// The set of exception filters to be applied globally
   final Set<ExceptionFilter> globalExceptionFilters = {};
-
-  /// Register a tracer to the application
-  void registerTracer(Tracer tracer) {
-    tracerService.registerTracer(tracer);
-  }
 
   /// The application config constructor
   ApplicationConfig({
     required this.serverAdapter,
     this.modelProvider,
     this.keepAliveIdleTimeout,
-  }) {
+    ObserveConfig? observeConfig,
+  })  : observeConfig = observeConfig ?? const ObserveConfig.disabled() {
     adapters.add(serverAdapter);
   }
 }

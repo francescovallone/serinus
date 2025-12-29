@@ -40,6 +40,9 @@ class RouteContext<T extends RouteHandlerSpec> {
   /// The [moduleScope] is used to store the scope of the module.
   final ModuleScope moduleScope;
 
+  /// Pre-resolved observe plan for this route.
+  final ResolvedObservePlan observePlan;
+
   /// Internal cache for metadata defined at controller and route level.
   late final List<Metadata> _metadataCache = [
     ...controller.metadata,
@@ -113,6 +116,7 @@ class RouteContext<T extends RouteHandlerSpec> {
     this.queryParameters = const {},
     this.hooksServices = const {},
     this.exceptionFilters = const {},
+    this.observePlan = const ResolvedObservePlan.disabled(),
   });
 
   /// Initializes the metadata for the route context.

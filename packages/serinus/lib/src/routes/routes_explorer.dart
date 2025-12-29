@@ -77,6 +77,11 @@ final class RoutesExplorer {
         controller.hooks,
         spec.route.hooks,
       ]);
+      final observePlan = _container.config.observeConfig.resolveForRoute(
+        routeId: entry.key,
+        controllerType: controller.runtimeType,
+        method: routeMethod,
+      );
       final context = RouteContext<RestRouteHandlerSpec>(
         id: entry.key,
         path: routePath,
@@ -99,6 +104,7 @@ final class RoutesExplorer {
           ...spec.route.exceptionFilters,
           ..._container.config.globalExceptionFilters,
         },
+        observePlan: observePlan,
       );
       _router.registerRoute(
         context: context,
@@ -106,6 +112,7 @@ final class RoutesExplorer {
           context,
           errorHandler: _container.config.errorHandler,
           rawBody: _container.applicationRef.rawBody,
+          observe: _container.config.observeConfig,
         ),
       );
       logger.info('Mapped {$routePath, $routeMethod} route');

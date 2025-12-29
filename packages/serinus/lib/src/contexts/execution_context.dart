@@ -106,6 +106,9 @@ final class ExecutionContext<T extends ArgumentsHost> extends BaseContext {
   /// The response context associated with the current context.
   final ResponseContext response;
 
+  /// Optional observe handle; null when observability is disabled or not sampled.
+  ObserveHandle? observe;
+
   /// The type of host for the request.
   final HostType hostType;
 

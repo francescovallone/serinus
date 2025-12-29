@@ -53,6 +53,7 @@ class RouteExecutionContext {
     RouteContext<T> context, {
     ErrorHandler? errorHandler,
     bool rawBody = false,
+    ObserveConfig? observe,
   }) {
     return (
       IncomingMessage request,
@@ -60,6 +61,16 @@ class RouteExecutionContext {
       Map<String, dynamic> params,
     ) async {
       ExecutionContext? executionContext;
+      var sinksFlushed = false;
+      Future<void> flushSinks() async {
+        if (sinksFlushed) {
+          return;
+        }
+        sinksFlushed = true;
+        if (executionContext != null) {
+          await observe?.flush(executionContext);
+        }
+      }
       try {
         final wrappedRequest = Request(request, params);
         final providers = {
@@ -86,8 +97,22 @@ class RouteExecutionContext {
           rawBody: rawBody,
         );
         executionContext.attachHttpContext(requestContext);
+        ObserveHandle? observeHandle;
+        if (context.observePlan.enabled) {
+          observeHandle = context.observePlan.activate(requestContext);
+          executionContext.observe = observeHandle;
+          requestContext.observe = observeHandle;
+        }
         for (final hook in context.reqHooks) {
-          await hook.onRequest(executionContext);
+          if (observeHandle != null) {
+            await observeHandle.stepAsync(
+              'hook.request',
+              () => hook.onRequest(executionContext!),
+              phase: ObservePhase.requestHook,
+            );
+          } else {
+            await hook.onRequest(executionContext);
+          }
           if (executionContext.response.closed) {
             await _responseController.sendResponse(
               response,
@@ -98,6 +123,7 @@ class RouteExecutionContext {
               executionContext.response,
               viewEngine: viewEngine,
             );
+            await flushSinks();
             return;
           }
         }
@@ -108,53 +134,102 @@ class RouteExecutionContext {
         }
         if (context.pipes.isNotEmpty) {
           for (final pipe in context.pipes) {
-            await pipe.transform(executionContext);
+            if (observeHandle != null) {
+              await observeHandle.stepAsync(
+                'pipe',
+                () => pipe.transform(executionContext!),
+                phase: ObservePhase.pipe,
+              );
+            } else {
+              await pipe.transform(executionContext);
+            }
           }
         }
         final middlewares = context.getMiddlewares(request);
         if (middlewares.isNotEmpty) {
           final executor = MiddlewareExecutor();
-          await executor.execute(
-            middlewares,
-            executionContext,
-            response,
-            onDataReceived: (data) async {
-              await _executeOnResponse(context, executionContext!, data);
-              data = processResult(data, executionContext);
-              request.emit(
-                RequestEvent.data,
-                EventData(data: data, properties: executionContext.response),
-              );
-              await _responseController.sendResponse(
-                response,
-                data,
-                executionContext.response,
-                viewEngine: viewEngine,
-              );
-              request.emit(
-                RequestEvent.close,
-                EventData(
-                  data: data,
-                  properties: executionContext.response
-                    ..headers.addAll(
-                      (response.currentHeaders is SerinusHeaders)
-                          ? response.currentHeaders.values
-                          : (response.currentHeaders as HttpHeaders).toMap(),
-                    ),
-                ),
-              );
-            },
-          );
+          Future<void> runMiddlewares() {
+            return executor.execute(
+              middlewares,
+              executionContext!,
+              response,
+              onDataReceived: (data) async {
+                await _executeOnResponse(context, executionContext!, data);
+                data = processResult(data, executionContext);
+                request.emit(
+                  RequestEvent.data,
+                  EventData(data: data, properties: executionContext.response),
+                );
+                await _responseController.sendResponse(
+                  response,
+                  data,
+                  executionContext.response,
+                  viewEngine: viewEngine,
+                );
+                request.emit(
+                  RequestEvent.close,
+                  EventData(
+                    data: data,
+                    properties: executionContext.response
+                      ..headers.addAll(
+                        (response.currentHeaders is SerinusHeaders)
+                            ? response.currentHeaders.values
+                            : (response.currentHeaders as HttpHeaders).toMap(),
+                      ),
+                  ),
+                );
+                await flushSinks();
+              },
+            );
+          }
+
+          if (observeHandle != null) {
+            await observeHandle.stepAsync(
+              'middleware',
+              runMiddlewares,
+              phase: ObservePhase.middleware,
+            );
+          } else {
+            await runMiddlewares();
+          }
           if (response.isClosed) {
+            await flushSinks();
             return;
           }
         }
-        await _executeBeforeHandle(executionContext, context);
+        if (observeHandle != null) {
+          await observeHandle.stepAsync(
+            'beforeHandle',
+            () => _executeBeforeHandle(executionContext!, context),
+            phase: ObservePhase.beforeHandle,
+          );
+        } else {
+          await _executeBeforeHandle(executionContext, context);
+        }
         final handler = spec.handler;
-        final handlerResult = await handler.call(requestContext);
+        final handlerResult = observeHandle != null
+            ? await observeHandle.stepAsync(
+                'handle',
+                () => handler.call(requestContext),
+                phase: ObservePhase.handle,
+              )
+            : await handler.call(requestContext);
         final responseData = WrappedResponse(handlerResult);
-        await _executeAfterHandle(executionContext, context, responseData);
-        await _executeOnResponse(context, executionContext, responseData);
+        if (observeHandle != null) {
+          await observeHandle.stepAsync(
+            'afterHandle',
+            () => _executeAfterHandle(executionContext!, context, responseData),
+            phase: ObservePhase.afterHandle,
+          );
+          await observeHandle.stepAsync(
+            'response',
+            () => _executeOnResponse(context, executionContext!, responseData),
+            phase: ObservePhase.response,
+          );
+        } else {
+          await _executeAfterHandle(executionContext, context, responseData);
+          await _executeOnResponse(context, executionContext, responseData);
+        }
         WrappedResponse result = processResult(responseData, executionContext);
         final currentResponseHeaders =
             (response.currentHeaders is SerinusHeaders)
@@ -179,6 +254,7 @@ class RouteExecutionContext {
             data,
             executionContext.response,
           );
+          await flushSinks();
         } else if (data is Redirect) {
           request.emit(
             RequestEvent.redirect,
@@ -189,6 +265,7 @@ class RouteExecutionContext {
             data,
             executionContext.response,
           );
+          await flushSinks();
         } else {
           request.emit(
             RequestEvent.data,
@@ -208,6 +285,7 @@ class RouteExecutionContext {
             executionContext.response,
             viewEngine: viewEngine,
           );
+          await flushSinks();
         }
       } on SerinusException catch (e, stackTrace) {
         executionContext ??= ExecutionContext(
@@ -219,9 +297,16 @@ class RouteExecutionContext {
           context.hooksServices,
           HttpArgumentsHost(Request(request, params)),
         );
+        final observeHandle = executionContext.observe;
         executionContext.response.statusCode = e.statusCode;
         executionContext.response.contentType ??= ContentType.json;
-        final result = await _executeOnException(executionContext, context, e);
+        final result = observeHandle != null
+            ? await observeHandle.stepAsync(
+                'exception',
+                () => _executeOnException(executionContext!, context, e),
+                phase: ObservePhase.exception,
+              )
+            : await _executeOnException(executionContext, context, e);
         if (result != null) {
           await _responseController.sendResponse(
             response,
@@ -229,6 +314,7 @@ class RouteExecutionContext {
             executionContext.response,
             viewEngine: viewEngine,
           );
+          await flushSinks();
           return;
         }
         await _executeOnResponse(context, executionContext, WrappedResponse(e));
@@ -241,6 +327,7 @@ class RouteExecutionContext {
               executionContext.response,
               viewEngine: viewEngine,
             );
+            await flushSinks();
           }
         } else {
           await _responseController.sendResponse(
@@ -249,6 +336,7 @@ class RouteExecutionContext {
             executionContext.response,
             viewEngine: viewEngine,
           );
+          await flushSinks();
         }
       }
     };

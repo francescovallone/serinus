@@ -124,6 +124,10 @@ abstract class Application {
     }
   }
 
+  void observe(ObserveConfig config) {
+    this.config.observeConfig = config;
+  }
+
   /// The [initialize] method is used to initialize the application.
   @internal
   Future<void> initialize();

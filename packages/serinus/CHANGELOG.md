@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- feat!: replace the legacy tracer service with the built-in observability model (ObserveConfig, ObserveHandle, per-route plans, deterministic sampling).
+
 ## 2.0.4
 
 - feat: add `SerinusHeaders#asFullMap()` to get all the headers including the original request headers as an unmodifiable map.

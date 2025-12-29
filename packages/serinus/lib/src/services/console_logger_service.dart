@@ -11,6 +11,9 @@ import 'logger_service.dart';
 
 /// The [ConsoleLogger] class is used to log messages to the console.
 class ConsoleLogger implements LoggerService {
+  // Guard to prevent attaching multiple listeners to the root logger.
+  static bool _initialized = false;
+
   /// The [prefix] of the logger.
   final String prefix;
 
@@ -69,9 +72,10 @@ class ConsoleLogger implements LoggerService {
     if (levels != null) {
       Logger.setLogLevels(levels);
     }
-    if (logging.Logger.attachedLoggers.isNotEmpty) {
+    if (_initialized) {
       return;
     }
+    _initialized = true;
     logging.Logger.root.level = getLowestLevel(Logger.logLevels);
     logging.Logger.root.onRecord.listen((logging.LogRecord rec) {
       final hasError =

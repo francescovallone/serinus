@@ -41,6 +41,9 @@ class AppController extends Controller {
       RequestContext<List<dynamic>> context,
     ) async {
       final mapBody = context.bodyAs<String>();
+      if (context.body.isEmpty) {
+        throw BadRequestException('Body cannot be empty');
+      }
       return 'Echo: $mapBody ${context.body}';
     });
   }
@@ -91,6 +94,14 @@ void main(List<String> arguments) async {
     modelProvider: MyModelProvider(),
   );
   application.enableShutdownHooks();
+  application.observe(
+    ObserveConfig(
+      enabled: true,
+      sinks: [
+        LoggerObserveSink()
+      ]
+    ),
+  );
   // application.trace(ServerTimingTracer());
   await application.serve();
 }
