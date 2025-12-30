@@ -1,44 +1,52 @@
+import { BracesFile, ClockIcon, CodeFile, CogIcon, RadioIcon, ShieldCheckIcon, TestTubeIcon } from "../home/icons";
+
 export const plugins = [
 	{
 		title: 'OpenAPI',
 		pub: 'https://pub.dev/packages/serinus_openapi',
-		desc: 'Genearate Open API documentation for your Serinus project with no effort.',
+		desc: 'Generate complete API documentation automatically.',
 		link: '/plugins/swagger/',
-		slot: 'openapi'
+		slot: 'openapi',
+		icon: BracesFile
 	},
 	{
-		title: 'Configuration',
-		pub: 'https://pub.dev/packages/serinus_config',
-		desc: 'Manage your project configuration with a simple and easy to use package.',
-		link: '/plugins/configuration',
-		slot: 'configuration'
-	},
-	{
-		title: 'Authentication',
+		title: 'Auth',
 		pub: 'https://pub.dev/packages/serinus_frontier',
-		desc: 'Leverage the power of Serinus and Frontier to authenticate your users with ease.',
+		desc: 'Flexible authentication with hooks and middlewares.',
 		link: '/plugins/frontier',
-		slot: 'authentication'
+		slot: 'authentication',
+		icon: ShieldCheckIcon
 	},
 	{
-		title: 'Cron Jobs',
+		title: 'Cron',
 		pub: 'https://pub.dev/packages/serinus_schedule',
-		desc: 'Schedule tasks to run at specific intervals or times using cron syntax.',
+		desc: 'Schedule background tasks with cron expressions.',
 		link: '/techniques/task_scheduling',
-		slot: 'cron_jobs'
+		slot: 'cron_jobs',
+		icon: ClockIcon
 	},
 	{
 		title: 'WebSockets',
 		pub: 'https://pub.dev/packages/serinus',
-		desc: 'Add real-time, bidirectional communication to your Serinus applications with WebSockets.',
+		desc: 'Real-time bidirectional communication',
 		link: '/websockets/gateways',
-		slot: 'websockets'
+		slot: 'websockets',
+		icon: RadioIcon
 	},
 	{
 		title: 'Testing',
 		pub: 'https://pub.dev/packages/serinus_test',
-		desc: 'Easily test your Serinus applications with this dedicated testing package.',
+		desc: 'Built-in utilities for testing your applications.',
 		link: '/recipes/testing',
-		slot: 'testing'
-	}
+		slot: 'testing',
+		icon: TestTubeIcon
+	},
+	{
+		title: 'Config',
+		pub: 'https://pub.dev/packages/serinus_config',
+		desc: 'Environment-based configuration.',
+		link: '/plugins/configuration',
+		slot: 'configuration',
+		icon: CogIcon
+	},
 ]

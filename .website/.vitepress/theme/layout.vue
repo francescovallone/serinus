@@ -6,6 +6,7 @@ import {
 import { useRouter, useData } from 'vitepress'
 const router = useRouter()
 import DefaultTheme from 'vitepress/theme-without-fonts'
+import { GithubIcon, MessageIcon, XSocialIcon } from '../../components/home/icons';
 
 
 if (typeof window !== 'undefined') {
@@ -25,11 +26,18 @@ const prompt = computed(() =>
 <template>
     <DefaultTheme.Layout>
         <template #doc-footer-before>
-            <div class="flex flex-col mb-8 gap-4 border-t pt-4">
-                <h1 class="2xl:text-2xl text-lg font-semibold">Support Us</h1>
+            <div class="flex flex-col mb-8 gap-4 border-t border-border pt-4">
+                <div class="2xl:text-2xl text-lg font-semibold">Support Us</div>
                 <p>Serinus is MIT licensed open-source project and it grows thanks to the community's support. If you want to support us and the project, read more <a href="/support" class="text-serinus hover:text-serinus-2 underline">here</a>.</p>
                 <div class="flex w-auto">
-                    <a href="https://github.com/sponsors/francescovallone" class="px-8 py-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">Become a sponsor</a>
+                    <a
+                        href="https://discord.gg/zydgnJ3ksJ"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="sponsor-link inline-flex items-center gap-3 px-6 py-4 editorial-border text-foreground font-display font-semibold text-lg hover:bg-foreground transition-all"
+                    >
+                        Become a sponsor
+                    </a>
                 </div>
             </div>
             <div
@@ -95,43 +103,162 @@ const prompt = computed(() =>
             </div>
         </template>
         <template #layout-bottom>
-            <div class="flex w-full gap-8 items-center 2xl:px-64 lg:px-16 px-8 flex-col border-t py-8 z-40">
-                <div class="flex flex-col md:flex-row justify-between w-full" v-if="router.route.data.frontmatter['layout'] == 'page' || router.route.data.frontmatter['sidebar'] === false">
-                    <div class="flex gap-2">
-                        <a href="https://github.com/francescovallone/serinus" target="_blank" class="p-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2c2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2a4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6c-.6.6-.6 1.2-.5 2V21"/></svg>
-                        </a>
-                        <a href="https://x.com/avesboxx" target="_blank" class="p-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="m17.687 3.063l-4.996 5.711l-4.32-5.711H2.112l7.477 9.776l-7.086 8.099h3.034l5.469-6.25l4.78 6.25h6.102l-7.794-10.304l6.625-7.571zm-1.064 16.06L5.654 4.782h1.803l10.846 14.34z"/></svg>
-                        </a>
-                        <a href="https://discord.gg/zydgnJ3ksJ" target="_blank" class="p-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.1.1 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.1 16.1 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09c-.01-.02-.04-.03-.07-.03c-1.5.26-2.93.71-4.27 1.33c-.01 0-.02.01-.03.02c-2.72 4.07-3.47 8.03-3.1 11.95c0 .02.01.04.03.05c1.8 1.32 3.53 2.12 5.24 2.65c.03.01.06 0 .07-.02c.4-.55.76-1.13 1.07-1.74c.02-.04 0-.08-.04-.09c-.57-.22-1.11-.48-1.64-.78c-.04-.02-.04-.08-.01-.11c.11-.08.22-.17.33-.25c.02-.02.05-.02.07-.01c3.44 1.57 7.15 1.57 10.55 0c.02-.01.05-.01.07.01c.11.09.22.17.33.26c.04.03.04.09-.01.11c-.52.31-1.07.56-1.64.78c-.04.01-.05.06-.04.09c.32.61.68 1.19 1.07 1.74c.03.01.06.02.09.01c1.72-.53 3.45-1.33 5.25-2.65c.02-.01.03-.03.03-.05c.44-4.53-.73-8.46-3.1-11.95c-.01-.01-.02-.02-.04-.02M8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.84 2.12-1.89 2.12m6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12c0 1.17-.83 2.12-1.89 2.12"/></svg>
-                        </a>
-                    </div>
-                    <div class="md:flex gap-2 hidden">
-                        <a href="/blog" target="_blank" class="p-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">
-                            Blog
-                        </a>
-                        <a href="/introduction.html" target="_blank" class="p-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start w-auto border-gray-300 rounded-md">
-                            Documentation
-                        </a>
-                        <a href="https://github.com/sponsors/francescovallone" target="_blank" class="p-4 hover:shadow-md transition-shadow font-semibold border text-center lg:text-start border-gray-300 rounded-md">
-                            Become a sponsor
-                        </a>
-                    </div>
-                </div>
-                <p class="text-sm" v-if="router.route.data.frontmatter['layout'] != 'page' && router.route.data.frontmatter['sidebar'] !== false">
+            <div class="flex w-full gap-8 items-center 2xl:px-64 lg:px-16 px-8 flex-col py-8 z-40" v-if="router.route.data.frontmatter['layout'] !== 'page' && router.route.data.frontmatter['sidebar'] !== false">
+                <p class="text-sm">
                     © 2025 Francesco Vallone. Built with 💙 and <a href="https://dart.dev" class="text-serinus hover:text-serinus-2 underline" target="_blank">Dart</a> 🎯 | One of the 🐤 of <a href="https://avesbox.com" class="text-serinus hover:text-serinus-2 underline" target="_blank">Avesbox</a>.
                 </p>
-                <div class="flex flex-col md:flex-row justify-between w-full" v-if="router.route.data.frontmatter['layout'] == 'page' || router.route.data.frontmatter['sidebar'] === false">
-                    <p class="font-medium">
-                        One of the 🐤 of <a href="https://avesbox.com" class="text-serinus hover:text-serinus-2 underline" target="_blank">Avesbox</a>
-                    </p>
-                    <p>
-                        © 2025 Francesco Vallone. All rights reserved.
-                    </p>
-                </div>
             </div>
+            <footer v-if="router.route.data.frontmatter['layout'] === 'page' || router.route.data.frontmatter['sidebar'] === false" class="border-t-2 border-border bg-card/30">
+                <div class="container mx-auto px-6 py-16">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-12">
+                        <div class="md:col-span-4">
+                            <a href="/" class="flex items-center gap-3 mb-6">
+                                <img src="/serinus-logo.png" alt="Serinus" class="w-10 h-10" />
+                                <span class="text-xl font-display font-bold text-foreground">Serinus</span>
+                            </a>
+                            <p class="text-muted-foreground mb-6! leading-relaxed">
+                                The first Dart backend framework, opinionated to just the right degree.
+                            </p>
+                            <div class="flex items-center gap-2">
+                                <a
+                                    href="https://github.com/francescovallone/serinus"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="p-2 border border-border! text-muted-foreground! hover:text-foreground! hover:border-foreground! transition-all"
+                                >
+                                    <GithubIcon class="w-5 h-5" />
+                                </a>
+                                <a
+                                    href="https://discord.gg/zydgnJ3ksJ"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="p-2 border border-border! text-muted-foreground! hover:text-foreground! hover:border-foreground! transition-all"
+                                >
+                                    <MessageIcon class="w-5 h-5" />
+                                </a>
+                                <a
+                                    href="https://twitter.com/francescovallo1"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="p-2 border border-border! text-muted-foreground! hover:text-foreground! hover:border-foreground! transition-all"
+                                >
+                                    <XSocialIcon />
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2 md:col-start-6">
+                            <div class="font-display font-semibold text-foreground mb-4 uppercase tracking-wider text-sm">Resources</div>
+                            <ul class="space-y-3">
+                                <li>
+                                    <a
+                                        href="https://serinus.app/introduction.html"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-muted-foreground! hover:text-primary! transition-colors hover-underline"
+                                    >
+                                        Docs
+                                    </a>
+                                </li>
+                            <li>
+                                <a href="/blog" class="text-muted-foreground! hover:text-primary! transition-colors hover-underline">
+                                    Blog
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="https://pub.dev/packages/serinus"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="text-muted-foreground! hover:text-primary! transition-colors hover-underline"
+                                >
+                                    pub.dev
+                                </a>
+                            </li>
+                            </ul>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <div class="font-display font-semibold text-foreground mb-4 uppercase tracking-wider text-sm">Community</div>
+                            <ul class="space-y-3">
+                                <li>
+                                    <a
+                                        href="https://discord.gg/zydgnJ3ksJ"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-muted-foreground! hover:text-primary! transition-colors hover-underline"
+                                    >
+                                        Discord
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://github.com/francescovallone/serinus"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-muted-foreground! hover:text-primary! transition-colors hover-underline"
+                                    >
+                                        GitHub
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://github.com/sponsors/francescovallone"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-muted-foreground! hover:text-primary! transition-colors hover-underline"
+                                    >
+                                        Sponsor
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <div class="font-display font-semibold text-foreground mb-4 uppercase tracking-wider text-sm">About</div>
+                            <ul class="space-y-3">
+                                <li>
+                                    <a
+                                        href="https://avesbox.com/"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-muted-foreground! hover:text-primary! transition-colors hover-underline"
+                                    >
+                                        Avesbox
+                                    </a>
+                                </li>
+                                <li>
+                                    <a
+                                        href="https://github.com/francescovallone"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="text-muted-foreground! hover:text-primary! transition-colors hover-underline"
+                                    >
+                                    Creator
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-16 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+                        <p class="text-sm text-muted-foreground font-mono">
+                            © 2025 Francesco Vallone
+                        </p>
+                        <p class="text-sm text-muted-foreground">
+                            One of the 🐤 of
+                            <a
+                                href="https://avesbox.com/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-primary! hover-underline"
+                            >
+                                Avesbox
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </footer>
+            
         </template>
     </DefaultTheme.Layout>
 </template>
@@ -143,5 +270,7 @@ const prompt = computed(() =>
 .doc-before-interaction:hover {
 	color: var(--vp-c-brand-1);
 }
-
+a.sponsor-link:hover {
+	color: hsl(var(--background)) !important;
+}
 </style>
