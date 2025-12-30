@@ -13,6 +13,7 @@ const props = defineProps<{
     shadow?: boolean
     tags: string[],
     lastUpdated: string
+    blog?: boolean
 }>()
 
 const author = authors[props.author]
@@ -56,9 +57,9 @@ const categoryColors: Record<string, string> = {
 <template>
     <article id="blog" class="flex flex-col max-w-5xl w-full mx-auto mt-8">
         <div class="flex items-center gap-4 mb-4 justify-between">
-            <a href="/blog" class="text-primary no-underline! m-0 group inline-flex items-center gap-2 text-xs font-medium tracking-wider font-mono uppercase hover:gap-5 transition-all!">
+            <a :href="props.blog === false ? '/next/analysis' : '/blog'" class="text-primary no-underline! m-0 group inline-flex items-center gap-2 text-xs font-medium tracking-wider font-mono uppercase hover:gap-5 transition-all!">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                Blog
+                {{ props.blog === false ? 'Analysis' : 'Blog' }}
             </a>
             <div class="inline-flex gap-2 items-center justify-center">
                 <div class="text-sm inline-flex items-center gap-1 text-muted-foreground">

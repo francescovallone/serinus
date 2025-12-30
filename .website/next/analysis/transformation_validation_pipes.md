@@ -13,6 +13,7 @@ search: false
 	author="Francesco Vallone"
 	date="21 Aug 2025"
   lastUpdated="21 Aug 2025"
+  :blog="false"
 	shadow
 >
 
