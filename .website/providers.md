@@ -163,7 +163,7 @@ The hooks return a `Future<void>` and can be used to run asynchronous code.
 ```dart
 import 'package:serinus/serinus.dart';
 
-class NotesProvider with OnApplicationInit {
+class NotesProvider extends Provider with OnApplicationInit {
 
   final _notes = <String>[];
 

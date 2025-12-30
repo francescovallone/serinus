@@ -14,39 +14,60 @@ const changePlugin = (event, selectedPlugin) => {
 </script>
 
 <template>
-	<div class="flex w-full gap-8 flex-col md:py-16 py-4 2xl:px-64 md:px-16 px-8">
-		<div class="flex gap-8 items-center">
-			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="none" stroke="#FF9800" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 8l-4 4l4 4m10-8l4 4l-4 4M14 4l-4 16"/></svg>
-			<div class="text-lg text-pretty text-serinus tracking-wide">
-				Ecosystem
-			</div>
-		</div>
-		<div class="flex flex-col gap-2">
-			<div class="text-3xl text-pretty">
-				A robust ecosystem for every need
-			</div>
-			<div class="text-base text-pretty text-gray-600 2xl:w-[52rem] lg:w-[36rem] w-full">
-				Designed to make backend development in Dart easy and enjoyable, Serinus offers a range of powerful features to help you build the best possible applications.
-			</div>
-		</div>
-		<div class="flex flex-col md:flex-row gap-8">
-			<div class="selector flex md:flex-col gap-4 overflow-auto flex-1 md:max-w-[300px] tabs">
-				<div v-for="plugin in plugins" :key="plugin.title" class="flex flex-col w-full min-w-[120px] text-center md:text-start">
-					<div class="text-base text-pretty p-2 md:border-l-2 md:border-b-0 border-b-2 border-bg cursor-pointer" :class="{'border-color-serinus': currentPlugin.title === plugin.title, 'hover:border-gray-300': currentPlugin.title !== plugin.title}" @click="(event) => changePlugin(event, plugin)">
-						{{ plugin.title }}
-					</div>
-				</div>
-			</div>
-			<div class="details flex flex-col gap-4 rounded-lg flex-1">
-				<div class="display">
-					<slot :name="currentPlugin.slot" :slot="currentPlugin.slot"></slot>
-				</div>
-				<div class="flex gap-4 items-center">
-					<a :href="currentPlugin.link" class="text-serinus py-3 text-sm underline">Read {{ currentPlugin.title }} docs</a>
-				</div>
-			</div>
-		</div>
-  	</div>
+	<section class="py-32 bg-card/50 relative overflow-hidden grain">
+      <div class="absolute top-20 right-10 text-[150px] font-display font-bold text-stroke opacity-5 select-none hidden lg:block">
+        03
+      </div>
+
+      <div class="container mx-auto px-6">
+        <motion.div
+          variants={scrollVariants.fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          :viewport="{ once: true, amount: 0.3 }"
+          :transition="{ duration: 0.6 }"
+          class="max-w-2xl mb-16"
+        >
+          <span class="tag text-muted-foreground mb-4 block w-fit">Ecosystem</span>
+          <div class="text-4xl md:text-5xl font-display font-bold leading-tight mb-4">
+            Everything you need,
+            <br />
+            <span class="font-serif italic font-normal text-muted-foreground">nothing you don't</span>
+          </div>
+        </motion.div>
+
+        <div class="grid lg:grid-cols-12 gap-8">
+          <div class="lg:col-span-4 flex flex-wrap lg:flex-col gap-2">
+            <div
+                :key="item.id"
+				v-for="item in plugins"
+                @click="(event) => changePlugin(event, item)"
+                :class="`group flex items-center gap-4 px-5 py-4 cursor-pointer text-left transition-all border-2 ${currentPlugin.title === item.title ? 'border-primary bg-primary/5 text-foreground' : 'border-transparent bg-background text-muted-foreground hover:text-foreground hover:border-border'}`"
+              >
+                <component :is="item.icon" :class="currentPlugin.title === item.title ? 'text-primary flex-shrink-0' : 'text-muted-foreground flex-shrink-0 group-hover:text-foreground'" />
+                <div>
+                  <span class="font-display font-semibold block">{{item.title}}</span>
+                  <span class="text-xs text-muted-foreground hidden lg:block">{{item.desc}}</span>
+                </div>
+            </div>
+          </div>
+
+          <motion.div
+            :key="currentPlugin.title"
+            :initial="{ opacity: 0, x: 20 }"
+            :animate="{ opacity: 1, x: 0 }"
+            :transition="{ duration: 0.3 }"
+            class="lg:col-span-8 flex flex-col gap-4"
+          >
+		  	<slot :name="currentPlugin.slot" :slot="currentPlugin.slot"></slot>
+			<a :href="currentPlugin.link" class="inline-flex items-center gap-2 text-sm text-muted-foreground! hover:text-primary! transition-colors group">
+				<span>Read the documentation</span>
+              	<span class="group-hover:translate-x-1 transition-transform">→</span>
+			</a>
+          </motion.div>
+        </div>
+      </div>
+    </section>
 </template>
 
 <style scoped>

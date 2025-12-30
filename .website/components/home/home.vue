@@ -4,16 +4,16 @@ import Hero from './hero.vue'
 import Partners from './partners.vue'
 import Highlights from './highlights.vue'
 import Features from './features.vue'
-import Spotlights from './spotlight.vue'
+import CommunitySection from './community_section.vue'
 import { plugins } from '../data/ecosystem';
 </script>
 
 <template>
-	<div class="flex flex-col gap-16">
+	<div class="flex flex-col">
 		<Hero>
 			<slot name="start"></slot>
 		</Hero>
-		<Highlights />
+		<Features />
 		<Ecosystem>
 			<template #openapi>
 				<slot name="openapi"></slot>
@@ -34,7 +34,7 @@ import { plugins } from '../data/ecosystem';
 				<slot name="testing"></slot>
 			</template>
 		</Ecosystem>
-		<Spotlights />
+		<CommunitySection />
 	</div>
 </template>
 

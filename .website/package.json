@@ -14,7 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "baseline-browser-mapping": "^2.8.30",
-    "vitepress": "^1.6.4"
+    "vitepress": "2.0.0-alpha.15"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

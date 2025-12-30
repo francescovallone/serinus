@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { motion, AnimatePresence } from 'motion-v';
 import { ref } from 'vue';
+import { CopyIcon } from './icons';
 
 const step = ref(0);
 const copied = ref(false);
@@ -31,7 +32,7 @@ function copyAndAdvance(text: string) {
 			<code class="text-foreground">dart pub global activate serinus_cli</code>
 			<span class="ml-auto">
 				<svg v-if="copied && step === 0" class="w-4 h-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12l5 5L20 7"/></svg>
-				<svg v-else class="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M7 9.667A2.667 2.667 0 0 1 9.667 7h8.666A2.667 2.667 0 0 1 21 9.667v8.666A2.667 2.667 0 0 1 18.333 21H9.667A2.667 2.667 0 0 1 7 18.333z"/><path d="M4.012 16.737A2 2 0 0 1 3 15V5c0-1.1.9-2 2-2h10c.75 0 1.158.385 1.5 1"/></g></svg>
+				<CopyIcon v-else class="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
 			</span>
 		</div>
 		<!-- Step 2: Create App -->
@@ -50,7 +51,7 @@ function copyAndAdvance(text: string) {
 				<code class="text-foreground">serinus create example_app</code>
 				<span class="ml-auto">
 					<svg v-if="copied && step === 1" class="w-4 h-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12l5 5L20 7"/></svg>
-					<svg v-else class="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M7 9.667A2.667 2.667 0 0 1 9.667 7h8.666A2.667 2.667 0 0 1 21 9.667v8.666A2.667 2.667 0 0 1 18.333 21H9.667A2.667 2.667 0 0 1 7 18.333z"/><path d="M4.012 16.737A2 2 0 0 1 3 15V5c0-1.1.9-2 2-2h10c.75 0 1.158.385 1.5 1"/></g></svg>
+					<CopyIcon v-else class="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
 				</span>
 			</motion.div>
 		</AnimatePresence>

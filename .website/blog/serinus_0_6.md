@@ -25,7 +25,7 @@ head:
         content: https://serinus.app/blog/serinus_0_6/serinus_0_6.webp
 ---
 <script setup>
-	import BlogPage from '../components/blog_page.vue'
+	import BlogPage from '../components/blog/blog_page.vue'
 </script>
 
 <BlogPage

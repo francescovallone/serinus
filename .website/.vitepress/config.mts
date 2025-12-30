@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import Tailwind from '@tailwindcss/vite'
+import { serinusNocturneTheme, serinusParchmentTheme } from './theme/serinus-parchment'
 
 // https://vitepress.dev/reference/site-config
 
@@ -79,6 +80,16 @@ export default defineConfig({
     image: {
       lazyLoading: true
     },
+    theme: {
+      light: {
+        ...serinusParchmentTheme,
+        type: "light"
+      },
+      dark: {
+        ...serinusNocturneTheme,
+        type: "dark"
+      }
+    }
   },
   sitemap: {
     hostname: 'https://serinus.app'
@@ -96,7 +107,14 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     logo: '/serinus-logo.png',
     search: {
-      provider: 'local'
+      provider: 'local',
+      options: {
+        translations: {
+          button: {
+            buttonText: 'Search docs...',
+          }
+        }
+      }
     },
     siteTitle: false,
     nav: [

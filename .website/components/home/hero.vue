@@ -24,6 +24,7 @@ import CliSequence from './cli_sequence.vue';
                         :initial="{ opacity: 0 }"
                         :animate="{ opacity: 1 }"
                         :transition="{ duration: 0.6, delay: 0.1 }"
+                        :viewport="{ once: true }"
                     >
                         v2.0 - Dawn Chorus
                     </motion.div>
@@ -33,6 +34,7 @@ import CliSequence from './cli_sequence.vue';
                         :initial="{ opacity: 0 }"
                         :animate="{ opacity: 1 }"
                         :transition="{ duration: 0.6, delay: 0.1 }"
+                        :viewport="{ once: true }"
                     >
                         <div class="text-5xl md:text-7xl lg:text-8xl font-display font-bold leading-[0.9] tracking-tight mb-4">
                             <span class="text-primary">Backend</span>
@@ -48,8 +50,9 @@ import CliSequence from './cli_sequence.vue';
                         :initial="{ opacity: 0, y: 20 }"
                         :animate="{ opacity: 1, y: 0 }"
                         :transition="{ duration: 0.5, delay: 0.3 }"
+                        :viewport="{ once: true }"
                     >
-                        The first Dart backend framework designed to work seamlessly with Flutter and Dart applications.
+                        The opinionated Dart backend framework designed to work seamlessly with Flutter and Dart applications.
                         Skip the learning curve & build server-side apps with the language you already know.
                     </motion.div>
                     <motion.div 
@@ -57,6 +60,7 @@ import CliSequence from './cli_sequence.vue';
                         :initial="{ opacity: 0, y: 20 }"
                         :animate="{ opacity: 1, y: 0 }"
                         :transition="{ duration: 0.5, delay: 0.4 }"
+                        :viewport="{ once: true }"
                     >
                         <a
                             href="https://serinus.app/introduction.html"
@@ -84,12 +88,14 @@ import CliSequence from './cli_sequence.vue';
                     :initial="{ opacity: 0, y: 40 }"
                     :animate="{ opacity: 1, y: 0 }"
                     :transition="{ duration: 0.7, delay: 0.3 }"
+                    :viewport="{ once: true }"
                     class="lg:col-span-5 relative"
                 >
                     <motion.div
                         class="absolute -top-16 -left-8 z-20"
                         :animate="{ y: [0, -15, 0], rotate: [0, 5, 0] }"
                         :transition="{ duration: 5, repeat: Infinity, ease: 'easeInOut' }"
+                        :viewport="{ once: true }"
                     >
                         <img
                             src='/serinus-logo.png'
@@ -98,11 +104,12 @@ import CliSequence from './cli_sequence.vue';
                         />
                     </motion.div>
                     
-                    <div class="lg:mt-16">
+                    <div class="lg:mt-16 starting-hero">
+                        <slot />
                     </div>
                     
                     <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider">
-                        6 lines to launch
+                        Modular by Design
                     </div>
                 </motion.div>
             </div>
@@ -120,28 +127,15 @@ import CliSequence from './cli_sequence.vue';
 ol {
 	padding: 0;
 }
-.tag {
-	font-family: 'Space Mono', 'JetBrains Mono', monospace;
-	display: inline-block;
-	border-width: 1px;
-	border-color: currentColor;
-	padding-left: 0.75rem;
-	padding-right: 0.75rem;
-	padding-top: 0.25rem;
-	padding-bottom: 0.25rem;
-	font-family: Space Mono, JetBrains Mono, monospace;
-	font-size: 0.75rem;
-	line-height: 1rem;
-	text-transform: uppercase;
-	letter-spacing: 0.1em;
-}
 a:hover {
 	color: hsl(var(--background)) !important;
 }
 </style>
 
 <style>
+
 @reference 'tailwindcss';
+
 .starting-hero > .vp-code-group div[class*="language-"] .lang {
     display: none;
 }

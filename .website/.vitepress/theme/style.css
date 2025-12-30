@@ -139,8 +139,9 @@
 	background-color: transparent !important;
 }
 .vp-code-group {
-	background-color: var(--vp-c-bg) !important;
-	@apply rounded-lg border-dashed border-2 border-gray-300;
+	background-color: hsl(var(--card)) !important;
+	border-color: hsl(var(--border));
+	@apply border-2;
 }
 .vp-code-group > .tabs {
     background-color: transparent !important;
@@ -149,19 +150,18 @@
     padding: 8px !important;
     display: flex !important;
     gap: 8px !important;
-    border-bottom: 1px solid #e5e7eb !important;
+    border-bottom: 2px solid hsl(var(--border)) !important;
 }
 .vp-code-group input:checked + label {
     border: 1px solid var(--vp-c-brand-1) !important;
-    border-radius: 4px !important;
 }
 .vp-code-group input + label {
     font-family: monospace !important;
     border: 1px solid transparent !important;
+	@apply uppercase tracking-wider text-muted-foreground text-xs;
 }
 .vp-code-group label:hover {
     border: 1px solid rgba(255, 137, 4, 0.5) !important;
-    border-radius: 4px !important;
 }
 .vp-code-group input:checked + label::after {
     background-color: unset !important;
@@ -175,36 +175,68 @@
 .vp-code-group div[class*="language-"] {
     padding: 8px !important;
 }
-.vp-code-group div[class*="language-"] > .token.string {
-    color: #d69d85 !important;
-}
-.vp-code:not(.vp-code-group .vp-code) {
-	background-color: var(--vp-c-bg) !important;
-	@apply rounded-lg border-dashed border-2 border-gray-300;
+.vp-code:not(.vp-code-group > .vp-code) {
+	background-color: hsl(var(--card)) !important;
+	border-color: hsl(var(--border));
+	@apply border-2 p-4;
 }
 .vp-code-group .tabs {
 	@apply shadow-none;
 }
-div[class*="language-"]:not(.vp-doc .vp-code) .vp-code {
-	padding: 16px !important;
-}
-div[class*="language-"]:not(.vp-doc .vp-code) {
+div[class*="language-"]:not(.vp-code-group div[class*="language-"]) {
 	position: relative !important;
 	overflow: auto !important;
+	background-color: hsl(var(--card)) !important;
+	border-color: hsl(var(--border));
+	@apply border-2 p-4;
+	border-radius: 0;
+}
+
+.vp-doc [class*="language-"] pre {
+	padding: 0 !important;
+}
+
+.VPSidebar, .curtain {
+	background-color: hsl(var(--card)) !important;
+}
+.VPNavBarTitle.has-sidebar .title .VPImage {
+	margin: auto !important;
+}
+
+.tag {
+	font-family: 'Space Mono', 'JetBrains Mono', monospace;
+	display: inline-block;
+	border-width: 1px;
+	border-color: currentColor;
+	padding-left: 0.75rem;
+	padding-right: 0.75rem;
+	padding-top: 0.25rem;
+	padding-bottom: 0.25rem;
+	font-family: Space Mono, JetBrains Mono, monospace;
+	font-size: 0.75rem;
+	line-height: 1rem;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+}
+
+.DocSearch-Button {
+	border-color: hsl(var(--border)) !important;
+	border-radius: 0;
+	@apply border bg-border;
 }
 
 [class*="language-"]:not(.vp-doc .vp-code) > span.lang {
 	position: absolute;
-	top: 2px;
+	bottom: 2px;
+	top: unset;
 	right: 8px;
 	z-index: 2;
 	font-size: 12px;
-	font-weight: 500;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	user-select: none;
-	color: var(--vp-code-lang-color);
 	transition: color 0.4s, opacity 0.4s;
+	@apply font-mono uppercase tracking-widest text-muted-foreground;
 }
 
 [class*="language-"]:not(.vp-doc .vp-code) > button.copy {
@@ -213,18 +245,16 @@ div[class*="language-"]:not(.vp-doc .vp-code) {
 	top: 12px;
 	right: 12px;
 	z-index: 3;
-	border: 1px solid var(--vp-code-copy-code-border-color);
-	border-radius: 4px;
 	width: 40px;
 	height: 40px;
-	background-color: var(--vp-code-copy-code-bg);
 	opacity: 0;
 	cursor: pointer;
-	background-image: var(--vp-icon-copy);
-	background-position: 50%;
-	background-size: 20px;
-	background-repeat: no-repeat;
+	background-image: unset;
+	mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48ZyBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik03IDkuNjY3QTIuNjY3IDIuNjY3IDAgMCAxIDkuNjY3IDdoOC42NjZBMi42NjcgMi42NjcgMCAwIDEgMjEgOS42Njd2OC42NjZBMi42NjcgMi42NjcgMCAwIDEgMTguMzMzIDIxSDkuNjY3QTIuNjY3IDIuNjY3IDAgMCAxIDcgMTguMzMzeiIvPjxwYXRoIGQ9Ik00LjAxMiAxNi43MzdBMiAyIDAgMCAxIDMgMTVWNWMwLTEuMS45LTIgMi0yaDEwYy43NSAwIDEuMTU4LjM4NSAxLjUgMSIvPjwvZz48L3N2Zz4=");
+	mask-repeat: no-repeat;
+	mask-position: 50%;
 	transition: border-color 0.25s, background-color 0.25s, opacity 0.25s;
+	@apply bg-muted-foreground;
 }
 
 [class*="language-"]:not(.vp-doc .vp-code):hover > button.copy, [class*="language-"]:not(.vp-doc .vp-code) > button.copy:focus {
@@ -254,11 +284,31 @@ div[class*="language-"]:not(.vp-doc .vp-code) {
 }
 [class*="language-"]:not(.vp-doc .vp-code) > button.copy.copied, [class*="language-"]:not(.vp-doc .vp-code) > button.copy:hover.copied {
 	border-radius: 0 4px 4px 0;
-	background-color: var(--vp-code-copy-code-hover-bg);
-	background-image: var(--vp-icon-copied);
+	background-image: unset;
+	mask: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSJjdXJyZW50Q29sb3IiIGQ9Ik05LjQxIDE2Ljg1bC02LjgzLTYuODNhMSAxIDAgMCAxIDEuNDEtMS40MWw1LjQxIDUuNDFsMTIuMDgtMTIuMDhhMSAxIDAgMSAxIDEuNDEgMS40MWwtMTMuNDkgMTMuNDlhMSAxIDAgMCAxLTEuNDEgMGwtNS40MS01LjQxeiIvPjwvc3ZnPg==");
+	mask-repeat: no-repeat;
+	mask-position: 50%;
+	@apply bg-muted-foreground;
 }
 [class*="language-"]:not(.vp-doc .vp-code) code {
 	padding: 0 !important;
+}
+.vp-doc [class*="language-"] {
+	margin: 0 !important;
+}
+
+.pager-link {
+	background: hsl(var(--card)) !important;
+	border-radius: 0px !important;
+	@apply py-4! px-6!;
+}
+
+.pager-link .desc {
+	@apply text-muted-foreground font-mono uppercase tracking-widest;
+}
+
+.pager-link .title {
+	@apply font-semibold text-base;
 }
 
 
@@ -468,6 +518,26 @@ html {
   .text-stroke-yellow {
     -webkit-text-stroke: 2px hsl(var(--primary));
     color: transparent;
+  }
+
+  .bg-background {
+	background-color: hsl(var(--background));
+  }
+
+  .text-background {
+	color: hsl(var(--background)) !important;
+  }
+
+  .border-border {
+	border-color: hsl(var(--border)) !important;
+  }
+
+  .border-foreground {
+	border-color: hsl(var(--foreground)) !important;
+  }
+
+  .bg-border {
+	background-color: hsl(var(--border)) !important;
   }
 
   .grain {
