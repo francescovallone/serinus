@@ -16,6 +16,18 @@ import CliSequence from './cli_sequence.vue';
             class="absolute bottom-40 left-[10%] w-32 h-32 border border-muted-foreground/20"
             style="transform: rotate(45deg);"
         />
+        <motion.div
+            class="absolute top-4 right-4 z-20 block md:hidden"
+            :animate="{ y: [0, -15, 0], rotate: [0, 5, 0] }"
+            :transition="{ duration: 5, repeat: Infinity, ease: 'easeInOut' }"
+            :viewport="{ once: true }"
+        >
+            <img
+                src='/serinus-logo.png'
+                alt="Serinus Mascot"
+                class="w-28 h-28 drop-shadow-2xl"
+            />
+        </motion.div>
         <div class="container mx-auto px-6 relative z-10">
             <div class="grid lg:grid-cols-12 gap-8 items-start pt-20">
                 <div class="lg:col-span-7">
@@ -56,7 +68,7 @@ import CliSequence from './cli_sequence.vue';
                         Skip the learning curve & build server-side apps with the language you already know.
                     </motion.div>
                     <motion.div 
-                        class="flex flex-wrap gap-4 mb-12"
+                        class="flex md:flex-row flex-col flex-wrap gap-4 mb-12"
                         :initial="{ opacity: 0, y: 20 }"
                         :animate="{ opacity: 1, y: 0 }"
                         :transition="{ duration: 0.5, delay: 0.4 }"
@@ -82,7 +94,7 @@ import CliSequence from './cli_sequence.vue';
                         
                     </motion.div>
 
-                    <cli-sequence />
+                    <cli-sequence class="hidden md:block" />
                 </div>
                 <motion.div
                     :initial="{ opacity: 0, y: 40 }"
@@ -92,7 +104,7 @@ import CliSequence from './cli_sequence.vue';
                     class="lg:col-span-5 relative"
                 >
                     <motion.div
-                        class="absolute -top-16 -left-8 z-20"
+                        class="absolute -top-16 -left-8 z-20 md:block hidden"
                         :animate="{ y: [0, -15, 0], rotate: [0, 5, 0] }"
                         :transition="{ duration: 5, repeat: Infinity, ease: 'easeInOut' }"
                         :viewport="{ once: true }"
@@ -104,11 +116,11 @@ import CliSequence from './cli_sequence.vue';
                         />
                     </motion.div>
                     
-                    <div class="lg:mt-16 starting-hero">
+                    <div class="lg:mt-16 starting-hero md:block hidden">
                         <slot />
                     </div>
                     
-                    <div className="absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider">
+                    <div className="md:block hidden absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider">
                         Modular by Design
                     </div>
                 </motion.div>

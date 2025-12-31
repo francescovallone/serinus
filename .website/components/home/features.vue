@@ -92,7 +92,7 @@
         	  :viewport="{ once: true, amount: 0.2 }"
         	  :transition="{ duration: 0.5, delay: index * 0.1 }"
         	  class="group bg-background p-8 hover:bg-card transition-colors relative"
-			  v-for="(feature, index) in features"
+			      v-for="(feature, index) in features"
         	>
             <!-- Number -->
         	  <span class="absolute top-4 right-4 font-mono text-xs text-muted-foreground/50">
