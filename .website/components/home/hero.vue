@@ -120,7 +120,7 @@ import CliSequence from './cli_sequence.vue';
                         <slot />
                     </div>
                     
-                    <div className="md:block hidden absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider">
+                    <div class="md:block hidden absolute -bottom-4 -right-4 bg-primary text-primary-foreground px-4 py-2 font-mono text-xs uppercase tracking-wider">
                         Modular by Design
                     </div>
                 </motion.div>

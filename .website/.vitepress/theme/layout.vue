@@ -108,7 +108,7 @@ const prompt = computed(() =>
                     © 2025 Francesco Vallone. Built with 💙 and <a href="https://dart.dev" class="text-serinus hover:text-serinus-2 underline" target="_blank">Dart</a> 🎯 | One of the 🐤 of <a href="https://avesbox.com" class="text-serinus hover:text-serinus-2 underline" target="_blank">Avesbox</a>.
                 </p>
             </div>
-            <footer v-if="router.route.data.frontmatter['layout'] === 'page' || router.route.data.frontmatter['sidebar'] === false" class="border-t-2 border-border bg-card/30">
+            <footer v-if="router.route.data.frontmatter['layout'] === 'page' || router.route.data.frontmatter['sidebar'] === false" class="border-t-2 border-border bg-card/30 z-10">
                 <div class="container mx-auto px-6 py-16">
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-12">
                         <div class="md:col-span-4">

@@ -537,7 +537,11 @@ html {
   }
 
   .border-border {
-	border-color: hsl(var(--border)) !important;
+	border-color: hsl(var(--border));
+  }
+
+  .border-primary {
+	border-color: hsl(var(--primary)) !important;
   }
 
   .border-foreground {

@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from 'vue'
-import { authors, Authors } from '../data/blog'
+import { authors, Authors, posts } from '../data/blog'
 import ShareRow from '../share_row.vue'
-import { CalendarIcon } from '../home/icons';
+import { CalendarIcon, ClockIcon } from '../home/icons';
 
 const props = defineProps<{
     title: string
@@ -15,6 +15,13 @@ const props = defineProps<{
     lastUpdated: string
     blog?: boolean
 }>()
+
+const currentPostPosition = ref(0)
+
+onMounted(() => {
+    currentPostPosition.value = posts.findIndex(p => p.title.toLowerCase() === props.title.toLowerCase())
+    console.log(currentPostPosition.value)
+})
 
 const author = authors[props.author]
 const profile = `/blog/authors/${author.src}`
@@ -61,7 +68,11 @@ const categoryColors: Record<string, string> = {
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 {{ props.blog === false ? 'Analysis' : 'Blog' }}
             </a>
-            <div class="inline-flex gap-2 items-center justify-center">
+            <div class="inline-flex gap-4 items-center justify-center">
+                <div class="text-sm inline-flex items-center gap-1 text-muted-foreground">
+                    <ClockIcon class="w-1 h-1" />
+                    <span class="text-xs uppercase font-mono">{{ readingTime }} min read</span>
+                </div>
                 <div class="text-sm inline-flex items-center gap-1 text-muted-foreground">
                     <CalendarIcon class="w-1 h-1" />
                     <span class="text-xs uppercase font-mono">{{ props.date }}</span>
@@ -94,16 +105,24 @@ const categoryColors: Record<string, string> = {
                     </p>
                 </div>
             </div>
-            <div class="!text-xs !m-0 opacity-75 flex flex-col items-end gap-1">
-                <div><span class="font-bold font-display">{{ readingTime }}</span> min read</div>
-                <div v-if="props.lastUpdated">Last updated: <span class="font-bold font-display">{{ lastUpdated }}</span></div>
-            </div>
+            <ShareRow />
         </div>
         <img :src="props.src" :alt="props.alt" class="w-full mt-6 mb-2" :class="props.shadow ? 'shadow-xl' : 'border'" />
         <main id="blog-content">
             <slot key="blog-content" />
         </main>
-        <ShareRow />
+        <nav class="prev-next" v-if="currentPostPosition <= posts.length - 1">
+            <div class="pager">
+                <a class="VPLink link pager-link prev" :href="`${posts[currentPostPosition - 1]?.href}`" v-if="currentPostPosition > 0">
+                    <span class="desc">Prev post</span><span class="title">{{ posts[currentPostPosition - 1]?.title }}</span>
+                </a>
+            </div>
+            <div class="pager">
+                <a class="VPLink link pager-link next" :href="`${posts[currentPostPosition + 1]?.href}`" v-if="currentPostPosition < posts.length - 1">
+                    <span class="desc">Next post</span><span class="title">{{ posts[currentPostPosition + 1]?.title }}</span>
+                </a>
+            </div>
+        </nav>
     </article>
 </template>
 
@@ -151,5 +170,62 @@ const categoryColors: Record<string, string> = {
     #blog>h1 {
         line-height: 3.25rem !important;
     }
+}
+</style>
+
+<style scoped>
+.prev-next {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+.prev-next {
+	border-top: 1px solid var(--vp-c-divider);
+	padding-top: 24px;
+	display: grid;
+	grid-row-gap: 8px;
+}
+.pager-link {
+	display: block;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 8px;
+	padding: 11px 16px 13px;
+	width: 100%;
+	height: 100%;
+	transition: border-color 0.25s;
+}
+.pager-link .title {
+	font-size: var(--text-base);
+	line-height: var(--tw-leading, var(--text-base--line-height));
+	--tw-font-weight: var(--font-weight-semibold);
+	font-weight: var(--font-weight-semibold);
+}
+.title {
+	display: block;
+	line-height: 20px;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--vp-c-brand-1);
+	transition: color 0.25s;
+}
+.pager-link {
+    text-decoration: none;
+}
+.pager-link.next {
+    text-align: right;
+}
+.pager-link .desc {
+	font-family: var(--font-mono);
+	--tw-tracking: var(--tracking-widest);
+	letter-spacing: var(--tracking-widest);
+	color: var(--color-muted-foreground);
+	text-transform: uppercase;
+}
+.pager-link .desc {
+	display: block;
+	line-height: 20px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--vp-c-text-2);
 }
 </style>
