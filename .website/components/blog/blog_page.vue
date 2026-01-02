@@ -20,7 +20,6 @@ const currentPostPosition = ref(0)
 
 onMounted(() => {
     currentPostPosition.value = posts.findIndex(p => p.title.toLowerCase() === props.title.toLowerCase())
-    console.log(currentPostPosition.value)
 })
 
 const author = authors[props.author]
