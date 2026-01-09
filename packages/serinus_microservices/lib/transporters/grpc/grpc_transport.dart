@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:grpc/grpc.dart';
 import 'package:serinus/serinus.dart';
 import 'grpc_message_handler.dart';
+import 'grpc_payload.dart';
 
 /// The [SerinusInterceptor] class is the gRPC interceptor for Serinus.
 class SerinusInterceptor extends ServerInterceptor {
@@ -20,7 +21,7 @@ class SerinusInterceptor extends ServerInterceptor {
     Stream<Q> requests,
     ServerStreamingInvoker<Q, R> invoker,
   ) {
-    return transporter.handleRequest<Q, R>(call, method, requests);
+    return transporter.handleRequest<Q, R>(call, method, requests, invoker);
   }
 }
 
@@ -101,24 +102,43 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
   Stream<TransportEvent> get status => throw UnimplementedError();
 
   /// Handles a gRPC request.
-  Stream<R> handleRequest<O, R>(ServiceCall call, ServiceMethod<O, R> method, Stream<O> requests) {
-    final path = call.clientMetadata?[':path'] ?? 'unknown';
-    final pathSegments = path.split('/');
-    if (pathSegments.length < 3) {
-      throw GrpcError.unimplemented('Invalid gRPC path');
+  Stream<R> handleRequest<O, R>(
+    ServiceCall call,
+    ServiceMethod<O, R> method,
+    Stream<O> requests,
+    ServerStreamingInvoker<O, R> invoker,
+  ) {
+    final rawPath = call.clientMetadata?[':path'];
+    final pathSegments = (rawPath ?? '').split('/').where((segment) => segment.isNotEmpty).toList();
+    if (pathSegments.length < 2) {
+      throw GrpcError.unimplemented(
+        'Invalid gRPC path: missing :path metadata; provide :path header or upgrade grpc package that supplies method.path',
+      );
     }
-    final serviceName = pathSegments[1];
-    final methodName = pathSegments[2];
+    final serviceName = pathSegments[0];
+    final methodName = pathSegments[1];
+
     final service = server?.lookupService(serviceName);
+    final serviceIdentifier = service?.runtimeType.toString() ?? serviceName;
     final controller = StreamController<R>();
     messagesResolver
         ?.handleMessage(
           RequestPacket(
-            pattern: '${service?.runtimeType}.$methodName',
+            pattern: '$serviceIdentifier.$methodName',
             id: serviceName,
             payload: method.streamingRequest
-                ? GrpcPayloadStream<O>(call, requests)
-                : GrpcPayloadUnitary<O>(call, _toSingleFuture(requests)),
+                ? GrpcPayloadStream<O, R>(
+                    call,
+                    requests,
+                    method: method,
+                    invoker: invoker,
+                  )
+                : GrpcPayloadUnitary<O, R>(
+                    call,
+                    _toSingleFuture(requests),
+                    method: method,
+                    invoker: invoker,
+                  ),
           ),
           this,
         )

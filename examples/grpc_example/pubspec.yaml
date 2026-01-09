@@ -5,14 +5,13 @@ publish_to: none
 environment:
   sdk: '>=3.9.0 <4.0.0'
 
-resolution: workspace
-
 dependencies:
   serinus: ^2.0.0
   dio: ^5.7.0
   protobuf: ^6.0.0
   grpc: ^5.1.0
-  serinus_microservices: ^0.1.0
+  serinus_microservices: 
+    path: ../../packages/serinus_microservices
 dev_dependencies:
   build_runner: ^2.4.12
   
