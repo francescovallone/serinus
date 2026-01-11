@@ -1,9 +1,10 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
+import 'package:serinus/src/router/atlas.dart';
+import 'package:serinus/src/router/router.dart';
 import 'package:serinus/src/routes/route_execution_context.dart';
 import 'package:serinus/src/routes/route_response_controller.dart';
-import 'package:serinus/src/routes/router.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
 
@@ -145,8 +146,12 @@ void main() {
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
-        final result = router.checkRouteByPathAndMethod('/v1', HttpMethod.get);
-        expect(result?.spec.route.path, '/v1/');
+        final result = router.lookup('/v1', HttpMethod.get);
+        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect(
+          (result as FoundRoute<RouterEntry>).values.first.context.path,
+          '/v1/',
+        );
       },
     );
 
@@ -172,8 +177,12 @@ void main() {
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
-        final result = router.checkRouteByPathAndMethod('/api', HttpMethod.get);
-        expect(result?.spec.route.path, '/api/');
+        final result = router.lookup('/api', HttpMethod.get);
+        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect(
+          (result as FoundRoute<RouterEntry>).values.first.context.path,
+          '/api/',
+        );
       },
     );
 
@@ -263,11 +272,12 @@ void main() {
           RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
-        final result = router.checkRouteByPathAndMethod(
-          '/api/v1',
-          HttpMethod.get,
+        final result = router.lookup('/api/v1', HttpMethod.get);
+        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect(
+          (result as FoundRoute<RouterEntry>).values.first.context.path,
+          '/api/v1/',
         );
-        expect(result?.spec.route.path, '/api/v1/');
       },
     );
   });
