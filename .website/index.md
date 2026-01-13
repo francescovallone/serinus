@@ -34,7 +34,7 @@ head:
 
 :::code-group
 
-```dart twoslash [Entrypoint]
+```dart [Entrypoint]
 import 'package:serinus/serinus.dart';
 
 Future<void> main() async {
@@ -66,6 +66,7 @@ class AppController extends Controller {
     on(Route.get('/'), _handleHelloWorld);
   }
 
+  // inspect:type
   String _handleHelloWorld(RequestContext context) {
     return 'Hello, World!';
   }

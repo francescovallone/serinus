@@ -36,6 +36,14 @@ Modules can also use the `registerAsync` method to register controllers, provide
 For example if you need to initialize the `database` connection before registering the providers.
 
 ```dart
+// inspect:type
+final count = 1;
+
+final message = 'Database connected with $count connections';
+
+// inspect:type
+message.length;
+
 import 'package:serinus/serinus.dart';
 
 class AppModule extends Module {

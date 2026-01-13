@@ -85,7 +85,7 @@
 }
 
 :root {
-	--vp-c-brand-1: #ff8904;
+	--vp-c-brand-1: hsl(--primary);
 	--vp-c-brand-2: #FFB74D;
 	--vp-c-brand-light: #FFA726;
 	--vp-c-brand-lighter: #FFB74D;
@@ -540,6 +540,10 @@ html {
 	border-color: hsl(var(--border));
   }
 
+  .border-border-imp {
+	border-color: hsl(var(--border)) !important;
+  }
+
   .border-primary {
 	border-color: hsl(var(--primary)) !important;
   }
@@ -596,4 +600,35 @@ html {
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+[data-dart-hover] {
+	position: relative;
+	cursor: help;
+}
+
+.dart-hover-popover {
+	position: absolute;
+	z-index: 40;
+	display: none;
+	max-width: 320px;
+	padding: 10px 12px;
+	border: 1px solid hsl(var(--border));
+	background: hsl(var(--card));
+	color: hsl(var(--foreground));
+	border-radius: 6px;
+	box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+	font-size: 0.875rem;
+	line-height: 1.4;
+}
+
+.dart-hover-popover code {
+	background: hsl(var(--muted));
+	padding: 2px 4px;
+	border-radius: 4px;
+	font-size: 0.85em;
+}
+
+.dart-hover-popover[data-visible='true'] {
+	display: block;
 }
