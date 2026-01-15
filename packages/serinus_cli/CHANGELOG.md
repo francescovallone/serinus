@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.4
+
+- fix: ignore sigterm in Windows when killing the process tree.
+
 ## 2.0.3
 
 - chore: update dependencies.
