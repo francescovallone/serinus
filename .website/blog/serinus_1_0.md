@@ -37,6 +37,7 @@ head:
     date="26 Nov 2024"
     :tags="['releases']"
     shadow
+    blog
 >
 
 Serinus 1.0, code name Primavera, is the first stable release of Serinus. It introduces ModelProvider, Client Generation, typed bodies and many other 

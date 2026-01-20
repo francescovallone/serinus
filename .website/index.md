@@ -34,7 +34,7 @@ head:
 
 :::code-group
 
-```dart [Entrypoint]
+```dart canary [Entrypoint]
 import 'package:serinus/serinus.dart';
 
 Future<void> main() async {
@@ -45,7 +45,7 @@ Future<void> main() async {
 }
 ```
 
-```dart [Module]
+```dart canary [Module]
 import 'package:serinus/serinus.dart';
 
 import 'app_controller.dart';
@@ -57,7 +57,7 @@ class AppModule extends Module {
 }
 ```
 
-```dart [Controller]
+```dart canary [Controller]
 import 'package:serinus/serinus.dart';
 
 class AppController extends Controller {
@@ -66,7 +66,6 @@ class AppController extends Controller {
     on(Route.get('/'), _handleHelloWorld);
   }
 
-  // inspect:type
   String _handleHelloWorld(RequestContext context) {
     return 'Hello, World!';
   }

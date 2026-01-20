@@ -17,6 +17,7 @@
     "vitepress": "2.0.0-alpha.15"
   },
   "dependencies": {
+    "@avesbox/canary": "file:../../canary",
     "@tailwindcss/vite": "^4.1.18",
     "motion-v": "^1.7.4",
     "tailwindcss": "^4.1.18"

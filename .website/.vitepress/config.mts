@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitepress'
 import Tailwind from '@tailwindcss/vite'
 import { serinusNocturneTheme, serinusParchmentTheme } from './theme/serinus-parchment'
+import { serinusTypes } from './serinus-types'
+import { canaryTransformer } from '@avesbox/canary'
 
 // https://vitepress.dev/reference/site-config
 
@@ -89,7 +91,10 @@ export default defineConfig({
         ...serinusNocturneTheme,
         type: "dark"
       }
-    }
+    },
+    codeTransformers: [
+      canaryTransformer({ customTypes: serinusTypes, explicitTrigger: true }),
+    ],
   },
   sitemap: {
     hostname: 'https://serinus.app'

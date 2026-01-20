@@ -36,6 +36,7 @@ head:
 	date="4 Nov 2024"
   :tags="['general']"
 	shadow
+  blog
 >
 
 Have you ever thought about the goal of Serinus? Why it has been created and what are the goals of the project?
