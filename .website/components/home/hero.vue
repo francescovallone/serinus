@@ -94,7 +94,7 @@ import CliSequence from './cli_sequence.vue';
                         
                     </motion.div>
 
-                    <cli-sequence class="hidden md:block" />
+                    <cli-sequence class="hidden sm:block" />
                 </div>
                 <motion.div
                     :initial="{ opacity: 0, y: 40 }"
