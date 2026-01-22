@@ -3,6 +3,7 @@ import Tailwind from '@tailwindcss/vite'
 import { serinusNocturneTheme, serinusParchmentTheme } from './theme/serinus-parchment'
 import { serinusTypes } from './serinus-types'
 import { canaryTransformer } from '@avesbox/canary'
+import llmstxt from 'vitepress-plugin-llms'
 
 // https://vitepress.dev/reference/site-config
 
@@ -295,6 +296,16 @@ export default defineConfig({
     ],
   },
   vite: {
-    plugins: [Tailwind()]
+    plugins: [
+      Tailwind(),
+      process.env.NODE_ENV ? llmstxt({
+        ignoreFiles: [
+          'blog/*',
+          'index.md',
+          'public/*',
+        ],
+        domain: 'https://serinus.app'
+      }) : undefined
+    ]
   }
 })

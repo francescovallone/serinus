@@ -20,6 +20,7 @@
     "@avesbox/canary": "^0.1.0",
     "@tailwindcss/vite": "^4.1.18",
     "motion-v": "^1.7.4",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "vitepress-plugin-llms": "^1.10.0"
   }
 }
