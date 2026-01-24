@@ -235,13 +235,23 @@ export default defineConfig({
             ]
           },
           {
+            text: 'Comparisons',
+            base: '/comparisons/',
+            collapsed: true,
+            items: [
+              { text: 'Shelf', link: 'shelf' },
+            ]
+          },
+          {
             text: 'Recipes',
             base: '/recipes/',
             collapsed: true,
             items: [
               { text: 'Testing', link: 'testing' },
+              { text: 'Liquify', link: 'liquify' },
             ]
           },
+          
           // {
           //   text: 'Plugins',
           //   base: '/plugins/',
@@ -303,6 +313,8 @@ export default defineConfig({
           'blog/*',
           'index.md',
           'public/*',
+          'plugins/*',
+          'next/*'
         ],
         domain: 'https://serinus.app'
       }) : undefined

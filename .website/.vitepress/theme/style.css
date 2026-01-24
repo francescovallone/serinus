@@ -474,6 +474,12 @@ div[class*="language-"]:not(.vp-code-group div[class*="language-"]) {
 	max-height: 320px;
 	transform: translate(-50%,-50%);
 }
+.VPDoc.has-aside .content-container {
+	max-width: unset !important;
+}
+.VPDoc:not(.has-sidebar) .content:has(.content-container.blog) {
+	max-width: unset !important;
+}
 .image-bg {
 	background-image: linear-gradient(-45deg, rgba(255, 152, 0, 0.6) 50%, rgba(245, 124, 0, 0.6) 50%) !important;
 	background-image: -moz-linear-gradient(-45deg, rgba(255, 152, 0, 0.6) 50%, rgba(245, 124, 0, 0.6) 50%) !important;

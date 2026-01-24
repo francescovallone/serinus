@@ -16,7 +16,7 @@ Also, hooks can expose services to the application, so you can use them to creat
 As for the Routes, Hooks are `Hookable` objects, so they can use the lifecycle hooks provided by the mixins and even some specific hooks provided by the `Hook` class.
 
 | Mixin | Hook | Description |
-|-------|------|-------------|
+| ------- | ------ | ------------- |
 | OnRequest | `onRequest` | Executes code when the request is received |
 | OnBeforeHandle | `beforeHandle` | Executes code before the request is handled. |
 | OnAfterHandle | `afterHandle` | Executes code after the request is handled. |
@@ -31,23 +31,22 @@ class LogHook extends Hook
   with OnRequest, OnBeforeHandle, OnAfterHandle, OnResponse {
 
   @override
-  Future<void> onRequest(Request request, InternalResponse response) async {
-    print('Request received: ${request.method} ${request.url}');
+  Future<void> onRequest(ExecutionContext context) async {
+    print('Request received: ${context.argumentHost.request.method} ${context.request.url}');
   }
 
   @override
-  Future<void> beforeHandle(RequestContext context) async {
+  Future<void> beforeHandle(ExecutionContext context) async {
     print('Before handling the request');
   }
 
   @override
-  Future<void> afterHandle(RequestContext context, WrappedResponse response) async {
+  Future<void> afterHandle(ExecutionContext context, WrappedResponse response) async {
     print('After handling the request');
   }
 
   @override
-  Future<void> onResponse(
-    Request request, WrappedResponse data, ResponseProperties properties) async {
+  Future<void> onResponse(ExecutionContext context, WrappedResponse data) async {
     print('Response sent: ${data}');
   }
 

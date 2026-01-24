@@ -6,7 +6,7 @@ import {
 import { useRouter } from 'vitepress'
 const { route } = useRouter()
 import DefaultTheme from 'vitepress/theme-without-fonts'
-import { GithubIcon, MessageIcon, XSocialIcon } from '../../components/home/icons';
+import { DiscordIcon, GithubIcon, MessageIcon, XSocialIcon } from '../../components/home/icons';
 import OpenIn from '../../components/open-in.vue';
 
 </script>
@@ -62,7 +62,7 @@ import OpenIn from '../../components/open-in.vue';
                                     rel="noopener noreferrer"
                                     class="p-2 border border-border! text-muted-foreground! hover:text-foreground! hover:border-foreground! transition-all"
                                 >
-                                    <MessageIcon class="w-5 h-5" />
+                                    <DiscordIcon class="w-5 h-5" />
                                 </a>
                                 <a
                                     href="https://twitter.com/francescovallo1"

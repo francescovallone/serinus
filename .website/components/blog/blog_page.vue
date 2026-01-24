@@ -132,7 +132,7 @@ const categoryColors: Record<string, string> = {
 .blog.aside {
     position: fixed !important;
     z-index: 10;
-    left: calc(50% + 48rem / 2 + 2rem) !important;
+    left: calc(50% + 64rem / 2 + 2rem) !important;
 }
 
 .blog.content,
