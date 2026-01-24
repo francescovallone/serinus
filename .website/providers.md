@@ -145,6 +145,58 @@ class UsersModule extends Module {
 
 These kind of providers will be initialzied asynchrounously and the `create` method will be called only when all the dependencies are resolved.
 
+## Class Providers
+
+Usually, when dealing with multiple environments (development, staging, production), you might want to have different implementations of the same service.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+abstract class PaymentService extends Provider {
+  PaymentService();
+  Future<void> processPayment(double amount);
+}
+
+class StripePaymentService extends PaymentService {
+  StripePaymentService();
+
+  @override
+  Future<void> processPayment(double amount) async {
+    // Process payment with Stripe
+  }
+}
+
+class PaypalPaymentService extends PaymentService {
+  PaypalPaymentService();
+
+  @override
+  Future<void> processPayment(double amount) async {
+    // Process payment with PayPal
+  }
+}
+```
+
+You can register different implementations of the same service using Class Providers.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class PaymentsModule extends Module {
+  PaymentsModule(String environment) : super(
+    providers: [
+      Provider.forClass<PaymentService>(
+        useClass: environment == 'production'
+          ? StripePaymentService()
+          : PaypalPaymentService(),
+      ),
+    ],
+  );
+}
+
+PaymentsModule('production') // Will use StripePaymentService
+PaymentsModule('development') // Will use PaypalPaymentService
+```
+
 ## Lifecycle Hooks
 
 If you need to run some code when your application is initializing, bootstrapping, ready to serve requests, or shutting down, you can use lifecycle hooks in your providers.

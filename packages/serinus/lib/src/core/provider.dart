@@ -94,7 +94,7 @@ sealed class CustomProvider<T extends Provider> extends Provider {
 ///
 /// // Register conditionally
 /// final configProvider = Provider.forClass<ConfigService>(
-///   useClass: Platform.environment['ENV'] == 'production'
+///   useClass: !kIsDebug
 ///     ? ProdConfigService()
 ///     : DevConfigService(),
 /// );
