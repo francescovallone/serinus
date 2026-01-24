@@ -110,6 +110,12 @@ final class Atlas<T> {
     _handlersCache.clear();
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
+      if (segment == TailWildcardNode.key && i != segments.length - 1) {
+        // Tail wildcard must be the last segment
+        throw ArgumentError(
+          'Tail wildcard "**" must be the last segment in the path "$path".',
+        );
+      }
       final parentBeforeInsert = currentNode;
       currentNode = _insertSegment(currentNode, segment);
 
