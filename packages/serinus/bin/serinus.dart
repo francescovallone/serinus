@@ -33,7 +33,6 @@ class Test2Controller extends Controller {
 
 class AppController extends Controller {
   AppController() : super('/') {
-    // Optional path parameters, for the first time on Dart!
     on<Map<String, dynamic>, dynamic>(Route.get('/data/:id?'), (
       RequestContext<dynamic> context,
     ) async {
