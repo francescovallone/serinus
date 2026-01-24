@@ -21,7 +21,7 @@ abstract class Provider {
   ///
   /// ```dart
   /// final configProvider = Provider.forClass<ConfigService>(
-  ///   useClass: isProduction ? ProductionConfig : DevelopmentConfig,
+  ///   useClass: !kIsDebug ? ProductionConfig : DevelopmentConfig,
   /// );
   ///
   /// class AppModule extends Module {

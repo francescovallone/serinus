@@ -35,7 +35,7 @@ final class ModulesContainer {
   final List<_ProviderDependencies> _providerDependencies = [];
 
   /// Maps custom provider tokens to their actual implementation types.
-  /// This is used when a [ClassProvider] or [ValueProvider] registers
+  /// This is used when a [ClassProvider] registers
   /// an implementation under a different token type.
   final Map<Type, Type> _customProviderTokens = {};
 
