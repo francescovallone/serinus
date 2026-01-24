@@ -208,7 +208,7 @@ class RequestContext<TBody> extends BaseContext {
     }
     final value = params[name];
     if (value == null) {
-      final acceptNull = T.runtimeType.toString().endsWith('?');
+      final acceptNull = T.toString().endsWith('?');
       if (acceptNull) {
         return value;
       }

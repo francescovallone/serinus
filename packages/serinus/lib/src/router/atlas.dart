@@ -107,7 +107,7 @@ final class Atlas<T> {
     var currentNode = _root;
     AtlasNode<T>? optionalParent;
     ParamNode<T>? optionalParamNode;
-
+    _handlersCache.clear();
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
       final parentBeforeInsert = currentNode;
@@ -252,7 +252,7 @@ final class Atlas<T> {
         node.handlers[HttpMethod.all.index] != null;
   }
 
-  static final _pathsCache = <String, List<String>>{};
+  final _pathsCache = <String, List<String>>{};
 
   /// Parses a path string into segments.
   List<String> _parsePathSegments(String path) {
