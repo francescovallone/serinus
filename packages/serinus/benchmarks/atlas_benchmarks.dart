@@ -27,6 +27,28 @@ class AtlasBenchmarks extends PerfBenchmarkBase {
   }
 }
 
+class AtlasParametricBenchmark extends PerfBenchmarkBase {
+  AtlasParametricBenchmark() : super('Atlas Parametric Lookup Benchmark');
+
+  final atlas = Atlas<int>();
+
+  @override
+  void setup() {
+    atlas.add(HttpMethod.get, '/api/v1/users/:id', 0);
+  }
+
+  @override
+  void run() {
+    final result = atlas.lookup(HttpMethod.get, '/api/v1/users/500');
+    if (result.values.first != 0) {
+      throw Exception(
+        'Benchmark failed: expected 0, got ${result.values.first}',
+      );
+    }
+  }
+}
+
 void main() {
   AtlasBenchmarks().report();
+  AtlasParametricBenchmark().report();
 }

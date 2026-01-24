@@ -127,8 +127,10 @@ final class RoutesExplorer {
 
   /// Gets the route by path and method.
   ///
-  /// Returns a [RouteContext] and the handler function if the route exists,
-  /// otherwise returns null.
+  /// Returns a [AtlasResult].
+  /// If no route is found, returns a [NotFoundRoute].
+  /// If no method matches, returns a [MethodNotAllowedRoute].
+  /// Otherwise, returns the matched route in a [FoundRoute].
   AtlasResult<RouterEntry> getRoute(String path, HttpMethod method) {
     return _router.lookup(path, method);
   }

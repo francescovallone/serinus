@@ -262,7 +262,7 @@ final class Atlas<T> {
     if (path.isEmpty || path == '/') {
       return const <String>[];
     }
-    if (path.split('/').join().isEmpty) {
+    if (path.codeUnits.every((c) => c == 47)) {
       return const <String>[];
     }
     final start = path.startsWith('/') ? 1 : 0;
@@ -494,44 +494,4 @@ final class Atlas<T> {
     return segment.substring(startIndex, endIndex);
   }
 
-  /// Prints the tree structure for debugging purposes.
-  // void printTree() {
-  //   _printNode(_root, '', true);
-  // }
-
-  // void _printNode(AtlasNode<T> node, String prefix, bool isLast) {
-  //   final connector = isLast ? '└── ' : '├── ';
-  //   final nodeType = switch (node) {
-  //     TailWildcardNode() => '[**]',
-  //     WildcardNode() => '[*]',
-  //     ParamNode(name: final n, prefix: final p, suffix: final s) =>
-  //       '[<$n>${p != null ? ' prefix:$p' : ''}${s != null ? ' suffix:$s' : ''}]',
-  //     _ => '[static]',
-  //   };
-
-  //   final handlers = node.handlers
-  //       .asMap()
-  //       .entries
-  //       .where((e) => e.value != null)
-  //       .map((e) => HttpMethod.values[e.key].name)
-  //       .join(', ');
-  //   final handlerInfo = handlers.isNotEmpty ? ' handlers: [$handlers]' : '';
-
-  //   print('$prefix$connector$nodeType$handlerInfo');
-
-  //   final children = <(String, AtlasNode<T>)>[
-  //     ...node.staticChildren.entries.map((e) => (e.key, e.value)),
-  //     if (node.paramChild != null) ('<param>', node.paramChild!),
-  //     if (node.wildcardChild != null) ('*', node.wildcardChild!),
-  //     if (node.tailWildcardChild != null) ('**', node.tailWildcardChild!),
-  //   ];
-
-  //   for (var i = 0; i < children.length; i++) {
-  //     final (key, child) = children[i];
-  //     final childPrefix = prefix + (isLast ? '    ' : '│   ');
-  //     final childIsLast = i == children.length - 1;
-  //     print('$childPrefix${childIsLast ? '└── ' : '├── '}$key');
-  //     _printNode(child, childPrefix + (childIsLast ? '    ' : '│   '), true);
-  //   }
-  // }
 }

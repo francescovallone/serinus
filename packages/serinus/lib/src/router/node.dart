@@ -35,6 +35,8 @@ class AtlasNode<T> {
   ///
   /// Special node types (param, wildcard, tail wildcard) are stored
   /// in their respective properties for quick access.
+  /// They are also stored in staticChildren for key-based lookups during
+  /// route registration (to detect existing segments with the same key).
   AtlasNode<T> addChild(String key, AtlasNode<T> node) {
     switch (node) {
       case TailWildcardNode<T>():

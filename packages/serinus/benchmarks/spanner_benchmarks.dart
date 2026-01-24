@@ -26,6 +26,28 @@ class SpannerBenchmarks extends PerfBenchmarkBase {
   }
 }
 
+class SpannerParametricBenchmark extends PerfBenchmarkBase {
+  SpannerParametricBenchmark() : super('Spanner Parametric Lookup Benchmark');
+
+  final spanner = Spanner();
+
+  @override
+  void setup() {
+    spanner.addRoute(HTTPMethod.GET, '/api/v1/users/<id>', 0);
+  }
+
+  @override
+  void run() {
+    final result = spanner.lookup(HTTPMethod.GET, '/api/v1/users/500');
+    if (result?.values.firstOrNull != 0) {
+      throw Exception(
+        'Benchmark failed: expected 0, got ${result?.values.first}',
+      );
+    }
+  }
+}
+
 void main() {
   SpannerBenchmarks().report();
+  SpannerParametricBenchmark().report();
 }
