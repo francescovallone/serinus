@@ -143,6 +143,7 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
   void addStream(Stream<List<int>> stream, {bool close = true}) {
     original.addStream(stream).then((_) {
       if (close) {
+        original.flush();
         original.close();
         _isClosed = true;
       }

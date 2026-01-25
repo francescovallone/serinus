@@ -160,16 +160,20 @@ class SerinusHttpAdapter
             io.ContentType.parse('application/octet-stream'),
         preserveHeaderCase: preserveHeaderCase,
       );
+      final fileStat = bodyData.statSync();
       response.headers({
         'transfer-encoding': 'chunked',
         io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
         if (response.currentHeaders.value('etag') == null)
-          io.HttpHeaders.etagHeader: bodyData.statSync().eTag,
+          io.HttpHeaders.etagHeader: fileStat.eTag,
+        io.HttpHeaders.contentDisposition: 
+            'attachment; filename="${bodyData.uri.pathSegments.last}"',
+        io.HttpHeaders.contentLengthHeader:
+            fileStat.size.toString(),
       }, preserveHeaderCase: preserveHeaderCase);
+      response.status(properties.statusCode);
       if (request.fresh) {
         response.status(304);
-      } else {
-        response.status(properties.statusCode);
       }
       if (response.statusCode == 304 || response.statusCode == 204) {
         response.currentHeaders.removeAll('content-type');
@@ -191,10 +195,9 @@ class SerinusHttpAdapter
       if (response.currentHeaders.value('etag') == null)
           io.HttpHeaders.etagHeader: body.eTag,
     }, preserveHeaderCase: preserveHeaderCase);
+    response.status(properties.statusCode);
     if (request.fresh) {
       response.status(304);
-    } else {
-      response.status(properties.statusCode);
     }
     if (response.statusCode == 304 || response.statusCode == 204) {
       response.currentHeaders.removeAll('content-type');

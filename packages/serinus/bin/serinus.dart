@@ -53,9 +53,11 @@ class Test2Controller extends Controller {
 
 class AppController extends Controller {
   AppController() : super('/app') {
-    on<String, dynamic>(Route.get('/'), (RequestContext context) async {
+    on<File, dynamic>(Route.get('/'), (RequestContext context) async {
       final provider = context.use<TestProvider>();
-      return 'Counter: ${provider.counter}';
+      return File(
+        '${Directory.current.absolute.path}/test/http/test.txt',
+      );
     });
     on<String, List<dynamic>>(Route.post('/echo'), (
       RequestContext<List<dynamic>> context,
