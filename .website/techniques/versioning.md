@@ -111,7 +111,7 @@ class UsersController extends Controller {
 
 ## Ignore Versioning
 
-Sometimes you may want to have a route that is not affected by versioning. To achieve this, we can use the augment the route or the controller with the `IgnoreVersion` metadata.
+Sometimes you may want a route that is not affected by versioning. To achieve this, you can augment the route or controller with the `IgnoreVersion` metadata.
 
 ```dart
 import 'package:serinus/serinus.dart';
