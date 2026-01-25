@@ -18,7 +18,11 @@ class UploadController extends Controller {
       // Access files
       final uploadedFile = formData.file('file'); // This returns an UploadedFile?
       if (uploadedFile != null) {
-        final file = await uploadedFile.toFile('/path/to/save/${uploadedFile.name}');
+        // Sanitize filename to prevent directory traversal attacks
+        final sanitizedFileName = uploadedFile.name.replaceAll(RegExp(r'[^\w\.-]'), '_');
+        // You can also generate a unique filename here
+        // final uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}_${uploadedFile.name.split('/').last.split('\\').last}';
+        final file = await uploadedFile.toFile('/path/to/save/$sanitizedFileName');
         // Process the file content as needed
       }
 
@@ -39,3 +43,13 @@ You can access uploaded files using the `file` method on the `FormData` object. 
 | `stream`        | A stream of bytes representing the file content. |
 | `read()`        | Reads the entire file content into memory.       |
 | `toFile(path)`  | Saves the uploaded file to the specified path.   |
+
+## Security Considerations
+
+When handling file uploads, always validate and sanitize user input:
+
+- **Validate file type**: Check the `contentType` against an allowlist
+- **Limit file size**: Enforce maximum file size limits
+- **Sanitize filenames**: Remove or replace path separators and special characters
+- **Use unique filenames**: Generate server-side filenames to avoid conflicts and attacks
+- **Store outside web root**: Save uploaded files outside publicly accessible directories
