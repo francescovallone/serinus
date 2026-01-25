@@ -161,12 +161,14 @@ class SerinusHttpAdapter
         preserveHeaderCase: preserveHeaderCase,
       );
       final fileStat = await bodyData.stat();
+      final rawFileName = bodyData.uri.pathSegments.last;
+      final sanitizedFileName = rawFileName.replaceAll('"', '');
       response.headers({
         io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
         if (response.currentHeaders.value('etag') == null)
           io.HttpHeaders.etagHeader: fileStat.eTag,
         io.HttpHeaders.contentDisposition: 
-            'attachment; filename="${bodyData.uri.pathSegments.last}"',
+            'attachment; filename*=UTF-8\'\'"$sanitizedFileName"',
         io.HttpHeaders.contentLengthHeader:
             fileStat.size.toString(),
       }, preserveHeaderCase: preserveHeaderCase);
