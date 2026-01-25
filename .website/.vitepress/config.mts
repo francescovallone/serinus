@@ -141,6 +141,7 @@ export default defineConfig({
               { text: 'Model Provider', link: 'model_provider' },
               { text: 'Model View Controller', link: 'mvc' },
               { text: 'Task Scheduling', link: 'task_scheduling' },
+              { text: 'File Upload', link: 'file_upload' },
               { text: 'Request Events', link: 'request_events' },
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
