@@ -391,8 +391,7 @@ class InternalRequest extends IncomingMessage {
 
       final lastModifiedDate = parseHttpDate(lastModified);
       // Compare the dates
-      return !(lastModifiedDate.isBefore(modifiedSince) ||
-          lastModifiedDate.isAtSameMomentAs(modifiedSince));
+      return !lastModifiedDate.isAfter(modifiedSince);
     }
     return true;
   }

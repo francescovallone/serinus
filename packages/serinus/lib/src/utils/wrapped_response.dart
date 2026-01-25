@@ -42,7 +42,7 @@ class WrappedResponse {
   String get eTag {
     final bytes = toBytes();
     if (bytes.isEmpty) {
-      return '0-2jmj7l5rSw0yVb/vlWAYkK/YBwk'; // ETag for empty response
+      return '"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"'; // ETag for empty response
     }
     // Simple ETag generation using a hash of the bytes
     final hash = base64Encode(sha1.convert(bytes).bytes).substring(0, 27);

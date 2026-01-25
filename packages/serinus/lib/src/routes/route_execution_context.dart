@@ -283,7 +283,7 @@ class RouteExecutionContext {
           return WrappedResponse(executionContext.response.body);
         }
         if (executionContext.response.closed) {
-          return null;
+          return WrappedResponse(null);
         }
       }
     }
