@@ -9,21 +9,21 @@ import 'package:serinus/serinus.dart';
 
 class UploadController extends Controller {
   UploadController() : super('/upload') {
-	on(Route.post('/'), (RequestContext<FormData> context) async {
-	  final formData = context.body;
+    on(Route.post('/'), (RequestContext<FormData> context) async {
+      final formData = context.body;
 
-	  // Access fields
-	  final name = formData.fields['name'];
+      // Access fields
+      final name = formData.fields['name'];
 
-	  // Access files
-	  final uploadedFile = formData.file('file'); // This returns an UploadedFile?
-	  if (uploadedFile != null) {
-		final file = await uploadedFile.toFile('/path/to/save/${uploadedFile.name}');
-		// Process the file content as needed
-	  }
+      // Access files
+      final uploadedFile = formData.file('file'); // This returns an UploadedFile?
+      if (uploadedFile != null) {
+        final file = await uploadedFile.toFile('/path/to/save/${uploadedFile.name}');
+        // Process the file content as needed
+      }
 
-	  return 'File uploaded successfully';
-	});
+      return 'File uploaded successfully';
+    });
   }
 }
 ```
@@ -32,11 +32,10 @@ class UploadController extends Controller {
 
 You can access uploaded files using the `file` method on the `FormData` object. This method returns an `UploadedFile`. An `UploadedFile` provides the following properties and methods:
 
-| Property/Method | Description |
-|-----------------|-------------|
-| `name`          | The name of the uploaded file. |
-| `contentType`  | The content type of the uploaded file. |
-| `stream`       | A stream of bytes representing the file content. |
-| `read()`       | Reads the entire file content into memory. |
-| `toFile(path)` | Saves the uploaded file to the specified path. |
-
+| Property/Method | Description                                      |
+|-----------------|--------------------------------------------------|
+| `name`          | The name of the uploaded file.                   |
+| `contentType`   | The content type of the uploaded file.           |
+| `stream`        | A stream of bytes representing the file content. |
+| `read()`        | Reads the entire file content into memory.       |
+| `toFile(path)`  | Saves the uploaded file to the specified path.   |
