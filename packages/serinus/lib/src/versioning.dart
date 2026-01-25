@@ -80,11 +80,12 @@ final class VersioningOptions {
     final otherOptions = other;
     return otherOptions.version == version &&
         otherOptions.type == type &&
-        otherOptions.header == header;
+        otherOptions.header == header &&
+        otherOptions.prefix == prefix;
   }
 
   @override
   int get hashCode {
-    return Object.hash(version, type, header);
+    return Object.hash(version, type, header, prefix);
   }
 }
