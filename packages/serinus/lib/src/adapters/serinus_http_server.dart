@@ -160,9 +160,8 @@ class SerinusHttpAdapter
             io.ContentType.parse('application/octet-stream'),
         preserveHeaderCase: preserveHeaderCase,
       );
-      final fileStat = bodyData.statSync();
+      final fileStat = await bodyData.stat();
       response.headers({
-        'transfer-encoding': 'chunked',
         io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
         if (response.currentHeaders.value('etag') == null)
           io.HttpHeaders.etagHeader: fileStat.eTag,
