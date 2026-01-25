@@ -37,7 +37,7 @@ final class ModulesContainer {
   /// Maps custom provider tokens to their actual implementation types.
   /// This is used when a [ClassProvider] registers
   /// an implementation under a different token type.
-  final Map<Type, Type> _customProviderTokens = {};
+  final Map<Provider, Type> _customProviderTokens = {};
 
   /// The list of all the global providers registered in the application
   final List<Provider> globalProviders = [];
@@ -98,7 +98,7 @@ final class ModulesContainer {
     
     final split = currentScope.providers.splitBy<ComposedProvider>();
     for (final provider in split.notOfType) {
-      final providerType = _customProviderTokens[provider.runtimeType] ??
+      final providerType = _customProviderTokens[provider] ??
           provider.runtimeType;
       final providerToken = InjectionToken.fromProvider(provider);
       final existingScope = _scopedProviders[providerType];
@@ -320,7 +320,7 @@ final class ModulesContainer {
       switch (provider) {
         case ClassProvider(:final useClass, :final token):
           result.add(useClass);
-          _customProviderTokens[useClass.runtimeType] = token;
+          _customProviderTokens[useClass] = token;
         default:
           result.add(provider);
       }
