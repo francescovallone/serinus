@@ -16,7 +16,7 @@ class UploadController extends Controller {
       final name = formData.fields['name'];
 
       // Access files
-      final uploadedFile = formData.file('file'); // This returns an UploadedFile?
+      final uploadedFile = formData.file('file'); // Returns an UploadedFile
       if (uploadedFile != null) {
         // Sanitize filename to prevent directory traversal attacks
         final sanitizedFileName = uploadedFile.name.replaceAll(RegExp(r'[^\w\.-]'), '_');
