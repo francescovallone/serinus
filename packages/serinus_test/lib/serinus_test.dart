@@ -10,6 +10,8 @@ import 'package:test/test.dart';
 
 class TestHeaders implements HttpHeaders {
 
+  String _normalizeHeader(String name, bool preserveHeaderCase) => preserveHeaderCase ? name : name.toLowerCase();
+
   TestHeaders(
     this._headers,
     {
@@ -27,7 +29,7 @@ class TestHeaders implements HttpHeaders {
 
   TestHeaders.fromFlatMap(Map<String, String> headers)
       : _headers = headers.map(
-          (key, value) => MapEntry(key, value.split(',').map((e) => e.trim()).toList()),
+          (key, value) => MapEntry(key.toLowerCase(), value.split(',').map((e) => e.trim()).toList()),
         ),
         chunkedTransferEncoding = false,
         contentLength = 0,
@@ -64,12 +66,12 @@ class TestHeaders implements HttpHeaders {
 
   @override
   List<String>? operator [](String name) {
-    return _headers[name];
+    return _headers[_normalizeHeader(name, false)];
   }
 
   @override
   void add(String name, Object value, {bool preserveHeaderCase = false}) {
-    final values = _headers.putIfAbsent(name, () => <String>[]);
+    final values = _headers.putIfAbsent(_normalizeHeader(name, preserveHeaderCase), () => <String>[]);
     values.add(value.toString());
   }
 
@@ -90,23 +92,23 @@ class TestHeaders implements HttpHeaders {
 
   @override
   void remove(String name, Object value) {
-    final values = _headers[name];
+    final values = _headers[_normalizeHeader(name, false)];
     values?.remove(value.toString());
   }
 
   @override
   void removeAll(String name) {
-    _headers.remove(name);
+    _headers.remove(_normalizeHeader(name, false));
   }
 
   @override
   void set(String name, Object value, {bool preserveHeaderCase = false}) {
-    _headers[name] = [value.toString()];
+    _headers[_normalizeHeader(name, preserveHeaderCase)] = [value.toString()];
   }
 
   @override
   String? value(String name) {
-    final values = _headers[name];
+    final values = _headers[_normalizeHeader(name, false)];
     if (values == null || values.isEmpty) {
       return null;
     }

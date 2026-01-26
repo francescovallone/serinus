@@ -115,8 +115,8 @@ void main() async {
 
     test(
       '''when the function 'getRouteByPathAndMethod' is called,
-            and the route does not exists,
-            then it should return null
++            and the route exists but the method is not allowed,
++            then it should return MethodNotAllowedRoute
           ''',
       () {
         final router = Router();

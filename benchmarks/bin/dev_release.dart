@@ -8,6 +8,8 @@ const _defaultRuns = 5;
 const _alpha = 0.05;
 const _fixedDropThreshold = 0.03; // 3%
 const _outputDir = 'benchmarks/results';
+final _benchmarksDir = Directory('benchmarks');
+const _benchOutputDir = 'results';
 const _sqrt2 = 1.4142135623730951; // sqrt(2)
 
 Future<void> main(List<String> arguments) async {
@@ -17,7 +19,7 @@ Future<void> main(List<String> arguments) async {
       .replaceAll(':', '-');
   final only = _parseListArg(arguments, '--only=');
 
-  final overridesFile = File('pubspec_overrides.yaml');
+  final overridesFile = File('${_benchmarksDir.path}/pubspec_overrides.yaml');
   final originalOverrides = await _readFileIfExists(overridesFile);
 
   try {
@@ -55,12 +57,12 @@ Future<void> _runBench({
     '--tag=$tag',
     '--runs=$runs',
     '--run-id=$runId',
-    '--output-dir=$_outputDir',
+    '--output-dir=$_benchOutputDir',
   ];
   if (only.isNotEmpty) {
     args.add('--only=${only.join(',')}');
   }
-  final proc = await Process.start('dart', args);
+  final proc = await Process.start('dart', args, workingDirectory: _benchmarksDir.path);
   stdout.addStream(proc.stdout);
   stderr.addStream(proc.stderr);
   final code = await proc.exitCode;
@@ -77,6 +79,10 @@ Future<void> _compare({required String runId, required List<String> only}) async
   }
 
   final scenarios = await _collectScenarios(runId: runId, only: only);
+  if (scenarios.isEmpty) {
+    stdout.writeln('No results found for runId $runId; skipping comparison.');
+    return;
+  }
   for (final scenario in scenarios) {
     final dev = await _loadScenario(scenario: scenario, runId: runId, tag: 'dev');
     final rel = await _loadScenario(scenario: scenario, runId: runId, tag: 'release');
@@ -177,7 +183,7 @@ Future<void> _clearOverride(File file) async {
 }
 
 Future<void> _pubGet() async {
-  final proc = await Process.start('dart', ['pub', 'get']);
+  final proc = await Process.start('dart', ['pub', 'get'],  workingDirectory: _benchmarksDir.path);
   stdout.addStream(proc.stdout);
   stderr.addStream(proc.stderr);
   final code = await proc.exitCode;

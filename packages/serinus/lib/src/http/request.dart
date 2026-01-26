@@ -57,7 +57,7 @@ class Request {
   HttpConnectionInfo? get clientInfo => _original.clientInfo;
 
   /// The params of the request.
-  Map<String, dynamic> get params => _params ?? _routeParams;
+  Map<String, dynamic> get params => _params ?? Map<String, String>.from(_routeParams);
 
   /// The content type of the request.
   ContentType get contentType => _original.contentType;

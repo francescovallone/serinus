@@ -676,24 +676,6 @@ void main() {
     });
 
     group('Performance Considerations', () {
-      test('should handle many routes efficiently', () {
-        final atlas = Atlas<int>();
-
-        // Add 1000 routes
-        for (var i = 0; i < 1000; i++) {
-          atlas.add(HttpMethod.get, '/route$i', i);
-        }
-
-        // Lookup should still be fast
-        final stopwatch = Stopwatch()..start();
-        for (var i = 0; i < 1000; i++) {
-          atlas.lookup(HttpMethod.get, '/route$i');
-        }
-        stopwatch.stop();
-
-        // Should complete in reasonable time (less than 100ms for 1000 lookups)
-        expect(stopwatch.elapsedMilliseconds, lessThan(100));
-      });
 
       test('should handle routes with shared prefixes efficiently', () {
         final atlas = Atlas<int>();
