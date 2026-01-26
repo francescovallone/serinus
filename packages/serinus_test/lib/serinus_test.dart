@@ -569,7 +569,7 @@ class TestResponse
   
   @override
   void header(String key, String value, {bool preserveHeaderCase = true}) {
-    _headers[key] = value;
+    _headers[preserveHeaderCase ? key : key.toLowerCase()] = value;
   }
 }
 
