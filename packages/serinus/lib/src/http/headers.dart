@@ -5,7 +5,7 @@ import 'dart:io';
 /// The class is used mainly to get and add headers to the request.
 /// The fetch of a header is lazy since it will get the
 /// value only if requested otherwise will not copy it.
-class SerinusHeaders<T> {
+class SerinusHeaders {
   /// The [chunkedTransferEncoding] property is used to set the chunked transfer encoding of the headers.
   bool chunkedTransferEncoding = false;
 

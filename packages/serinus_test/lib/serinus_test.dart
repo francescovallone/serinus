@@ -8,6 +8,116 @@ import 'package:mime/mime.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
+class TestHeaders implements HttpHeaders {
+
+  TestHeaders(
+    this._headers,
+    {
+      this.chunkedTransferEncoding = false,
+      this.contentLength = 0,
+      this.contentType,
+      this.date,
+      this.expires,
+      this.host,
+      this.ifModifiedSince,
+      this.persistentConnection = true,
+      this.port,
+    }
+  );
+
+  TestHeaders.fromFlatMap(Map<String, String> headers)
+      : _headers = headers.map(
+          (key, value) => MapEntry(key, value.split(',').map((e) => e.trim()).toList()),
+        ),
+        chunkedTransferEncoding = false,
+        contentLength = 0,
+        persistentConnection = true;
+
+  final Map<String, List<String>> _headers;
+
+  @override
+  bool chunkedTransferEncoding;
+
+  @override
+  int contentLength;
+
+  @override
+  ContentType? contentType;
+
+  @override
+  DateTime? date;
+
+  @override
+  DateTime? expires;
+
+  @override
+  String? host;
+
+  @override
+  DateTime? ifModifiedSince;
+
+  @override
+  bool persistentConnection;
+
+  @override
+  int? port;
+
+  @override
+  List<String>? operator [](String name) {
+    return _headers[name];
+  }
+
+  @override
+  void add(String name, Object value, {bool preserveHeaderCase = false}) {
+    final values = _headers.putIfAbsent(name, () => <String>[]);
+    values.add(value.toString());
+  }
+
+  @override
+  void clear() {
+    _headers.clear();
+  }
+
+  @override
+  void forEach(void Function(String name, List<String> values) action) {
+    _headers.forEach(action);
+  }
+
+  @override
+  void noFolding(String name) {
+    // No-op for test implementation
+  }
+
+  @override
+  void remove(String name, Object value) {
+    final values = _headers[name];
+    values?.remove(value.toString());
+  }
+
+  @override
+  void removeAll(String name) {
+    _headers.remove(name);
+  }
+
+  @override
+  void set(String name, Object value, {bool preserveHeaderCase = false}) {
+    _headers[name] = [value.toString()];
+  }
+
+  @override
+  String? value(String name) {
+    final values = _headers[name];
+    if (values == null || values.isEmpty) {
+      return null;
+    }
+    if (values.length > 1) {
+      throw HttpException('Multiple values for header $name');
+    }
+    return values.first;
+  }
+
+}
+
 class TestHttpSession extends MapBase<dynamic, dynamic> implements HttpSession {
   TestHttpSession() : _id = 'test-session-${_counter++}';
 
@@ -258,7 +368,7 @@ class TestRequest extends IncomingMessage {
 class TestResponse
     extends OutgoingMessage<StreamController<List<int>>, SerinusHeaders> {
   TestResponse({required this.preserveHeaderCase, String? poweredByHeader})
-    : _headers = SerinusHeaders({}),
+    : _headers = SerinusHeaders(TestHeaders({})),
       _cookies = <Cookie>[],
       _poweredByHeader = poweredByHeader,
       _builder = BytesBuilder(),
@@ -454,6 +564,11 @@ class TestResponse
       original.close();
     }
   }
+  
+  @override
+  void header(String key, String value, {bool preserveHeaderCase = true}) {
+    _headers[key] = value;
+  }
 }
 
 class SerinusTestHttpAdapter
@@ -499,7 +614,7 @@ class SerinusTestHttpAdapter
     ResponseContext properties,
   ) async {
     response.headers(
-      properties.headers.asMap(),
+      properties.headers,
       preserveHeaderCase: preserveHeaderCase,
     );
     response.cookies.addAll(properties.cookies);
@@ -516,7 +631,7 @@ class SerinusTestHttpAdapter
       throw StateError('ViewEngine is required to render views');
     }
     response.headers(
-      properties.headers.asMap(),
+      properties.headers,
       preserveHeaderCase: preserveHeaderCase,
     );
     response.cookies.addAll(properties.cookies);
@@ -539,7 +654,7 @@ class SerinusTestHttpAdapter
     ResponseContext properties,
   ) async {
     response.headers(
-      properties.headers.asMap(),
+      properties.headers,
       preserveHeaderCase: preserveHeaderCase,
     );
     response.cookies.addAll(properties.cookies);
@@ -640,10 +755,11 @@ class SerinusTestApplication extends SerinusApplication {
       normalizedHeaders[HttpHeaders.contentTypeHeader] = resolvedContentType
           .toString();
     }
+    final requestHeaders = TestHeaders.fromFlatMap(normalizedHeaders);
     final request = TestRequest(
       method: method,
       uri: uri,
-      headers: SerinusHeaders(normalizedHeaders),
+      headers: SerinusHeaders(requestHeaders),
       bodyBytes: resolvedBytes,
       cookies: cookiesList,
       contentType:
