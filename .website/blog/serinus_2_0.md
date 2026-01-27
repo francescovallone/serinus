@@ -41,7 +41,7 @@ head:
     blog
 >
 
-Serinus 2.0, named "Dawn Chorus," marks a significant milestone in our journey to provide a robust and flexible framework for building scalable server-side applications with Dart. But I like to think of it like a stepping stone towards something even greater. With this release, we have laid the groundwork for a more modular and adaptable framework that can evolve with the ever-changing landscape of web development.
+Serinus 2.0, named "Dawn Chorus", marks a significant milestone in our journey to provide a robust and flexible framework for building scalable server-side applications with Dart. But I like to think of it like a stepping stone towards something even greater. With this release, we have laid the groundwork for a more modular and adaptable framework that can evolve with the ever-changing landscape of web development.
 
 ## New Features
 

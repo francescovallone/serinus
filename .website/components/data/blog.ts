@@ -32,6 +32,16 @@ export const posts: Post[] = [
     //     tags: ['general'],
     // },
     {
+        title: 'Serinus 2.1 - Morning Song',
+        src: '/blog/serinus_2_1/serinus_2_1.webp',
+        alt: 'Serinus 2.1 - Morning Song',
+        desc: 'Introducing Atlas, Class Providers and improved performances.',
+        author: 'Francesco Vallone',
+        date: '27 Jan 2026',
+        href: '/blog/serinus_2_1',
+        tags: ['releases'],
+    },
+    {
         title: 'Serinus 2.0 - Dawn Chorus',
         src: '/blog/serinus_2_0/serinus_2_0.webp',
         alt: 'Serinus 2.0 - Dawn Chorus',
