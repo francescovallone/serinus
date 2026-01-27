@@ -44,6 +44,7 @@ class SerinusHeaders {
 
   /// The [addAll] method is used to add all the values available in the [headers] parameter.
   void addAll(Map<String, String> headers) {
+    // For some reason the analyzer yells if we do values.addAll(headers); because of Headers
     values.addAll(headers);
   }
 
