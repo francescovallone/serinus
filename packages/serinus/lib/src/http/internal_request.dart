@@ -9,7 +9,6 @@ import 'package:mime/mime.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/content_type_extensions.dart';
-import '../extensions/iterable_extansions.dart';
 import 'form_data.dart';
 import 'headers.dart';
 import 'internal_response.dart';
@@ -18,6 +17,9 @@ import 'session.dart';
 /// The UTF-8 JSON decoder.
 final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
 final _cacheControlNoCacheRegExp = RegExp(r'(?:^|,)\s*?no-cache\s*?(?:,|$)', caseSensitive: false);
+
+/// The default maximum body size in bytes.
+const int kDefaultMaxBodySize = 10 * 1024 * 1024; // 10MB
 
 /// The [IncomingMessage] interface defines the methods and properties that a request must implement.
 /// It is used to parse the request and provide access to its properties.
@@ -36,6 +38,9 @@ abstract class IncomingMessage {
 
   /// The headers of the request.
   SerinusHeaders get headers;
+
+  /// Maximum body size in bytes (default: 10MB). Override to customize.
+  static int maxBodySize = kDefaultMaxBodySize;
 
   /// The query parameters of the request.
   Map<String, String> get queryParameters;
@@ -145,20 +150,25 @@ abstract class IncomingMessage {
 /// it also contains the [httpRequest] property that contains the [HttpRequest] object from dart:io
 
 class InternalRequest extends IncomingMessage {
+  static int _idCounter = 0;
+
   @override
   final String id;
 
-  @override
-  String get path => uri.path;
+  // Cache the parsed URI to avoid repeated Uri.parse work on hot paths.
+  late final Uri _uri = original.requestedUri;
 
   @override
-  Uri get uri => original.requestedUri;
+  String get path => _uri.path;
+
+  @override
+  Uri get uri => _uri;
 
   @override
   String get method => original.method;
 
   @override
-  List<String> get segments => original.requestedUri.pathSegments;
+  List<String> get segments => _uri.pathSegments;
 
   /// The [original] property contains the [HttpRequest] object from dart:io
   final HttpRequest original;
@@ -175,12 +185,12 @@ class InternalRequest extends IncomingMessage {
   Uint8List? _bytes;
 
   @override
-  Map<String, String> get queryParameters =>
-      original.requestedUri.queryParameters;
+  Map<String, String> get queryParameters => _uri.queryParameters;
+
+  late final ContentType _contentType = original.headers.contentType ?? ContentType('text', 'plain');
 
   @override
-  ContentType get contentType =>
-      original.headers.contentType ?? ContentType('text', 'plain');
+  ContentType get contentType => _contentType;
 
   @override
   String webSocketKey = '';
@@ -191,7 +201,7 @@ class InternalRequest extends IncomingMessage {
   /// The [Request.from] constructor is used to create a [Request] object from a [HttpRequest] object
   factory InternalRequest.from(HttpRequest request, int port, String host) {
     return InternalRequest(
-      headers: SerinusHeaders(request.headers.toMap()),
+      headers: SerinusHeaders(request.headers),
       original: request,
       port: port,
       host: host,
@@ -225,12 +235,14 @@ class InternalRequest extends IncomingMessage {
     required this.original,
     required this.port,
     required this.host,
-  }) : id = '${original.hashCode}-${DateTime.timestamp()}';
+  }) : id = 'req-${original.hashCode^++_idCounter}';
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {
     return InternalResponse(original.response);
   }
+
+  String? _bodyCache;
 
   /// This method is used to get the body of the request as a [String]
   ///
@@ -240,8 +252,10 @@ class InternalRequest extends IncomingMessage {
   /// ```
   @override
   String body() {
-    return utf8.decode(_bytes ?? Uint8List(0));
+    return _bodyCache ??= utf8.decode(_bytes ?? Uint8List(0));
   }
+
+  dynamic _jsonCache;
 
   /// This method is used to get the body of the request as a [dynamic] json object
   ///
@@ -252,7 +266,7 @@ class InternalRequest extends IncomingMessage {
   @override
   dynamic json() {
     try {
-      return utf8JsonDecoder.convert(_bytes!);
+      return _jsonCache ??= utf8JsonDecoder.convert(_bytes!);
     } catch (e) {
       return null;
     }
@@ -265,12 +279,50 @@ class InternalRequest extends IncomingMessage {
     if (_bytes != null) {
       return _bytes!;
     }
-    final byteBuffer = BytesBuilder();
-    await for (var part in original) {
-      byteBuffer.add(part);
+
+    final maxSize = IncomingMessage.maxBodySize;
+    final declaredLength = contentLength;
+
+    // Early rejection if Content-Length exceeds limit
+    if (declaredLength > maxSize) {
+      throw PayloadTooLargeException(
+        'Request body size exceeds the limit',
+        uri,
+      );
     }
-    _bytes = byteBuffer.takeBytes();
-    return _bytes!;
+
+    // Fast path: trusted Content-Length within limits - skip per-chunk validation
+    if (declaredLength > 0) {
+      final chunks = await original.toList();
+      if (chunks.isEmpty) {
+        return _bytes = Uint8List(0);
+      }
+      // Single-chunk optimization: avoid BytesBuilder overhead
+      if (chunks.length == 1) {
+        final chunk = chunks.first;
+        return _bytes = chunk;
+      }
+      final buffer = BytesBuilder(copy: false);
+      for (final chunk in chunks) {
+        buffer.add(chunk);
+      }
+      return _bytes = buffer.takeBytes();
+    }
+
+    // Unknown length - validate as we read
+    final buffer = BytesBuilder(copy: false);
+    var totalSize = 0;
+    await for (final chunk in original) {
+      totalSize += chunk.length;
+      if (totalSize > maxSize) {
+        throw PayloadTooLargeException(
+          'Request body size exceeds the maximum limit of $maxSize bytes',
+          uri,
+        );
+      }
+      buffer.add(chunk);
+    }
+    return _bytes = buffer.takeBytes();
   }
 
   /// This method is used to get the body of the request as a [Stream<List<int>>]
@@ -279,19 +331,16 @@ class InternalRequest extends IncomingMessage {
     yield List<int>.from(_bytes ?? Uint8List(0));
   }
 
+  FormData? _formDataCache;
+
   @override
   Future<FormData> formData({
     Future<void> Function(MimeMultipart part)? onPart,
   }) async {
     if (contentType.isMultipart) {
-      return FormData.parseMultipart(
-        request: original,
-        contentType:
-            original.headers.value(HttpHeaders.contentTypeHeader) ?? '',
-        onPart: onPart,
-      );
+      return _formDataCache ??= await FormData.parseMultipart(request: original, contentType: contentType.value, onPart: onPart);
     } else if (contentType.isUrlEncoded) {
-      return FormData.parseUrlEncoded(body());
+      return _formDataCache ??= FormData.parseUrlEncoded(body());
     } else {
       throw BadRequestException(
         'The content type is not supported for form data',
@@ -305,7 +354,7 @@ class InternalRequest extends IncomingMessage {
     if (method != 'GET') {
       return false;
     }
-    final connection = original.headers.value('Connection');
+    final connection = original.headers['connection']?.join(',');
     if (connection == null) {
       return false;
     }

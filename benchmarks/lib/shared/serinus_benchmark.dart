@@ -10,7 +10,7 @@ abstract class SerinusBenchmark {
 
   SerinusBenchmark(
       {this.name = 'SerinusBenchmark',
-      this.connections = 1024,
+      this.connections = 256,
       this.threads = 8,
       this.duration = const Duration(seconds: 10)});
 
@@ -121,51 +121,53 @@ abstract class SerinusBenchmark {
   Result _parseWinrkResult(String stdout) {
     final lines = stdout.split('\n');
     final result = Result();
-    bool metResultString = false;
-    for (var line in lines) {
-      final segments = line
-          .split(' ')
-          .map((e) => e.trim())
-          .where((element) => element.isNotEmpty)
-          .toList();
-      if (segments.isNotEmpty) {
-        if(!metResultString){
-          metResultString = segments[0] == 'Result:';
+
+    for (final rawLine in lines) {
+      final line = rawLine.trim();
+      if (line.isEmpty) continue;
+
+      final reqsMatch = RegExp(r'(Requests/sec|Reqs/sec):?\s+([0-9]+\.?[0-9]*)')
+          .firstMatch(line);
+      if (reqsMatch != null) {
+        result.rps = double.tryParse(reqsMatch.group(2)!) ?? result.rps;
+      }
+
+      if (line.startsWith('Latency')) {
+        final parts = line
+            .split(RegExp(r'\s+'))
+            .where((e) => e.isNotEmpty)
+            .toList();
+        // Expected: Latency  X  Y  Z
+        if (parts.length >= 4) {
+          result.avgLatency = _tryParseNumber(parts[1]);
+          result.stdevLatency = _tryParseNumber(parts[2]);
+          result.maxLatency = _tryParseNumber(parts[3]);
         }
-        if(metResultString){
-          final segment = segments[0];
-          if (segment.contains('total:')) {
-            result.requests = int.parse(segments[1]);
-          }
-          if (segment.contains('transfers:')) {
-            result.readSize = double.parse(segments[1]);
-            result.transferRate = result.readSize / duration.inSeconds / 1024 / 1024 > 1 
-              ? '${(result.readSize / duration.inSeconds / 1024 / 1024).toStringAsFixed(2)} MB/s' 
+      }
+
+      if (line.startsWith('Requests:')) {
+        final parts = line.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+        if (parts.length >= 2) {
+          result.requests = int.tryParse(parts[1]) ?? result.requests;
+        }
+      }
+
+      if (line.startsWith('transfered:') || line.startsWith('transferred:')) {
+        final parts = line.split(RegExp(r'\s+')).where((e) => e.isNotEmpty).toList();
+        if (parts.length >= 2) {
+          result.readSize = double.tryParse(parts[1]) ?? result.readSize;
+          result.transferRate = result.readSize / duration.inSeconds / 1024 / 1024 > 1
+              ? '${(result.readSize / duration.inSeconds / 1024 / 1024).toStringAsFixed(2)} MB/s'
               : '${(result.readSize / duration.inSeconds / 1024).toStringAsFixed(2)} KB/s';
-          }
-          if (segments[0] == 'latency') {
-            switch(segments[1]){
-              case 'min:':
-                result.minLatency = double.parse(segments[2].replaceAll(RegExp(r'[A-Za-z]+'), ''));
-                break;
-              case 'average:':
-                result.avgLatency = double.parse(segments[2].replaceAll(RegExp(r'[A-Za-z]+'), ''));
-                break;
-              case 'max:':
-                result.maxLatency = double.parse(segments[2].replaceAll(RegExp(r'[A-Za-z]+'), ''));
-                break;
-              case 'median:':
-                result.stdevLatency = double.parse(segments[2].replaceAll(RegExp(r'[A-Za-z]+'), ''));
-                break;
-            }
-          }
-          if (segments[0] == 'rps:') {
-            result.rps = double.parse(segments[1]);
-          }
         }
       }
     }
+
     return result;
+  }
+
+  double _tryParseNumber(String value) {
+    return double.tryParse(value.replaceAll(RegExp(r'[^0-9\.-]'), '')) ?? 0;
   }
   
 }
@@ -190,6 +192,50 @@ class Result {
   String transferRate = '0';
 
   Result();
+
+  Map<String, dynamic> toJson() {
+    return {
+      'minLatency': minLatency,
+      'avgLatency': avgLatency,
+      'stdevLatency': stdevLatency,
+      'maxLatency': maxLatency,
+      'stdevPerc': stdevPerc,
+      'rpsAvg': rpsAvg,
+      'rpsMax': rpsMax,
+      'rpdStdev': rpdStdev,
+      'rpsPerc': rpsPerc,
+      'latency50': latency50,
+      'latency75': latency75,
+      'latency90': latency90,
+      'latency99': latency99,
+      'requests': requests,
+      'readSize': readSize,
+      'rps': rps,
+      'transferRate': transferRate,
+    };
+  }
+
+  static Result fromJson(Map<String, dynamic> json) {
+    final result = Result();
+    result.minLatency = (json['minLatency'] ?? 0).toDouble();
+    result.avgLatency = (json['avgLatency'] ?? 0).toDouble();
+    result.stdevLatency = (json['stdevLatency'] ?? 0).toDouble();
+    result.maxLatency = (json['maxLatency'] ?? 0).toDouble();
+    result.stdevPerc = (json['stdevPerc'] ?? 0).toDouble();
+    result.rpsAvg = (json['rpsAvg'] ?? 0).toDouble();
+    result.rpsMax = (json['rpsMax'] ?? 0).toDouble();
+    result.rpdStdev = (json['rpdStdev'] ?? 0).toDouble();
+    result.rpsPerc = (json['rpsPerc'] ?? 0).toDouble();
+    result.latency50 = (json['latency50'] ?? 0).toDouble();
+    result.latency75 = (json['latency75'] ?? 0).toDouble();
+    result.latency90 = (json['latency90'] ?? 0).toDouble();
+    result.latency99 = (json['latency99'] ?? 0).toDouble();
+    result.requests = (json['requests'] ?? 0).toInt();
+    result.readSize = (json['readSize'] ?? 0).toDouble();
+    result.rps = (json['rps'] ?? 0).toDouble();
+    result.transferRate = json['transferRate']?.toString() ?? '0';
+    return result;
+  }
 
   @override
   String toString() {

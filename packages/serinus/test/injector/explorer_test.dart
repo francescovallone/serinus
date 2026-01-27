@@ -3,8 +3,6 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
 import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
-import 'package:serinus/src/routes/route_execution_context.dart';
-import 'package:serinus/src/routes/route_response_controller.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
 
@@ -42,7 +40,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
@@ -66,7 +63,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
@@ -90,7 +86,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         final path = 'test';
         final normalizedPath = explorer.normalizePath(path);
@@ -113,7 +108,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         final path = '/test//test';
         final normalizedPath = explorer.normalizePath(path);
@@ -143,7 +137,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
         final result = router.lookup('/v1', HttpMethod.get);
@@ -174,7 +167,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
         final result = router.lookup('/api', HttpMethod.get);
@@ -269,7 +261,6 @@ void main() {
         final explorer = RoutesExplorer(
           container,
           router,
-          RouteExecutionContext(RouteResponseController(_MockAdapter())),
         );
         explorer.resolveRoutes();
         final result = router.lookup('/api/v1', HttpMethod.get);

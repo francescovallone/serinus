@@ -27,6 +27,7 @@ class AtlasBenchmarks extends PerfBenchmarkBase {
   }
 }
 
+
 class AtlasParametricBenchmark extends PerfBenchmarkBase {
   AtlasParametricBenchmark() : super('Atlas Parametric Lookup Benchmark');
 

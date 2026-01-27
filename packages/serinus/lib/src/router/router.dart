@@ -25,7 +25,6 @@ final class Router {
   /// The [registerRoute] method is used to register a route in the router.
   void registerRoute({
     required RouteContext context,
-    required HandlerFunction handler,
   }) {
     final path = context.path.stripEndSlash().addLeadingSlash();
     final routeExists = _routeTree.lookup(HttpMethod.all, path);
@@ -42,7 +41,7 @@ final class Router {
     _routeTree.add(
       context.method,
       path.stripEndSlash(),
-      RouterEntry(context: context, handler: handler),
+      RouterEntry(context: context),
     );
   }
 
@@ -62,9 +61,6 @@ class RouterEntry {
   /// The [context] property contains the route context.
   final RouteContext context;
 
-  /// The [handler] property contains the handler function.
-  final HandlerFunction handler;
-
   /// The [RouterEntry] constructor is used to create a new instance of the [RouterEntry] class.
-  RouterEntry({required this.context, required this.handler});
+  RouterEntry({required this.context});
 }

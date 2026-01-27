@@ -7,7 +7,6 @@ import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
-import '../extensions/string_extensions.dart';
 import '../http/http.dart';
 import '../router/atlas.dart';
 import '../router/router.dart';
@@ -30,6 +29,8 @@ class RoutesResolver {
 
   late final RouteExecutionContext _routeExecutionContext;
 
+  late final Map<Type, Provider> _globalProviders;
+
   /// Constructor for the [RoutesResolver] class.
   RoutesResolver(this._container) {
     _routeExecutionContext = RouteExecutionContext(
@@ -40,7 +41,6 @@ class RoutesResolver {
     _explorer = RoutesExplorer(
       _container,
       Router(_container.config.versioningOptions),
-      _routeExecutionContext,
     );
   }
 
@@ -48,6 +48,10 @@ class RoutesResolver {
   ///
   /// It resolves the routes of the controllers and registers them in the router.
   void resolve() {
+    _globalProviders = {
+      for (var provider in _container.modulesContainer.globalProviders)
+        provider.runtimeType: provider,
+    };
     final mappedControllers = <Controller, ControllerSpec>{
       for (final entry in _container.modulesContainer.controllers)
         entry.controller: ControllerSpec(entry.controller.path, entry.module),
@@ -71,12 +75,12 @@ class RoutesResolver {
   /// If a route is found, it calls the handler of the route with the request and response.
   Future<void> handle(IncomingMessage request, OutgoingMessage response) async {
     final route = _explorer.getRoute(
-      request.path.stripEndSlash(),
+      request.path,
       HttpMethod.parse(request.method),
     );
     try {
       if (route is FoundRoute) {
-        await route.values.first.handler(request, response, route.params);
+        await _routeExecutionContext.describe(route.values.first.context, request: request, response: response, params: route.params);
         return;
       }
       if (route is NotFoundRoute) {
@@ -239,7 +243,12 @@ class RoutesResolver {
         return _container.applicationRef.reply(
           response,
           request,
-          WrappedResponse(null),
+          _routeExecutionContext.processResult(
+            WrappedResponse(
+              executionContext.response.body ?? exception.toJson(),
+            ),
+            executionContext,
+          ),
           executionContext.response,
         );
       }
@@ -274,19 +283,15 @@ class RoutesResolver {
     _logger.verbose('No route found for ${request.method} ${request.uri}');
     final wrappedRequest = Request(request, {});
     final reqHooks = _container.config.globalHooks.reqHooks;
-    final providers = {
-      for (var provider in _container.modulesContainer.globalProviders)
-        provider.runtimeType: provider,
-    };
     final executionContext = ExecutionContext(
       HostType.http,
-      providers,
+      _globalProviders,
       _container.config.globalHooks.services,
       HttpArgumentsHost(wrappedRequest),
     );
     final requestContext = await RequestContext.create<dynamic>(
       request: wrappedRequest,
-      providers: providers,
+      providers: _globalProviders,
       hooksServices: _container.config.globalHooks.services,
       modelProvider: _container.config.modelProvider,
       rawBody: _container.applicationRef.rawBody,
@@ -294,7 +299,7 @@ class RoutesResolver {
     executionContext.attachHttpContext(requestContext);
     for (final hook in reqHooks) {
       await hook.onRequest(executionContext);
-      if (executionContext.response.body != null) {
+      if (executionContext.response.closed) {
         request.emit(
           RequestEvent.data,
           EventData(
@@ -314,26 +319,6 @@ class RoutesResolver {
             WrappedResponse(executionContext.response.body),
             executionContext,
           ),
-          executionContext.response,
-        );
-      }
-      if (executionContext.response.closed) {
-        request.emit(
-          RequestEvent.data,
-          EventData(
-            data: executionContext.response.body,
-            properties: executionContext.response
-              ..headers.addAll(
-                (response.currentHeaders is SerinusHeaders)
-                    ? (response.currentHeaders as SerinusHeaders).values
-                    : (response.currentHeaders as HttpHeaders).toMap(),
-              ),
-          ),
-        );
-        return _container.applicationRef.reply(
-          response,
-          request,
-          WrappedResponse(null),
           executionContext.response,
         );
       }
@@ -387,6 +372,7 @@ class RoutesResolver {
         );
         return _container.applicationRef.reply(
           response,
+          request,
           _routeExecutionContext.processResult(
             WrappedResponse(executionContext.response.body),
             executionContext,

@@ -15,7 +15,6 @@ import '../exceptions/exceptions.dart';
 import '../extensions/iterable_extansions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
-import '../services/json_utils.dart';
 import '../utils/wrapped_response.dart';
 import 'route_response_controller.dart';
 
@@ -25,8 +24,6 @@ class RouteExecutionContext {
   /// The [RouteResponseController] is used to handle responses for routes.
   /// It provides methods to send responses, redirect, and render views.
   final RouteResponseController _responseController;
-
-  static JsonUtf8Encoder _jsonUtf8Encoder = JsonUtf8Encoder();
 
   /// The [modelProvider] is used to convert models to and from JSON.
   /// It is optional and can be null if models are not used in the application.
@@ -49,26 +46,21 @@ class RouteExecutionContext {
   /// It takes a [RouteContext] and optional parameters such as [errorHandler], [notFoundHandler], and [rawBody].
   /// The [errorHandler] is used to handle errors that occur during the request processing.
   /// The [rawBody] parameter indicates whether the body should be treated as raw binary data
-  HandlerFunction describe<T extends RouteHandlerSpec>(
+  @pragma('vm:prefer-inline')
+  Future<void> describe<T extends RouteHandlerSpec>(
     RouteContext<T> context, {
+    required IncomingMessage request,
+    required OutgoingMessage response,
+    required Map<String, dynamic> params,
     ErrorHandler? errorHandler,
     bool rawBody = false,
-  }) {
-    return (
-      IncomingMessage request,
-      OutgoingMessage response,
-      Map<String, dynamic> params,
-    ) async {
+  }) async {
       ExecutionContext? executionContext;
       try {
         final wrappedRequest = Request(request, params);
-        final providers = {
-          for (var provider in context.moduleScope.unifiedProviders)
-            provider.runtimeType: provider,
-        };
         executionContext = ExecutionContext(
           HostType.http,
-          providers,
+          context.providers,
           context.hooksServices,
           HttpArgumentsHost(wrappedRequest),
         );
@@ -80,7 +72,7 @@ class RouteExecutionContext {
         final spec = context.spec as RestRouteHandlerSpec;
         final requestContext = await spec.buildRequestContext(
           request: wrappedRequest,
-          providers: providers,
+          providers: context.providers,
           hooksServices: context.hooksServices,
           modelProvider: modelProvider,
           rawBody: rawBody,
@@ -122,7 +114,7 @@ class RouteExecutionContext {
             await pipe.transform(executionContext);
           }
         }
-        final middlewares = context.getMiddlewares(request);
+        final middlewares = context.getMiddlewares(request).toList(growable: false);
         if (middlewares.isNotEmpty) {
           final executor = MiddlewareExecutor();
           await executor.execute(
@@ -167,12 +159,11 @@ class RouteExecutionContext {
         final responseData = WrappedResponse(handlerResult);
         await _executeAfterHandle(executionContext, context, responseData);
         await _executeOnResponse(context, executionContext, responseData);
-        WrappedResponse result = processResult(responseData, executionContext);
         final currentResponseHeaders =
             (response.currentHeaders is SerinusHeaders)
             ? response.currentHeaders.values
             : (response.currentHeaders as HttpHeaders).toMap();
-        final data = result.data;
+        final data = responseData.data;
         if (data is View) {
           request.emit(
             RequestEvent.data,
@@ -194,7 +185,7 @@ class RouteExecutionContext {
         } else if (data is Redirect) {
           request.emit(
             RequestEvent.redirect,
-            EventData(data: result.data, properties: executionContext.response),
+            EventData(data: responseData.data, properties: executionContext.response),
           );
           await _responseController.redirect(
             response,
@@ -217,7 +208,7 @@ class RouteExecutionContext {
           await _responseController.sendResponse(
             response,
             request,
-            result,
+            processResult(responseData, executionContext),
             executionContext.response,
             viewEngine: viewEngine,
           );
@@ -267,7 +258,6 @@ class RouteExecutionContext {
           );
         }
       }
-    };
   }
 
   Future<WrappedResponse?> _executeOnException(
@@ -295,6 +285,9 @@ class RouteExecutionContext {
     RouteContext context,
     WrappedResponse response,
   ) async {
+    if (context.afterHooks.isEmpty) {
+      return;
+    }
     for (final hook in context.afterHooks) {
       await hook.afterHandle(executionContext, response);
     }
@@ -304,6 +297,9 @@ class RouteExecutionContext {
     ExecutionContext executionContext,
     RouteContext context,
   ) async {
+    if (context.beforeHooks.isEmpty) {
+      return;
+    }
     for (final hook in context.beforeHooks) {
       await hook.beforeHandle(executionContext);
     }
@@ -315,32 +311,33 @@ class RouteExecutionContext {
     WrappedResponse result,
     ExecutionContext context,
   ) {
-    Object? responseData;
-    if (result.data == null) {
+    final data = result.data;
+    if (data == null) {
       return result;
     }
+
+    Object? responseData;
+
     // Prefer to produce bytes for JSON-able and model objects here, so downstream
     // sending code doesn't re-encode and we avoid double-encoding.
-    if (result.data?.canBeJson() ?? false) {
-      final prepared = parseJsonToResponse(result.data, modelProvider);
-      responseData = Uint8List.fromList(_jsonUtf8Encoder.convert(prepared));
+    if (data.canBeJson()) {
+      responseData = sharedJsonUtf8Encoder.convert(data);
+      result.isEncoded = true;
       context.response.contentType ??= ContentType.json;
+    } else {
+      final modelKey = data.runtimeType.toString();
+      final models = modelProvider?.toJsonModels;
+      if (models != null && models.containsKey(modelKey)) {
+        final modelObj = modelProvider?.to(data);
+        responseData = sharedJsonUtf8Encoder.convert(modelObj);
+        result.isEncoded = true;
+        context.response.contentType ??= ContentType.json;
+      } else if (data is Uint8List || data is File) {
+        context.response.contentType ??= ContentType.binary;
+      }
     }
 
-    if (modelProvider?.toJsonModels.containsKey(
-          result.data.runtimeType.toString(),
-        ) ??
-        false) {
-      final modelObj = modelProvider?.to(result.data);
-      responseData = Uint8List.fromList(_jsonUtf8Encoder.convert(modelObj));
-      context.response.contentType ??= ContentType.json;
-    }
-
-    if (result.data is Uint8List || result.data is File) {
-      context.response.contentType ??= ContentType.binary;
-    }
-
-    result.data = responseData ?? result.data;
+    result.data = responseData ?? data;
     return result;
   }
 
@@ -349,6 +346,9 @@ class RouteExecutionContext {
     ExecutionContext executionContext,
     WrappedResponse responseData,
   ) async {
+    if (context.resHooks.isEmpty) {
+      return;
+    }
     for (final hook in context.resHooks) {
       await hook.onResponse(executionContext, responseData);
     }

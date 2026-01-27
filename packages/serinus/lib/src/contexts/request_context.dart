@@ -227,6 +227,9 @@ class RequestContext<TBody> extends BaseContext {
 }
 
 final _utf8Decoder = utf8.decoder;
+final _typeNameCache = <Type, String>{};
+
+String _typeName(Type type) => _typeNameCache[type] ??= type.toString();
 
 class _BodyConverter {
   const _BodyConverter(this.modelProvider);
@@ -234,7 +237,7 @@ class _BodyConverter {
   final ModelProvider? modelProvider;
 
   Object? convert(Type targetType, Object? value) {
-    var typeName = targetType.toString();
+    var typeName = _typeName(targetType);
     if (_isDynamicLike(typeName)) {
       return value;
     }
@@ -248,7 +251,7 @@ class _BodyConverter {
     if (allowsNull) {
       typeName = typeName.replaceAll('?', '');
     }
-    if (typeName == value.runtimeType.toString()) {
+    if (typeName == _typeName(value.runtimeType)) {
       return value;
     }
     switch (typeName) {
@@ -268,7 +271,7 @@ class _BodyConverter {
         if (modelProvider != null) {
           final json =
               modelProvider!.toJsonModels.containsKey(
-                value.runtimeType.toString(),
+                _typeName(value.runtimeType),
               )
               ? modelProvider!.to(value)
               : null;
@@ -400,8 +403,9 @@ class _BodyConverter {
       return {...value.fields, 'files': value.files};
     }
     if (modelProvider != null) {
-      final json =
-          modelProvider!.toJsonModels.containsKey(value.runtimeType.toString())
+      final json = modelProvider!.toJsonModels.containsKey(
+        _typeName(value.runtimeType),
+      )
           ? modelProvider!.to(value)
           : null;
       if (json is Map<String, dynamic>) {

@@ -70,7 +70,6 @@ void main() async {
         );
         router.registerRoute(
           context: routeContext,
-          handler: (request, response, params) async => '',
         );
       },
     );
@@ -106,7 +105,6 @@ void main() async {
         );
         router.registerRoute(
           context: routeContext,
-          handler: (request, response, params) async => '',
         );
         final result = router.lookup('/test', HttpMethod.get);
         expect(result, isA<FoundRoute>());
@@ -117,8 +115,8 @@ void main() async {
 
     test(
       '''when the function 'getRouteByPathAndMethod' is called,
-            and the route does not exists,
-            then it should return null
++            and the route exists but the method is not allowed,
++            then it should return MethodNotAllowedRoute
           ''',
       () {
         final router = Router();
@@ -146,7 +144,6 @@ void main() async {
         );
         router.registerRoute(
           context: routeContext,
-          handler: (request, response, params) async => '',
         );
         final result = router.lookup('/test', HttpMethod.post);
         expect(result, isA<MethodNotAllowedRoute>());

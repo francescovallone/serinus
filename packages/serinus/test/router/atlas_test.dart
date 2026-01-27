@@ -270,7 +270,6 @@ void main() {
         );
       });
     });
-
     group('Conflicting Parameters', () {
       test('should throw when adding :id after <id> at same level', () {
         final atlas = Atlas<String>();

@@ -3,8 +3,6 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
 import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
-import 'package:serinus/src/routes/route_execution_context.dart';
-import 'package:serinus/src/routes/route_response_controller.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
 
@@ -58,10 +56,7 @@ void main() {
       await container.modulesContainer.registerModules(module);
 
       final router = Router(localConfig.versioningOptions);
-      final executionContext = RouteExecutionContext(
-        RouteResponseController(adapter),
-      );
-      final explorer = RoutesExplorer(container, router, executionContext);
+      final explorer = RoutesExplorer(container, router);
 
       explorer.resolveRoutes();
 

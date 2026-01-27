@@ -53,8 +53,15 @@ class Test2Controller extends Controller {
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on<Map<String, dynamic>, dynamic>(Route.get('/data/:id?'), (
-      RequestContext<dynamic> context,
+    on<Map<String, dynamic>, dynamic>(Route.get('/'), (RequestContext context) async {
+      return {
+        'message': 'Hello, Serinus!',
+        'time': DateTime.now().toIso8601String(),
+        'complexObject': MyObject('example', 42),
+      };
+    });
+    on<Map<String, dynamic>, List<dynamic>>(Route.post('/echo'), (
+      RequestContext<List<dynamic>> context,
     ) async {
       final id = context.paramAs<int?>('id');
       return {'message': 'Data for id: $id'};
@@ -103,6 +110,7 @@ void main(List<String> arguments) async {
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
+    logLevels: {LogLevel.none},
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );

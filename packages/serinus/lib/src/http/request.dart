@@ -20,14 +20,14 @@ class Request {
   /// It accepts an [IncomingMessage] object and an optional [params] parameter.
   ///
   /// The [params] parameter is used to pass parameters to the request.
-  Request(this._original, [Map<String, dynamic> params = const {}]) {
-    this.params = params;
-    _query.addAll(_original.queryParameters);
-  }
+  Request(this._original, [this._routeParams = const {}]);
+
+  Map<String, dynamic> _routeParams;
 
   /// This method is used to set the parameters of the request.
   set params(Map<String, dynamic> params) {
-    _params.addAll(params);
+    _params ??= {};
+    _params!.addAll(params);
   }
 
   /// The id of the request.
@@ -46,9 +46,9 @@ class Request {
   SerinusHeaders get headers => _original.headers;
 
   /// The query parameters of the request.
-  Map<String, dynamic> get query => _query;
+  Map<String, dynamic> get query => _query ??= Map.of(_original.queryParameters);
 
-  final Map<String, dynamic> _query = {};
+  Map<String, dynamic>? _query;
 
   /// The session of the request.
   Session get session => _original.session;
@@ -57,7 +57,7 @@ class Request {
   HttpConnectionInfo? get clientInfo => _original.clientInfo;
 
   /// The params of the request.
-  Map<String, dynamic> get params => _params;
+  Map<String, dynamic> get params => _params ?? Map<String, String>.from(_routeParams);
 
   /// The content type of the request.
   ContentType get contentType => _original.contentType;
@@ -85,8 +85,7 @@ class Request {
   /// The cookies of the request.
   List<Cookie> get cookies => _original.cookies;
 
-  /// The params of the request.
-  final Map<String, dynamic> _params = {};
+  Map<String, dynamic>? _params;
 
   final Map<String, dynamic> _data = {};
 
@@ -146,34 +145,33 @@ class Request {
       return body;
     }
 
-    Future<Uint8List> ensureBytes() async => _original.bytes();
-
-    if (rawBody) {
-      final bytes = await ensureBytes();
-      _setBody(Uint8List.fromList(bytes));
+    // Handle multipart early - it has its own stream handling
+    if (!rawBody && contentType.isMultipart) {
+      _setBody(await _original.formData(onPart: onPart));
       return body;
     }
 
-    if (contentType.isMultipart) {
-      final formData = await _original.formData(onPart: onPart);
-      _setBody(formData);
-      return body;
-    }
+    // Read bytes once and cache - all other paths need this
+    final bytes = await _original.bytes();
 
-    final bytes = await ensureBytes();
     if (bytes.isEmpty) {
       _setBody(null);
       return body;
     }
 
-    final parsedBody = _original.body();
-
-    if (contentType.isUrlEncoded) {
-      final formData = FormData.parseUrlEncoded(parsedBody);
-      _setBody(formData);
+    // Raw bytes requested - return directly (bytes() already returns Uint8List)
+    if (rawBody) {
+      _setBody(bytes);
       return body;
     }
 
+    // URL-encoded form data
+    if (contentType.isUrlEncoded) {
+      _setBody(FormData.parseUrlEncoded(_original.body()));
+      return body;
+    }
+
+    // JSON content type - use optimized decoder
     if (contentType.isJson) {
       final parsedJson = _original.json();
       if (parsedJson != null) {
@@ -182,31 +180,49 @@ class Request {
       }
     }
 
-    final trimmed = parsedBody.trimLeft();
-    if (trimmed.isNotEmpty) {
-      final firstChar = trimmed.codeUnitAt(0);
+    // Binary content
+    if (contentType == ContentType.binary) {
+      _setBody(bytes);
+      return body;
+    }
+
+    // Text content types
+    if (contentType.mimeType.startsWith('text/')) {
+      _setBody(_original.body());
+      return body;
+    }
+
+    // Fallback: try to detect JSON from content (for unknown content types)
+    final bodyStr = _original.body();
+    if (bodyStr.isNotEmpty) {
+      final firstChar = bodyStr.codeUnitAt(0);
+      // Skip leading whitespace check - direct char comparison
+      // '{' = 123, '[' = 91, ' ' = 32, '\t' = 9, '\n' = 10, '\r' = 13
       if (firstChar == 123 || firstChar == 91) {
         try {
-          final decoded = jsonDecode(trimmed);
-          _setBody(decoded);
+          _setBody(jsonDecode(bodyStr));
           return body;
         } catch (_) {
-          // fall through to other parsers
+          // Not valid JSON, use string as-is
+        }
+      } else if (firstChar <= 32) {
+        // Has leading whitespace, need to trim
+        final trimmed = bodyStr.trimLeft();
+        if (trimmed.isNotEmpty) {
+          final trimmedFirst = trimmed.codeUnitAt(0);
+          if (trimmedFirst == 123 || trimmedFirst == 91) {
+            try {
+              _setBody(jsonDecode(trimmed));
+              return body;
+            } catch (_) {
+              // Not valid JSON, use string as-is
+            }
+          }
         }
       }
     }
 
-    if (contentType == ContentType.binary) {
-      _setBody(Uint8List.fromList(bytes));
-      return body;
-    }
-
-    if (contentType.mimeType.startsWith('text/')) {
-      _setBody(parsedBody);
-      return body;
-    }
-
-    _setBody(parsedBody);
+    _setBody(bodyStr);
     return body;
   }
 
