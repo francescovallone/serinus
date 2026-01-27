@@ -50,11 +50,11 @@ class FrontierHook extends Hook with OnBeforeHandle {
     }
     final requestContext = context.switchToHttp();
     final hasStrategy = requestContext.canStat('GuardMeta');
-    if (!hasStrategy) {
+    if (!hasStrategy && strategies.length > 1) {
       return;
     }
     final stringHeaders = Map<String, String>.fromEntries(
-      requestContext.headers.asMap().entries.map(
+      requestContext.headers.asFullMap().entries.map(
         (e) => MapEntry(e.key, e.value.toString()),
       ),
     );
@@ -77,7 +77,9 @@ class FrontierHook extends Hook with OnBeforeHandle {
       query: stringQuery,
       cookies: stringCookies,
     );
-    final strategyName = requestContext.stat<String>('GuardMeta');
+    final strategyName = hasStrategy 
+      ? requestContext.stat<String>('GuardMeta') 
+      : strategies.first.name;
     final value = await service.authenticate(strategyName, strategyRequest);
     if (value == null) {
       if (onError != null) {

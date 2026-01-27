@@ -32,13 +32,14 @@ dependencies:
   web_socket_channel: ^3.0.3
   collection: ^1.19.1
   shelf: ^1.4.2
-  acanthis: ^1.4.4
+  acanthis: ^1.5.0
   secure_session: ^1.0.5
   crypto: ^3.0.7
 
 dev_dependencies:
   mocktail: ^1.0.4
-  test: ^1.26.3
+  test: ^1.28.0
   lints: ^6.0.0
   http: ^1.5.0
   test_process: ^2.1.1
+  benchmark_harness: ^2.3.1

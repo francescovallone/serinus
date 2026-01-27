@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
-import 'package:yaml/yaml.dart';
+import 'package:serinus_cli/src/utils/config.dart';
 
 /// {@template update_command}
 /// A command which updates the CLI.
@@ -39,34 +39,19 @@ class DeployCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final pubspec = File(path.join(Directory.current.path, 'pubspec.yaml'));
     final progress = _logger.progress('Creating Dockerfile...');
     final port = argResults!['port'].toString();
     final output = argResults!['output'].toString();
-    if (!pubspec.existsSync()) {
-      _logger.err('No pubspec.yaml file found');
-      progress.fail('Failed to create Dockerfile');
-      return ExitCode.noInput.code;
-    }
-    final configFile = File(path.join(Directory.current.path, 'config.yaml'));
-    var entrypoint = '';
-    var content = <String, dynamic>{};
-    final pubspecContent = await pubspec.readAsString();
-    content = Map<String, dynamic>.from(loadYaml(pubspecContent) as Map);
-    if (!configFile.existsSync()) {
-      _logger.warn(
-        'No config.yaml file found, using pubspec.yaml to get entrypoint',
-      );
-      content['name'] = content['name'] as String;
-      entrypoint = 'bin/${content['name']}.dart';
-    } else {
-      final configContent = await configFile.readAsString();
-      final content = Map<String, dynamic>.from(loadYaml(configContent) as Map);
-      entrypoint = content['entrypoint'] as String;
+    final Config config;
+    try {
+      config = await getProjectConfiguration(_logger, deps: true);
+    } catch (e) {
+      _logger.err('Failed to load project configuration: $e');
+      return ExitCode.config.code;
     }
     // final dockerFileContent = dockerFileFromRepository(entrypoint, output, port);
     File(path.join(Directory.current.path, 'Dockerfile'))
-        .writeAsStringSync(dockerFile(entrypoint, output, port));
+        .writeAsStringSync(dockerFile(config.entrypoint ?? '', output, port));
     progress.complete('Dockerfile created');
     return ExitCode.success.code;
   }

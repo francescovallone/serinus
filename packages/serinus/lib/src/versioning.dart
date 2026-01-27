@@ -1,4 +1,13 @@
+import 'core/core.dart';
 import 'enums/enums.dart';
+
+/// Metadata to ignore versioning for a controller or a route
+class IgnoreVersion extends Metadata {
+
+  /// Creates a new instance of [IgnoreVersion]
+  const IgnoreVersion(): super(name: 'ignore_version', value: true);
+
+}
 
 /// Options for versioning the API
 ///
@@ -23,8 +32,12 @@ final class VersioningOptions {
   /// This is a required field when the versioning type is [VersioningType.header]
   final String? header;
 
+  /// The prefix to be used when the versioning type is [VersioningType.uri]
+  /// Defaults to 'v'
+  final String prefix;
+
   /// Creates a new instance of [VersioningOptions]
-  VersioningOptions({required this.type, this.version = 1, this.header}) {
+  VersioningOptions({required this.type, this.version = 1, this.header, this.prefix = 'v'}) {
     if (version < 1) {
       throw ArgumentError.value(
         version,
@@ -39,7 +52,7 @@ final class VersioningOptions {
 
   /// Returns the version prefix for the API.
   String get versionPrefix {
-    return 'v';
+    return prefix;
   }
 
   /// Creates a new instance of [VersioningOptions] with [VersioningType.uri].
@@ -67,11 +80,12 @@ final class VersioningOptions {
     final otherOptions = other;
     return otherOptions.version == version &&
         otherOptions.type == type &&
-        otherOptions.header == header;
+        otherOptions.header == header &&
+        otherOptions.prefix == prefix;
   }
 
   @override
   int get hashCode {
-    return Object.hash(version, type, header);
+    return Object.hash(version, type, header, prefix);
   }
 }

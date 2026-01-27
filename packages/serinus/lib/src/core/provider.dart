@@ -15,6 +15,23 @@ abstract class Provider {
     required List<Type> inject,
   }) => ComposedProvider(init, inject: inject);
 
+  /// Creates a [ClassProvider] that registers [useClass] under the token [T].
+  ///
+  /// This allows you to swap implementations at registration time, similar to NestJS:
+  ///
+  /// ```dart
+  /// final configProvider = Provider.forClass<ConfigService>(
+  ///   useClass: !kIsDebug ? ProductionConfig : DevelopmentConfig,
+  /// );
+  ///
+  /// class AppModule extends Module {
+  ///   AppModule() : super(providers: [configProvider]);
+  /// }
+  /// ```
+  static ClassProvider<T> forClass<T extends Provider>({
+    required T useClass,
+  }) => ClassProvider<T>(useClass: useClass);
+
   @override
   String toString() => '$runtimeType';
 }
@@ -38,3 +55,61 @@ final class ComposedProvider<T extends Provider> extends Provider {
   @override
   String toString() => '$runtimeType(inject: $inject)';
 }
+
+/// A marker interface for custom provider definitions.
+///
+/// Custom providers allow you to define how a provider should be created
+/// or which implementation to use at registration time.
+sealed class CustomProvider<T extends Provider> extends Provider {
+  /// The type that this provider will be registered as.
+  Type get token => T;
+}
+
+/// A provider that substitutes one class for another.
+///
+/// Use [ClassProvider] when you want to register a different implementation
+/// under a specific type token. This is useful for:
+/// - Environment-specific implementations (dev vs prod)
+/// - Testing with mock implementations
+/// - Feature flags that swap implementations
+///
+/// ## Example
+///
+/// ```dart
+/// // Define the abstract interface
+/// abstract class ConfigService extends Provider {
+///   String get apiUrl;
+/// }
+///
+/// // Define implementations
+/// class DevConfigService extends ConfigService {
+///   @override
+///   String get apiUrl => 'http://localhost:3000';
+/// }
+///
+/// class ProdConfigService extends ConfigService {
+///   @override
+///   String get apiUrl => 'https://api.example.com';
+/// }
+///
+/// // Register conditionally
+/// final configProvider = Provider.forClass<ConfigService>(
+///   useClass: !kIsDebug
+///     ? ProdConfigService()
+///     : DevConfigService(),
+/// );
+/// ```
+final class ClassProvider<T extends Provider> extends CustomProvider<T> {
+  /// The actual class instance to use when [T] is requested.
+  final T useClass;
+
+  /// Creates a new [ClassProvider] instance.
+  ClassProvider({required this.useClass});
+
+  @override
+  String toString() => 'ClassProvider<$T>(useClass: ${useClass.runtimeType})';
+
+  @override
+  Type get token => T;
+}
+

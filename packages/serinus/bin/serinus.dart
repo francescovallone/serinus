@@ -52,18 +52,12 @@ class Test2Controller extends Controller {
 }
 
 class AppController extends Controller {
-  AppController() : super('/app') {
-    on<File, dynamic>(Route.get('/'), (RequestContext context) async {
-      final provider = context.use<TestProvider>();
-      return File(
-        '${Directory.current.absolute.path}/test/http/test.txt',
-      );
-    });
-    on<String, List<dynamic>>(Route.post('/echo'), (
-      RequestContext<List<dynamic>> context,
+  AppController() : super('/') {
+    on<Map<String, dynamic>, dynamic>(Route.get('/data/:id?'), (
+      RequestContext<dynamic> context,
     ) async {
-      final mapBody = context.bodyAs<String>();
-      return 'Echo: $mapBody ${context.body}';
+      final id = context.paramAs<int?>('id');
+      return {'message': 'Data for id: $id'};
     });
   }
 }

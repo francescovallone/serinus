@@ -4,8 +4,8 @@
 <template>
 	<svg width="688" height="400" xmlns="http://www.w3.org/2000/svg">
     <!-- Client Side box -->
-    <rect x="50" y="150" width="150" height="60" class="box stroke" rx="8" ry="8"/>
-    <rect x="45" y="145" width="160" height="70" class="box stroke" rx="12" ry="12" style="stroke-width: 1;"/>
+    <rect x="50" y="150" width="150" height="60" class="box stroke"/>
+    <rect x="45" y="145" width="160" height="70" class="box stroke" style="stroke-width: 1;"/>
     <text x="125" y="185" class="text-brand">Client Side</text>
 
     <!-- Dashed arrow (HTTP request) -->
@@ -21,15 +21,15 @@
 
     <!-- Controller boxes -->
     <!-- Top Controller -->
-    <rect x="460" y="80" width="170" height="60" class="box" rx="12" ry="12"/>
+    <rect x="460" y="80" width="170" height="60" class="box"/>
     <text x="545" y="115" class="text">Controller</text>
 
     <!-- Middle Controller (highlighted) -->
-    <rect x="460" y="150" width="170" height="60" class="box" rx="12" ry="12"/>
+    <rect x="460" y="150" width="170" height="60" class="box"/>
     <text x="545" y="185" class="text">Controller</text>
 
     <!-- Bottom Controller -->
-    <rect x="460" y="220" width="170" height="60" class="box" rx="12" ry="12"/>
+    <rect x="460" y="220" width="170" height="60" class="box"/>
     <text x="545" y="255" class="text">Controller</text>
 
     <!-- curved path from first line to the top-most controller -->
@@ -49,7 +49,7 @@
     .box {
       font-size: 16px;
       font-family: sans-serif;
-      fill: var(--vp-c-brand-light);
+      fill: var(--vp-c-brand-1);
       stroke: none;
       fill-opacity: 1;
     }
@@ -59,15 +59,13 @@
       fill: transparent
     }
     .text {
-      fill: white;
-      font-family: Arial, sans-serif;
+      fill: var(--primary-foreground);
       font-size: 14px;
       text-anchor: middle;
       font-weight: 600;
     }
     .text-brand {
       fill: var(--vp-c-brand-1);
-	    font-family: Arial, sans-serif;
       font-size: 14px;
       text-anchor: middle;
       font-weight: 600;

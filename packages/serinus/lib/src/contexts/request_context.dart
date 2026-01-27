@@ -145,10 +145,18 @@ class RequestContext<TBody> extends BaseContext {
   }
 
   /// Casts the current body to a different type.
-  T bodyAs<T>() => _converter.convert(_typeOf<T>(), body) as T;
+  T bodyAs<T>({bool override = false}) {
+    if (body is T && !override) {
+      return body as T;
+    }
+    return _converter.convert(_typeOf<T>(), body) as T;
+  }
 
   /// Casts the current body to a list of a different type.
-  List<T> bodyAsList<T>() {
+  List<T> bodyAsList<T>({bool override = false}) {
+    if (body is List<T> && !override) {
+      return List<T>.from(body as List);
+    }
     if (body is! List) {
       throw BadRequestException('The element is not of the expected type');
     }
@@ -202,14 +210,19 @@ class RequestContext<TBody> extends BaseContext {
 
   /// Retrieves a route parameter by name, or all parameters if no name is provided.
   /// It tries to convert the parameter to the specified type [T].
-  T? paramAs<T>([String? name]) {
+  T paramAs<T>([String? name]) {
     if (name == null) {
       return _converter.convert(_typeOf<T>(), params) as T;
     }
-    if (!params.containsKey(name)) {
-      return null;
+    final value = params[name];
+    if (value == null) {
+      final acceptNull = T.toString().endsWith('?');
+      if (acceptNull) {
+        return value;
+      }
+      throw ArgumentError('Path parameter $name not found');
     }
-    return _converter.convert(_typeOf<T>(), params[name]) as T;
+    return _converter.convert(_typeOf<T>(), value) as T;
   }
 }
 

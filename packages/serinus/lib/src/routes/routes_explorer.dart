@@ -5,9 +5,11 @@ import '../contexts/route_context.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
 import '../extensions/string_extensions.dart';
+import '../router/atlas.dart';
+import '../router/router.dart';
 import '../services/logger_service.dart';
+import '../versioning.dart';
 import 'route_execution_context.dart';
-import 'router.dart';
 
 /// The [RoutesExplorer] class is used to explore the routes of the application.
 final class RoutesExplorer {
@@ -32,9 +34,9 @@ final class RoutesExplorer {
   /// It resolves the routes of the controllers and registers them in the router.
   void resolveRoutes() {
     final Logger logger = Logger('RoutesResolver');
-    Map<Controller, _ControllerSpec> controllers = {
+    Map<Controller, ControllerSpec> controllers = {
       for (final record in _container.modulesContainer.controllers)
-        record.controller: _ControllerSpec(
+        record.controller: ControllerSpec(
           record.controller.path,
           record.module,
         ),
@@ -44,7 +46,15 @@ final class RoutesExplorer {
         throw Exception('Invalid controller path: ${controller.value.path}');
       }
       logger.info('${controller.key.runtimeType} {${controller.value.path}}');
-      explore(controller.key, controller.value.module, controller.value.path);
+      final versioningOptions = _container.config.versioningOptions;
+      final globalVersioningEnabled =
+        _container.config.versioningOptions?.type == VersioningType.uri;
+      explore(
+        controller,
+        versioningOptions,
+        globalVersioningEnabled,
+        controller.key.metadata.whereType<IgnoreVersion>().firstOrNull != null,
+      );
     }
   }
 
@@ -52,16 +62,23 @@ final class RoutesExplorer {
   ///
   /// It registers the routes in the router.
   /// It also logs the mapped routes.
-  void explore(Controller controller, Module module, String controllerPath) {
+  void explore(
+    MapEntry<Controller, ControllerSpec> controllerEntry,
+    VersioningOptions? versioningOptions,
+    bool globalVersioningEnabled,
+    bool controllerIgnoreVersioning,
+  ) {
     final logger = Logger('RoutesExplorer');
+    final controller = controllerEntry.key;
+    final module = controllerEntry.value.module;
+    final controllerPath = controllerEntry.value.path;
     final routes = controller.routes;
-    final versioningOptions = _container.config.versioningOptions;
-    final versioningEnabled =
-        _container.config.versioningOptions?.type == VersioningType.uri;
     for (var entry in routes.entries) {
       final spec = entry.value;
       String routePath = '$controllerPath${spec.route.path}';
-      if (versioningEnabled) {
+      final ignoreVersion = spec.route.metadata
+              .whereType<IgnoreVersion>().firstOrNull != null || controllerIgnoreVersioning;
+      if (globalVersioningEnabled && !ignoreVersion) {
         routePath =
             '${versioningOptions?.versionPrefix}${spec.route.version ?? controller.version ?? versioningOptions?.version}/$routePath';
       }
@@ -126,21 +143,22 @@ final class RoutesExplorer {
 
   /// Gets the route by path and method.
   ///
-  /// Returns a [RouteContext] and the handler function if the route exists,
-  /// otherwise returns null.
-  ({
-    ({RouteContext route, HandlerFunction handler}) spec,
-    Map<String, dynamic> params,
-  })?
-  getRoute(String path, HttpMethod method) {
-    final result = _router.checkRouteByPathAndMethod(path, method);
-    return result;
+  /// Returns a [AtlasResult].
+  /// If no route is found, returns a [NotFoundRoute].
+  /// If no method matches, returns a [MethodNotAllowedRoute].
+  /// Otherwise, returns the matched route in a [FoundRoute].
+  AtlasResult<RouterEntry> getRoute(String path, HttpMethod method) {
+    return _router.lookup(path, method);
   }
 }
 
-class _ControllerSpec {
+/// The [ControllerSpec] class is used to store the specification of a controller.
+class ControllerSpec {
+  /// The path of the controller.
   final String path;
+  /// The module of the controller.
   final Module module;
 
-  const _ControllerSpec(this.path, this.module);
+  /// The [ControllerSpec] constructor is used to create a new instance of the [ControllerSpec] class.
+  const ControllerSpec(this.path, this.module);
 }

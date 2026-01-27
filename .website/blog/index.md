@@ -19,7 +19,7 @@ head:
 ---
 
 <script setup>
-    import Blog from '../components/blog.vue'
+    import Blog from '../components/blog/blog.vue'
     import { posts } from '../components/data/blog.ts'
 </script>
 

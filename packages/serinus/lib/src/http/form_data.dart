@@ -45,15 +45,19 @@ class FormData {
         _files.values.fold(0, (p, e) => p + e._data.length);
   }
 
+  /// This method is used to get a file of the form data by its name
+  UploadedFile? file(String name) {
+    return _files[name];
+  } 
+
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
   static Future<FormData> parseMultipart({
-    required HttpRequest request,
+    required Stream<List<int>> request,
+    required String contentType,
     Future<void> Function(MimeMultipart part)? onPart,
   }) async {
     try {
-      final mediaType = MediaType.parse(
-        request.headers[HttpHeaders.contentTypeHeader]!.join(';'),
-      );
+      final mediaType = MediaType.parse(contentType);
       final boundary = mediaType.parameters['boundary'];
       final parts = _getMultiparts(request, boundary);
       RegExp regex = RegExp('([a-zA-Z0-9-_]+)="(.*?)"');
@@ -111,7 +115,7 @@ class FormData {
   }
 
   static Stream<MimeMultipart> _getMultiparts(
-    HttpRequest request,
+    Stream<List<int>> request,
     String? boundary,
   ) {
     if (boundary == null) {

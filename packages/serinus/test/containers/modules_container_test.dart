@@ -1,9 +1,10 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
+import 'package:serinus/src/router/atlas.dart';
+import 'package:serinus/src/router/router.dart';
 import 'package:serinus/src/routes/route_execution_context.dart';
 import 'package:serinus/src/routes/route_response_controller.dart';
-import 'package:serinus/src/routes/router.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
 
@@ -65,10 +66,9 @@ void main() {
       explorer.resolveRoutes();
 
       final token = InjectionToken.fromModule(module);
-      final result = router.checkRouteByPathAndMethod('/', HttpMethod.get);
-
-      expect(result?.spec, isNotNull);
-      final routeContext = result!.spec.route;
+      final result = router.lookup('/', HttpMethod.get);
+      expect(result, isA<FoundRoute>());
+      final routeContext = (result as FoundRoute).values.first.context;
       expect(routeContext.moduleToken, equals(token));
       expect(routeContext.moduleScope.token, equals(token));
     });
@@ -207,4 +207,66 @@ void main() {
       },
     );
   });
+
+  group('Custom Providers', () {
+    test('ClassProvider registers useClass instance under token type', () async {
+      Logger.setLogLevels({LogLevel.none});
+      final container = ModulesContainer(config);
+      final module = ModuleWithClassProvider();
+      await container.registerModules(module);
+      await container.finalize(module);
+
+      // Should be able to retrieve the provider
+      final provider = container.get<ConfigService>();
+      expect(provider, isNotNull);
+      expect(provider, isA<ProductionConfigService>());
+    });
+  });
+}
+
+// Test classes for Custom Providers
+
+abstract class ConfigService extends Provider {
+  String get environment;
+}
+
+class DevelopmentConfigService extends ConfigService {
+  @override
+  String get environment => 'development';
+}
+
+class ProductionConfigService extends ConfigService {
+  @override
+  String get environment => 'production';
+}
+
+class ApiConfigService extends Provider {
+  final String apiKey;
+  final String baseUrl;
+
+  ApiConfigService({required this.apiKey, this.baseUrl = 'https://api.example.com'});
+}
+
+abstract class DatabaseService extends Provider {
+  Future<void> connect();
+}
+
+class SqliteService extends DatabaseService {
+  final String connectionString;
+
+  SqliteService(this.connectionString);
+
+  @override
+  Future<void> connect() async {}
+}
+
+class ModuleWithClassProvider extends Module {
+  ModuleWithClassProvider()
+      : super(
+          providers: [
+            Provider.forClass<ConfigService>(
+              useClass: ProductionConfigService(),
+            ),
+          ],
+        );
 }
