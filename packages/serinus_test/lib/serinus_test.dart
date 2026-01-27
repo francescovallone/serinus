@@ -10,8 +10,6 @@ import 'package:test/test.dart';
 
 class TestHeaders implements HttpHeaders {
 
-  String _normalizeHeader(String name, bool preserveHeaderCase) => preserveHeaderCase ? name : name.toLowerCase();
-
   TestHeaders(
     this._headers,
     {
@@ -66,12 +64,12 @@ class TestHeaders implements HttpHeaders {
 
   @override
   List<String>? operator [](String name) {
-    return _headers[_normalizeHeader(name, false)];
+    return _headers[name.toLowerCase()];
   }
 
   @override
   void add(String name, Object value, {bool preserveHeaderCase = false}) {
-    final values = _headers.putIfAbsent(_normalizeHeader(name, preserveHeaderCase), () => <String>[]);
+    final values = _headers.putIfAbsent(name.toLowerCase(), () => <String>[]);
     values.add(value.toString());
   }
 
@@ -92,23 +90,23 @@ class TestHeaders implements HttpHeaders {
 
   @override
   void remove(String name, Object value) {
-    final values = _headers[_normalizeHeader(name, false)];
+    final values = _headers[name.toLowerCase()];
     values?.remove(value.toString());
   }
 
   @override
   void removeAll(String name) {
-    _headers.remove(_normalizeHeader(name, false));
+    _headers.remove(name.toLowerCase());
   }
 
   @override
   void set(String name, Object value, {bool preserveHeaderCase = false}) {
-    _headers[_normalizeHeader(name, preserveHeaderCase)] = [value.toString()];
+    _headers[name.toLowerCase()] = [value.toString()];
   }
 
   @override
   String? value(String name) {
-    final values = _headers[_normalizeHeader(name, false)];
+    final values = _headers[name.toLowerCase()];
     if (values == null || values.isEmpty) {
       return null;
     }
