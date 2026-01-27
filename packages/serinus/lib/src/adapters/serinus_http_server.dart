@@ -177,6 +177,7 @@ class SerinusHttpAdapter
       io.HttpHeaders.contentLengthHeader: contentLength.toString(),
     }, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
+    
     response.send(responseBody);
   }
 
