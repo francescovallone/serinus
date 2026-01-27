@@ -2,7 +2,6 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/contexts/route_context.dart';
 import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
-import 'package:spanner/spanner.dart';
 import 'package:test/test.dart';
 
 class TestRoute extends Route {
@@ -24,21 +23,6 @@ class TestModule extends Module {
 
 void main() async {
   group('$Router', () {
-    test(
-      '''when the function 'getHttpMethod' is called,
-            then it should return the correct HTTP method from Spanner
-          ''',
-      () {
-        expect(HttpMethod.toSpanner(HttpMethod.get), HTTPMethod.GET);
-        expect(HttpMethod.toSpanner(HttpMethod.post), HTTPMethod.POST);
-        expect(HttpMethod.toSpanner(HttpMethod.put), HTTPMethod.PUT);
-        expect(HttpMethod.toSpanner(HttpMethod.delete), HTTPMethod.DELETE);
-        expect(HttpMethod.toSpanner(HttpMethod.patch), HTTPMethod.PATCH);
-        expect(HttpMethod.toSpanner(HttpMethod.head), HTTPMethod.HEAD);
-        expect(HttpMethod.toSpanner(HttpMethod.options), HTTPMethod.OPTIONS);
-        expect(HttpMethod.toSpanner(HttpMethod.all), HTTPMethod.ALL);
-      },
-    );
 
     test(
       '''when the function 'registerRoute' is called,

@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
-import 'package:spanner/spanner.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:uuid/v4.dart';
 
@@ -12,9 +11,11 @@ import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../core/middlewares/middleware_executor.dart';
+import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
+import '../router/atlas.dart';
 import '../utils/wrapped_response.dart';
 import 'adapters.dart';
 
@@ -60,7 +61,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
   final HttpAdapter httpAdapter;
 
   /// The [router] property contains the router used by the SSE adapter.
-  final Spanner router = Spanner();
+  final Atlas router = Atlas();
 
   /// The [connections] property contains the active SSE connections.
   Map<String?, SseConnection> get connections =>
@@ -113,8 +114,8 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
 
   /// Starts the SSE connection.
   Future<void> start(IncomingMessage request, OutgoingMessage response) async {
-    final route = router.lookup(HTTPMethod.GET, request.path);
-    if (route == null) {
+    final route = router.lookup(HttpMethod.get, request.path);
+    if (route is NotFoundRoute) {
       final exception =
           httpAdapter.notFoundHandler?.call(Request(request)) ??
           NotFoundException(

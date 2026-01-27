@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:spanner/spanner.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/status.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -13,9 +12,11 @@ import '../core/core.dart';
 import '../core/middlewares/middleware_executor.dart';
 import '../core/middlewares/middleware_registry.dart';
 import '../core/websockets/ws_exceptions.dart';
+import '../enums/http_method.dart';
 import '../enums/request_event.dart';
 import '../extensions/iterable_extansions.dart';
 import '../http/http.dart';
+import '../router/atlas.dart';
 import 'adapters.dart';
 
 /// The [WsRequestHandler] is used to handle the web socket request
@@ -63,7 +64,7 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
 
   /// The [router] property contains the router used by the WebSocket adapter.
   /// It is used to handle the WebSocket requests and responses.
-  Spanner? router;
+  Atlas? router;
 
   /// The [WsAdapter] constructor is used to create a new instance of the [WsAdapter] class.
   WsAdapter(this.httpAdapter);
@@ -107,7 +108,7 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
     OutgoingMessage response,
     String clientId,
   ) async {
-    final result = router?.lookup(HTTPMethod.ALL, request.uri);
+    final result = router?.lookup(HttpMethod.all, request.path);
     final socket = await response.detachSocket();
     final channel = StreamChannel<List<int>>(socket, socket);
     final sink = utf8.encoder.startChunkedConversion(channel.sink);

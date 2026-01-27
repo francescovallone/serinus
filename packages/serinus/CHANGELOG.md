@@ -8,13 +8,19 @@
 
 - Add `ClassProvider` to allow inheritance in providers. Now it is possible to pass a class as a provider and have it injected as its subclass. This allows for better abstraction and separation of concerns in the application architecture.
 - Add `etag` to requests to allow for better caching strategies and reduce bandwidth usage.
-- Replace Spanner with Atlas as the default router for Serinus applications. Atlas provides better performance and more features compared to Spanner allowing for something more robust and flexible routing system.
+- Replace `Spanner` with `Atlas` as the default router for Serinus applications. Atlas provides better performance and more features compared to Spanner allowing for something more robust and flexible routing system.
 - Allow disabling versioning on specific routes or controllers. This provides more flexibility in managing API versions and allows for better control over the versioning strategy.
+- Add `file` method to `FormData` to simplify file part extraction from multipart/form-data requests.
 
 ### Fixes
 
 - Fix WebSocket upgrade handling to prevent wrongful exceptions during connection upgrades.
 - `ResponseContext#body` now does not close the response when set, allowing for proper response handling in hooks and middlewares.
+
+### Changes
+
+- `bodyAs` and `bodyAsList` methods now uses a conservative approach to parsing the body, if the body is already of the requested type it is returned as is, otherwise it is parsed. This improves performance and reduces unnecessary parsing operations.
+- Improve general performances of the handling system reducing memory allocations and CPU usage.
 
 ## 2.0.4
 

@@ -1,7 +1,6 @@
 import '../../adapters/sse_adapter.dart';
 import '../../containers/injection_token.dart';
 import '../../contexts/route_context.dart';
-import '../../enums/enums.dart';
 import '../../errors/initialization_error.dart';
 import '../../mixins/mixins.dart';
 import '../../services/logger_service.dart';
@@ -33,10 +32,10 @@ class SseRegistry extends Provider
       for (final spec in controller.sseRoutes.entries) {
         final route = spec.value.route;
         final result = router.lookup(
-          HttpMethod.toSpanner(route.method),
+          route.method,
           route.path,
         );
-        if (result?.values.isNotEmpty ?? false) {
+        if (result.values.isNotEmpty) {
           throw InitializationError(
             'SSE Route with path "${route.path}" already exists. '
             'Please use a different path for the route.',
@@ -64,8 +63,8 @@ class SseRegistry extends Provider
             ..._config.globalExceptionFilters,
           },
         );
-        router.addRoute(
-          HttpMethod.toSpanner(route.method),
+        router.add(
+          route.method,
           route.path,
           SseScope(
             spec.value,
