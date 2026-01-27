@@ -13,6 +13,7 @@ import '../router/atlas.dart';
 import '../router/router.dart';
 import '../services/logger_service.dart';
 import '../utils/wrapped_response.dart';
+import '../versioning.dart';
 import 'route_execution_context.dart';
 import 'route_response_controller.dart';
 import 'routes_explorer.dart';
@@ -47,9 +48,9 @@ class RoutesResolver {
   ///
   /// It resolves the routes of the controllers and registers them in the router.
   void resolve() {
-    final mappedControllers = <Controller, _ControllerSpec>{
+    final mappedControllers = <Controller, ControllerSpec>{
       for (final entry in _container.modulesContainer.controllers)
-        entry.controller: _ControllerSpec(entry.controller.path, entry.module),
+        entry.controller: ControllerSpec(entry.controller.path, entry.module),
     };
     for (var controller in mappedControllers.entries) {
       if (controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))) {
@@ -57,9 +58,10 @@ class RoutesResolver {
       }
       _logger.info('${controller.key.runtimeType} {${controller.value.path}}');
       _explorer.explore(
-        controller.key,
-        controller.value.module,
-        controller.value.path,
+        controller,
+        _container.config.versioningOptions,
+        _container.config.versioningOptions?.type == VersioningType.uri,
+        controller.key.metadata.whereType<IgnoreVersion>().firstOrNull != null,
       );
     }
   }
@@ -332,11 +334,4 @@ class RoutesResolver {
       request.uri,
     );
   }
-}
-
-class _ControllerSpec {
-  final String path;
-  final Module module;
-
-  const _ControllerSpec(this.path, this.module);
 }

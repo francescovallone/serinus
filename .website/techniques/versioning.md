@@ -94,7 +94,7 @@ As before you will only need to override the `version` getter.
 import 'package:serinus/serinus.dart';
 
 class CustomRoute extends Route {
-    @override
+  @override
   int get version => 2;
 
   CustomRoute(String path) : super(path: path, method: HttpMethod.get);
@@ -106,5 +106,40 @@ class UsersController extends Controller {
       return 'Users';
     });
   }
+}
+```
+
+## Ignore Versioning
+
+Sometimes you may want a route that is not affected by versioning. To achieve this, you can augment the route or controller with the `IgnoreVersion` metadata.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class UsersController extends Controller {
+  UsersController(): super('/users') {
+    on(Route.get('/', metadata: [IgnoreVersion()]), (RequestContext context) async {
+      return 'Users';
+    });
+  }
+}
+```
+
+In the example above, the route `/users` will ignore the application versioning.
+
+The same applies to controllers:
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class UsersController extends Controller {
+  UsersController(): super('/users') {
+    on(Route.get('/'), (RequestContext context) async {
+      return 'Users';
+    });
+  }
+
+  @override
+  List<Metadata> get metadata => [IgnoreVersion()];
 }
 ```
