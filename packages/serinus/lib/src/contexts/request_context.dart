@@ -145,10 +145,18 @@ class RequestContext<TBody> extends BaseContext {
   }
 
   /// Casts the current body to a different type.
-  T bodyAs<T>() => _converter.convert(_typeOf<T>(), body) as T;
+  T bodyAs<T>({bool override = false}) {
+    if (body is T && !override) {
+      return body as T;
+    }
+    return _converter.convert(_typeOf<T>(), body) as T;
+  }
 
   /// Casts the current body to a list of a different type.
-  List<T> bodyAsList<T>() {
+  List<T> bodyAsList<T>({bool override = false}) {
+    if (body is List<T> && !override) {
+      return List<T>.from(body as List);
+    }
     if (body is! List) {
       throw BadRequestException('The element is not of the expected type');
     }
