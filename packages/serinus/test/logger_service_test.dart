@@ -42,6 +42,7 @@ void main() {
         emits(contains('[Test] Test - 400 Bad Request!')),
       );
       await expectLater(process.stdout, emits(contains('[Test] Test')));
+      
       await process.shouldExit(0);
     });
   });
