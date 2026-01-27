@@ -45,6 +45,11 @@ class FormData {
         _files.values.fold(0, (p, e) => p + e._data.length);
   }
 
+  /// This method is used to get a file of the form data by its name
+  UploadedFile? file(String name) {
+    return _files[name];
+  } 
+
   /// This method is used to parse the request body as a [FormData] if the content type is multipart/form-data
   static Future<FormData> parseMultipart({
     required Stream<List<int>> request,
