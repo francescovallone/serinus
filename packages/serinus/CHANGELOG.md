@@ -14,6 +14,7 @@
 ### Fixes
 
 - Fix WebSocket upgrade handling to prevent wrongful exceptions during connection upgrades.
+- `ResponseContext#body` now does not close the response when set, allowing for proper response handling in hooks and middlewares.
 
 ## 2.0.4
 

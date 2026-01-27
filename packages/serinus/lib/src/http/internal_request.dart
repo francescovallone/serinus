@@ -17,6 +17,7 @@ import 'session.dart';
 
 /// The UTF-8 JSON decoder.
 final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
+final _cacheControlNoCacheRegExp = RegExp(r'(?:^|,)\s*?no-cache\s*?(?:,|$)', caseSensitive: false);
 
 /// The [IncomingMessage] interface defines the methods and properties that a request must implement.
 /// It is used to parse the request and provide access to its properties.
@@ -132,6 +133,12 @@ abstract class IncomingMessage {
   /// The [webSocketKey] property contains the key of the web socket
   /// It is used to upgrade the request to a web socket request.
   String get webSocketKey;
+
+  /// The [fresh] property is used to check if the request is fresh
+  /// 
+  /// A fresh request is a request that has not been modified since the last time it was requested.
+  /// Or that has an ETag that matches the one in the request headers.
+  bool get fresh;
 }
 
 /// The class Request is used to handle the request
@@ -342,4 +349,55 @@ class InternalRequest extends IncomingMessage {
 
   @override
   String get hostname => original.headers.value('Host')?.split(':').first ?? '';
+
+  @override
+  bool get fresh {
+    if (method != 'GET' && method != 'HEAD') {
+      return false;
+    }
+    final status = response.statusCode;
+    if (status < 200 || status >= 300 && status != 304) {
+      return false;
+    }
+    final modifiedSince = this.ifModifiedSince;
+    final noneMatch = headers['if-none-match'];
+    if (modifiedSince == null && noneMatch == null) {
+      return false;
+    }
+
+    final cacheControl = headers['cache-control'];
+    if (cacheControl != null && _cacheControlNoCacheRegExp.hasMatch(cacheControl)) {
+      return false;
+    }
+    if (noneMatch != null) {
+      if (noneMatch == '*') {
+        return true;
+      }
+      final etag = response.currentHeaders.value('etag');
+      if (etag == null) {
+        return false;
+      }
+      // Compare the ETags
+      for (final tag in noneMatch.split(',')) {
+        final match = tag.trim();
+        if (match == etag || match == 'W/' + etag || 'W/' + match == etag) {
+          return true;
+        }
+      }
+      return false;
+    }
+    // Check if the If-Modified-Since header is present
+    if (modifiedSince != null) {
+      // Get the Last-Modified header from the response
+      final lastModified = response.currentHeaders.value('last-modified');
+      if (lastModified == null) {
+        return false;
+      }
+
+      final lastModifiedDate = parseHttpDate(lastModified);
+      // Compare the dates
+      return !lastModifiedDate.isAfter(modifiedSince);
+    }
+    return true;
+  }
 }

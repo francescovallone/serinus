@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
+
 import '../extensions/object_extensions.dart';
 
 /// The [WrappedResponse] class is used to wrap the response data.
@@ -34,5 +36,16 @@ class WrappedResponse {
     }
     // Fallback: string representation
     return utf8.encode(data.toString()) as Uint8List? ?? Uint8List(0);
+  }
+
+  /// Get the ETag for the response data.
+  String get eTag {
+    final bytes = toBytes();
+    if (bytes.isEmpty) {
+      return '"0-2jmj7l5rSw0yVb/vlWAYkK/YBwk"'; // ETag for empty response
+    }
+    // Simple ETag generation using a hash of the bytes
+    final hash = base64Encode(sha1.convert(bytes).bytes).substring(0, 27);
+    return '"${bytes.lengthInBytes}-$hash"';
   }
 }

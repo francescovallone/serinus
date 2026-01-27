@@ -38,7 +38,9 @@ class ResponseContext extends BaseContext {
     _statusCode = value;
   }
 
-  final SerinusHeaders _headers = SerinusHeaders({});
+  final SerinusHeaders _headers = SerinusHeaders({
+    
+  });
 
   /// The [headers] property contains the headers of the response.
   /// It is a [SerinusHeaders] object that allows to add, remove and modify headers.
@@ -144,6 +146,10 @@ class ResponseContext extends BaseContext {
   /// It can be of any type, depending on the content type of the response.
   Object? get body => _body;
 
+  /// The [body] setter is used to set the body of the response. On setting the body, the response context should not be closed.
+  /// If the response context is closed, it will throw a [StateError].
+  /// 
+  /// Use this property to set the response body before sending the response to the client.
   set body(Object? value) {
     if (_closed) {
       throw StateError(
@@ -151,14 +157,19 @@ class ResponseContext extends BaseContext {
       );
     }
     _body = value;
-    close();
   }
 
   /// The [close] method is used to close the response context.
   /// This method should be called when the response will be sent back to the client forcefully without completing the request.
   /// It prevents further modifications to the response context.
   /// This method is idempotent, meaning it can be called multiple times without changing the result.
+  /// Use this method to indicate that the response is ready to be sent and no further changes should be made.
   void close() {
+    if (body != null) {
+      throw StateError(
+        'Response body is already set. Cannot close the response context.',
+      );
+    }
     _closed = true;
   }
 }

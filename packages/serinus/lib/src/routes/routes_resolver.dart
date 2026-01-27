@@ -97,10 +97,12 @@ class RoutesResolver {
   /// The [sendExceptionResponse] method is used to send an exception response.
   Future<void> sendExceptionResponse(
     SerinusException exception,
+    IncomingMessage request,
     OutgoingMessage response,
   ) async {
     return _container.applicationRef.reply(
       response,
+      request,
       WrappedResponse(utf8.encode(jsonEncode(exception.toJson()))),
       ResponseContext({}, {}),
     );
@@ -147,6 +149,31 @@ class RoutesResolver {
     for (final filter in _container.config.globalExceptionFilters) {
       if (filter.catchTargets.contains(exception.runtimeType)) {
         await filter.onException(executionContext, exception);
+        if (executionContext.response.body != null) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..headers.addAll(
+                  (response.currentHeaders is SerinusHeaders)
+                      ? (response.currentHeaders as SerinusHeaders).values
+                      : (response.currentHeaders as HttpHeaders).toMap(),
+                ),
+            ),
+          );
+          return _container.applicationRef.reply(
+            response,
+            request,
+            _routeExecutionContext.processResult(
+              WrappedResponse(
+                executionContext.response.body ?? exception.toJson(),
+              ),
+              executionContext,
+            ),
+            executionContext.response,
+          );
+        }
         if (executionContext.response.closed) {
           request.emit(
             RequestEvent.data,
@@ -162,12 +189,8 @@ class RoutesResolver {
           );
           return _container.applicationRef.reply(
             response,
-            _routeExecutionContext.processResult(
-              WrappedResponse(
-                executionContext.response.body ?? exception.toJson(),
-              ),
-              executionContext,
-            ),
+            request,
+            WrappedResponse(null),
             executionContext.response,
           );
         }
@@ -175,6 +198,31 @@ class RoutesResolver {
     }
     for (final hook in _container.config.globalHooks.resHooks) {
       await hook.onResponse(executionContext, WrappedResponse(exception));
+      if (executionContext.response.body != null) {
+        request.emit(
+          RequestEvent.data,
+          EventData(
+            data: executionContext.response.body,
+            properties: executionContext.response
+              ..headers.addAll(
+                (response.currentHeaders is SerinusHeaders)
+                    ? (response.currentHeaders as SerinusHeaders).values
+                    : (response.currentHeaders as HttpHeaders).toMap(),
+              ),
+          ),
+        );
+        return _container.applicationRef.reply(
+          response,
+          request,
+          _routeExecutionContext.processResult(
+            WrappedResponse(
+              executionContext.response.body ?? exception.toJson(),
+            ),
+            executionContext,
+          ),
+          executionContext.response,
+        );
+      }
       if (executionContext.response.closed) {
         request.emit(
           RequestEvent.data,
@@ -190,12 +238,8 @@ class RoutesResolver {
         );
         return _container.applicationRef.reply(
           response,
-          _routeExecutionContext.processResult(
-            WrappedResponse(
-              executionContext.response.body ?? exception.toJson(),
-            ),
-            executionContext,
-          ),
+          request,
+          WrappedResponse(null),
           executionContext.response,
         );
       }
@@ -214,6 +258,7 @@ class RoutesResolver {
     );
     return _container.applicationRef.reply(
       response,
+      request,
       _routeExecutionContext.processResult(
         WrappedResponse(executionContext.response.body ?? exception.toJson()),
         executionContext,
@@ -249,6 +294,29 @@ class RoutesResolver {
     executionContext.attachHttpContext(requestContext);
     for (final hook in reqHooks) {
       await hook.onRequest(executionContext);
+      if (executionContext.response.body != null) {
+        request.emit(
+          RequestEvent.data,
+          EventData(
+            data: executionContext.response.body,
+            properties: executionContext.response
+              ..headers.addAll(
+                (response.currentHeaders is SerinusHeaders)
+                    ? (response.currentHeaders as SerinusHeaders).values
+                    : (response.currentHeaders as HttpHeaders).toMap(),
+              ),
+          ),
+        );
+        return _container.applicationRef.reply(
+          response,
+          request,
+          _routeExecutionContext.processResult(
+            WrappedResponse(executionContext.response.body),
+            executionContext,
+          ),
+          executionContext.response,
+        );
+      }
       if (executionContext.response.closed) {
         request.emit(
           RequestEvent.data,
@@ -264,10 +332,8 @@ class RoutesResolver {
         );
         return _container.applicationRef.reply(
           response,
-          _routeExecutionContext.processResult(
-            WrappedResponse(executionContext.response.body),
-            executionContext,
-          ),
+          request,
+          WrappedResponse(null),
           executionContext.response,
         );
       }

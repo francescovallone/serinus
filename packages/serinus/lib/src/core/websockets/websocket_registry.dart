@@ -78,6 +78,7 @@ class WebsocketRegistry extends Provider
             onRequest: (request, response) async {
               differentPortAdapter.reply(
                 response,
+                request,
                 WrappedResponse(''),
                 ResponseContext({}, {})
                   ..statusCode = 404

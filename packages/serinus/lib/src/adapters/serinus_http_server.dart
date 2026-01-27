@@ -2,11 +2,13 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
+import 'package:http_parser/http_parser.dart';
 
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/file_extensions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
 import '../utils/wrapped_response.dart';
@@ -137,6 +139,7 @@ class SerinusHttpAdapter
   @override
   Future<void> reply(
     InternalResponse response,
+    InternalRequest request,
     WrappedResponse body,
     ResponseContext properties,
   ) async {
@@ -157,9 +160,29 @@ class SerinusHttpAdapter
             io.ContentType.parse('application/octet-stream'),
         preserveHeaderCase: preserveHeaderCase,
       );
+      final fileStat = await bodyData.stat();
+      final rawFileName = bodyData.uri.pathSegments.last;
+      final sanitizedFileName = rawFileName.replaceAll('"', '');
       response.headers({
-        'transfer-encoding': 'chunked',
+        io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
+        if (response.currentHeaders.value('etag') == null)
+          io.HttpHeaders.etagHeader: fileStat.eTag,
+        io.HttpHeaders.contentDisposition: 
+            'attachment; filename*=UTF-8\'\'"$sanitizedFileName"',
+        io.HttpHeaders.contentLengthHeader:
+            fileStat.size.toString(),
       }, preserveHeaderCase: preserveHeaderCase);
+      response.status(properties.statusCode);
+      if (request.fresh) {
+        response.status(304);
+      }
+      if (response.statusCode == 304 || response.statusCode == 204) {
+        response.currentHeaders.removeAll('content-type');
+        response.currentHeaders.removeAll('content-length');
+        response.currentHeaders.removeAll('transfer-encoding');
+        response.currentHeaders.contentLength = -1;
+        return response.send(Uint8List(0));
+      }
       final readPipe = bodyData.openRead();
       return response.addStream(readPipe);
     }
@@ -169,8 +192,21 @@ class SerinusHttpAdapter
     }
     response.headers({
       io.HttpHeaders.contentLengthHeader: responseBody.length.toString(),
+      io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
+      if (response.currentHeaders.value('etag') == null)
+          io.HttpHeaders.etagHeader: body.eTag,
     }, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
+    if (request.fresh) {
+      response.status(304);
+    }
+    if (response.statusCode == 304 || response.statusCode == 204) {
+      response.currentHeaders.removeAll('content-type');
+      response.currentHeaders.removeAll('content-length');
+      response.currentHeaders.removeAll('transfer-encoding');
+      response.currentHeaders.contentLength = -1;
+      return response.send(Uint8List(0));
+    }
     return response.send(responseBody);
   }
 

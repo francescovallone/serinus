@@ -88,6 +88,7 @@ abstract class HttpAdapter<TServer, TRequest, TResponse>
   /// It takes the [response], [body], [context], and [config] as parameters.
   Future<void> reply(
     TResponse response,
+    TRequest request,
     WrappedResponse body,
     ResponseContext properties,
   );
@@ -147,6 +148,7 @@ class NoopAdapter extends HttpAdapter<void, void, void> {
   @override
   Future<void> reply(
     void response,
+    void request,
     WrappedResponse body,
     ResponseContext properties,
   ) {

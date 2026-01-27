@@ -122,6 +122,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
           );
       await httpAdapter.reply(
         response,
+        request,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
         ResponseContext({}, {})
           ..headers.addAll({'content-type': 'application/json'})
@@ -138,6 +139,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
           );
       await httpAdapter.reply(
         response,
+        request,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
         ResponseContext({}, {})
           ..headers.addAll({'content-type': 'application/json'})
