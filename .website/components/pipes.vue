@@ -6,18 +6,18 @@
 		<path d="M165 180 C165 180, 165 180, 265 180" class="arrow top-arrow"/>
 		<rect x="165" y="172" width="16" height="16" rx="4" class="move-square" />
     <!-- Client Side box -->
-		<rect x="5" y="145" width="160" height="70" class="box stroke" rx="12" ry="12" style="stroke-width: 1; fill: white;"/>
-		<rect x="10" y="150" width="150" height="60" class="box stroke" rx="8" ry="8"/>
+		<rect x="5" y="145" width="160" height="70" class="box stroke" style="stroke-width: 1; fill: white;"/>
+		<rect x="10" y="150" width="150" height="60" class="box stroke"/>
 		<text x="85" y="185" class="text-brand">Client Side</text>
 
 		
 		
 		<path d="M415 180 C415 180, 415 180, 515 180" class="arrow top-arrow"/>
 		<circle cx="400" cy="180" r="8" class="move-circle" />
-		<rect x="265" y="150" width="150" height="60" class="box" rx="12" ry="12"/>
+		<rect x="265" y="150" width="150" height="60" class="box"/>
 		<text x="340" y="185" class="text">Pipe</text>
 
-		<rect x="515" y="150" width="150" height="60" class="box stroke" style="fill: white;" rx="12" ry="12"/>
+		<rect x="515" y="150" width="150" height="60" class="box stroke" style="fill: white;"/>
 		<text x="590" y="185" class="text-brand">Route</text>
 	</svg>
 </template>
@@ -27,7 +27,7 @@
     .box {
       font-size: 16px;
       font-family: sans-serif;
-      fill: var(--vp-c-brand-light);
+      fill: var(--vp-c-brand-1);
       stroke: none;
       fill-opacity: 1;
     }
@@ -38,7 +38,7 @@
       fill: transparent
     }
     .text {
-      fill: white;
+      fill: var(--primary-foreground);;
       font-family: Arial, sans-serif;
       font-size: 14px;
       text-anchor: middle;

@@ -13,14 +13,14 @@
     <path d="M265 110 C85 110, 85 110, 85 150" class="arrow top-arrow"/>
     <path d="M265 110 C85 110, 85 110, 85 150" class="arrow mid-arrow"/>
     <!-- Client Side box -->
-		<rect x="5" y="145" width="160" height="70" class="box stroke" rx="12" ry="12" style="stroke-width: 1; fill: white;"/>
-		<rect x="10" y="150" width="150" height="60" class="box stroke" rx="8" ry="8"/>
+		<rect x="5" y="145" width="160" height="70" class="box stroke" style="stroke-width: 1; fill: white;"/>
+		<rect x="10" y="150" width="150" height="60" class="box stroke"/>
 		<text x="85" y="185" class="text-brand">Client Side</text>
 		
-		<rect x="265" y="80" width="150" height="60" class="box" rx="12" ry="12"/>
+		<rect x="265" y="80" width="150" height="60" class="box"/>
 		<text x="340" y="115" class="text">Exception Filters</text>
 
-		<rect x="515" y="150" width="150" height="60" class="box stroke" style="fill: white;" rx="12" ry="12"/>
+		<rect x="515" y="150" width="150" height="60" class="box stroke" style="fill: white;"/>
 		<text x="590" y="185" class="text-brand">Route</text>
 	</svg>
 </template>
@@ -30,7 +30,7 @@
     .box {
       font-size: 16px;
       font-family: sans-serif;
-      fill: var(--vp-c-brand-light);
+      fill: var(--vp-c-brand-1);
       stroke: none;
       fill-opacity: 1;
     }
@@ -41,15 +41,13 @@
       fill: transparent
     }
     .text {
-      fill: white;
-      font-family: Arial, sans-serif;
+      fill: var(--primary-foreground);;
       font-size: 14px;
       text-anchor: middle;
       font-weight: 600;
     }
     .text-brand {
       fill: var(--vp-c-brand-1);
-	    font-family: Arial, sans-serif;
       font-size: 14px;
       text-anchor: middle;
       font-weight: 600;

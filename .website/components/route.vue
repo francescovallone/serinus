@@ -3,7 +3,7 @@
 
 <template>
 	<svg width="688" height="400" xmlns="http://www.w3.org/2000/svg">
-    <rect x="50" y="150" width="150" height="60" class="box stroke" rx="8" ry="8"/>
+    <rect x="50" y="150" width="150" height="60" class="box stroke"/>
     <text x="125" y="185" class="text-brand">Controller</text>
 
     <!-- Dashed arrow (HTTP request) -->
@@ -19,15 +19,15 @@
 
     <!-- Controller boxes -->
     <!-- Top Controller -->
-    <rect x="460" y="80" width="150" height="60" class="box" rx="12" ry="12"/>
+    <rect x="460" y="80" width="150" height="60" class="box"/>
     <text x="535" y="115" class="text">GET /</text>
 
     <!-- Middle Controller (highlighted) -->
-    <rect x="460" y="150" width="150" height="60" class="box" rx="12" ry="12"/>
+    <rect x="460" y="150" width="150" height="60" class="box"/>
     <text x="535" y="185" class="text">POST /</text>
 
     <!-- Bottom Controller -->
-    <rect x="460" y="220" width="150" height="60" class="box" rx="12" ry="12"/>
+    <rect x="460" y="220" width="150" height="60" class="box"/>
     <text x="535" y="255" class="text">PUT /</text>
 
     <!-- curved path from first line to the top-most controller -->
@@ -56,14 +56,12 @@
     }
     .text {
       fill: white;
-      font-family: Arial, sans-serif;
       font-size: 14px;
       text-anchor: middle;
       font-weight: 600;
     }
     .text-brand {
       fill: var(--vp-c-brand-1);
-	    font-family: Arial, sans-serif;
       font-size: 14px;
       text-anchor: middle;
       font-weight: 600;

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.4
+
+- fix: ignore sigterm in Windows when killing the process tree.
+
+## 2.0.3
+
+- chore: update dependencies.
+
 ## 2.0.2
 
 - fix(#211): ignore non-dart files when generating models.

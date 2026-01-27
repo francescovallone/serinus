@@ -5,7 +5,7 @@ editLink: false
 search: false
 ---
 <script setup>
-	import BlogPage from '../../components/blog_page.vue'
+	import BlogPage from '../../components/blog/blog_page.vue'
 </script>
 
 <BlogPage
@@ -13,6 +13,7 @@ search: false
 	author="Francesco Vallone"
 	date="21 Aug 2025"
   lastUpdated="21 Aug 2025"
+  :blog="false"
 	shadow
 >
 

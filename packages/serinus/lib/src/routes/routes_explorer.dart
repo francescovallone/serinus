@@ -5,10 +5,11 @@ import '../contexts/route_context.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
 import '../extensions/string_extensions.dart';
+import '../router/atlas.dart';
+import '../router/router.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
 import 'route_execution_context.dart';
-import 'router.dart';
 
 /// The [RoutesExplorer] class is used to explore the routes of the application.
 final class RoutesExplorer {
@@ -142,15 +143,12 @@ final class RoutesExplorer {
 
   /// Gets the route by path and method.
   ///
-  /// Returns a [RouteContext] and the handler function if the route exists,
-  /// otherwise returns null.
-  ({
-    ({RouteContext route, HandlerFunction handler}) spec,
-    Map<String, dynamic> params,
-  })?
-  getRoute(String path, HttpMethod method) {
-    final result = _router.checkRouteByPathAndMethod(path, method);
-    return result;
+  /// Returns a [AtlasResult].
+  /// If no route is found, returns a [NotFoundRoute].
+  /// If no method matches, returns a [MethodNotAllowedRoute].
+  /// Otherwise, returns the matched route in a [FoundRoute].
+  AtlasResult<RouterEntry> getRoute(String path, HttpMethod method) {
+    return _router.lookup(path, method);
   }
 }
 

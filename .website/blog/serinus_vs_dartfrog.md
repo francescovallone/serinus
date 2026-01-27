@@ -27,7 +27,7 @@ head:
 ---
 
 <script setup>
-    import BlogPage from '../components/blog_page.vue'
+    import BlogPage from '../components/blog/blog_page.vue'
 </script>
 
 <BlogPage
@@ -38,6 +38,7 @@ head:
     date="27 Feb 2025"
     :tags="['general']"
     shadow
+    blog
 >
 
 One of the most common questions I get is how Serinus compares to other similar projects. Why choose Serinus over Dart Frog? In this article, I'll answer this question by comparing the two frameworks in terms of features and ease of use.

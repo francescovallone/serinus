@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.14
+
+- chore: update dependencies.
+
 ## 1.0.13
 
 - fix: ensure OpenAPI spec is generated when analyze is false but the spec file does not exist.

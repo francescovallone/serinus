@@ -2,7 +2,7 @@
 
 ## 2.1.0
 
-**Released on:** Unreleased
+**Released on:** 27-01-2026
 
 ### Features
 
@@ -14,6 +14,11 @@
 ### Fixes
 
 - Fix WebSocket upgrade handling to prevent wrongful exceptions during connection upgrades.
+
+## 2.0.4
+
+- feat: add `SerinusHeaders#asFullMap()` to get all the headers including the original request headers as an unmodifiable map.
+- chore: update dependencies.
 
 ## 2.0.3
 
