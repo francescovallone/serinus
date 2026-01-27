@@ -1,13 +1,16 @@
-import 'package:spanner/spanner.dart';
-
 import '../contexts/route_context.dart';
+import '../core/core.dart';
 import '../enums/http_method.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/string_extensions.dart';
 import '../versioning.dart';
+import 'atlas.dart';
 
 /// [RouteInformation] is a utility type that contains the route context and the parameters of the route.
-typedef RouteInformation = ({RouteContext? route, Map<String, dynamic> params});
+typedef RouteInformation<T extends RouteHandlerSpec> = ({
+  RouteContext<T>? route,
+  Map<String, dynamic> params,
+});
 
 /// The [Router] class is used to create the router in the application.
 final class Router {
@@ -17,7 +20,7 @@ final class Router {
   /// The [Router] constructor is used to create a new instance of the [Router] class.
   Router([this.versioningOptions]);
 
-  final Spanner _routeTree = Spanner();
+  final _routeTree = Atlas<RouterEntry>();
 
   /// The [registerRoute] method is used to register a route in the router.
   void registerRoute({
@@ -25,46 +28,43 @@ final class Router {
     required HandlerFunction handler,
   }) {
     final path = context.path.stripEndSlash().addLeadingSlash();
-    final routeExists = _routeTree.lookup(HTTPMethod.ALL, Uri.parse(path));
-    for (final result in (routeExists?.values ?? [])) {
-      if (result.$1.path == path &&
-          (result.$1.method == context.method ||
-              result.$1.method == HttpMethod.all ||
+    final routeExists = _routeTree.lookup(HttpMethod.all, path);
+    for (final result in routeExists.values) {
+      if (result.context.path == path &&
+          (result.context.method == context.method ||
+              result.context.method == HttpMethod.all ||
               context.method == HttpMethod.all)) {
         throw InitializationError(
           'A route with the same path and method already exists. [${context.path}]',
         );
       }
     }
-    _routeTree.addRoute(
-      HttpMethod.toSpanner(context.method),
+    _routeTree.add(
+      context.method,
       path.stripEndSlash(),
-      (context, handler),
+      RouterEntry(context: context, handler: handler),
     );
   }
 
-  /// The [getRouteByPathAndMethod] method is used to get the route by path and method.
+  /// The [lookup] method is used to get the route by path and method.
   ///
   /// The [path] parameter is the path of the route.
   /// The [method] parameter is the method of the route.
   ///
   /// The method will return the route data and the parameters of the route.
-  ({
-    ({RouteContext route, HandlerFunction handler}) spec,
-    Map<String, dynamic> params,
-  })?
-  checkRouteByPathAndMethod(String path, HttpMethod method) {
-    final result = _routeTree.lookup(
-      HttpMethod.toSpanner(method),
-      Uri.parse(path),
-    );
-    final route = result?.values.firstOrNull;
-    if (route == null) {
-      return null;
-    }
-    return (
-      spec: (route: route.$1, handler: route.$2),
-      params: result?.params ?? {},
-    );
+  AtlasResult<RouterEntry> lookup(String path, HttpMethod method) {
+    return _routeTree.lookup(method, path);
   }
+}
+
+/// The [RouterEntry] class is used to store the route context and the handler function.
+class RouterEntry {
+  /// The [context] property contains the route context.
+  final RouteContext context;
+
+  /// The [handler] property contains the handler function.
+  final HandlerFunction handler;
+
+  /// The [RouterEntry] constructor is used to create a new instance of the [RouterEntry] class.
+  RouterEntry({required this.context, required this.handler});
 }
