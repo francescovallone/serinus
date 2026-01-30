@@ -1,6 +1,5 @@
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/modules/provider_registry.dart';
-import 'package:serinus/src/containers/modules/scope_manager.dart';
 import 'package:test/test.dart';
 
 class TestProvider extends Provider {}
