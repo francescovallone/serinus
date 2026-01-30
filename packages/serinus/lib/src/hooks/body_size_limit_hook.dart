@@ -2,7 +2,7 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../exceptions/exceptions.dart';
 
-@Deprecated('Use the application options "bodySizeLimit" instead')
+@Deprecated('Use the application options "bodySizeLimit" instead because it is more efficient and it offers a better grade of security.')
 /// The [BodySizeLimitHook] class is used to define a body size limit hook.
 class BodySizeLimitHook extends Hook with OnRequest {
   /// The maximum size of the body in bytes.

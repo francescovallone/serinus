@@ -14,6 +14,7 @@ export 'src/enums/enums.dart';
 export 'src/errors/initialization_error.dart';
 export 'src/exceptions/exceptions.dart';
 export 'src/extensions/content_type_extensions.dart';
+export 'src/extensions/int_extensions.dart';
 export 'src/extensions/iterable_extansions.dart';
 export 'src/global_prefix.dart';
 export 'src/hooks/hooks.dart';
