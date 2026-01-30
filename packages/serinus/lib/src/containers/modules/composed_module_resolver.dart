@@ -1,0 +1,252 @@
+import '../../core/core.dart';
+import '../../errors/initialization_error.dart';
+import '../injection_token.dart';
+import 'scope_manager.dart';
+
+/// Resolves composed modules by initializing them when dependencies are available.
+///
+/// The [ComposedModuleResolver] is responsible for:
+/// - Tracking composed modules pending initialization
+/// - Resolving dependencies for composed modules
+/// - Initializing modules when all dependencies are satisfied
+/// - Propagating exports to parent modules
+class ComposedModuleResolver {
+  /// Scope manager for scope operations
+  final ScopeManager _scopeManager;
+
+  /// Map of parent tokens to their pending composed modules
+  final Map<InjectionToken, List<ComposedModuleEntry>> _composedModules = {};
+
+  /// Callback to register a new module
+  final Future<void> Function(Module, {bool internal}) _registerModule;
+
+  /// Creates a new composed module resolver
+  ComposedModuleResolver(
+    this._scopeManager,
+    this._registerModule,
+  );
+
+  /// Adds a composed module entry for a parent token
+  void addPending(InjectionToken parentToken, ComposedModuleEntry entry) {
+    final entries = _composedModules.putIfAbsent(parentToken, () => []);
+    entries.add(entry);
+  }
+
+  /// Gets all pending (uninitialized) composed modules
+  List<ComposedModuleEntry> getPendingModules() {
+    return _composedModules.values
+        .expand((entries) => entries)
+        .where((entry) => !entry.isInitialized)
+        .toList();
+  }
+
+  /// Checks if there are any pending composed modules
+  bool get hasPending => _composedModules.isNotEmpty;
+
+  /// Gets pending entries for a specific token
+  List<ComposedModuleEntry>? getEntries(InjectionToken token) =>
+      _composedModules[token];
+
+  /// Cleans up resolved composed modules from tracking
+  void cleanupResolved() {
+    for (final token in _composedModules.keys.toList()) {
+      final pending = _composedModules[token]!
+          .where((entry) => !entry.isInitialized)
+          .toList();
+      if (pending.isEmpty) {
+        _composedModules.remove(token);
+      } else {
+        _composedModules[token] = pending;
+      }
+    }
+  }
+
+  /// Calculates missing dependencies for a composed module
+  Set<Type> getMissingDependencies(
+    Iterable<Type> inject,
+    Iterable<Provider> availableProviders,
+  ) {
+    final availableTypes = availableProviders.map((e) => e.runtimeType).toSet();
+    final missing = <Type>{};
+    for (final dependency in inject) {
+      if (!availableTypes.contains(dependency)) {
+        missing.add(dependency);
+      }
+    }
+    return missing;
+  }
+
+  /// Initializes composed modules once their dependencies are satisfied.
+  ///
+  /// Returns true if any progress was made
+  Future<bool> initializeComposedModules() async {
+    if (_composedModules.isEmpty) {
+      return false;
+    }
+
+    bool progress = false;
+
+    // Take a snapshot to iterate safely
+    final snapshots = _composedModules.entries
+        .map((entry) => (
+          token: entry.key,
+          modules: List<ComposedModuleEntry>.from(entry.value),
+        ))
+        .toList();
+
+    for (final snapshot in snapshots) {
+      final parentScope = _scopeManager.getScopeOrNull(snapshot.token);
+      if (parentScope == null) {
+        continue;
+      }
+
+      for (final entry in snapshot.modules) {
+        if (entry.isInitialized) {
+          continue;
+        }
+
+        final missing = getMissingDependencies(
+          entry.module.inject,
+          parentScope.unifiedProviders,
+        );
+        entry.missingDependencies
+          ..clear()
+          ..addAll(missing);
+
+        if (missing.isNotEmpty) {
+          continue;
+        }
+
+        final stopwatch = Stopwatch()..start();
+        final context = _scopeManager.buildCompositionContext(
+          parentScope.unifiedProviders,
+        );
+        final dynamic resolvedModule = await entry.module.init(context);
+        if (stopwatch.isRunning) {
+          stopwatch.stop();
+        }
+
+        if (resolvedModule is! Module) {
+          throw InitializationError(
+            '[${entry.parentModule.runtimeType}] ${entry.module.runtimeType} '
+            'did not return a Module instance.',
+          );
+        }
+
+        final Module moduleInstance = resolvedModule;
+        entry.isInitialized = true;
+        entry.missingDependencies.clear();
+        progress = true;
+
+        await _registerModule(moduleInstance, internal: true);
+
+        final refreshedParentScope = _scopeManager.getScopeOrNull(snapshot.token);
+        if (refreshedParentScope == null) {
+          throw InitializationError(
+            'Module with token ${snapshot.token} not found',
+          );
+        }
+
+        refreshedParentScope.imports.add(moduleInstance);
+        if (!refreshedParentScope.module.imports.contains(moduleInstance)) {
+          refreshedParentScope.module.imports = [
+            ...refreshedParentScope.module.imports,
+            moduleInstance,
+          ];
+        }
+
+        final subModuleToken = InjectionToken.fromModule(moduleInstance);
+        final subModuleScope = _scopeManager.getScopeOrNull(subModuleToken);
+        if (subModuleScope == null) {
+          throw InitializationError(
+            'Module with token $subModuleToken not found',
+          );
+        }
+
+        subModuleScope.composed = true;
+        subModuleScope.initTime = stopwatch.elapsedMicroseconds;
+        subModuleScope.importedBy.add(snapshot.token);
+
+        // Propagate exports
+        final exportedProviders = subModuleScope.providers.where(
+          (provider) => subModuleScope.exports.contains(provider.runtimeType),
+        );
+
+        refreshedParentScope.providers.addAll(exportedProviders);
+        refreshedParentScope.unifiedProviders.addAll(exportedProviders);
+
+        for (final provider in exportedProviders) {
+          final providerToken = InjectionToken.fromType(provider.runtimeType);
+          final metadata = subModuleScope.instanceMetadata[providerToken];
+          if (metadata != null) {
+            refreshedParentScope.instanceMetadata[providerToken] = metadata;
+          }
+        }
+
+        // Propagate to modules that import the parent
+        _propagateExportsToImporters(refreshedParentScope, exportedProviders);
+      }
+    }
+
+    cleanupResolved();
+    return progress;
+  }
+
+  /// Propagates exports to all modules that import the given scope
+  void _propagateExportsToImporters(
+    ModuleScope scope,
+    Iterable<Provider> exportedProviders,
+  ) {
+    for (final importerToken in scope.importedBy) {
+      final importerScope = _scopeManager.getScopeOrNull(importerToken);
+      if (importerScope == null) {
+        continue;
+      }
+
+      final reexportedProviders = exportedProviders.where(
+        (provider) => scope.exports.contains(provider.runtimeType),
+      );
+
+      importerScope.providers.addAll(reexportedProviders);
+      importerScope.unifiedProviders.addAll(reexportedProviders);
+
+      for (final provider in reexportedProviders) {
+        final providerToken = InjectionToken.fromType(provider.runtimeType);
+        final metadata = scope.instanceMetadata[providerToken];
+        if (metadata != null) {
+          importerScope.instanceMetadata[providerToken] = metadata;
+        }
+      }
+    }
+  }
+
+  /// Creates an error message for unresolved composed modules
+  String createUnresolvedError() {
+    final unresolvedModules = getPendingModules();
+    if (unresolvedModules.isEmpty) {
+      return '';
+    }
+
+    final buffer = StringBuffer(
+      'Cannot resolve composed modules due to missing dependencies:\n',
+    );
+
+    for (final entry in unresolvedModules) {
+      final scope = _scopeManager.getScopeOrNull(entry.parentToken);
+      final availableProviders = scope?.unifiedProviders ?? const <Provider>{};
+      final missing = getMissingDependencies(
+        entry.module.inject,
+        availableProviders,
+      );
+      final dependencies = missing.isEmpty
+          ? entry.module.inject
+          : missing.toList();
+      buffer.writeln(
+        ' - ${entry.module.runtimeType}: '
+        '[${dependencies.map((e) => e.toString()).join(', ')}]',
+      );
+    }
+
+    return buffer.toString();
+  }
+}
