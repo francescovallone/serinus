@@ -52,12 +52,18 @@ class AgentsCommand extends Command<int> {
 
     // 3. Download Files
     var baseUrl = 'https://raw.githubusercontent.com/francescovallone/serinus/$versionTag/.website';
-    // Check if versionTag exists on GitHub otherwise fallback to main
-    final checkUrl = Uri.parse(baseUrl);
-    final checkResponse = await http.get(checkUrl);
-    if (checkResponse.statusCode != 200) {
-      _logger.warn('Version $versionTag not found on GitHub, falling back to main branch for docs.');
+    if (versionTag == 'any' || versionTag == 'main' || versionTag == 'latest') {
       versionTag = 'main';
+    }
+    if (versionTag != 'main') {
+      // Check if versionTag exists on GitHub otherwise fallback to main
+      final checkUrl = Uri.parse(baseUrl);
+      final checkResponse = await http.get(checkUrl);
+      print('Checking URL: $checkUrl - Status: ${checkResponse.statusCode}');
+      if (checkResponse.statusCode != 200) {
+        _logger.warn('Version $versionTag not found on GitHub, falling back to main branch for docs.');
+        versionTag = 'main';
+      }
     }
     baseUrl = 'https://raw.githubusercontent.com/francescovallone/serinus/$versionTag/.website';
     final progress = _logger.progress('Downloading documentation...');
@@ -103,20 +109,16 @@ class AgentsCommand extends Command<int> {
 
   void _generateAgentsMd(Map<String, List<String>> docsMap) {
     final buffer = StringBuffer()
-    ..writeln('# Serinus Agents Context')
-    ..writeln('This file provides context for AI agents working on this project.')
-    ..writeln()
-    ..writeln('## Documentation Index')
-    ..writeln('IMPORTANT: Prefer retrieval-led reasoning. Read the files below when needed.')
-    ..writeln()
-    
+    ..write('<!--- SERINUS-AGENTS-MD-START -->')
     // Create the compressed index format Vercel recommends
-    ..writeln('[Serinus Docs Index]|root: ./.serinus-docs');
+    ..write('[Serinus Docs Index]|root: ./.serinus-docs')
+    ..write('|IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning for any Serinus related queries.')
+    ..write('|If docs missing run `serinus agents` to download the latest version.');
     docsMap.forEach((category, files) {
        // Format: |category:{file1.md,file2.md}
-       buffer.writeln('|$category:{${files.join(',')}}');
+       buffer.write('|$category:{${files.join(',')}}');
     });
-    
+    buffer.writeln('<!--- SERINUS-AGENTS-MD-END -->');
     File(path.join(Directory.current.path, 'AGENTS.md')).writeAsStringSync(
       buffer.toString(),
     );

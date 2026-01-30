@@ -11,6 +11,7 @@
 - Replace `Spanner` with `Atlas` as the default router for Serinus applications. Atlas provides better performance and more features compared to Spanner allowing for something more robust and flexible routing system.
 - Allow disabling versioning on specific routes or controllers. This provides more flexibility in managing API versions and allows for better control over the versioning strategy.
 - Add `file` method to `FormData` to simplify file part extraction from multipart/form-data requests.
+- Add utility methods to `int` to simplify body size limit configuration.
 
 ### Fixes
 
@@ -21,6 +22,7 @@
 
 - `bodyAs` and `bodyAsList` methods now uses a conservative approach to parsing the body, if the body is already of the requested type it is returned as is, otherwise it is parsed. This improves performance and reduces unnecessary parsing operations.
 - Improve general performances of the handling system reducing memory allocations and CPU usage.
+- Deprecated `BodySizeLimitHook` in favor of `bodySizeLimit` option in `createApplication` method. This simplifies the configuration of body size limits and provides a more consistent approach to application configuration.
 
 ## 2.0.4
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0
+
+- feat: add Agents command to the CLI to create AGENTS.md and CLAUDE.md files in the project.
+
 ## 2.0.4
 
 - fix: ignore sigterm in Windows when killing the process tree.

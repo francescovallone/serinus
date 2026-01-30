@@ -13,8 +13,7 @@ export default defineConfig({
   titleTemplate: ':title - Serinus | The Flutter modular Backend Framework',
   description,
   head: [
-    ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/serinus-icon-32x32.png"}],
-    ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png"}],
+    ['link', { rel: "icon", type: "image/x-icon", href: "/serinus-logo.png"}],
     [
         'meta',
         {
@@ -233,6 +232,7 @@ export default defineConfig({
               { text: 'Generate', link: 'generate' },
               { text: 'Run', link: 'run' },
               { text: 'Deploy', link: 'deploy' },
+              { text: 'Agents', link: 'agents' },
             ]
           },
           {

@@ -43,9 +43,7 @@ head:
 
 Serinus 2.1, named "Morning Song", focuses on enhancing the developer experience and improving performance. This release introduces Atlas as the new default router, Class Providers for more flexible dependency injection, and various optimizations to make your Serinus applications faster and more efficient. 
 
-## New Features
-
-### Class Providers
+## Class Providers
 
 One of the most significant additions in Serinus 2.1 is the introduction of Class Providers. This new feature allows developers to register concrete implementation using their abstract classes in the dependency injection system, enabling more flexible and dynamic service management.
 
@@ -71,7 +69,7 @@ class AppModule extends Module {
 }
 ```
 
-### FormData and File Upload Enhancements
+## FormData and File Upload Enhancements
 
 Serinus 2.1 introduces improved support for handling `FormData` and file uploads. The new features make it easier to work with multipart form data, this release add the `file` method to the `FormData` class, allowing developers to handle file uploads more intuitively.
 
@@ -89,7 +87,7 @@ class UploadController extends Controller {
 }
 ```
 
-### IgnoreVersion metadata
+## IgnoreVersion metadata
 
 In Serinus 2.1, we have added the `IgnoreVersion` metadata that can be used to exclude specific controllers or routes from versioning. This is particularly useful for routes that should remain consistent across different API versions.
 
@@ -138,6 +136,16 @@ Atlas allows you to:
 Our benchmarks show that Atlas provides better performance compared to Spanner, especially in applications with a large number of routes.
 
 Also we would love to release Atlas as a standalone package in the future, so stay tuned for that!
+
+## New Agents command in Serinus CLI
+
+To enhance the experience of using Serinus documentation with AI agents, we have introduced a new `agents` command in the Serinus CLI. This command generates an `AGENTS.md` file in the root of your Serinus project and downloads the documentation locally, allowing you to use your favorite LLMs more effectively.
+
+```bash
+serinus agents
+```
+
+This changes allow us to explore the possibility to better integrate Serinus documentation with various AI agents in the future, making it easier for developers to access information and get assistance while building their applications.
 
 ## Other Changes
 
