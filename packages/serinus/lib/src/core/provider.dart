@@ -28,9 +28,8 @@ abstract class Provider {
   ///   AppModule() : super(providers: [configProvider]);
   /// }
   /// ```
-  static ClassProvider<T> forClass<T extends Provider>({
-    required T useClass,
-  }) => ClassProvider<T>(useClass: useClass);
+  static ClassProvider<T> forClass<T extends Provider>({required T useClass}) =>
+      ClassProvider<T>(useClass: useClass);
 
   @override
   String toString() => '$runtimeType';
@@ -112,4 +111,3 @@ final class ClassProvider<T extends Provider> extends CustomProvider<T> {
   @override
   Type get token => T;
 }
-

@@ -55,209 +55,213 @@ class RouteExecutionContext {
     ErrorHandler? errorHandler,
     bool rawBody = false,
   }) async {
-      ExecutionContext? executionContext;
-      try {
-        final wrappedRequest = Request(request, params);
-        executionContext = ExecutionContext(
-          HostType.http,
-          context.providers,
-          context.hooksServices,
-          HttpArgumentsHost(wrappedRequest),
+    ExecutionContext? executionContext;
+    try {
+      final wrappedRequest = Request(request, params);
+      executionContext = ExecutionContext(
+        HostType.http,
+        context.providers,
+        context.hooksServices,
+        HttpArgumentsHost(wrappedRequest),
+      );
+      if (context.spec is! RestRouteHandlerSpec) {
+        throw StateError(
+          'Unsupported route handler specification: ${context.spec.runtimeType}',
         );
-        if (context.spec is! RestRouteHandlerSpec) {
-          throw StateError(
-            'Unsupported route handler specification: ${context.spec.runtimeType}',
-          );
-        }
-        final spec = context.spec as RestRouteHandlerSpec;
-        final requestContext = await spec.buildRequestContext(
-          request: wrappedRequest,
-          providers: context.providers,
-          hooksServices: context.hooksServices,
-          modelProvider: modelProvider,
-          rawBody: rawBody,
-        );
-        executionContext.attachHttpContext(requestContext);
-        for (final hook in context.reqHooks) {
-          await hook.onRequest(executionContext);
-          if (executionContext.response.body != null) {
-            await _responseController.sendResponse(
-              response,
-              request,
-              processResult(
-                WrappedResponse(executionContext.response.body),
-                executionContext,
-              ),
-              executionContext.response,
-              viewEngine: viewEngine,
-            );
-            return;
-          }
-          if (executionContext.response.closed) {
-            await _responseController.sendResponse(
-              response,
-              request,
-              WrappedResponse(null),
-              executionContext.response,
-              viewEngine: viewEngine,
-            );
-            return;
-          }
-        }
-        if (context.metadata.isNotEmpty) {
-          executionContext.metadata.addAll(
-            await context.initMetadata(executionContext),
-          );
-        }
-        if (context.pipes.isNotEmpty) {
-          for (final pipe in context.pipes) {
-            await pipe.transform(executionContext);
-          }
-        }
-        final middlewares = context.getMiddlewares(request).toList(growable: false);
-        if (middlewares.isNotEmpty) {
-          final executor = MiddlewareExecutor();
-          await executor.execute(
-            middlewares,
-            executionContext,
-            response,
-            onDataReceived: (data) async {
-              await _executeOnResponse(context, executionContext!, data);
-              data = processResult(data, executionContext);
-              request.emit(
-                RequestEvent.data,
-                EventData(data: data, properties: executionContext.response),
-              );
-              await _responseController.sendResponse(
-                response,
-                request,
-                data,
-                executionContext.response,
-                viewEngine: viewEngine,
-              );
-              request.emit(
-                RequestEvent.close,
-                EventData(
-                  data: data,
-                  properties: executionContext.response
-                    ..headers.addAll(
-                      (response.currentHeaders is SerinusHeaders)
-                          ? response.currentHeaders.values
-                          : (response.currentHeaders as HttpHeaders).toMap(),
-                    ),
-                ),
-              );
-            },
-          );
-          if (response.isClosed) {
-            return;
-          }
-        }
-        await _executeBeforeHandle(executionContext, context);
-        final handler = spec.handler;
-        final handlerResult = await handler.call(requestContext);
-        final responseData = WrappedResponse(handlerResult);
-        await _executeAfterHandle(executionContext, context, responseData);
-        await _executeOnResponse(context, executionContext, responseData);
-        final currentResponseHeaders =
-            (response.currentHeaders is SerinusHeaders)
-            ? response.currentHeaders.values
-            : (response.currentHeaders as HttpHeaders).toMap();
-        final data = responseData.data;
-        if (data is View) {
-          request.emit(
-            RequestEvent.data,
-            EventData(data: data, properties: executionContext.response),
-          );
-          request.emit(
-            RequestEvent.close,
-            EventData(
-              data: data,
-              properties: executionContext.response
-                ..addHeaders(currentResponseHeaders),
-            ),
-          );
-          await _responseController.render(
-            response,
-            data,
-            executionContext.response,
-          );
-        } else if (data is Redirect) {
-          request.emit(
-            RequestEvent.redirect,
-            EventData(data: responseData.data, properties: executionContext.response),
-          );
-          await _responseController.redirect(
-            response,
-            data,
-            executionContext.response,
-          );
-        } else {
-          request.emit(
-            RequestEvent.data,
-            EventData(data: data, properties: executionContext.response),
-          );
-          request.emit(
-            RequestEvent.close,
-            EventData(
-              data: data,
-              properties: executionContext.response
-                ..addHeaders(currentResponseHeaders),
-            ),
-          );
+      }
+      final spec = context.spec as RestRouteHandlerSpec;
+      final requestContext = await spec.buildRequestContext(
+        request: wrappedRequest,
+        providers: context.providers,
+        hooksServices: context.hooksServices,
+        modelProvider: modelProvider,
+        rawBody: rawBody,
+      );
+      executionContext.attachHttpContext(requestContext);
+      for (final hook in context.reqHooks) {
+        await hook.onRequest(executionContext);
+        if (executionContext.response.body != null) {
           await _responseController.sendResponse(
             response,
             request,
-            processResult(responseData, executionContext),
-            executionContext.response,
-            viewEngine: viewEngine,
-          );
-        }
-      } on SerinusException catch (e, stackTrace) {
-        executionContext ??= ExecutionContext(
-          HostType.http,
-          {
-            for (var provider in context.moduleScope.unifiedProviders)
-              provider.runtimeType: provider,
-          },
-          context.hooksServices,
-          HttpArgumentsHost(Request(request, params)),
-        );
-        executionContext.response.statusCode = e.statusCode;
-        executionContext.response.contentType ??= ContentType.json;
-        final result = await _executeOnException(executionContext, context, e);
-        if (result != null) {
-          await _responseController.sendResponse(
-            response,
-            request,
-            processResult(result, executionContext),
+            processResult(
+              WrappedResponse(executionContext.response.body),
+              executionContext,
+            ),
             executionContext.response,
             viewEngine: viewEngine,
           );
           return;
         }
-        await _executeOnResponse(context, executionContext, WrappedResponse(e));
-        if (errorHandler != null) {
-          final errorResponse = errorHandler(e, stackTrace);
-          if (errorResponse != null) {
-            await _responseController.sendResponse(
-              response,
-              request,
-              processResult(WrappedResponse(errorResponse), executionContext),
-              executionContext.response,
-              viewEngine: viewEngine,
-            );
-          }
-        } else {
+        if (executionContext.response.closed) {
           await _responseController.sendResponse(
             response,
             request,
-            WrappedResponse(jsonEncode(e.toJson())),
+            WrappedResponse(null),
+            executionContext.response,
+            viewEngine: viewEngine,
+          );
+          return;
+        }
+      }
+      if (context.metadata.isNotEmpty) {
+        executionContext.metadata.addAll(
+          await context.initMetadata(executionContext),
+        );
+      }
+      if (context.pipes.isNotEmpty) {
+        for (final pipe in context.pipes) {
+          await pipe.transform(executionContext);
+        }
+      }
+      final middlewares = context
+          .getMiddlewares(request)
+          .toList(growable: false);
+      if (middlewares.isNotEmpty) {
+        final executor = MiddlewareExecutor();
+        await executor.execute(
+          middlewares,
+          executionContext,
+          response,
+          onDataReceived: (data) async {
+            await _executeOnResponse(context, executionContext!, data);
+            data = processResult(data, executionContext);
+            request.emit(
+              RequestEvent.data,
+              EventData(data: data, properties: executionContext.response),
+            );
+            await _responseController.sendResponse(
+              response,
+              request,
+              data,
+              executionContext.response,
+              viewEngine: viewEngine,
+            );
+            request.emit(
+              RequestEvent.close,
+              EventData(
+                data: data,
+                properties: executionContext.response
+                  ..headers.addAll(
+                    (response.currentHeaders is SerinusHeaders)
+                        ? response.currentHeaders.values
+                        : (response.currentHeaders as HttpHeaders).toMap(),
+                  ),
+              ),
+            );
+          },
+        );
+        if (response.isClosed) {
+          return;
+        }
+      }
+      await _executeBeforeHandle(executionContext, context);
+      final handler = spec.handler;
+      final handlerResult = await handler.call(requestContext);
+      final responseData = WrappedResponse(handlerResult);
+      await _executeAfterHandle(executionContext, context, responseData);
+      await _executeOnResponse(context, executionContext, responseData);
+      final currentResponseHeaders = (response.currentHeaders is SerinusHeaders)
+          ? response.currentHeaders.values
+          : (response.currentHeaders as HttpHeaders).toMap();
+      final data = responseData.data;
+      if (data is View) {
+        request.emit(
+          RequestEvent.data,
+          EventData(data: data, properties: executionContext.response),
+        );
+        request.emit(
+          RequestEvent.close,
+          EventData(
+            data: data,
+            properties: executionContext.response
+              ..addHeaders(currentResponseHeaders),
+          ),
+        );
+        await _responseController.render(
+          response,
+          data,
+          executionContext.response,
+        );
+      } else if (data is Redirect) {
+        request.emit(
+          RequestEvent.redirect,
+          EventData(
+            data: responseData.data,
+            properties: executionContext.response,
+          ),
+        );
+        await _responseController.redirect(
+          response,
+          data,
+          executionContext.response,
+        );
+      } else {
+        request.emit(
+          RequestEvent.data,
+          EventData(data: data, properties: executionContext.response),
+        );
+        request.emit(
+          RequestEvent.close,
+          EventData(
+            data: data,
+            properties: executionContext.response
+              ..addHeaders(currentResponseHeaders),
+          ),
+        );
+        await _responseController.sendResponse(
+          response,
+          request,
+          processResult(responseData, executionContext),
+          executionContext.response,
+          viewEngine: viewEngine,
+        );
+      }
+    } on SerinusException catch (e, stackTrace) {
+      executionContext ??= ExecutionContext(
+        HostType.http,
+        {
+          for (var provider in context.moduleScope.unifiedProviders)
+            provider.runtimeType: provider,
+        },
+        context.hooksServices,
+        HttpArgumentsHost(Request(request, params)),
+      );
+      executionContext.response.statusCode = e.statusCode;
+      executionContext.response.contentType ??= ContentType.json;
+      final result = await _executeOnException(executionContext, context, e);
+      if (result != null) {
+        await _responseController.sendResponse(
+          response,
+          request,
+          processResult(result, executionContext),
+          executionContext.response,
+          viewEngine: viewEngine,
+        );
+        return;
+      }
+      await _executeOnResponse(context, executionContext, WrappedResponse(e));
+      if (errorHandler != null) {
+        final errorResponse = errorHandler(e, stackTrace);
+        if (errorResponse != null) {
+          await _responseController.sendResponse(
+            response,
+            request,
+            processResult(WrappedResponse(errorResponse), executionContext),
             executionContext.response,
             viewEngine: viewEngine,
           );
         }
+      } else {
+        await _responseController.sendResponse(
+          response,
+          request,
+          WrappedResponse(jsonEncode(e.toJson())),
+          executionContext.response,
+          viewEngine: viewEngine,
+        );
       }
+    }
   }
 
   Future<WrappedResponse?> _executeOnException(

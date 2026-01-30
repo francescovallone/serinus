@@ -152,7 +152,7 @@ class ResponseContext extends BaseContext {
 
   /// The [body] setter is used to set the body of the response. On setting the body, the response context should not be closed.
   /// If the response context is closed, it will throw a [StateError].
-  /// 
+  ///
   /// Use this property to set the response body before sending the response to the client.
   set body(Object? value) {
     if (_closed) {

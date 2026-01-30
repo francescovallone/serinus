@@ -15,14 +15,12 @@ final class RoutesExplorer {
   final SerinusContainer _container;
 
   final Router _router;
+
   /// The [ApplicationConfig] object.
   /// It is used to get the global prefix and the versioning options.
 
   /// The [RoutesExplorer] constructor is used to create a new instance of the [RoutesExplorer] class.
-  const RoutesExplorer(
-    this._container,
-    this._router,
-  );
+  const RoutesExplorer(this._container, this._router);
 
   /// The [resolveRoutes] method is used to resolve the routes of the application.
   ///
@@ -43,7 +41,7 @@ final class RoutesExplorer {
       logger.info('${controller.key.runtimeType} {${controller.value.path}}');
       final versioningOptions = _container.config.versioningOptions;
       final globalVersioningEnabled =
-        _container.config.versioningOptions?.type == VersioningType.uri;
+          _container.config.versioningOptions?.type == VersioningType.uri;
       explore(
         controller,
         versioningOptions,
@@ -71,8 +69,9 @@ final class RoutesExplorer {
     for (var entry in routes.entries) {
       final spec = entry.value;
       String routePath = '$controllerPath${spec.route.path}';
-      final ignoreVersion = spec.route.metadata
-              .whereType<IgnoreVersion>().firstOrNull != null || controllerIgnoreVersioning;
+      final ignoreVersion =
+          spec.route.metadata.whereType<IgnoreVersion>().firstOrNull != null ||
+          controllerIgnoreVersioning;
       if (globalVersioningEnabled && !ignoreVersion) {
         routePath =
             '${versioningOptions?.versionPrefix}${spec.route.version ?? controller.version ?? versioningOptions?.version}/$routePath';
@@ -112,9 +111,7 @@ final class RoutesExplorer {
           ..._container.config.globalExceptionFilters,
         },
       );
-      _router.registerRoute(
-        context: context,
-      );
+      _router.registerRoute(context: context);
       logger.info('Mapped {$routePath, $routeMethod} route');
     }
   }
@@ -146,6 +143,7 @@ final class RoutesExplorer {
 class ControllerSpec {
   /// The path of the controller.
   final String path;
+
   /// The module of the controller.
   final Module module;
 

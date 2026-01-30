@@ -37,10 +37,7 @@ void main() {
           ),
         );
         final container = SerinusContainer(config, _MockAdapter());
-        final explorer = RoutesExplorer(
-          container,
-          router,
-        );
+        final explorer = RoutesExplorer(container, router);
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
@@ -60,10 +57,7 @@ void main() {
           ),
         );
         final container = SerinusContainer(config, _MockAdapter());
-        final explorer = RoutesExplorer(
-          container,
-          router,
-        );
+        final explorer = RoutesExplorer(container, router);
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
         );
@@ -83,10 +77,7 @@ void main() {
           ),
         );
         final container = SerinusContainer(config, _MockAdapter());
-        final explorer = RoutesExplorer(
-          container,
-          router,
-        );
+        final explorer = RoutesExplorer(container, router);
         final path = 'test';
         final normalizedPath = explorer.normalizePath(path);
         expect(normalizedPath, '/test');
@@ -105,10 +96,7 @@ void main() {
           ),
         );
         final container = SerinusContainer(config, _MockAdapter());
-        final explorer = RoutesExplorer(
-          container,
-          router,
-        );
+        final explorer = RoutesExplorer(container, router);
         final path = '/test//test';
         final normalizedPath = explorer.normalizePath(path);
         expect(normalizedPath, '/test/test');
@@ -134,10 +122,7 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesExplorer(
-          container,
-          router,
-        );
+        final explorer = RoutesExplorer(container, router);
         explorer.resolveRoutes();
         final result = router.lookup('/v1', HttpMethod.get);
         expect(result, isA<FoundRoute<RouterEntry>>());
@@ -164,10 +149,7 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesExplorer(
-          container,
-          router,
-        );
+        final explorer = RoutesExplorer(container, router);
         explorer.resolveRoutes();
         final result = router.lookup('/api', HttpMethod.get);
         expect(result, isA<FoundRoute<RouterEntry>>());
@@ -258,10 +240,7 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesExplorer(
-          container,
-          router,
-        );
+        final explorer = RoutesExplorer(container, router);
         explorer.resolveRoutes();
         final result = router.lookup('/api/v1', HttpMethod.get);
         expect(result, isA<FoundRoute<RouterEntry>>());

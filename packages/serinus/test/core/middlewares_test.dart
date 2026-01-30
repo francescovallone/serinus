@@ -145,10 +145,7 @@ void main() {
         );
         final response = await request.close();
         expect(response.statusCode, 200);
-        expect(
-          response.headers.value('x-shelf-middleware') != null,
-          true,
-        );
+        expect(response.headers.value('x-shelf-middleware') != null, true);
       },
     );
 

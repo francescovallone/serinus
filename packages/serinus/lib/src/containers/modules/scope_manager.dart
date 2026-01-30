@@ -127,7 +127,8 @@ class ModuleScope {
   final Map<
     String,
     Function(IncomingMessage request, RouteContext routeContext)
-  > _middlewaresToRoutes = {};
+  >
+  _middlewaresToRoutes = {};
 
   /// Creates a new module scope
   ModuleScope({
@@ -191,7 +192,8 @@ class ModuleScope {
     Iterable<Middleware> Function(
       IncomingMessage request,
       RouteContext routeContext,
-    ) middlewareFactory,
+    )
+    middlewareFactory,
   ) {
     _middlewaresToRoutes[routeId] = middlewareFactory;
   }
@@ -202,7 +204,7 @@ class ModuleScope {
     IncomingMessage request,
     RouteContext routeContext,
   ) {
-    return _middlewaresToRoutes[routeId]?.call(request, routeContext) ?? 
+    return _middlewaresToRoutes[routeId]?.call(request, routeContext) ??
         <Middleware>[];
   }
 

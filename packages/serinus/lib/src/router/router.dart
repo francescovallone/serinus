@@ -23,9 +23,7 @@ final class Router {
   final _routeTree = Atlas<RouterEntry>();
 
   /// The [registerRoute] method is used to register a route in the router.
-  void registerRoute({
-    required RouteContext context,
-  }) {
+  void registerRoute({required RouteContext context}) {
     final path = context.path.stripEndSlash().addLeadingSlash();
     final routeExists = _routeTree.lookup(HttpMethod.all, path);
     for (final result in routeExists.values) {

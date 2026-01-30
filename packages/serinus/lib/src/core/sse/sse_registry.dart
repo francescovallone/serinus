@@ -31,10 +31,7 @@ class SseRegistry extends Provider
       );
       for (final spec in controller.sseRoutes.entries) {
         final route = spec.value.route;
-        final result = router.lookup(
-          route.method,
-          route.path,
-        );
+        final result = router.lookup(route.method, route.path);
         if (result.values.isNotEmpty) {
           throw InitializationError(
             'SSE Route with path "${route.path}" already exists. '

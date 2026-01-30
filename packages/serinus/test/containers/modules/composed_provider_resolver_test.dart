@@ -14,11 +14,7 @@ class DependentProvider extends Provider {
 }
 
 class TestModule extends Module {
-  TestModule({
-    super.providers,
-    super.exports,
-    super.isGlobal,
-  });
+  TestModule({super.providers, super.exports, super.isGlobal});
 }
 
 void main() {
@@ -132,51 +128,57 @@ void main() {
       expect(providerRegistry.isRegistered(DependentProvider), isTrue);
     });
 
-    test('should attach existing provider to scope instead of duplicating', () async {
-      final token1 = InjectionToken('TestModule1');
-      final token2 = InjectionToken('TestModule2');
-      final module1 = TestModule();
-      final module2 = TestModule();
-      
-      final composedProvider1 = Provider.composed<TestProvider>(
-        (ctx) async => TestProvider(),
-        inject: [],
-      );
-      final composedProvider2 = Provider.composed<TestProvider>(
-        (ctx) async => TestProvider(),
-        inject: [],
-      );
+    test(
+      'should attach existing provider to scope instead of duplicating',
+      () async {
+        final token1 = InjectionToken('TestModule1');
+        final token2 = InjectionToken('TestModule2');
+        final module1 = TestModule();
+        final module2 = TestModule();
 
-      final scope1 = ModuleScope(
-        token: token1,
-        providers: {composedProvider1},
-        exports: {},
-        controllers: {},
-        imports: {},
-        module: module1,
-        importedBy: {},
-      );
-      final scope2 = ModuleScope(
-        token: token2,
-        providers: {composedProvider2},
-        exports: {},
-        controllers: {},
-        imports: {},
-        module: module2,
-        importedBy: {},
-      );
+        final composedProvider1 = Provider.composed<TestProvider>(
+          (ctx) async => TestProvider(),
+          inject: [],
+        );
+        final composedProvider2 = Provider.composed<TestProvider>(
+          (ctx) async => TestProvider(),
+          inject: [],
+        );
 
-      scopeManager.registerScope(scope1);
-      scopeManager.registerScope(scope2);
-      resolver.addPending(token1, [composedProvider1]);
-      resolver.addPending(token2, [composedProvider2]);
+        final scope1 = ModuleScope(
+          token: token1,
+          providers: {composedProvider1},
+          exports: {},
+          controllers: {},
+          imports: {},
+          module: module1,
+          importedBy: {},
+        );
+        final scope2 = ModuleScope(
+          token: token2,
+          providers: {composedProvider2},
+          exports: {},
+          controllers: {},
+          imports: {},
+          module: module2,
+          importedBy: {},
+        );
 
-      scopeManager.refreshUnifiedProviders([]);
-      await resolver.initializeComposedProviders();
+        scopeManager.registerScope(scope1);
+        scopeManager.registerScope(scope2);
+        resolver.addPending(token1, [composedProvider1]);
+        resolver.addPending(token2, [composedProvider2]);
 
-      // Only one TestProvider should be registered
-      expect(providerRegistry.isRegistered(TestProvider), isTrue);
-      expect(providerRegistry.allProviders.where((p) => p is TestProvider).length, equals(1));
-    });
+        scopeManager.refreshUnifiedProviders([]);
+        await resolver.initializeComposedProviders();
+
+        // Only one TestProvider should be registered
+        expect(providerRegistry.isRegistered(TestProvider), isTrue);
+        expect(
+          providerRegistry.allProviders.where((p) => p is TestProvider).length,
+          equals(1),
+        );
+      },
+    );
   });
 }

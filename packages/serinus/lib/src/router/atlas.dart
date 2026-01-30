@@ -499,5 +499,4 @@ final class Atlas<T> {
 
     return segment.substring(startIndex, endIndex);
   }
-
 }

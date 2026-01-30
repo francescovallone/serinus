@@ -10,7 +10,10 @@ extension ObjectExtensions on Object {
   bool canBeJson() {
     final value = this;
     // Reject obvious non-JSON fast paths
-    if (value is Uint8List || value is String || value is num || value is bool) {
+    if (value is Uint8List ||
+        value is String ||
+        value is num ||
+        value is bool) {
       return false;
     }
     if (value is Map) {

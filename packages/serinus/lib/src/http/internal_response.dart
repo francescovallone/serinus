@@ -123,11 +123,7 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
 
   @override
   void header(String key, String value, {bool preserveHeaderCase = true}) {
-    original.headers.set(
-      key,
-      value,
-      preserveHeaderCase: preserveHeaderCase,
-    );
+    original.headers.set(key, value, preserveHeaderCase: preserveHeaderCase);
   }
 
   @override

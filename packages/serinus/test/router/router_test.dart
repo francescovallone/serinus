@@ -23,7 +23,6 @@ class TestModule extends Module {
 
 void main() async {
   group('$Router', () {
-
     test(
       '''when the function 'registerRoute' is called,
             then it should add a route to the route tree
@@ -52,9 +51,7 @@ void main() async {
             ReqResHandler((context) async => 'hi'),
           ),
         );
-        router.registerRoute(
-          context: routeContext,
-        );
+        router.registerRoute(context: routeContext);
       },
     );
 
@@ -87,9 +84,7 @@ void main() async {
             ReqResHandler((context) async => 'hi'),
           ),
         );
-        router.registerRoute(
-          context: routeContext,
-        );
+        router.registerRoute(context: routeContext);
         final result = router.lookup('/test', HttpMethod.get);
         expect(result, isA<FoundRoute>());
         final found = result as FoundRoute<RouterEntry>;
@@ -126,9 +121,7 @@ void main() async {
             ReqResHandler((context) async => 'hi'),
           ),
         );
-        router.registerRoute(
-          context: routeContext,
-        );
+        router.registerRoute(context: routeContext);
         final result = router.lookup('/test', HttpMethod.post);
         expect(result, isA<MethodNotAllowedRoute>());
       },

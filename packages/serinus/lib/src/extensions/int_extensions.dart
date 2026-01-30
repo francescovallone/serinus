@@ -12,9 +12,10 @@ extension BytesFormatter on int {
 
   /// Converts the integer to kilobytes
   int get kb => this * 1024;
+
   /// Converts the integer to megabytes
   int get mb => kb * 1024;
+
   /// Converts the integer to gigabytes
   int get gb => mb * 1024;
 }
-

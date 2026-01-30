@@ -26,7 +26,7 @@ class SerinusHeaders {
       return cached;
     }
     final headerValues = _requestHeaders[key];
-    if (headerValues == null) { 
+    if (headerValues == null) {
       return null;
     }
     final value = headerValues.join(', ');

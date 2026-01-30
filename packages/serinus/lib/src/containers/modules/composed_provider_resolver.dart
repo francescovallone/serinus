@@ -85,7 +85,7 @@ class ComposedProviderResolver {
       final providers = [...entry.value];
       final parentModule = _scopeManager.getModuleByToken(token);
       final parentScope = _scopeManager.getScopeOrNull(token);
-      
+
       if (parentScope == null) {
         throw InitializationError('Module with token $token not found');
       }
@@ -93,7 +93,9 @@ class ComposedProviderResolver {
       for (final provider in providers) {
         final existingDependency = _findDependency(provider, parentModule);
         final providerType = provider.type;
-        final existingScope = _providerRegistry.getScopeByProvider(providerType);
+        final existingScope = _providerRegistry.getScopeByProvider(
+          providerType,
+        );
 
         // Handle duplicate provider
         if (existingScope != null) {
@@ -162,7 +164,7 @@ class ComposedProviderResolver {
         _checkResultType(provider, result, parentModule);
 
         final resultType = result.runtimeType;
-        
+
         // Check if another instance was created while we were initializing
         if (_providerRegistry.isRegistered(resultType)) {
           _attachExistingProviderToScope(parentScope, providerType: resultType);
@@ -227,11 +229,8 @@ class ComposedProviderResolver {
           continue;
         }
 
-        final ProviderDependencyEntry(
-          :provider,
-          :module,
-          :dependencies,
-        ) = entry;
+        final ProviderDependencyEntry(:provider, :module, :dependencies) =
+            entry;
         final token = InjectionToken.fromModule(module);
         final currentScope = _scopeManager.getScopeOrNull(token);
 
@@ -240,7 +239,9 @@ class ComposedProviderResolver {
         }
 
         final providerType = provider.type;
-        final existingScope = _providerRegistry.getScopeByProvider(providerType);
+        final existingScope = _providerRegistry.getScopeByProvider(
+          providerType,
+        );
 
         // Handle duplicate
         if (existingScope != null) {
@@ -438,7 +439,8 @@ class ComposedProviderResolver {
     final updated = <Provider>[];
     var replaced = false;
     for (final existing in scope.module.providers) {
-      final shouldReplace = !replaced &&
+      final shouldReplace =
+          !replaced &&
           ((pending != null && identical(existing, pending)) ||
               existing.runtimeType == replacement.runtimeType);
       if (shouldReplace) {
@@ -535,6 +537,10 @@ class ComposedProviderResolver {
     required Provider replacement,
     Provider? pending,
   }) {
-    _replaceModuleProviderInstance(scope, replacement: replacement, pending: pending);
+    _replaceModuleProviderInstance(
+      scope,
+      replacement: replacement,
+      pending: pending,
+    );
   }
 }

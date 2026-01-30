@@ -44,6 +44,5 @@ void main() {
       await expectLater(process.stdout, emits(contains('[Test] Test')));
       await process.shouldExit(0);
     });
-
   });
 }

@@ -80,7 +80,12 @@ class RoutesResolver {
     );
     try {
       if (route is FoundRoute) {
-        await _routeExecutionContext.describe(route.values.first.context, request: request, response: response, params: route.params);
+        await _routeExecutionContext.describe(
+          route.values.first.context,
+          request: request,
+          response: response,
+          params: route.params,
+        );
         return;
       }
       if (route is NotFoundRoute) {

@@ -12,23 +12,23 @@ class TestProvider extends Provider {
   }
 }
 
-class NotFoundFilter extends ExceptionFilter { 
-  NotFoundFilter() : super(catchTargets: [NotFoundException]); 
+class NotFoundFilter extends ExceptionFilter {
+  NotFoundFilter() : super(catchTargets: [NotFoundException]);
 
-  @override 
-  Future<void> onException( 
-    ExecutionContext<ArgumentsHost> context, 
-    Exception exception
-  ) async { 
-    if (exception is NotFoundException) { 
-    context.response 
-      ..statusCode = 404 
-      ..body = { 
-        'message': 'path not found', 
-        'path': exception.uri.toString() 
-      }; 
-    //..close(); 
-    } 
+  @override
+  Future<void> onException(
+    ExecutionContext<ArgumentsHost> context,
+    Exception exception,
+  ) async {
+    if (exception is NotFoundException) {
+      context.response
+        ..statusCode = 404
+        ..body = {
+          'message': 'path not found',
+          'path': exception.uri.toString(),
+        };
+      //..close();
+    }
   }
 }
 
@@ -53,7 +53,9 @@ class Test2Controller extends Controller {
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on<Map<String, dynamic>, dynamic>(Route.get('/'), (RequestContext context) async {
+    on<Map<String, dynamic>, dynamic>(Route.get('/'), (
+      RequestContext context,
+    ) async {
       return {
         'message': 'Hello, Serinus!',
         'time': DateTime.now().toIso8601String(),

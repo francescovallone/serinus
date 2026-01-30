@@ -3,10 +3,8 @@ import 'enums/enums.dart';
 
 /// Metadata to ignore versioning for a controller or a route
 class IgnoreVersion extends Metadata {
-
   /// Creates a new instance of [IgnoreVersion]
-  const IgnoreVersion(): super(name: 'ignore_version', value: true);
-
+  const IgnoreVersion() : super(name: 'ignore_version', value: true);
 }
 
 /// Options for versioning the API
@@ -37,7 +35,12 @@ final class VersioningOptions {
   final String prefix;
 
   /// Creates a new instance of [VersioningOptions]
-  VersioningOptions({required this.type, this.version = 1, this.header, this.prefix = 'v'}) {
+  VersioningOptions({
+    required this.type,
+    this.version = 1,
+    this.header,
+    this.prefix = 'v',
+  }) {
     if (version < 1) {
       throw ArgumentError.value(
         version,

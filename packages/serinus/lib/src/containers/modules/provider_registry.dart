@@ -65,13 +65,9 @@ class ProviderRegistry {
   /// Registers a provider in the registry
   ///
   /// Returns true if the provider was registered, false if it already exists
-  bool register(
-    Provider provider,
-    ModuleScope scope, {
-    Type? asType,
-  }) {
+  bool register(Provider provider, ModuleScope scope, {Type? asType}) {
     final providerType = asType ?? provider.runtimeType;
-    
+
     if (_providers.containsKey(providerType)) {
       return false;
     }
@@ -141,7 +137,11 @@ class ProviderRegistry {
   }
 
   /// Logs a warning about duplicate provider registration
-  void logDuplicateWarning(Type providerType, Type sourceModule, Type existingModule) {
+  void logDuplicateWarning(
+    Type providerType,
+    Type sourceModule,
+    Type existingModule,
+  ) {
     _logger.warning(
       'Provider $providerType already initialized by '
       '$existingModule. Ignoring duplicate composed '

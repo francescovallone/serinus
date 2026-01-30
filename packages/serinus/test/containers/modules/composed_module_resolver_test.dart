@@ -8,15 +8,12 @@ class TestProvider extends Provider {}
 class TestProviderTwo extends Provider {}
 
 class TestModule extends Module {
-  TestModule({
-    super.providers,
-    super.exports,
-    super.isGlobal,
-  });
+  TestModule({super.providers, super.exports, super.isGlobal});
 }
 
 class ProducedModule extends Module {
-  ProducedModule() : super(providers: [TestProvider()], exports: [TestProvider]);
+  ProducedModule()
+    : super(providers: [TestProvider()], exports: [TestProvider]);
 }
 
 ComposedModule<T> createComposedModule<T extends Module>(
@@ -35,8 +32,11 @@ void main() {
     setUp(() {
       scopeManager = ScopeManager();
       registeredModules = [];
-      
-      Future<void> mockRegisterModule(Module module, {bool internal = false}) async {
+
+      Future<void> mockRegisterModule(
+        Module module, {
+        bool internal = false,
+      }) async {
         registeredModules.add(module);
         final token = InjectionToken.fromModule(module);
         final scope = ModuleScope(
@@ -51,10 +51,7 @@ void main() {
         scopeManager.registerScope(scope);
       }
 
-      resolver = ComposedModuleResolver(
-        scopeManager,
-        mockRegisterModule,
-      );
+      resolver = ComposedModuleResolver(scopeManager, mockRegisterModule);
     });
 
     test('should add and retrieve pending composed modules', () {

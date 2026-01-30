@@ -143,13 +143,11 @@ class SerinusHttpAdapter
     ResponseContext properties,
   ) async {
     response.cookies.addAll(properties.cookies);
-    final contentTypeValue = properties.contentTypeString ??
+    final contentTypeValue =
+        properties.contentTypeString ??
         properties.contentType?.toString() ??
         'text/plain; charset=utf-8';
-    final headers = {
-      ...properties.headers,
-      'content-type': contentTypeValue,
-    };
+    final headers = {...properties.headers, 'content-type': contentTypeValue};
 
     final bodyData = body.data;
     if (bodyData is io.File) {
@@ -158,15 +156,16 @@ class SerinusHttpAdapter
       final sanitizedFileName = rawFileName.replaceAll('"', '');
       response.headers({
         ...headers,
-        'content-type': properties.contentTypeString ??
-          properties.contentType?.toString() ?? 'application/octet-stream',
+        'content-type':
+            properties.contentTypeString ??
+            properties.contentType?.toString() ??
+            'application/octet-stream',
         io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
         if (response.currentHeaders.value('etag') == null)
           io.HttpHeaders.etagHeader: fileStat.eTag,
-        io.HttpHeaders.contentDisposition: 
+        io.HttpHeaders.contentDisposition:
             'attachment; filename*=UTF-8\'\'"$sanitizedFileName"',
-        io.HttpHeaders.contentLengthHeader:
-            fileStat.size.toString(),
+        io.HttpHeaders.contentLengthHeader: fileStat.size.toString(),
       }, preserveHeaderCase: preserveHeaderCase);
       response.status(properties.statusCode);
       if (request.fresh) {
@@ -200,7 +199,7 @@ class SerinusHttpAdapter
       io.HttpHeaders.contentLengthHeader: contentLength.toString(),
       io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
       if (response.currentHeaders.value('etag') == null)
-          io.HttpHeaders.etagHeader: body.eTag,
+        io.HttpHeaders.etagHeader: body.eTag,
     }, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
     if (request.fresh) {

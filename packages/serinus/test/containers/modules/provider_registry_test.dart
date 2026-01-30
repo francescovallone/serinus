@@ -12,11 +12,7 @@ class TestProviderThree extends Provider {}
 class GlobalTestProvider extends Provider {}
 
 class TestModule extends Module {
-  TestModule({
-    super.providers,
-    super.exports,
-    super.isGlobal,
-  });
+  TestModule({super.providers, super.exports, super.isGlobal});
 }
 
 void main() {
@@ -145,10 +141,7 @@ void main() {
 
       expect(processed.length, equals(1));
       expect(processed.first, isA<TestProvider>());
-      expect(
-        registry.getCustomToken(processed.first),
-        equals(TestProvider),
-      );
+      expect(registry.getCustomToken(processed.first), equals(TestProvider));
     });
 
     test('should identify missing dependencies', () {

@@ -18,8 +18,9 @@ class MiddlewareExecutor {
     if (middlewares.isEmpty) {
       return;
     }
-    final middlewareList =
-        middlewares is List<Middleware> ? middlewares : middlewares.toList();
+    final middlewareList = middlewares is List<Middleware>
+        ? middlewares
+        : middlewares.toList();
     final length = middlewareList.length;
     for (int i = 0; i < length; i++) {
       final middleware = middlewareList[i];

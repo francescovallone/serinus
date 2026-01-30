@@ -21,10 +21,7 @@ class ComposedModuleResolver {
   final Future<void> Function(Module, {bool internal}) _registerModule;
 
   /// Creates a new composed module resolver
-  ComposedModuleResolver(
-    this._scopeManager,
-    this._registerModule,
-  );
+  ComposedModuleResolver(this._scopeManager, this._registerModule);
 
   /// Adds a composed module entry for a parent token
   void addPending(InjectionToken parentToken, ComposedModuleEntry entry) {
@@ -88,10 +85,12 @@ class ComposedModuleResolver {
 
     // Take a snapshot to iterate safely
     final snapshots = _composedModules.entries
-        .map((entry) => (
-          token: entry.key,
-          modules: List<ComposedModuleEntry>.from(entry.value),
-        ))
+        .map(
+          (entry) => (
+            token: entry.key,
+            modules: List<ComposedModuleEntry>.from(entry.value),
+          ),
+        )
         .toList();
 
     for (final snapshot in snapshots) {
@@ -140,7 +139,9 @@ class ComposedModuleResolver {
 
         await _registerModule(moduleInstance, internal: true);
 
-        final refreshedParentScope = _scopeManager.getScopeOrNull(snapshot.token);
+        final refreshedParentScope = _scopeManager.getScopeOrNull(
+          snapshot.token,
+        );
         if (refreshedParentScope == null) {
           throw InitializationError(
             'Module with token ${snapshot.token} not found',

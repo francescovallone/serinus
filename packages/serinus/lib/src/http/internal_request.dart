@@ -16,7 +16,10 @@ import 'session.dart';
 
 /// The UTF-8 JSON decoder.
 final utf8JsonDecoder = utf8.decoder.fuse(json.decoder);
-final _cacheControlNoCacheRegExp = RegExp(r'(?:^|,)\s*?no-cache\s*?(?:,|$)', caseSensitive: false);
+final _cacheControlNoCacheRegExp = RegExp(
+  r'(?:^|,)\s*?no-cache\s*?(?:,|$)',
+  caseSensitive: false,
+);
 
 /// The default maximum body size in bytes.
 const int kDefaultMaxBodySize = 10 * 1024 * 1024; // 10MB
@@ -140,7 +143,7 @@ abstract class IncomingMessage {
   String get webSocketKey;
 
   /// The [fresh] property is used to check if the request is fresh
-  /// 
+  ///
   /// A fresh request is a request that has not been modified since the last time it was requested.
   /// Or that has an ETag that matches the one in the request headers.
   bool get fresh;
@@ -187,7 +190,8 @@ class InternalRequest extends IncomingMessage {
   @override
   Map<String, String> get queryParameters => _uri.queryParameters;
 
-  late final ContentType _contentType = original.headers.contentType ?? ContentType('text', 'plain');
+  late final ContentType _contentType =
+      original.headers.contentType ?? ContentType('text', 'plain');
 
   @override
   ContentType get contentType => _contentType;
@@ -235,7 +239,7 @@ class InternalRequest extends IncomingMessage {
     required this.original,
     required this.port,
     required this.host,
-  }) : id = 'req-${original.hashCode^++_idCounter}';
+  }) : id = 'req-${original.hashCode ^ ++_idCounter}';
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {
@@ -338,7 +342,11 @@ class InternalRequest extends IncomingMessage {
     Future<void> Function(MimeMultipart part)? onPart,
   }) async {
     if (contentType.isMultipart) {
-      return _formDataCache ??= await FormData.parseMultipart(request: original, contentType: contentType.value, onPart: onPart);
+      return _formDataCache ??= await FormData.parseMultipart(
+        request: original,
+        contentType: contentType.value,
+        onPart: onPart,
+      );
     } else if (contentType.isUrlEncoded) {
       return _formDataCache ??= FormData.parseUrlEncoded(body());
     } else {
@@ -415,7 +423,8 @@ class InternalRequest extends IncomingMessage {
     }
 
     final cacheControl = headers['cache-control'];
-    if (cacheControl != null && _cacheControlNoCacheRegExp.hasMatch(cacheControl)) {
+    if (cacheControl != null &&
+        _cacheControlNoCacheRegExp.hasMatch(cacheControl)) {
       return false;
     }
     if (noneMatch != null) {

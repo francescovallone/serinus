@@ -5,7 +5,6 @@ import 'package:serinus/src/http/headers.dart';
 import 'package:test/test.dart';
 
 class MockHttpHeaders extends Mock implements HttpHeaders {
-
   MockHttpHeaders(Map<String, List<String>> initialHeaders) {
     initialHeaders.forEach((key, value) {
       _headers[key.toLowerCase()] = value;
@@ -26,7 +25,6 @@ class MockHttpHeaders extends Mock implements HttpHeaders {
       _headers[name.toLowerCase()] = value;
     }
   }
-
 }
 
 void main() {
@@ -35,7 +33,7 @@ void main() {
       final SerinusHeaders headers = SerinusHeaders(
         MockHttpHeaders({
           'DateTime': ['2024-06-01T12:00:00Z'],
-        })
+        }),
       );
       expect(headers.values.containsKey('DateTime'), equals(false));
       headers['DateTime'];

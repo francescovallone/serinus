@@ -204,18 +204,21 @@ void main() {
   });
 
   group('Custom Providers', () {
-    test('ClassProvider registers useClass instance under token type', () async {
-      Logger.setLogLevels({LogLevel.none});
-      final container = ModulesContainer(config);
-      final module = ModuleWithClassProvider();
-      await container.registerModules(module);
-      await container.finalize(module);
+    test(
+      'ClassProvider registers useClass instance under token type',
+      () async {
+        Logger.setLogLevels({LogLevel.none});
+        final container = ModulesContainer(config);
+        final module = ModuleWithClassProvider();
+        await container.registerModules(module);
+        await container.finalize(module);
 
-      // Should be able to retrieve the provider
-      final provider = container.get<ConfigService>();
-      expect(provider, isNotNull);
-      expect(provider, isA<ProductionConfigService>());
-    });
+        // Should be able to retrieve the provider
+        final provider = container.get<ConfigService>();
+        expect(provider, isNotNull);
+        expect(provider, isA<ProductionConfigService>());
+      },
+    );
   });
 }
 
@@ -239,7 +242,10 @@ class ApiConfigService extends Provider {
   final String apiKey;
   final String baseUrl;
 
-  ApiConfigService({required this.apiKey, this.baseUrl = 'https://api.example.com'});
+  ApiConfigService({
+    required this.apiKey,
+    this.baseUrl = 'https://api.example.com',
+  });
 }
 
 abstract class DatabaseService extends Provider {
@@ -257,11 +263,9 @@ class SqliteService extends DatabaseService {
 
 class ModuleWithClassProvider extends Module {
   ModuleWithClassProvider()
-      : super(
-          providers: [
-            Provider.forClass<ConfigService>(
-              useClass: ProductionConfigService(),
-            ),
-          ],
-        );
+    : super(
+        providers: [
+          Provider.forClass<ConfigService>(useClass: ProductionConfigService()),
+        ],
+      );
 }

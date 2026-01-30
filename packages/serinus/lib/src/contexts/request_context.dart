@@ -403,9 +403,8 @@ class _BodyConverter {
       return {...value.fields, 'files': value.files};
     }
     if (modelProvider != null) {
-      final json = modelProvider!.toJsonModels.containsKey(
-        _typeName(value.runtimeType),
-      )
+      final json =
+          modelProvider!.toJsonModels.containsKey(_typeName(value.runtimeType))
           ? modelProvider!.to(value)
           : null;
       if (json is Map<String, dynamic>) {

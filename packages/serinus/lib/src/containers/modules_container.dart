@@ -58,7 +58,8 @@ final class ModulesContainer {
   // ============================================================
 
   /// The list of types of providers to inject in the application context
-  Iterable<Type> get injectableProviders => _providerRegistry.injectableProviders;
+  Iterable<Type> get injectableProviders =>
+      _providerRegistry.injectableProviders;
 
   /// The providers available in the application
   Iterable<Provider> get allProviders => _providerRegistry.allProviders;
@@ -255,24 +256,30 @@ final class ModulesContainer {
     do {
       bool progress;
       do {
-        _scopeManager.refreshUnifiedProviders(_providerRegistry.globalProviders);
+        _scopeManager.refreshUnifiedProviders(
+          _providerRegistry.globalProviders,
+        );
         progress = false;
 
-        final resolvedByComposedModules =
-            await _composedModuleResolver.initializeComposedModules();
+        final resolvedByComposedModules = await _composedModuleResolver
+            .initializeComposedModules();
         if (resolvedByComposedModules) {
           progress = true;
         }
 
-        _scopeManager.refreshUnifiedProviders(_providerRegistry.globalProviders);
+        _scopeManager.refreshUnifiedProviders(
+          _providerRegistry.globalProviders,
+        );
 
-        final resolvedByComposedProviders =
-            await _composedProviderResolver.initializeComposedProviders();
+        final resolvedByComposedProviders = await _composedProviderResolver
+            .initializeComposedProviders();
         if (resolvedByComposedProviders) {
           progress = true;
         }
 
-        _scopeManager.refreshUnifiedProviders(_providerRegistry.globalProviders);
+        _scopeManager.refreshUnifiedProviders(
+          _providerRegistry.globalProviders,
+        );
 
         if (await _composedProviderResolver.resolveProvidersDependencies(
           failOnUnresolved: false,
@@ -281,8 +288,8 @@ final class ModulesContainer {
         }
       } while (progress);
 
-      final resolvedByFinalPass =
-          await _composedProviderResolver.resolveProvidersDependencies();
+      final resolvedByFinalPass = await _composedProviderResolver
+          .resolveProvidersDependencies();
       shouldRepeat = resolvedByFinalPass;
     } while (shouldRepeat);
 
@@ -308,7 +315,9 @@ final class ModulesContainer {
     }
     final tree = TopologyTree(entrypoint.module);
     tree.walk((module, depth) {
-      final scope = _scopeManager.getScopeOrNull(InjectionToken.fromModule(module));
+      final scope = _scopeManager.getScopeOrNull(
+        InjectionToken.fromModule(module),
+      );
       if (scope != null && !scope.module.isGlobal) {
         scope.distance = depth.toDouble();
       }
@@ -408,8 +417,8 @@ final class ModulesContainer {
     ModuleScope currentScope,
     InjectionToken token,
   ) async {
-    final providerType = _providerRegistry.getCustomToken(provider) ??
-        provider.runtimeType;
+    final providerType =
+        _providerRegistry.getCustomToken(provider) ?? provider.runtimeType;
     final providerToken = InjectionToken.fromProvider(provider);
 
     final existingScope = _providerRegistry.getScopeByProvider(providerType);
