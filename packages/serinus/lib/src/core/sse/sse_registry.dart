@@ -70,6 +70,7 @@ class SseRegistry extends Provider
                 if (provider.runtimeType != controller.runtimeType)
                   provider.runtimeType: provider,
             },
+            Map.unmodifiable(currentModuleScope.unifiedValues),
             hooks,
             [...spec.value.route.metadata, ...controller.metadata],
             (request) {

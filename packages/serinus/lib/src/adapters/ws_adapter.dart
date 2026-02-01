@@ -32,6 +32,9 @@ class GatewayScope {
   /// The [providers] property contains the providers of the WebSocket gateway.
   final Map<Type, Provider> providers;
 
+  /// The [values] property contains the values provided by ValueProviders.
+  final Map<ValueToken, Object?> values;
+
   /// The [hooks] property contains the hooks of the WebSocket gateway.
   final HooksContainer hooks;
 
@@ -45,6 +48,7 @@ class GatewayScope {
   const GatewayScope(
     this.gateway,
     this.providers,
+    this.values,
     this.hooks,
     this.exceptionFilters,
     this.pipes,
@@ -255,6 +259,7 @@ class WebSocketAdapter extends WsAdapter {
     final context = ExecutionContext<WsArgumentsHost>(
       HostType.websocket,
       gatewayScope.providers,
+      gatewayScope.values,
       gatewayScope.hooks.services,
       WsArgumentsHost(Request(request), this, clientId),
     );

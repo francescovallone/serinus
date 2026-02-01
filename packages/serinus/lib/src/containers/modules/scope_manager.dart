@@ -108,6 +108,9 @@ class ModuleScope {
   /// Combined set of global and scoped providers
   final Set<Provider> unifiedProviders = {};
 
+  /// Combined map of global and scoped value providers (ValueToken -> value)
+  final Map<ValueToken, Object?> unifiedValues = {};
+
   /// Distance from the entrypoint module (used for resolution ordering)
   double distance = 0;
 
@@ -184,6 +187,22 @@ class ModuleScope {
   void addToProviders(Provider provider) {
     providers.add(provider);
     unifiedProviders.add(provider);
+  }
+
+  /// Adds a value to the unifiedValues map
+  void addToUnifiedValues(ValueToken token, Object? value) {
+    unifiedValues[token] = value;
+  }
+
+  /// Checks if a value exists for the given type and optional name
+  bool hasValue<T>([String? name]) {
+    return unifiedValues.containsKey(ValueToken(T, name));
+  }
+
+  /// Gets a value by type and optional name
+  T? getValue<T>([String? name]) {
+    final token = ValueToken(T, name);
+    return unifiedValues[token] as T?;
   }
 
   /// Sets middleware factory for a route
@@ -300,20 +319,29 @@ class ScopeManager {
   }
 
   /// Refreshes unified providers for all scopes
-  void refreshUnifiedProviders(List<Provider> globalProviders) {
+  void refreshUnifiedProviders(
+    List<Provider> globalProviders, [
+    Map<ValueToken, Object?>? globalValueProviders,
+  ]) {
     for (final scope in _scopes.values) {
       scope.unifiedProviders
         ..clear()
         ..addAll({...scope.providers, ...globalProviders});
+      if (globalValueProviders != null) {
+        scope.unifiedValues.addAll(globalValueProviders);
+      }
     }
   }
 
-  /// Creates a composition context from a set of providers
-  CompositionContext buildCompositionContext(Iterable<Provider> providers) {
+  /// Creates a composition context from a set of providers and values
+  CompositionContext buildCompositionContext(
+    Iterable<Provider> providers, [
+    Map<ValueToken, Object?>? values,
+  ]) {
     final providerMap = <Type, Provider>{};
     for (final provider in providers) {
       providerMap[provider.runtimeType] = provider;
     }
-    return CompositionContext(providerMap);
+    return CompositionContext(providerMap, values ?? const {});
   }
 }

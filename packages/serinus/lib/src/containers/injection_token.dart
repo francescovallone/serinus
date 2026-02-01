@@ -16,6 +16,11 @@ extension type InjectionToken(String name) {
     return InjectionToken(type.toString());
   }
 
+  /// The token is taken from a [ValueToken].
+  factory InjectionToken.fromValueToken(ValueToken token) {
+    return InjectionToken(token.toString());
+  }
+
   /// The token is taken from the module name
   /// or the module type if the name is empty.
   factory InjectionToken.fromModule(Module module) {

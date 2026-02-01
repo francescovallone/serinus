@@ -6,7 +6,7 @@ import 'contexts.dart';
 /// Context for an RPC message, either a request or an event.
 class RpcContext extends BaseContext {
   /// Creates a new instance of [RpcContext].
-  RpcContext(super.providers, super.hooksServices, this.message);
+  RpcContext(super.providers, super.values, super.hooksServices, this.message);
 
   /// The underlying message packet (either a request or an event).
   final MessagePacket message;

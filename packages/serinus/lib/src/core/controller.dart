@@ -28,6 +28,7 @@ typedef _RequestContextBuilder =
     Future<RequestContext> Function({
       required Request request,
       required Map<Type, Provider> providers,
+      required Map<ValueToken, Object?> values,
       required Map<Type, Object> hooksServices,
       required ModelProvider? modelProvider,
       required bool rawBody,
@@ -66,6 +67,7 @@ class RestRouteHandlerSpec<T, B> extends RouteHandlerSpec<ReqResHandler<T, B>> {
         ({
           required Request request,
           required Map<Type, Provider> providers,
+          required Map<ValueToken, Object?> values,
           required Map<Type, Object> hooksServices,
           required ModelProvider? modelProvider,
           required bool rawBody,
@@ -73,6 +75,7 @@ class RestRouteHandlerSpec<T, B> extends RouteHandlerSpec<ReqResHandler<T, B>> {
           return await RequestContext.create<B>(
             request: request,
             providers: providers,
+            values: values,
             hooksServices: hooksServices,
             modelProvider: modelProvider,
             rawBody: rawBody,
@@ -86,6 +89,7 @@ class RestRouteHandlerSpec<T, B> extends RouteHandlerSpec<ReqResHandler<T, B>> {
   Future<RequestContext> buildRequestContext({
     required Request request,
     required Map<Type, Provider> providers,
+    required Map<ValueToken, Object?> values,
     required Map<Type, Object> hooksServices,
     required ModelProvider? modelProvider,
     required bool rawBody,
@@ -93,6 +97,7 @@ class RestRouteHandlerSpec<T, B> extends RouteHandlerSpec<ReqResHandler<T, B>> {
     return _requestContextBuilder(
       request: request,
       providers: providers,
+      values: values,
       hooksServices: hooksServices,
       modelProvider: modelProvider,
       rawBody: rawBody,

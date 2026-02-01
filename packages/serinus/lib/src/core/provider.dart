@@ -31,6 +31,29 @@ abstract class Provider {
   static ClassProvider<T> forClass<T extends Provider>({required T useClass}) =>
       ClassProvider<T>(useClass: useClass);
 
+  /// Creates a [ValueProvider] that registers [value] under the type [T].
+  ///
+  /// This allows you to inject values directly without creating a Provider class:
+  ///
+  /// ```dart
+  /// class AppModule extends Module {
+  ///   AppModule() : super(
+  ///     providers: [
+  ///       Provider.forValue<String>('https://api.example.com'),
+  ///       Provider.forValue<int>(3000),
+  ///       // Use name to register multiple values of the same type
+  ///       Provider.forValue<String>('ws://localhost:8080', name: 'WS_URL'),
+  ///     ],
+  ///   );
+  /// }
+  ///
+  /// // In a controller or provider:
+  /// final apiUrl = context.use<String>();
+  /// final wsUrl = context.use<String>('WS_URL');
+  /// ```
+  static ValueProvider<T> forValue<T>(T value, {String? name}) =>
+      ValueProvider<T>(value, name: name);
+
   @override
   String toString() => '$runtimeType';
 }
@@ -110,4 +133,133 @@ final class ClassProvider<T extends Provider> extends CustomProvider<T> {
 
   @override
   Type get token => T;
+}
+
+/// A provider that registers a value directly under a type token.
+///
+/// Use [ValueProvider] when you want to provide a value that is not a Provider
+/// class but should be injectable. This is useful for:
+/// - Configuration values (strings, numbers, etc.)
+/// - Pre-computed data
+/// - External dependencies that don't extend Provider
+///
+/// ## Example
+///
+/// ```dart
+/// // Register configuration values
+/// class AppModule extends Module {
+///   AppModule() : super(
+///     providers: [
+///       Provider.forValue<String>('https://api.example.com'),
+///       Provider.forValue<int>(3000),
+///       // Use name to register multiple values of the same type
+///       Provider.forValue<String>('ws://localhost:8080', name: 'WS_URL'),
+///     ],
+///   );
+/// }
+///
+/// // Use in a controller
+/// class MyController extends Controller {
+///   MyController() : super('/');
+///
+///   void handle(RequestContext context) {
+///     final apiUrl = context.use<String>(); // 'https://api.example.com'
+///     final wsUrl = context.use<String>('WS_URL'); // 'ws://localhost:8080'
+///     final port = context.use<int>(); // 3000
+///   }
+/// }
+/// ```
+///
+/// **Note**: The value is registered under the type [T] and optional [name],
+/// so you can inject it using `context.use<T>()` or `context.use<T>(name)`
+/// or as a dependency in other providers using `inject: [T]` or
+/// `inject: [ValueToken(T, name)]`.
+final class ValueProvider<T> extends Provider {
+  /// The value to provide when [T] is requested.
+  final T value;
+
+  /// The optional name to distinguish multiple values of the same type.
+  final String? name;
+
+  /// Creates a new [ValueProvider] instance.
+  ValueProvider(this.value, {this.name});
+
+  /// The type token under which this value is registered.
+  Type get typeToken => T;
+
+  /// Gets the unique token for this value provider.
+  /// Returns [ValueToken] with type and name.
+  ValueToken get token => ValueToken(T, name);
+
+  @override
+  String toString() =>
+      'ValueProvider<$T>(value: $value${name != null ? ', name: $name' : ''})';
+}
+
+/// A token that uniquely identifies a value provider.
+///
+/// Combines a [Type] with an optional [name] to allow multiple values
+/// of the same type to be registered and retrieved.
+final class ValueToken implements Type {
+  /// The type of the value.
+  final Type type;
+
+  /// The optional name to distinguish multiple values of the same type.
+  final String? name;
+
+  /// Creates a new [ValueToken] with the given [type] and optional [name].
+  const ValueToken(this.type, [this.name]);
+
+  /// Creates a [ValueToken] for type [T] with optional [name].
+  static ValueToken of<T>([String? name]) => ValueToken(T, name);
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ValueToken && type == other.type && name == other.name;
+
+  @override
+  int get hashCode => Object.hash(type, name);
+
+  @override
+  String toString() =>
+      name != null ? 'ValueToken($type, $name)' : 'ValueToken($type)';
+}
+
+/// Defines an export for a module.
+final class Export implements Type {
+  /// The optional name of the export.
+  final String? name;
+
+  /// The type being exported.
+  final Type exportedType;
+
+  /// Creates an export for the given [exportedType] with an optional [name].
+  const Export(this.exportedType, {this.name});
+
+  /// Creates an export for a value of type [T].
+  static Export value<T>([String? name]) => Export(T, name: name);
+
+  /// Creates an export for a type [T].
+  static Export type<T>() => Export(T, name: null);
+
+  /// Converts this export to a [ValueToken].
+  ValueToken toValueToken() => ValueToken(exportedType, name);
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+    return other is Export &&
+        other.exportedType == exportedType &&
+        other.name == name;
+  }
+
+  @override
+  int get hashCode => Object.hash(exportedType, name);
+
+  @override
+  String toString() =>
+      name != null ? 'Export($exportedType, $name)' : 'Export($exportedType)';
 }

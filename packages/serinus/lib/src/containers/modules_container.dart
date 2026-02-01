@@ -67,6 +67,10 @@ final class ModulesContainer {
   /// The list of all the global providers registered in the application
   List<Provider> get globalProviders => _providerRegistry.globalProviders;
 
+  /// The map of all the global value providers registered in the application
+  Map<ValueToken, Object?> get globalValueProviders =>
+      _providerRegistry.globalValueProviders;
+
   /// The list of all the global instances registered in the application
   Map<InjectionToken, InstanceWrapper> get globalInstances =>
       _scopeManager.globalInstances;
@@ -142,13 +146,18 @@ final class ModulesContainer {
     _scopeManager.registerScope(currentScope);
     _scopeManager.addControllers(currentScope);
 
-    // Process custom providers (ClassProvider, etc.)
+    // Process custom providers (ClassProvider, ValueProvider, etc.)
     final processedProviders = _providerRegistry.processCustomProviders(
       currentScope.providers,
     );
     currentScope.providers
       ..clear()
-      ..addAll(processedProviders);
+      ..addAll(processedProviders.providers);
+
+    // Register value providers
+    for (final valueProvider in processedProviders.valueProviders) {
+      _registerValueProvider(valueProvider, currentScope, token);
+    }
 
     // Split composed providers from regular providers
     final split = currentScope.providers.splitBy<ComposedProvider>();
@@ -181,7 +190,10 @@ final class ModulesContainer {
 
     // Initialize composed modules if any pending
     if (_composedModuleResolver.getEntries(token)?.isNotEmpty ?? false) {
-      _scopeManager.refreshUnifiedProviders(_providerRegistry.globalProviders);
+      _scopeManager.refreshUnifiedProviders(
+        _providerRegistry.globalProviders,
+        _providerRegistry.globalValueProviders,
+      );
       await _composedModuleResolver.initializeComposedModules();
     }
   }
@@ -258,6 +270,7 @@ final class ModulesContainer {
       do {
         _scopeManager.refreshUnifiedProviders(
           _providerRegistry.globalProviders,
+          _providerRegistry.globalValueProviders,
         );
         progress = false;
 
@@ -269,6 +282,7 @@ final class ModulesContainer {
 
         _scopeManager.refreshUnifiedProviders(
           _providerRegistry.globalProviders,
+          _providerRegistry.globalValueProviders,
         );
 
         final resolvedByComposedProviders = await _composedProviderResolver
@@ -279,6 +293,7 @@ final class ModulesContainer {
 
         _scopeManager.refreshUnifiedProviders(
           _providerRegistry.globalProviders,
+          _providerRegistry.globalValueProviders,
         );
 
         if (await _composedProviderResolver.resolveProvidersDependencies(
@@ -293,7 +308,10 @@ final class ModulesContainer {
       shouldRepeat = resolvedByFinalPass;
     } while (shouldRepeat);
 
-    _scopeManager.refreshUnifiedProviders(_providerRegistry.globalProviders);
+    _scopeManager.refreshUnifiedProviders(
+      _providerRegistry.globalProviders,
+      _providerRegistry.globalValueProviders,
+    );
 
     // Check for unresolved composed modules
     final unresolvedModules = _composedModuleResolver.getPendingModules();
@@ -303,7 +321,10 @@ final class ModulesContainer {
       );
     }
 
-    _scopeManager.refreshUnifiedProviders(_providerRegistry.globalProviders);
+    _scopeManager.refreshUnifiedProviders(
+      _providerRegistry.globalProviders,
+      _providerRegistry.globalValueProviders,
+    );
     calculateModuleDistances();
   }
 
@@ -446,6 +467,55 @@ final class ModulesContainer {
     );
   }
 
+  /// Registers a value provider in the given scope.
+  void _registerValueProvider(
+    ValueProvider<dynamic> valueProvider,
+    ModuleScope currentScope,
+    InjectionToken token,
+  ) {
+    final valueToken = valueProvider.token;
+    final valueProviderToken = InjectionToken.fromValueToken(valueToken);
+
+    final existingScope = _providerRegistry.getScopeByValueToken(valueToken);
+    if (existingScope != null) {
+      // Same module type (e.g., TestModule imported multiple times) - skip silently
+      if (existingScope.module.runtimeType == currentScope.module.runtimeType) {
+        return;
+      }
+      // Different module types with same ValueToken - this is a conflict
+      throw InitializationError(
+        '[${currentScope.module.runtimeType}] Duplicate ValueProvider detected '
+        'for type ${valueToken.type}'
+        '${valueToken.name != null ? ' with name "${valueToken.name}"' : ''}. '
+        'A ValueProvider of the same type was already registered by '
+        '${existingScope.module.runtimeType}.',
+      );
+    }
+
+    _providerRegistry.registerValue(
+      valueProvider.value,
+      currentScope,
+      token: valueToken,
+    );
+
+    // Add value to the scope's unified values
+    currentScope.addToUnifiedValues(valueToken, valueProvider.value);
+
+    // Check if this value is exported (either as a bare Type or as an Export)
+    final isExported = _isValueExported(currentScope.exports, valueToken);
+
+    currentScope.instanceMetadata[valueProviderToken] = InstanceWrapper(
+      name: valueProviderToken,
+      metadata: ClassMetadataNode(
+        type: InjectableType.provider,
+        sourceModuleName: token,
+        exported: isExported,
+        composed: false,
+      ),
+      host: token,
+    );
+  }
+
   /// Processes composed module imports and queues them for resolution.
   void _processComposedImports(ModuleScope currentScope, InjectionToken token) {
     final composedImports = currentScope.imports
@@ -509,5 +579,37 @@ final class ModulesContainer {
       currentScope.instanceMetadata[exportedProviderToken] =
           subModuleScope.instanceMetadata[exportedProviderToken]!;
     }
+
+    // Import exported value providers
+    for (final exportType in subModuleScope.exports) {
+      final valueToken = exportType is Export
+          ? exportType.toValueToken()
+          : ValueToken(exportType, null);
+      if (subModuleScope.unifiedValues.containsKey(valueToken)) {
+        final value = subModuleScope.unifiedValues[valueToken];
+        currentScope.addToUnifiedValues(valueToken, value);
+      }
+    }
+  }
+
+  /// Checks if a value token is exported by matching against the exports set.
+  ///
+  /// The exports set can contain:
+  /// - A bare [Type] (for backward compatibility): matches ValueToken(type, null)
+  /// - An [Export] with name: matches ValueToken(exportedType, name)
+  bool _isValueExported(Set<Type> exports, ValueToken valueToken) {
+    for (final export in exports) {
+      if (export is Export) {
+        if (export.toValueToken() == valueToken) {
+          return true;
+        }
+      } else {
+        // Bare Type export - matches only unnamed values
+        if (valueToken.type == export && valueToken.name == null) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }

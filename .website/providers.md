@@ -197,6 +197,100 @@ PaymentsModule('production') // Will use StripePaymentService
 PaymentsModule('development') // Will use PaypalPaymentService
 ```
 
+## Value Providers
+
+Value Providers are used to register a constant value or an object that doesn't require any initialization logic.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class Config {
+  final String apiUrl;
+  final String apiKey;
+
+  Config(this.apiUrl, this.apiKey);
+}
+
+class ConfigModule extends Module {
+  ConfigModule() : super(
+    providers: [
+      Provider.forValue<Config>(
+        Config('https://api.example.com', 'my-api-key'),
+      ),
+    ],
+  );
+}
+```
+
+If you need to differentiate multiple value providers of the same type, you can use the optional `name` parameter.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class ConfigModule extends Module {
+  ConfigModule() : super(
+    providers: [
+      Provider.forValue<Config>(
+        Config('https://api.example.com', 'my-api-key'),
+        name: 'production',
+      ),
+      Provider.forValue<Config>(
+        Config('https://staging-api.example.com', 'my-staging-api-key'),
+        name: 'staging',
+      ),
+    ],
+  );
+}
+```
+
+Ok, now we know how to register different value providers of the same type, but how can we use them?
+
+If you want to export a named value provider from a module, you can use the `Export` class with the `name` parameter.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class ConfigModule extends Module {
+  ConfigModule() : super(
+    providers: [
+      Provider.forValue<Config>(
+        Config('https://api.example.com', 'my-api-key'),
+        name: 'production',
+      ),
+      Provider.forValue<Config>(
+        Config('https://staging-api.example.com', 'my-staging-api-key'),
+        name: 'staging',
+      ),
+    ],
+    exports: [
+      Export.value<Config>('production'),
+      Export.value<Config>('staging'),
+    ],
+  );
+}
+```
+
+If you want to use a named value provider in a controller or another provider, you can use the `name` parameter of the `use` method.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class SomeController extends Controller {
+  SomeController(): super(path: '/some') {
+    on(Route.get('/'), getConfig);
+  }
+
+  Future<Config> getConfig(RequestContext context) async {
+    final config = context.use<Config>(name: 'production');
+    return config;
+  }
+}
+```
+
+::: tip
+We recommend using always named value providers because they provide a more explicit way to manage different values in your application.
+:::
+
 ## Lifecycle Hooks
 
 If you need to run some code when your application is initializing, bootstrapping, ready to serve requests, or shutting down, you can use lifecycle hooks in your providers.

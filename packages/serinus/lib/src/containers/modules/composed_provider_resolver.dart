@@ -144,8 +144,19 @@ class ComposedProviderResolver {
         final initializedProviders = parentScope.unifiedProviders.where(
           (e) => provider.inject.contains(e.runtimeType),
         );
+        final availableFromProviders = initializedProviders
+            .map((e) => e.runtimeType)
+            .toSet();
+        // Get available value types (unnamed values only for inject matching)
+        final availableFromValues = parentScope.unifiedValues.keys
+            .where(
+              (token) =>
+                  token.name == null && provider.inject.contains(token.type),
+            )
+            .map((token) => token.type)
+            .toSet();
         final setDifferences = provider.inject.toSet().difference(
-          initializedProviders.map((e) => e.runtimeType).toSet(),
+          availableFromProviders.union(availableFromValues),
         );
         if (setDifferences.isNotEmpty) {
           _throwMissingDependenciesError(
@@ -159,6 +170,7 @@ class ComposedProviderResolver {
         final stopwatch = Stopwatch()..start();
         final context = _scopeManager.buildCompositionContext(
           parentScope.unifiedProviders,
+          parentScope.unifiedValues,
         );
         final result = await provider.init(context);
         _checkResultType(provider, result, parentModule);
@@ -271,11 +283,18 @@ class ComposedProviderResolver {
         final dependenciesMap = _providerRegistry.generateDependenciesMap(
           initializedProviders,
         );
+        // Also check for value providers as dependencies (unnamed values only for inject matching)
+        final valueTypes = currentScope.unifiedValues.keys
+            .where((token) => token.name == null)
+            .map((token) => token.type)
+            .toSet();
         final cannotResolveDependencies = !(provider.inject.every(
-          (key) => dependenciesMap[key] != null,
+          (key) => dependenciesMap[key] != null || valueTypes.contains(key),
         ));
 
-        if ((initializedProviders.isEmpty && dependencies.isNotEmpty) ||
+        if ((initializedProviders.isEmpty &&
+                dependencies.isNotEmpty &&
+                !dependencies.every((d) => valueTypes.contains(d))) ||
             cannotResolveDependencies) {
           if (failOnUnresolved) {
             throw InitializationError(
@@ -293,6 +312,7 @@ class ComposedProviderResolver {
 
         final context = _scopeManager.buildCompositionContext(
           currentScope.unifiedProviders,
+          currentScope.unifiedValues,
         );
         final result = await provider.init(context);
         _checkResultType(provider, result, module);

@@ -11,7 +11,14 @@ class SseContext extends RequestContext<dynamic> {
   SseContext(
     Request httpRequest,
     Map<Type, Provider> providers,
+    Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices,
     this.clientId,
-  ) : super.withBody(httpRequest, httpRequest.body, providers, hooksServices);
+  ) : super.withBody(
+        httpRequest,
+        httpRequest.body,
+        providers,
+        values,
+        hooksServices,
+      );
 }

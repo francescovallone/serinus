@@ -33,7 +33,14 @@ class NotFoundFilter extends ExceptionFilter {
 }
 
 class TestModule extends Module {
-  TestModule() : super(providers: [TestProvider()], exports: [TestProvider]);
+  TestModule()
+    : super(
+        providers: [
+          TestProvider(),
+          Provider.forValue<String>('TestModuleValue'),
+        ],
+        exports: [TestProvider, Export.value<String>()],
+      );
 }
 
 class Test2Module extends Module {
@@ -60,6 +67,7 @@ class AppController extends Controller {
         'message': 'Hello, Serinus!',
         'time': DateTime.now().toIso8601String(),
         'complexObject': MyObject('example', 42),
+        'fromContext': context.use<String>(),
       };
     });
     on<Map<String, dynamic>, List<dynamic>>(Route.post('/echo'), (
@@ -75,7 +83,9 @@ class AppModule extends Module {
   AppModule()
     : super(
         imports: [Test2Module(), TestModule()],
+        providers: [Provider.forValue('AppModuleValue', name: 'appValue')],
         controllers: [AppController()],
+        exports: [],
       );
 }
 
@@ -112,12 +122,10 @@ void main(List<String> arguments) async {
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
-    logLevels: {LogLevel.none},
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );
   application.enableShutdownHooks();
-  application.use(NotFoundFilter());
   // application.trace(ServerTimingTracer());
   await application.serve();
 }

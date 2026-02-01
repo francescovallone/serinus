@@ -46,6 +46,11 @@ class RouteContext<T extends RouteHandlerSpec> {
       provider.runtimeType: provider,
   };
 
+  /// The [values] property contains the values from ValueProviders.
+  late final Map<ValueToken, Object?> values = Map.unmodifiable(
+    moduleScope.unifiedValues,
+  );
+
   /// Internal cache for metadata defined at controller and route level.
   late final List<Metadata> _metadataCache = [
     ...controller.metadata,

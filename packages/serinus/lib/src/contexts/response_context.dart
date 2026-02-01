@@ -7,7 +7,7 @@ import 'base_context.dart';
 /// It contains properties and methods to manage the response, such as status code, headers, content type, cookies, and more.
 class ResponseContext extends BaseContext {
   /// The [ResponseContext] constructor is used to create a new instance of the [ResponseContext] class.
-  ResponseContext(super.providers, super.hooksServices);
+  ResponseContext(super.providers, super.values, super.hooksServices);
 
   bool _closed = false;
 

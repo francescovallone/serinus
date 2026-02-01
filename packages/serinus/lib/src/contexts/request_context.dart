@@ -22,6 +22,7 @@ class RequestContext<TBody> extends BaseContext {
     Request httpRequest,
     TBody? body,
     Map<Type, Provider> providers,
+    Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices, {
     ModelProvider? modelProvider,
     Type? explicitType,
@@ -31,7 +32,7 @@ class RequestContext<TBody> extends BaseContext {
        _converter = _BodyConverter(modelProvider),
        _body = body,
        shouldValidateMultipart = shouldValidateMultipart,
-       super(providers, hooksServices) {
+       super(providers, values, hooksServices) {
     this.body = _converter.convert(_bodyType, body);
   }
 
@@ -41,16 +42,18 @@ class RequestContext<TBody> extends BaseContext {
     this._converter,
     TBody? body,
     Map<Type, Provider> providers,
+    Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices,
     bool shouldValidateMultipart,
   ) : _body = body,
       shouldValidateMultipart = shouldValidateMultipart,
-      super(providers, hooksServices);
+      super(providers, values, hooksServices);
 
   /// Creates a [RequestContext] instance reading and converting the request body to [TBody].
   static Future<RequestContext<TBody>> create<TBody>({
     required Request request,
     required Map<Type, Provider> providers,
+    required Map<ValueToken, Object?> values,
     required Map<Type, Object> hooksServices,
     required ModelProvider? modelProvider,
     required bool rawBody,
@@ -66,6 +69,7 @@ class RequestContext<TBody> extends BaseContext {
         converter,
         null,
         providers,
+        values,
         hooksServices,
         shouldValidateMultipart,
       );
@@ -83,6 +87,7 @@ class RequestContext<TBody> extends BaseContext {
       converter,
       request.body as TBody,
       providers,
+      values,
       hooksServices,
       shouldValidateMultipart,
     );

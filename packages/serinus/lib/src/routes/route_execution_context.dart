@@ -61,6 +61,7 @@ class RouteExecutionContext {
       executionContext = ExecutionContext(
         HostType.http,
         context.providers,
+        context.values,
         context.hooksServices,
         HttpArgumentsHost(wrappedRequest),
       );
@@ -73,6 +74,7 @@ class RouteExecutionContext {
       final requestContext = await spec.buildRequestContext(
         request: wrappedRequest,
         providers: context.providers,
+        values: context.values,
         hooksServices: context.hooksServices,
         modelProvider: modelProvider,
         rawBody: rawBody,
@@ -224,6 +226,7 @@ class RouteExecutionContext {
           for (var provider in context.moduleScope.unifiedProviders)
             provider.runtimeType: provider,
         },
+        context.values,
         context.hooksServices,
         HttpArgumentsHost(Request(request, params)),
       );

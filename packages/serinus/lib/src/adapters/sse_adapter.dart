@@ -28,6 +28,9 @@ class SseScope {
   /// The [providers] property contains the providers of the WebSocket gateway.
   final Map<Type, Provider> providers;
 
+  /// The [values] property contains the values from ValueProviders.
+  final Map<ValueToken, Object?> values;
+
   /// The [hooks] property contains the hooks of the WebSocket gateway.
   final HooksContainer hooks;
 
@@ -41,6 +44,7 @@ class SseScope {
   const SseScope(
     this.sseRouteSpec,
     this.providers,
+    this.values,
     this.hooks,
     this.metadata,
     this.middlewares,
@@ -125,7 +129,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
         response,
         request,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
-        ResponseContext({}, {})
+        ResponseContext({}, {}, {})
           ..headers.addAll({'content-type': 'application/json'})
           ..statusCode = exception.statusCode,
       );
@@ -142,7 +146,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
         response,
         request,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
-        ResponseContext({}, {})
+        ResponseContext({}, {}, {})
           ..headers.addAll({'content-type': 'application/json'})
           ..statusCode = exception.statusCode,
       );
@@ -159,6 +163,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     final executionContext = ExecutionContext(
       HostType.sse,
       currentScope.providers,
+      currentScope.values,
       currentScope.hooks.services,
       SseArgumentsHost(wrappedRequest, clientId),
     );

@@ -85,10 +85,12 @@ final class ExecutionContext<T extends ArgumentsHost> extends BaseContext {
   /// The [ExecutionContext] constructor is used to create a new instance of the [ExecutionContext] class.
   ExecutionContext(
     this.hostType,
-    super.providers,
-    super.hooksServices,
+    Map<Type, Provider> providers,
+    Map<ValueToken, Object?> values,
+    Map<Type, Object> hooksServices,
     this.argumentsHost,
-  ) : response = ResponseContext(providers, hooksServices) {
+  ) : response = ResponseContext(providers, values, hooksServices),
+      super(providers, values, hooksServices) {
     if (argumentsHost is HttpArgumentsHost) {
       response.statusCode =
           (argumentsHost as HttpArgumentsHost).request.method == HttpMethod.post
@@ -146,6 +148,7 @@ final class ExecutionContext<T extends ArgumentsHost> extends BaseContext {
             wsHost.request,
             wsHost.clientId,
             providers,
+            values,
             hooksServices,
             wsHost.wsAdapter,
           )
@@ -163,7 +166,13 @@ final class ExecutionContext<T extends ArgumentsHost> extends BaseContext {
     }
     final sseHost = argumentsHost as SseArgumentsHost;
     _sseContext ??=
-        SseContext(sseHost.request, providers, hooksServices, sseHost.clientId)
+        SseContext(
+            sseHost.request,
+            providers,
+            values,
+            hooksServices,
+            sseHost.clientId,
+          )
           ..metadata = metadata
           ..response = response;
     return _sseContext!;
@@ -178,6 +187,7 @@ final class ExecutionContext<T extends ArgumentsHost> extends BaseContext {
     }
     _rpcContext ??= RpcContext(
       providers,
+      values,
       hooksServices,
       (argumentsHost as RpcArgumentsHost).packet,
     );

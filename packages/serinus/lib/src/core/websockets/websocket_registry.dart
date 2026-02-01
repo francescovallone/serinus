@@ -55,6 +55,7 @@ class WebsocketRegistry extends Provider
                 if (provider.runtimeType != gateway.runtimeType)
                   provider.runtimeType: provider,
             },
+            gatewayScope.unifiedValues,
             gateway.hooks.merge([_config.globalHooks]),
             {...gateway.exceptionFilters, ..._config.globalExceptionFilters},
             {...gateway.pipes, ..._config.globalPipes},
@@ -80,7 +81,7 @@ class WebsocketRegistry extends Provider
                 response,
                 request,
                 WrappedResponse(''),
-                ResponseContext({}, {})
+                ResponseContext({}, {}, {})
                   ..statusCode = 404
                   ..contentType = ContentType.text,
               );
@@ -115,6 +116,7 @@ class WebsocketRegistry extends Provider
                 if (provider.runtimeType != gateway.runtimeType)
                   provider.runtimeType: provider,
             },
+            gatewayScope.unifiedValues,
             gateway.hooks.merge([_config.globalHooks]),
             gateway.exceptionFilters,
             gateway.pipes,

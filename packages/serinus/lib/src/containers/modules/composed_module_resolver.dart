@@ -61,12 +61,19 @@ class ComposedModuleResolver {
   /// Calculates missing dependencies for a composed module
   Set<Type> getMissingDependencies(
     Iterable<Type> inject,
-    Iterable<Provider> availableProviders,
-  ) {
+    Iterable<Provider> availableProviders, [
+    Map<ValueToken, Object?> availableValues = const {},
+  ]) {
     final availableTypes = availableProviders.map((e) => e.runtimeType).toSet();
+    // Get value types from unnamed value tokens for dependency matching
+    final valueTypes = availableValues.keys
+        .where((token) => token.name == null)
+        .map((token) => token.type)
+        .toSet();
     final missing = <Type>{};
     for (final dependency in inject) {
-      if (!availableTypes.contains(dependency)) {
+      if (!availableTypes.contains(dependency) &&
+          !valueTypes.contains(dependency)) {
         missing.add(dependency);
       }
     }
@@ -107,6 +114,7 @@ class ComposedModuleResolver {
         final missing = getMissingDependencies(
           entry.module.inject,
           parentScope.unifiedProviders,
+          parentScope.unifiedValues,
         );
         entry.missingDependencies
           ..clear()
@@ -119,6 +127,7 @@ class ComposedModuleResolver {
         final stopwatch = Stopwatch()..start();
         final context = _scopeManager.buildCompositionContext(
           parentScope.unifiedProviders,
+          parentScope.unifiedValues,
         );
         final dynamic resolvedModule = await entry.module.init(context);
         if (stopwatch.isRunning) {
@@ -235,9 +244,12 @@ class ComposedModuleResolver {
     for (final entry in unresolvedModules) {
       final scope = _scopeManager.getScopeOrNull(entry.parentToken);
       final availableProviders = scope?.unifiedProviders ?? const <Provider>{};
+      final availableValues =
+          scope?.unifiedValues ?? const <ValueToken, Object?>{};
       final missing = getMissingDependencies(
         entry.module.inject,
         availableProviders,
+        availableValues,
       );
       final dependencies = missing.isEmpty
           ? entry.module.inject

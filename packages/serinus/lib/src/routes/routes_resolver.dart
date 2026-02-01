@@ -113,7 +113,7 @@ class RoutesResolver {
       response,
       request,
       WrappedResponse(utf8.encode(jsonEncode(exception.toJson()))),
-      ResponseContext({}, {}),
+      ResponseContext({}, {}, {}),
     );
   }
 
@@ -128,15 +128,18 @@ class RoutesResolver {
       for (var provider in _container.modulesContainer.globalProviders)
         provider.runtimeType: provider,
     };
+    final values = _container.modulesContainer.globalValueProviders;
     final executionContext = ExecutionContext(
       HostType.http,
       providers,
+      values,
       _container.config.globalHooks.services,
       HttpArgumentsHost(wrappedRequest),
     );
     final requestContext = await RequestContext.create<dynamic>(
       request: wrappedRequest,
       providers: providers,
+      values: values,
       hooksServices: _container.config.globalHooks.services,
       modelProvider: _container.config.modelProvider,
       rawBody: _container.applicationRef.rawBody,
@@ -288,15 +291,18 @@ class RoutesResolver {
     _logger.verbose('No route found for ${request.method} ${request.uri}');
     final wrappedRequest = Request(request, {});
     final reqHooks = _container.config.globalHooks.reqHooks;
+    final globalValues = _container.modulesContainer.globalValueProviders;
     final executionContext = ExecutionContext(
       HostType.http,
       _globalProviders,
+      globalValues,
       _container.config.globalHooks.services,
       HttpArgumentsHost(wrappedRequest),
     );
     final requestContext = await RequestContext.create<dynamic>(
       request: wrappedRequest,
       providers: _globalProviders,
+      values: globalValues,
       hooksServices: _container.config.globalHooks.services,
       modelProvider: _container.config.modelProvider,
       rawBody: _container.applicationRef.rawBody,
@@ -346,15 +352,18 @@ class RoutesResolver {
       for (var provider in _container.modulesContainer.globalProviders)
         provider.runtimeType: provider,
     };
+    final globalValues = _container.modulesContainer.globalValueProviders;
     final executionContext = ExecutionContext(
       HostType.http,
       providers,
+      globalValues,
       _container.config.globalHooks.services,
       HttpArgumentsHost(wrappedRequest),
     );
     final requestContext = await RequestContext.create<dynamic>(
       request: wrappedRequest,
       providers: providers,
+      values: globalValues,
       hooksServices: _container.config.globalHooks.services,
       modelProvider: _container.config.modelProvider,
       rawBody: _container.applicationRef.rawBody,

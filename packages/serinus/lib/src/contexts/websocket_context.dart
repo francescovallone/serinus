@@ -20,9 +20,16 @@ class WebSocketContext extends RequestContext<dynamic> {
     Request httpRequest,
     this.clientId,
     Map<Type, Provider> providers,
+    Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices,
     this._adapter,
-  ) : super.withBody(httpRequest, httpRequest.body, providers, hooksServices);
+  ) : super.withBody(
+        httpRequest,
+        httpRequest.body,
+        providers,
+        values,
+        hooksServices,
+      );
 
   /// The [sendText] method is used to send a text message to the client.
   /// The [data] parameter is the text message to be sent.
