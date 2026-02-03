@@ -62,6 +62,9 @@ sealed class GrpcRouteContext<T> {
   /// The [pipes] property contains the pipes available in the context.
   final Set<Pipe> pipes;
 
+  /// The [values] property contains the value tokens available in the context.
+  final Map<ValueToken, Object?> values;
+
   /// Indicates whether the handler is streaming.
   final bool streaming;
 
@@ -71,6 +74,7 @@ sealed class GrpcRouteContext<T> {
     required this.hooks,
     required this.exceptionFilters,
     required this.pipes,
+    required this.values,
     this.streaming = false,
   });
 }
@@ -84,6 +88,7 @@ class GrpcRouteContextHandler extends GrpcRouteContext<GrpcUnaryHandler> {
     required super.hooks,
     required super.exceptionFilters,
     required super.pipes,
+    required super.values,
   }) : super(streaming: false);
 }
 
@@ -96,6 +101,7 @@ class GrpcRouteContextStreamHandler extends GrpcRouteContext<GrpcStreamHandler> 
     required super.hooks,
     required super.exceptionFilters,
     required super.pipes,
+    required super.values,
   }) : super(streaming: true);
 }
 
@@ -138,7 +144,7 @@ class GrpcMessageResolver extends MessagesResolver {
               resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextHandler(
                 handler: entry.value.handler,
                 providers: {
-                  for (final providerEntry in module.providers) providerEntry.runtimeType: providerEntry,
+                  for (final providerEntry in module.unifiedProviders) providerEntry.runtimeType: providerEntry,
                 },
                 hooks: entry.value.route.hooks.merge([
                   controllerEntry.hooks,
@@ -154,13 +160,14 @@ class GrpcMessageResolver extends MessagesResolver {
                   ...controllerEntry.exceptionFilters,
                   ...config.globalExceptionFilters,
                 },
+                values: module.unifiedValues,
               );
               break;
             case GrpcStreamRouteHandlerSpec():
               resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextStreamHandler(
                 handler: entry.value.handler,
                 providers: {
-                  for (final providerEntry in module.providers) providerEntry.runtimeType: providerEntry,
+                  for (final providerEntry in module.unifiedProviders) providerEntry.runtimeType: providerEntry,
                 },
                 hooks: entry.value.route.hooks.merge([
                   controllerEntry.hooks,
@@ -176,6 +183,7 @@ class GrpcMessageResolver extends MessagesResolver {
                   ...controllerEntry.exceptionFilters,
                   ...config.globalExceptionFilters,
                 },
+                values: module.unifiedValues,
               );
               break;
             default:
@@ -203,6 +211,7 @@ class GrpcMessageResolver extends MessagesResolver {
       final executionContext = ExecutionContext(
         HostType.rpc,
         routeContext.providers,
+        routeContext.values,
         {
           for (final hook in routeContext.hooks.reqHooks) hook.runtimeType: hook,
         },
@@ -232,6 +241,7 @@ class GrpcMessageResolver extends MessagesResolver {
           final executionContext = ExecutionContext(
             HostType.rpc,
             routeContext.providers,
+            routeContext.values,
             {
               for (final hook in routeContext.hooks.reqHooks) hook.runtimeType: hook,
             },
