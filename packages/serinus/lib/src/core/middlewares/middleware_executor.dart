@@ -23,7 +23,7 @@ class MiddlewareExecutor {
     try {
       for (int i = 0; i < length; i++) {
         final middleware = middlewares.elementAt(i);
-        await middleware.use(context, delegate);
+        await middleware.use(context, delegate.call);
         if (delegate.completed) {
           if (delegate.response != null) {
             await onDataReceived(delegate.response!);
