@@ -29,7 +29,7 @@ class ConsoleLogger implements LoggerService {
     if (time.second == _lastSecond && _cachedTimeStr.isNotEmpty) {
       return _cachedTimeStr;
     }
-    
+
     _lastSecond = time.second;
     _cachedTimeStr = DateFormat('dd/MM/yyyy HH:mm:ss').format(time);
     return _cachedTimeStr;

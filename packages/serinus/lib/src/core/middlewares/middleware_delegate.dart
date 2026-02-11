@@ -8,6 +8,7 @@ import '../../utils/wrapped_response.dart';
 class MiddlewareDelegate implements Poolable {
   /// The response to be sent, if any.
   WrappedResponse? response;
+
   /// Whether the middleware chain has been completed.
   bool completed = false;
 

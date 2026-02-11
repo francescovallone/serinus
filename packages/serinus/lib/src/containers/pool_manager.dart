@@ -2,9 +2,9 @@ import '../core/middlewares/middleware_delegate.dart';
 
 /// Manages object pools for reusable objects.
 class PoolManager {
-
-  static final ObjectPool<MiddlewareDelegate> _delegatePool = 
-      ObjectPool(() => MiddlewareDelegate());
+  static final ObjectPool<MiddlewareDelegate> _delegatePool = ObjectPool(
+    () => MiddlewareDelegate(),
+  );
 
   /// Acquires a MiddlewareDelegate from the pool.
   static MiddlewareDelegate acquireDelegate() {
@@ -15,7 +15,6 @@ class PoolManager {
   static void releaseDelegate(MiddlewareDelegate delegate) {
     _delegatePool.release(delegate);
   }
-
 }
 
 /// A generic object pool for reusable objects.
@@ -26,7 +25,7 @@ class ObjectPool<T extends Poolable> {
 
   /// Creates an ObjectPool with the given [factory] function to create new instances.
   ObjectPool(this._factory, {int initialSize = 50, int maxSize = 10000})
-      : _maxSize = maxSize {
+    : _maxSize = maxSize {
     for (var i = 0; i < initialSize; i++) {
       _pool.add(_factory());
     }
