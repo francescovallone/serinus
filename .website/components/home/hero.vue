@@ -20,7 +20,7 @@ import CliSequence from './cli_sequence.vue';
             class="absolute top-4 right-4 z-20 block md:hidden"
             :animate="{ y: [0, -15, 0], rotate: [0, 5, 0] }"
             :transition="{ duration: 5, repeat: Infinity, ease: 'easeInOut' }"
-            :viewport="{ once: true }"
+            :inViewOptions="{ once: true }"
         >
             <img
                 src='/serinus-logo.png'
@@ -36,7 +36,7 @@ import CliSequence from './cli_sequence.vue';
                         :initial="{ opacity: 0 }"
                         :animate="{ opacity: 1 }"
                         :transition="{ duration: 0.6, delay: 0.1 }"
-                        :viewport="{ once: true }"
+                        :inViewOptions="{ once: true }"
                     >
                         v2.0 - Dawn Chorus
                     </motion.div>
@@ -46,7 +46,7 @@ import CliSequence from './cli_sequence.vue';
                         :initial="{ opacity: 0 }"
                         :animate="{ opacity: 1 }"
                         :transition="{ duration: 0.6, delay: 0.1 }"
-                        :viewport="{ once: true }"
+                        :inViewOptions="{ once: true }"
                     >
                         <div class="text-5xl md:text-7xl lg:text-8xl font-display font-bold leading-[0.9] tracking-tight mb-4">
                             <span class="text-primary">Backend</span>
@@ -62,7 +62,7 @@ import CliSequence from './cli_sequence.vue';
                         :initial="{ opacity: 0, y: 20 }"
                         :animate="{ opacity: 1, y: 0 }"
                         :transition="{ duration: 0.5, delay: 0.3 }"
-                        :viewport="{ once: true }"
+                        :inViewOptions="{ once: true }"
                     >
                         The opinionated Dart backend framework designed to work seamlessly with Flutter and Dart applications.
                         Skip the learning curve & build server-side apps with the language you already know.
@@ -72,7 +72,7 @@ import CliSequence from './cli_sequence.vue';
                         :initial="{ opacity: 0, y: 20 }"
                         :animate="{ opacity: 1, y: 0 }"
                         :transition="{ duration: 0.5, delay: 0.4 }"
-                        :viewport="{ once: true }"
+                        :inViewOptions="{ once: true }"
                     >
                         <a
                             href="https://serinus.app/introduction.html"
@@ -100,14 +100,14 @@ import CliSequence from './cli_sequence.vue';
                     :initial="{ opacity: 0, y: 40 }"
                     :animate="{ opacity: 1, y: 0 }"
                     :transition="{ duration: 0.7, delay: 0.3 }"
-                    :viewport="{ once: true }"
+                    :inViewOptions="{ once: true }"
                     class="lg:col-span-5 relative"
                 >
                     <motion.div
                         class="absolute -top-16 -left-8 z-20 md:block hidden"
                         :animate="{ y: [0, -15, 0], rotate: [0, 5, 0] }"
                         :transition="{ duration: 5, repeat: Infinity, ease: 'easeInOut' }"
-                        :viewport="{ once: true }"
+                        :inViewOptions="{ once: true }"
                     >
                         <img
                             src='/serinus-logo.png'

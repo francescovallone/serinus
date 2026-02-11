@@ -20,6 +20,21 @@ class ConsoleLogger implements LoggerService {
   /// You can use this stream to listen for log messages.
   IOSink get stdoutStream => _channel;
 
+  String _cachedTimeStr = '';
+  int _lastSecond = -1;
+
+  String _getEfficientTimestamp(DateTime time) {
+    // If we are in the same second as the last log, return the cached string.
+    // This removes 99.9% of DateFormat calls under load.
+    if (time.second == _lastSecond && _cachedTimeStr.isNotEmpty) {
+      return _cachedTimeStr;
+    }
+    
+    _lastSecond = time.second;
+    _cachedTimeStr = DateFormat('dd/MM/yyyy HH:mm:ss').format(time);
+    return _cachedTimeStr;
+  }
+
   @visibleForTesting
   /// Usable for testing purposes.
   set channel(IOSink value) => _channel = value;
@@ -101,7 +116,7 @@ class ConsoleLogger implements LoggerService {
     final logLevel = _formatLogLevel(record.level);
     final formattedTime = json
         ? record.time.toIso8601String()
-        : DateFormat('dd/MM/yyyy HH:mm:ss').format(record.time);
+        : _getEfficientTimestamp(record.time);
     final message = record.object as AugmentedMessage;
     final loggerName = message.params?.context ?? record.loggerName;
     final formattedMessage = json

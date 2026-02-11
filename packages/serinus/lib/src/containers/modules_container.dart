@@ -174,7 +174,7 @@ final class ModulesContainer {
     // Handle composed module imports
     _processComposedImports(currentScope, token);
 
-    if (!internal) {
+    if (!internal && !currentScope.module.runtimeType.toString().startsWith('_')) {
       logger.info(
         'Initializing ${currentScope.module.runtimeType}'
         '${currentScope.module.token.isNotEmpty ? '(${currentScope.token})' : ''} '

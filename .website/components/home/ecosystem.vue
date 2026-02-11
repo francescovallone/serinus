@@ -27,7 +27,7 @@ const changePlugin = (selectedPlugin, event) => {
           variants={scrollVariants.fadeUp}
           initial="hidden"
           whileInView="visible"
-          :viewport="{ once: true, amount: 0.3 }"
+          :inViewOptions="{ once: true, amount: 0.3 }"
           :transition="{ duration: 0.6 }"
           class="max-w-2xl mb-16"
         >

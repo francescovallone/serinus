@@ -6,9 +6,9 @@ const CopyIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M9 15c0-2.828 0-4.243.879-5.121C10.757 9 12.172 9 15 9h1c2.828 0 4.243 0 5.121.879C22 10.757 22 12.172 22 15v1c0 2.828 0 4.243-.879 5.121C20.243 22 18.828 22 16 22h-1c-2.828 0-4.243 0-5.121-.879C9 20.243 9 18.828 9 16z' }),
@@ -23,9 +23,9 @@ const ShieldIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' })
@@ -38,9 +38,9 @@ const LightningIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '4',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('polygon', { points: '13 2 3 14 12 14 11 22 21 10 12 10 13 2' })
@@ -53,9 +53,9 @@ const SettingsIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M14 17H5M19 7h-9' }),
@@ -70,9 +70,9 @@ const RadioIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M16.247 7.761a6 6 0 0 1 0 8.478m2.828-11.306a10 10 0 0 1 0 14.134m-14.15 0a10 10 0 0 1 0-14.134m2.828 11.306a6 6 0 0 1 0-8.478' }),
@@ -86,9 +86,9 @@ const PuzzleIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M15.39 4.39a1 1 0 0 0 1.68-.474a2.5 2.5 0 1 1 3.014 3.015a1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474a2.5 2.5 0 1 0-3.014 3.015a1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474a2.5 2.5 0 1 1-3.014-3.015a1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474a2.5 2.5 0 1 0 3.014-3.015a1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z' }),
@@ -101,9 +101,9 @@ const CodeFile = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35' }),
@@ -117,9 +117,9 @@ const CogIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M9.671 4.136a2.34 2.34 0 0 1 4.659 0a2.34 2.34 0 0 0 3.319 1.915a2.34 2.34 0 0 1 2.33 4.033a2.34 2.34 0 0 0 0 3.831a2.34 2.34 0 0 1-2.33 4.033a2.34 2.34 0 0 0-3.319 1.915a2.34 2.34 0 0 1-4.659 0a2.34 2.34 0 0 0-3.32-1.915a2.34 2.34 0 0 1-2.33-4.033a2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915' }),
@@ -133,9 +133,9 @@ const BracesFile = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z' }),
@@ -149,9 +149,9 @@ const TestTubeIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M21 7L6.82 21.18a2.83 2.83 0 0 1-3.99-.01a2.83 2.83 0 0 1 0-4L17 3m-1-1l6 6m-10 8H4' })
@@ -164,9 +164,9 @@ const ClockIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M12 6v6l4 2' }),
@@ -180,9 +180,9 @@ const ShieldCheckIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z' }),
@@ -219,12 +219,12 @@ const MessageIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
-		h('path', { d: 'm3 20l1.3-3.9C1.976 12.663 2.874 8.228 6.4 5.726c3.526-2.501 8.59-2.296 11.845.48c3.255 2.777 3.695 7.266 1.029 10.501S11.659 20.922 7.7 19z', strokeLinecap: 'round' }),
+		h('path', { d: 'm3 20l1.3-3.9C1.976 12.663 2.874 8.228 6.4 5.726c3.526-2.501 8.59-2.296 11.845.48c3.255 2.777 3.695 7.266 1.029 10.501S11.659 20.922 7.7 19z', 'stroke-linecap': 'round' }),
 	])
 });
 
@@ -246,9 +246,9 @@ const TerminalIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'm7 7l1.227 1.057C8.742 8.502 9 8.724 9 9s-.258.498-.773.943L7 11m4 0h3' }),
@@ -262,9 +262,9 @@ const CalendarIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm12-4v4M8 3v4m-4 4h16' }),
@@ -278,9 +278,9 @@ const ArrowUpRightIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M17 7L7 17M8 7h9v9' })
@@ -304,9 +304,9 @@ const LinkIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'm9 15l6-6m-4-3l.463-.536a5 5 0 0 1 7.071 7.072L18 13m-5 5l-.397.534a5.07 5.07 0 0 1-7.127 0a4.97 4.97 0 0 1 0-7.071L6 11' })
@@ -342,13 +342,27 @@ const MarkdownIcon = defineComponent({
 		viewBox: '0 0 24 24',
 		fill: 'none',
 		stroke: 'currentColor',
-		strokeWidth: '2',
-		strokeLinecap: 'round',
-		strokeLinejoin: 'round',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
 		class: 'w-5 h-5'
 	}, [
 		h('path', { d: 'M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' }),
 		h('path', { d: 'M7 15V9l2 2l2-2v6m3-2l2 2l2-2m-2 2V9' })
+	])
+});
+
+const HeartIcon = defineComponent({
+	name: 'HeartIcon',
+	setup: () => () => h('svg', {
+		viewBox: '0 0 24 24',
+		fill: 'none',
+		stroke: 'currentColor',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
+	}, [
+		h('path', { d: 'M19.5 12.572L12 20l-7.5-7.428A5 5 0 1 1 12 6.006a5 5 0 1 1 7.5 6.572' })
 	])
 });
 
@@ -376,5 +390,6 @@ export {
 	ChatGptIcon,
 	ClaudeIcon,
 	MarkdownIcon,
-	DiscordIcon
+	DiscordIcon,
+	HeartIcon
 }

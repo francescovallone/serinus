@@ -65,7 +65,7 @@ import OpenIn from '../../components/open-in.vue';
                                     <DiscordIcon class="w-5 h-5" />
                                 </a>
                                 <a
-                                    href="https://twitter.com/francescovallo1"
+                                    href="https://x.com/francescovll"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="p-2 border border-border! text-muted-foreground! hover:text-foreground! hover:border-foreground! transition-all"

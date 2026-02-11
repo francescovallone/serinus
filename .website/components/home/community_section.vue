@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { motion } from 'motion-v';
 import { scrollVariants } from '../actions/scroll_variants';
-
+import { type Sponsor, data } from '../data/sponsors.data';
+import { HeartIcon } from './icons';
 </script>
 
 <template>
@@ -18,7 +19,7 @@ import { scrollVariants } from '../actions/scroll_variants';
             :variants="scrollVariants.slideLeft"
             initial="hidden"
             whileInView="visible"
-            :viewport="{ once: true, amount: 0.3 }"
+            :inViewOptions="{ once: true, amount: 0.3 }"
             :transition="{ duration: 0.7 }"
             class="lg:col-span-6"
           >
@@ -54,13 +55,60 @@ import { scrollVariants } from '../actions/scroll_variants';
                 Star on GitHub
               </a>
             </div>
+            <div class="border-t border-border pt-8 mt-8">
+              <p class="text-sm text-muted-foreground mb-4!">
+                Serinus is free and open source. Help us keep it that way.
+              </p>
+              
+              <div class="flex items-center gap-3 mb-6">
+                <div class="flex -space-x-2">
+                  <a 
+                    :href="`https://github.com/${sponsor.sponsorEntity.login}`"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    v-for="sponsor in data.slice(0, 5)"
+                    :key="sponsor.sponsorEntity.login"
+                    class="relative group"
+                  >
+                    <img
+                      :src="sponsor.sponsorEntity.avatarUrl"
+                      :alt="sponsor.sponsorEntity.login"
+                      :class="[
+                        'w-10 h-10 rounded-full border-2 object-cover transition-transform hover:scale-110 hover:z-10',
+                        sponsor.tier.name === 'gold' ? 'border-primary' : sponsor.tier.name === 'silver' ? 'border-gray-400' : 'border-transparent'
+                      ]"
+                    />
+                    <span 
+                      v-if="sponsor.tier.name !== 'any'" 
+                      :class="[
+                        'absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center',
+                        sponsor.tier.name === 'gold' ? 'bg-primary' : '',
+                        sponsor.tier.name === 'silver' ? 'bg-gray-400' : ''
+                      ]" 
+                    >
+                      <HeartIcon class="w-3 h-3 text-background" />
+                    </span>
+                  </a>
+                </div>
+                <div class="text-xs text-muted-foreground font-mono hover:text-primary transition-colors cursor-pointer" v-if="data.length > 5">
+                  +{{ data.length - 5 }} more sponsors
+                </div>
+              </div>
+              <a href="https://github.com/sponsors/francescovallone"
+                target="_blank"
+                rel="noopener noreferrer" 
+                class="inline-flex items-center gap-2 text-sm text-muted-foreground! hover:text-primary! transition-colors group">
+                <span>Become a Sponsor</span>
+                <span class="group-hover:translate-x-1 transition-transform">→</span>
+              </a>
+            </div>
           </motion.div>
 
           <motion.div
             :variants="scrollVariants.scaleIn"
             initial="hidden"
             whileInView="visible"
-            :viewport="{ once: true, amount: 0.3 }"
+            :inViewOptions="{ once: true, amount: 0.3 }"
             :transition="{ delay: 0.2, duration: 0.7 }"
             class="lg:col-span-6 relative"
           >
@@ -97,5 +145,8 @@ import { scrollVariants } from '../actions/scroll_variants';
 <style scoped>
 a.star:hover {
 	color: hsl(var(--background)) !important;
+}
+.border-border {
+  border-color: hsl(var(--border)) !important;
 }
 </style>

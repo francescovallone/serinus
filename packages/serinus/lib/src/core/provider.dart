@@ -51,8 +51,16 @@ abstract class Provider {
   /// final apiUrl = context.use<String>();
   /// final wsUrl = context.use<String>('WS_URL');
   /// ```
-  static ValueProvider<T> forValue<T>(T value, {String? name}) =>
-      ValueProvider<T>(value, name: name);
+  ///
+  /// Use [asType] to register the value under a specific runtime type:
+  ///
+  /// ```dart
+  /// final repository = getRepository(); // Returns EntityRepository
+  /// Provider.forValue(repository, asType: repository.runtimeType);
+  /// // Now accessible via context.use<UserRepository>()
+  /// ```
+  static ValueProvider<T> forValue<T>(T value, {String? name, Type? asType}) =>
+      ValueProvider<T>(value, name: name, asType: asType);
 
   @override
   String toString() => '$runtimeType';
@@ -181,19 +189,24 @@ final class ValueProvider<T> extends Provider {
   /// The optional name to distinguish multiple values of the same type.
   final String? name;
 
+  /// Optional explicit type to register under instead of [T].
+  /// Use this when you need to register a value under its runtime type.
+  final Type? asType;
+
   /// Creates a new [ValueProvider] instance.
-  ValueProvider(this.value, {this.name});
+  ValueProvider(this.value, {this.name, this.asType});
 
   /// The type token under which this value is registered.
-  Type get typeToken => T;
+  /// Uses [asType] if provided, otherwise defaults to [T].
+  Type get typeToken => asType ?? T;
 
   /// Gets the unique token for this value provider.
   /// Returns [ValueToken] with type and name.
-  ValueToken get token => ValueToken(T, name);
+  ValueToken get token => ValueToken(typeToken, name);
 
   @override
   String toString() =>
-      'ValueProvider<$T>(value: $value${name != null ? ', name: $name' : ''})';
+      'ValueProvider<$typeToken>(value: $value${name != null ? ', name: $name' : ''})';
 }
 
 /// A token that uniquely identifies a value provider.

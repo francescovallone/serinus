@@ -11,12 +11,11 @@ head:
 
     - - meta
       - name: 'description'
-        content: The Serinus 2.1 release introduces Atlas, Class Providers, and more.
+        content: Introducing new router, Class and Value Providers and Loxia integration.
 
     - - meta
       - property: 'og:description'
-        content: The Serinus 2.1 release introduces Atlas, Class Providers, and more.
-
+        content: Introducing new router, Class and Value Providers and Loxia integration.
     - - meta
       - property: 'og:image'
         content: https://serinus.app/blog/serinus_2_1/serinus_2_1.webp
@@ -41,7 +40,11 @@ head:
     blog
 >
 
-Serinus 2.1, named "Morning Song", focuses on enhancing the developer experience and improving performance. This release introduces Atlas as the new default router, Class Providers for more flexible dependency injection, and various optimizations to make your Serinus applications faster and more efficient. 
+Serinus 2.1, named "Morning Song", focuses on enhancing the developer experience, introducing new features and improving performance. This release introduces Atlas as the new default router, Class and Value Providers for more flexible dependency injection and finally Loxia joins the ecosystem providing a flexible ORM for your applications.
+
+## Loxia Integration
+
+Loxia is a powerful and flexible ORM designed to work seamlessly with Serinus. With Loxia, developers can easily manage database interactions using a simple and intuitive API. With Serinus 2.1 we are excited to announce the official integration of Loxia into the Serinus ecosystem. This integration allows developers to leverage Loxia's capabilities directly within their Serinus applications, making it easier to work with databases and manage data models.
 
 ## Class Providers
 
@@ -68,6 +71,39 @@ class AppModule extends Module {
     ];
 }
 ```
+
+## Value Providers
+
+In addition to Class Providers, Serinus 2.1 introduces Value Providers, which allow developers to register constant values or configurations in the dependency injection system. This is particularly useful for managing application settings or environment-specific configurations, on in some cases to inject objects that were created outside the DI system.
+
+```dart
+class AppModule extends Module {
+  @override
+  List<Provider> get providers => [
+        Provider.forValue<String>(
+            useValue: 'https://api.example.com'
+        ),
+    ];
+}
+```
+
+Value Providers can also be differentiated by using named tokens:
+
+```dart
+class AppModule extends Module {
+  @override
+  List<Provider> get providers => [
+        Provider.forValue<String>(
+            name: 'API_URL',
+            useValue: 'https://api.example.com'
+        ),
+    ];
+}
+```
+
+::: tip
+We suggest using always Value Providers with named tokens to avoid conflicts when registering multiple values of the same type.
+:::
 
 ## FormData and File Upload Enhancements
 
@@ -102,24 +138,6 @@ class LegacyController extends Controller {
   }
 }
 ```
-
-## Performance Improvements
-
-One of the main focuses of Serinus 2.1 has been on performance optimization. We have made several under-the-hood improvements to enhance the speed and efficiency of Serinus applications. 
-It took a while and we are still improving some parts of the framework, specifically in the next versions you could expect even more performance boosts, especially in the areas of memory management. But in this release we have already achieved significant improvements in request handling and routing speed, making Serinus applications faster and more responsive.
-
-We focused on hot paths and optimized them to reduce latency and improve throughput achieving **~1.2x** faster request handling compared to Serinus 2.0.
-
-::: info
-**Note:** The benchmark results may vary based on the specific application and environment. We recommend running your own benchmarks to see the performance improvements in your use case.
-:::
-
-**Benchmark Results:**
-
-| Version    | Requests per Second |
-|------------|---------------------|
-| Serinus 2.1| 11087,77            |
-| Serinus 2.0| 9245,79             |
 
 ## Atlas as Default Router
 
@@ -159,7 +177,7 @@ We have improved the body parsers to include type-matching optimizations. This m
 
 ## Conclusion
 
-Serinus 2.1 "Morning Song" is a significant step forward in our mission to provide a powerful and flexible framework for building server-side applications with Dart. With the introduction of Atlas, Class Providers, and various performance optimizations, we believe that Serinus 2.1 will help developers create even more efficient and scalable applications.
+Serinus 2.1 "Morning Song" is a significant step forward in our mission to provide a powerful and flexible framework for building server-side applications with Dart. With the introduction of Atlas, Class and Value Providers, and various performance optimizations, we believe that Serinus 2.1 will help developers create even more efficient and scalable applications.
 
 Buuut, we are not stopping here! We have many more exciting features and improvements planned for future releases, so stay tuned for more updates.
 
