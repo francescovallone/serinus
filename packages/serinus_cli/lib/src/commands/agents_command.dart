@@ -1,8 +1,9 @@
 import 'dart:io';
+
 import 'package:args/command_runner.dart';
+import 'package:http/http.dart' as http;
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart' as path;
-import 'package:http/http.dart' as http;
 import 'package:serinus_cli/src/utils/config.dart'; // Reuse your Config logic
 
 class AgentsCommand extends Command<int> {
@@ -39,7 +40,7 @@ class AgentsCommand extends Command<int> {
     // You can fetch the file list dynamically from GitHub API or hardcode the structure based on your config.mts sidebar
     final docsMap = {
       'overview': ['modules.md', 'controllers.md', 'routes.md', 'hooks.md', 'middlewares.md', 'providers.md', 'pipes.md', 'metadata.md', 'exception_filters.md'],
-      'techniques': ['configuration.md', 'logging.md', 'sse.md', 'task_scheduling.md', 'file_uploads.md', 'mvc.md', 'serve_static.md', 'versioning.md', 'global_prefix.md', 'session.md', 'model_provider.md'],
+      'techniques': ['configuration.md', 'logging.md', 'sse.md', 'task_scheduling.md', 'file_uploads.md', 'mvc.md', 'serve_static.md', 'versioning.md', 'global_prefix.md', 'session.md', 'model_provider.md', 'database.md'],
       'security': ['rate_limiting.md', 'cors.md', 'body_size.md'],
       'openapi': ['index.md', 'advanced_usage.md', 'renderer.md'],
       'websockets': ['gateways.md', 'exception_filters.md', 'pipes.md'],

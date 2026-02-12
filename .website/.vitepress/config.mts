@@ -170,6 +170,7 @@ export default defineConfig({
             base: '/techniques/',
             collapsed: true,
             items: [
+              { text: 'Database', link: 'database' },
               { text: 'Configuration', link: 'configuration' },
               { text: 'Logging', link: 'logging' },
               { text: 'Model Provider', link: 'model_provider' },

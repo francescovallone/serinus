@@ -1,0 +1,17 @@
+name: loxia_example
+description: "A new Serinus application"
+version: 1.0.0
+publish_to: 'none'
+
+
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+
+dependencies:
+  loxia: ^0.0.11
+  serinus: ^2.1.0
+  serinus_loxia: ^1.0.0
+
+dev_dependencies:
+  serinus_lint: ^0.1.1
+  
