@@ -15,7 +15,7 @@ dart pub add serinus_loxia loxia
 Then, you can define your models and use them in your Serinus application. For example:
 
 ```dart
-import 'package:loxia/loxia.dart';ù
+import 'package:loxia/loxia.dart';
 
 part 'user.g.dart';
 

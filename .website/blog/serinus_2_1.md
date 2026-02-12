@@ -46,6 +46,25 @@ Serinus 2.1, named "Morning Song", focuses on enhancing the developer experience
 
 Loxia is a powerful and flexible ORM designed to work seamlessly with Serinus. With Loxia, developers can easily manage database interactions using a simple and intuitive API. With Serinus 2.1 we are excited to announce the official integration of Loxia into the Serinus ecosystem. This integration allows developers to leverage Loxia's capabilities directly within their Serinus applications, making it easier to work with databases and manage data models.
 
+Integrating Loxia with Serinus is straightforward. Developers can define their database models as Dart classes and use Loxia's powerful features for data management while benefiting from Serinus's modular architecture and dependency injection system. This integration provides a seamless experience for developers, allowing them to focus on building their applications without worrying about the complexities of database management.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class AppModule extends Module {
+  AppModule()
+	: super(
+      imports: [
+        LoxiaModule.inMemory(entities: [User.entity]),
+        LoxiaModule.features(entities: [User]),
+      ],
+		  controllers: [UserController()],
+	  );
+}
+```
+
+Read more about Loxia integration in the [Serinus documentation](/techniques/database.html) and check out the [serinus_loxia package](https://pub.dev/packages/serinus_loxia) for more details and examples.
+
 ## Class Providers
 
 One of the most significant additions in Serinus 2.1 is the introduction of Class Providers. This new feature allows developers to register concrete implementation using their abstract classes in the dependency injection system, enabling more flexible and dynamic service management.
