@@ -50,7 +50,7 @@ class FrontierHook extends Hook with OnBeforeHandle {
     }
     final requestContext = context.switchToHttp();
     final hasStrategy = requestContext.canStat('GuardMeta');
-    if (!hasStrategy && strategies.length > 1) {
+    if (!hasStrategy) {
       return;
     }
     final stringHeaders = Map<String, String>.fromEntries(
@@ -77,10 +77,13 @@ class FrontierHook extends Hook with OnBeforeHandle {
       query: stringQuery,
       cookies: stringCookies,
     );
-    final strategyName = hasStrategy 
-      ? requestContext.stat<String>('GuardMeta') 
-      : strategies.first.name;
-    final value = await service.authenticate(strategyName, strategyRequest);
+    final strategyName = hasStrategy
+        ? requestContext.stat<String?>('GuardMeta')
+        : strategies.first.name;
+    final value = await service.authenticate(
+      strategyName ?? strategies.first.name,
+      strategyRequest,
+    );
     if (value == null) {
       if (onError != null) {
         onError!.call();
@@ -100,7 +103,7 @@ class FrontierHook extends Hook with OnBeforeHandle {
 }
 
 /// The [GuardMeta] class is used to define the strategy to be used.
-class GuardMeta extends Metadata<String> {
+class GuardMeta extends Metadata<String?> {
   /// Create a new instance of [GuardMeta].
-  GuardMeta(String strategy) : super(name: 'GuardMeta', value: strategy);
+  GuardMeta([String? strategy]) : super(name: 'GuardMeta', value: strategy);
 }
