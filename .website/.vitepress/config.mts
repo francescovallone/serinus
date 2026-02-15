@@ -131,13 +131,6 @@ export default defineConfig({
         link: '/introduction'
       },
       {
-        text: 'v2.0',
-        items: [
-          { text: 'Breaking Changes', link: '/next/breaking-changes' },
-          { text: 'Analysis', link: '/next/analysis/' }
-        ]
-      },
-      {
         text: 'Blog',
         link: '/blog/'
       },
@@ -190,6 +183,7 @@ export default defineConfig({
             base: '/security/',
             collapsed: true,
             items: [
+              { text: 'Authentication', link: 'authentication' },
               { text: 'Rate Limiting', link: 'rate_limiting' },
               { text: 'Body Size', link: 'body_size' },
               { text: 'CORS', link: 'cors' },
@@ -244,6 +238,7 @@ export default defineConfig({
             base: '/comparisons/',
             collapsed: true,
             items: [
+              { text: 'Dart Frog', link: 'dart_frog' },
               { text: 'Shelf', link: 'shelf' },
             ]
           },
@@ -256,7 +251,15 @@ export default defineConfig({
               // { text: 'Liquify', link: 'liquify' },
             ]
           },
-          
+          {
+            text: 'Migrations',
+            base: '/migrations/',
+            collapsed: true,
+            items: [
+              { text: '1.x to 2.x', link: '1_to_2' },
+              { text: 'Flatten module scopes to hierarchical resolution', link: 'flatten_scopes' },
+            ]
+          },
           // {
           //   text: 'Plugins',
           //   base: '/plugins/',
@@ -292,10 +295,6 @@ export default defineConfig({
               { text: 'VPS', link: 'vps' },
               { text: 'Cloud Run', link: 'cloud_run' },
             ],
-          },
-          {
-            'text': 'Breaking Changes in 2.x',
-            'link': '/next/breaking-changes'
           },
           {
             text: 'Support Us',

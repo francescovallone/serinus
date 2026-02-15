@@ -105,6 +105,9 @@ class ModuleScope {
   /// Metadata for instances in this scope
   final Map<InjectionToken, InstanceWrapper> instanceMetadata = {};
 
+  /// Values registered in this scope only.
+  final Map<ValueToken, Object?> values = {};
+
   /// Combined set of global and scoped providers
   final Set<Provider> unifiedProviders = {};
 
@@ -191,6 +194,7 @@ class ModuleScope {
 
   /// Adds a value to the unifiedValues map
   void addToUnifiedValues(ValueToken token, Object? value) {
+    values[token] = value;
     unifiedValues[token] = value;
   }
 
@@ -281,6 +285,90 @@ class ScopeManager {
   /// Gets a scope by token, returning null if not found
   ModuleScope? getScopeOrNull(InjectionToken token) => _scopes[token];
 
+  /// Resolves a module scope from an imported module reference.
+  ModuleScope? resolveImportedScope(Module module) {
+    final byToken = getScopeOrNull(InjectionToken.fromModule(module));
+    if (byToken != null) {
+      return byToken;
+    }
+    for (final scope in _scopes.values) {
+      if (_isEquivalentModule(scope.module, module)) {
+        return scope;
+      }
+    }
+    return null;
+  }
+
+  /// Gets the first registered scope by module runtime type.
+  ModuleScope? getScopeByModuleType(Type moduleType) {
+    for (final scope in _scopes.values) {
+      if (scope.module.runtimeType == moduleType) {
+        return scope;
+      }
+    }
+    return null;
+  }
+
+  bool _isEquivalentModule(Module a, Module b) {
+    if (a.runtimeType != b.runtimeType) {
+      return false;
+    }
+    if (a.isGlobal != b.isGlobal || a.token != b.token) {
+      return false;
+    }
+    bool sameTypeBag(Iterable<Type> left, Iterable<Type> right) {
+      final l = left.toList()
+        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      final r = right.toList()
+        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      if (l.length != r.length) {
+        return false;
+      }
+      for (var i = 0; i < l.length; i++) {
+        if (l[i] != r[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool sameProviderBag(Iterable<Provider> left, Iterable<Provider> right) {
+      final l = left.map((p) => p.runtimeType).toList()
+        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      final r = right.map((p) => p.runtimeType).toList()
+        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      if (l.length != r.length) {
+        return false;
+      }
+      for (var i = 0; i < l.length; i++) {
+        if (l[i] != r[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    bool sameImports(Iterable<Module> left, Iterable<Module> right) {
+      final l = left.map((m) => m.runtimeType).toList()
+        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      final r = right.map((m) => m.runtimeType).toList()
+        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      if (l.length != r.length) {
+        return false;
+      }
+      for (var i = 0; i < l.length; i++) {
+        if (l[i] != r[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    return sameProviderBag(a.providers, b.providers) &&
+        sameTypeBag(a.exports, b.exports) &&
+        sameImports(a.imports, b.imports);
+  }
+
   /// Registers a new scope
   void registerScope(ModuleScope scope) {
     _scopes[scope.token] = scope;
@@ -288,10 +376,16 @@ class ScopeManager {
 
   /// Adds controllers from a scope to the tracked list
   void addControllers(ModuleScope scope) {
+    final existingControllerTypes = _scopedControllers
+        .map((entry) => entry.controller.runtimeType)
+        .toSet();
     _scopedControllers.addAll(
-      scope.controllers.map(
-        (controller) => (module: scope.module, controller: controller),
-      ),
+      scope.controllers
+          .map((controller) => (module: scope.module, controller: controller))
+          .where(
+            (entry) =>
+                !existingControllerTypes.contains(entry.controller.runtimeType),
+          ),
     );
   }
 
@@ -323,13 +417,103 @@ class ScopeManager {
     List<Provider> globalProviders, [
     Map<ValueToken, Object?>? globalValueProviders,
   ]) {
+    final providerCache = <InjectionToken, Map<Type, Provider>>{};
+    final valueCache = <InjectionToken, Map<ValueToken, Object?>>{};
+
+    Map<Type, Provider> buildProviders(
+      ModuleScope scope,
+      Set<InjectionToken> visiting,
+    ) {
+      final cached = providerCache[scope.token];
+      if (cached != null) {
+        return cached;
+      }
+      if (visiting.contains(scope.token)) {
+        return {
+          for (final provider in scope.providers)
+            provider.runtimeType: provider,
+        };
+      }
+
+      visiting.add(scope.token);
+
+      final merged = <Type, Provider>{
+        for (final provider in scope.providers) provider.runtimeType: provider,
+      };
+
+      for (final importedModule in scope.imports) {
+        final importedScope = resolveImportedScope(importedModule);
+        if (importedScope == null) {
+          continue;
+        }
+        for (final provider in importedScope.providers) {
+          if (importedScope.exports.contains(provider.runtimeType)) {
+            merged.putIfAbsent(provider.runtimeType, () => provider);
+          }
+        }
+      }
+
+      for (final provider in globalProviders) {
+        merged.putIfAbsent(provider.runtimeType, () => provider);
+      }
+
+      visiting.remove(scope.token);
+      providerCache[scope.token] = merged;
+      return merged;
+    }
+
+    Map<ValueToken, Object?> buildValues(
+      ModuleScope scope,
+      Set<InjectionToken> visiting,
+    ) {
+      final cached = valueCache[scope.token];
+      if (cached != null) {
+        return cached;
+      }
+      if (visiting.contains(scope.token)) {
+        return Map<ValueToken, Object?>.from(scope.values);
+      }
+
+      visiting.add(scope.token);
+
+      final merged = Map<ValueToken, Object?>.from(scope.values);
+
+      for (final importedModule in scope.imports) {
+        final importedScope = resolveImportedScope(importedModule);
+        if (importedScope == null) {
+          continue;
+        }
+        for (final exportType in importedScope.exports) {
+          final valueToken = exportType is Export
+              ? exportType.toValueToken()
+              : ValueToken(exportType, null);
+          if (importedScope.values.containsKey(valueToken)) {
+            merged.putIfAbsent(
+              valueToken,
+              () => importedScope.values[valueToken],
+            );
+          }
+        }
+      }
+
+      if (globalValueProviders != null) {
+        for (final entry in globalValueProviders.entries) {
+          merged.putIfAbsent(entry.key, () => entry.value);
+        }
+      }
+
+      visiting.remove(scope.token);
+      valueCache[scope.token] = merged;
+      return merged;
+    }
+
     for (final scope in _scopes.values) {
       scope.unifiedProviders
         ..clear()
-        ..addAll({...scope.providers, ...globalProviders});
-      if (globalValueProviders != null) {
-        scope.unifiedValues.addAll(globalValueProviders);
-      }
+        ..addAll(buildProviders(scope, <InjectionToken>{}).values);
+      scope.unifiedValues
+        ..clear()
+        ..addAll(buildValues(scope, <InjectionToken>{}));
     }
   }
 

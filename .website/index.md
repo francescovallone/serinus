@@ -37,6 +37,8 @@ head:
 ```dart canary [Entrypoint]
 import 'package:serinus/serinus.dart';
 
+import 'app_module.dart';
+
 Future<void> main() async {
   final app = await serinus.createApplication(
     entrypoint: AppModule(),
@@ -66,13 +68,43 @@ class AppController extends Controller {
     on(Route.get('/'), _handleHelloWorld);
   }
 
-  String _handleHelloWorld(RequestContext context) {
+  Future<String> _handleHelloWorld(RequestContext context) async {
     return 'Hello, World!';
   }
 }
 ```
 
 :::
+
+  </template>
+  <template #database>
+
+```dart
+import 'package:serinus/serinus.dart';
+import 'package:serinus_loxia/serinus_loxia.dart';
+
+@EntityMeta()
+class User extends Entity {
+  @PrimaryKey(autoIncrement: true)
+  final int id;
+
+  @Column()
+  final String name;
+
+  const User({required this.id, required this.name});
+
+  static final entity = $UserEntityDescriptor;
+}
+
+class AppModule extends Module {
+  AppModule() : super(
+    imports: [
+      LoxiaModule.inMemory(entities: [User.entity]),
+    ],
+    controllers: [UserController()],
+  );
+}
+```
 
   </template>
   <template #configuration>

@@ -45,7 +45,11 @@ class TestModule extends Module {
 
 class Test2Module extends Module {
   Test2Module()
-    : super(imports: [TestModule()], controllers: [Test2Controller()]);
+    : super(
+        imports: [],
+        providers: [TestProvider()],
+        controllers: [Test2Controller()],
+      );
 }
 
 class Test2Controller extends Controller {
@@ -67,6 +71,7 @@ class AppController extends Controller {
         'message': 'Hello, Serinus!',
         'time': DateTime.now().toIso8601String(),
         'complexObject': MyObject('example', 42),
+        'counter': context.use<TestProvider>().counter,
         'fromContext': context.use<String>(),
       };
     });

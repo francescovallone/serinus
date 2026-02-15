@@ -1,4 +1,6 @@
+import '../../contexts/composition_context.dart';
 import '../../core/core.dart';
+import '../../errors/initialization_error.dart';
 import '../../mixins/mixins.dart';
 import '../../services/logger_service.dart';
 import 'scope_manager.dart';
@@ -36,13 +38,19 @@ class ProviderRegistry {
   /// Maps provider types to their owning scope
   final Map<Type, ModuleScope> _providerToScope = {};
 
+  /// Providers grouped by owning scope and registered token type.
+  final Map<ModuleScope, Map<Type, Provider>> _scopedProviders = {};
+
+  /// Values grouped by owning scope and registered token.
+  final Map<ModuleScope, Map<ValueToken, Object?>> _scopedValues = {};
+
   /// The [logger] for the provider registry
   final Logger _logger = Logger('ProviderRegistry');
 
   /// The list of types of providers that can be injected
   Iterable<Type> get injectableProviders => {
     ..._providers.keys,
-    ..._valueProviders.keys.map((t) => t.type),
+    ..._valueProviders.keys.where((t) => t.name == null).map((t) => t.type),
   };
 
   /// All registered providers
@@ -128,7 +136,8 @@ class ProviderRegistry {
     ModuleScope scope, {
     required ValueToken token,
   }) {
-    if (_valueProviders.containsKey(token)) {
+    final valuesForScope = _scopedValues.putIfAbsent(scope, () => {});
+    if (valuesForScope.containsKey(token)) {
       return false;
     }
 
@@ -146,10 +155,16 @@ class ProviderRegistry {
       }
     }
 
-    _valueProviders[token] = value;
-    _valueProviderToScope[token] = scope;
+    valuesForScope[token] = value;
+    _valueProviders.putIfAbsent(token, () => value);
+    _valueProviderToScope.putIfAbsent(token, () => scope);
 
     if (scope.module.isGlobal) {
+      if (_globalValueProviders.containsKey(token)) {
+        throw InitializationError(
+          'Duplicate global ValueProvider detected for token $token.',
+        );
+      }
       _globalValueProviders[token] = value;
     }
 
@@ -162,12 +177,14 @@ class ProviderRegistry {
   bool register(Provider provider, ModuleScope scope, {Type? asType}) {
     final providerType = asType ?? provider.runtimeType;
 
-    if (_providers.containsKey(providerType)) {
+    final providersForScope = _scopedProviders.putIfAbsent(scope, () => {});
+    if (providersForScope.containsKey(providerType)) {
       return false;
     }
 
-    _providers[providerType] = provider;
-    _providerToScope[providerType] = scope;
+    providersForScope[providerType] = provider;
+    _providers.putIfAbsent(providerType, () => provider);
+    _providerToScope.putIfAbsent(providerType, () => scope);
 
     if (scope.module.isGlobal) {
       _globalProviders.add(provider);
@@ -226,6 +243,252 @@ class ProviderRegistry {
       }
     }
     return dependenciesToInit;
+  }
+
+  /// Returns the providers registered in a specific scope.
+  Map<Type, Provider> getProvidersForScope(ModuleScope scope) {
+    return Map.unmodifiable(
+      _scopedProviders[scope] ?? const <Type, Provider>{},
+    );
+  }
+
+  /// Returns the values registered in a specific scope.
+  Map<ValueToken, Object?> getValuesForScope(ModuleScope scope) {
+    return Map.unmodifiable(
+      _scopedValues[scope] ?? const <ValueToken, Object?>{},
+    );
+  }
+
+  /// Resolves a dependency following the module hierarchy:
+  /// local -> imports (exported) -> global.
+  ({Provider? provider, ValueToken? valueToken, Object? value})?
+  resolveDependency(
+    ModuleScope scope,
+    Type dependency,
+    ScopeManager scopeManager,
+  ) {
+    final localProviders = getProvidersForScope(scope);
+    final localValues = getValuesForScope(scope);
+
+    if (localProviders.containsKey(dependency)) {
+      return (
+        provider: localProviders[dependency],
+        valueToken: null,
+        value: null,
+      );
+    }
+
+    final localValueToken = ValueToken(dependency, null);
+    if (localValues.containsKey(localValueToken)) {
+      return (
+        provider: null,
+        valueToken: localValueToken,
+        value: localValues[localValueToken],
+      );
+    }
+
+    final importProviderMatches = <({ModuleScope scope, Provider provider})>[];
+    final importValueMatches =
+        <({ModuleScope scope, ValueToken token, Object? value})>[];
+
+    for (final importedModule in scope.imports) {
+      final importedScope = scopeManager.resolveImportedScope(importedModule);
+      if (importedScope == null) {
+        continue;
+      }
+
+      final importedProviders = getProvidersForScope(importedScope);
+      final importedValues = getValuesForScope(importedScope);
+
+      if (importedScope.exports.contains(dependency) &&
+          importedProviders.containsKey(dependency)) {
+        importProviderMatches.add((
+          scope: importedScope,
+          provider: importedProviders[dependency]!,
+        ));
+      }
+
+      final valueToken = ValueToken(dependency, null);
+      final exportsValue = importedScope.exports.any((exportType) {
+        if (exportType is Export) {
+          return exportType.toValueToken() == valueToken;
+        }
+        return exportType == dependency;
+      });
+
+      if (exportsValue && importedValues.containsKey(valueToken)) {
+        importValueMatches.add((
+          scope: importedScope,
+          token: valueToken,
+          value: importedValues[valueToken],
+        ));
+      }
+    }
+
+    final importMatchesCount =
+        importProviderMatches.length + importValueMatches.length;
+    if (importMatchesCount > 1) {
+      final sources = <String>{
+        ...importProviderMatches.map(
+          (m) => m.scope.module.runtimeType.toString(),
+        ),
+        ...importValueMatches.map((m) => m.scope.module.runtimeType.toString()),
+      };
+      throw InitializationError(
+        '[${scope.module.runtimeType}] Ambiguous dependency resolution for '
+        '$dependency. Multiple imported modules export it: '
+        '${sources.join(', ')}.',
+      );
+    }
+
+    if (importProviderMatches.isNotEmpty) {
+      return (
+        provider: importProviderMatches.first.provider,
+        valueToken: null,
+        value: null,
+      );
+    }
+    if (importValueMatches.isNotEmpty) {
+      return (
+        provider: null,
+        valueToken: importValueMatches.first.token,
+        value: importValueMatches.first.value,
+      );
+    }
+
+    final globalProviderMatches = _globalProviders
+        .where((provider) => provider.runtimeType == dependency)
+        .toList();
+    if (globalProviderMatches.length > 1) {
+      throw InitializationError(
+        'Ambiguous global dependency resolution for $dependency.',
+      );
+    }
+    if (globalProviderMatches.isNotEmpty) {
+      return (
+        provider: globalProviderMatches.first,
+        valueToken: null,
+        value: null,
+      );
+    }
+
+    final globalValueToken = ValueToken(dependency, null);
+    if (_globalValueProviders.containsKey(globalValueToken)) {
+      return (
+        provider: null,
+        valueToken: globalValueToken,
+        value: _globalValueProviders[globalValueToken],
+      );
+    }
+
+    return null;
+  }
+
+  /// Returns dependency types that cannot be resolved for a scope.
+  List<Type> getMissingDependenciesForScope(
+    ModuleScope scope,
+    List<Type> dependencies,
+    ScopeManager scopeManager,
+  ) {
+    final missing = <Type>[];
+    for (final dependency in dependencies) {
+      final resolved = resolveDependency(scope, dependency, scopeManager);
+      if (resolved == null) {
+        missing.add(dependency);
+      }
+    }
+    return missing;
+  }
+
+  /// Builds a composition context visible from a scope following hierarchical lookup.
+  CompositionContext buildCompositionContextForScope(
+    ModuleScope scope,
+    ScopeManager scopeManager,
+  ) {
+    final providers = <Type, Provider>{...getProvidersForScope(scope)};
+    final values = <ValueToken, Object?>{...getValuesForScope(scope)};
+
+    for (final importedModule in scope.imports) {
+      final importedScope = scopeManager.resolveImportedScope(importedModule);
+      if (importedScope == null) {
+        continue;
+      }
+
+      final importedProviders = getProvidersForScope(importedScope);
+      final importedValues = getValuesForScope(importedScope);
+
+      for (final provider in importedProviders.entries) {
+        final type = provider.key;
+        if (!importedScope.exports.contains(type) ||
+            providers.containsKey(type)) {
+          continue;
+        }
+        final collisions = scope.imports
+            .map(scopeManager.resolveImportedScope)
+            .whereType<ModuleScope>()
+            .where((s) => !identical(s, importedScope))
+            .where((s) => s.exports.contains(type))
+            .where((s) => getProvidersForScope(s).containsKey(type))
+            .toList();
+        if (collisions.isNotEmpty) {
+          final modules = {
+            importedScope.module.runtimeType.toString(),
+            ...collisions.map((s) => s.module.runtimeType.toString()),
+          };
+          throw InitializationError(
+            '[${scope.module.runtimeType}] Ambiguous dependency resolution for '
+            '$type. Multiple imported modules export it: ${modules.join(', ')}.',
+          );
+        }
+        providers[type] = provider.value;
+      }
+
+      for (final exportType in importedScope.exports) {
+        final valueToken = exportType is Export
+            ? exportType.toValueToken()
+            : ValueToken(exportType, null);
+        if (!importedValues.containsKey(valueToken) ||
+            values.containsKey(valueToken)) {
+          continue;
+        }
+        final collisions = scope.imports
+            .map(scopeManager.resolveImportedScope)
+            .whereType<ModuleScope>()
+            .where((s) => !identical(s, importedScope))
+            .where((s) {
+              final exportsValue = s.exports.any((export) {
+                if (export is Export) {
+                  return export.toValueToken() == valueToken;
+                }
+                return export == valueToken.type;
+              });
+              return exportsValue &&
+                  getValuesForScope(s).containsKey(valueToken);
+            })
+            .toList();
+        if (collisions.isNotEmpty) {
+          final modules = {
+            importedScope.module.runtimeType.toString(),
+            ...collisions.map((s) => s.module.runtimeType.toString()),
+          };
+          throw InitializationError(
+            '[${scope.module.runtimeType}] Ambiguous value dependency resolution '
+            'for $valueToken. Multiple imported modules export it: '
+            '${modules.join(', ')}.',
+          );
+        }
+        values[valueToken] = importedValues[valueToken];
+      }
+    }
+
+    for (final provider in _globalProviders) {
+      providers.putIfAbsent(provider.runtimeType, () => provider);
+    }
+    for (final entry in _globalValueProviders.entries) {
+      values.putIfAbsent(entry.key, () => entry.value);
+    }
+
+    return CompositionContext(providers, values);
   }
 
   /// Generates a map of provider types to provider instances

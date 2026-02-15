@@ -5,15 +5,23 @@ export const plugins = [
 		title: 'OpenAPI',
 		pub: 'https://pub.dev/packages/serinus_openapi',
 		desc: 'Generate complete API documentation automatically.',
-		link: '/plugins/swagger/',
+		link: '/openapi/',
 		slot: 'openapi',
 		icon: BracesFile
+	},
+	{
+		title: 'Database',
+		pub: 'https://pub.dev/packages/serinus_loxia',
+		desc: 'Use your database as a source of truth with an intuitive ORM.',
+		link: '/techniques/database',
+		slot: 'database',
+		icon: CodeFile
 	},
 	{
 		title: 'Auth',
 		pub: 'https://pub.dev/packages/serinus_frontier',
 		desc: 'Flexible authentication with hooks and middlewares.',
-		link: '/plugins/frontier',
+		link: '/security/authentication',
 		slot: 'authentication',
 		icon: ShieldCheckIcon
 	},
@@ -45,7 +53,7 @@ export const plugins = [
 		title: 'Config',
 		pub: 'https://pub.dev/packages/serinus_config',
 		desc: 'Environment-based configuration.',
-		link: '/plugins/configuration',
+		link: '/techniques/configuration',
 		slot: 'configuration',
 		icon: CogIcon
 	},

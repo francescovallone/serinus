@@ -18,6 +18,9 @@ import { plugins } from '../data/ecosystem';
 			<template #openapi>
 				<slot name="openapi"></slot>
 			</template>
+			<template #database>
+				<slot name="database"></slot>
+			</template>
 			<template #configuration>
 				<slot name="configuration"></slot>
 			</template>

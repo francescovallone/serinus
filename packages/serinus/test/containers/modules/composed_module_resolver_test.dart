@@ -36,6 +36,7 @@ void main() {
       Future<void> mockRegisterModule(
         Module module, {
         bool internal = false,
+        int depth = 0,
       }) async {
         registeredModules.add(module);
         final token = InjectionToken.fromModule(module);

@@ -122,7 +122,7 @@ void main() {
     test(
       '''
         registerModule should register a module with imports and injectables,
-        then the ModulesContainer should create two ModuleInjectables which for the main module contains all its own injectables and the providers from the imported module,
+        then the ModulesContainer should keep provider ownership inside each module scope without flattening imported providers into the parent scope,
       ''',
       () async {
         final container = ModulesContainer(config);
@@ -139,7 +139,7 @@ void main() {
         final injectables = container.getScope(
           InjectionToken.fromModule(module),
         );
-        expect(injectables.providers.length, 2);
+        expect(injectables.providers.length, 1);
         final subInjectables = container.getScope(
           InjectionToken.fromModule(importableModule),
         );
@@ -199,6 +199,27 @@ void main() {
 
         expect(container.get<ValueProviderOne>(), isNotNull);
         expect(container.get<ValueProviderTwo>(), isNotNull);
+      },
+    );
+
+    test(
+      'does not register duplicate controllers when same module is imported from different branches',
+      () async {
+        Logger.setLogLevels({LogLevel.none});
+        final adapter = _MockAdapter();
+        final localConfig = ApplicationConfig(serverAdapter: adapter);
+        final container = SerinusContainer(localConfig, adapter);
+        final module = _EntrypointWithDuplicateControllerImports();
+
+        await container.modulesContainer.registerModules(module);
+
+        final router = Router(localConfig.versioningOptions);
+        final explorer = RoutesExplorer(container, router);
+
+        expect(() => explorer.resolveRoutes(), returnsNormally);
+
+        final result = router.lookup('/', HttpMethod.get);
+        expect(result, isA<FoundRoute>());
       },
     );
   });
@@ -268,4 +289,17 @@ class ModuleWithClassProvider extends Module {
           Provider.forClass<ConfigService>(useClass: ProductionConfigService()),
         ],
       );
+}
+
+class _DuplicateControllerModule extends Module {
+  _DuplicateControllerModule() : super(controllers: [MockController()]);
+}
+
+class _BranchModule extends Module {
+  _BranchModule() : super(imports: [_DuplicateControllerModule()]);
+}
+
+class _EntrypointWithDuplicateControllerImports extends Module {
+  _EntrypointWithDuplicateControllerImports()
+    : super(imports: [_BranchModule(), _BranchModule()]);
 }

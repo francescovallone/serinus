@@ -34,7 +34,7 @@ head:
     src="/blog/serinus_2_1/serinus_2_1.webp"
     alt="Serinus 2.1 - Morning Song"
     author="Francesco Vallone"
-    date="27 Jan 2026"
+    date="12 Feb 2026"
     :tags="['releases']"
     shadow
     blog

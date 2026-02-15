@@ -40,10 +40,14 @@ class AgentsCommand extends Command<int> {
     // You can fetch the file list dynamically from GitHub API or hardcode the structure based on your config.mts sidebar
     final docsMap = {
       'overview': ['modules.md', 'controllers.md', 'routes.md', 'hooks.md', 'middlewares.md', 'providers.md', 'pipes.md', 'metadata.md', 'exception_filters.md'],
-      'techniques': ['configuration.md', 'logging.md', 'sse.md', 'task_scheduling.md', 'file_uploads.md', 'mvc.md', 'serve_static.md', 'versioning.md', 'global_prefix.md', 'session.md', 'model_provider.md', 'database.md'],
-      'security': ['rate_limiting.md', 'cors.md', 'body_size.md'],
+      'techniques': ['database.md', 'configuration.md', 'logging.md', 'sse.md', 'task_scheduling.md', 'file_uploads.md', 'mvc.md', 'serve_static.md', 'versioning.md', 'global_prefix.md', 'session.md', 'model_provider.md'],
+      'security': ['rate_limiting.md', 'cors.md', 'body_size.md', 'authentication.md'],
       'openapi': ['index.md', 'advanced_usage.md', 'renderer.md'],
       'websockets': ['gateways.md', 'exception_filters.md', 'pipes.md'],
+      'comparisons': ['dart_frog.md', 'shelf.md'],
+      'migrations': ['1_to_2.md', 'flatten_scopes.md'],
+      'recipes': ['testing.md'],
+      'deployment': ['docker.md', 'globe.md', 'vps.md', 'cloud_run.md'],
     };
 
     final docsDir = Directory(path.join(Directory.current.path, '.serinus-docs'));

@@ -1,11 +1,22 @@
 import '../../core/core.dart';
 import '../../errors/initialization_error.dart';
-import '../../extensions/iterable_extansions.dart';
 import '../../inspector/node.dart';
 import '../../services/logger_service.dart';
 import '../injection_token.dart';
 import 'provider_registry.dart';
 import 'scope_manager.dart';
+
+/// Represents a pending composed provider bound to its owning module token.
+class PendingComposedProvider {
+  /// The owning module token.
+  final InjectionToken token;
+
+  /// The provider instance.
+  final ComposedProvider provider;
+
+  /// Creates a pending provider descriptor.
+  const PendingComposedProvider({required this.token, required this.provider});
+}
 
 /// Resolves composed providers by initializing them when dependencies are available.
 ///
@@ -41,6 +52,19 @@ class ComposedProviderResolver {
   void addPending(InjectionToken token, Iterable<ComposedProvider> providers) {
     final existing = _composedProviders.putIfAbsent(token, () => []);
     existing.addAll(providers);
+  }
+
+  /// Returns all pending composed providers.
+  List<PendingComposedProvider> getPendingEntries() {
+    final entries = <PendingComposedProvider>[];
+    for (final item in _composedProviders.entries) {
+      for (final provider in item.value) {
+        entries.add(
+          PendingComposedProvider(token: item.key, provider: provider),
+        );
+      }
+    }
+    return entries;
   }
 
   /// Removes a composed provider entry
@@ -92,40 +116,15 @@ class ComposedProviderResolver {
 
       for (final provider in providers) {
         final existingDependency = _findDependency(provider, parentModule);
-        final providerType = provider.type;
-        final existingScope = _providerRegistry.getScopeByProvider(
-          providerType,
-        );
-
-        // Handle duplicate provider
-        if (existingScope != null) {
-          _attachExistingProviderToScope(
-            parentScope,
-            providerType: providerType,
-          );
-          _removeEntry(token, provider);
-          if (existingDependency != null) {
-            existingDependency.isInitialized = true;
-          }
-          _providerRegistry.logDuplicateWarning(
-            providerType,
-            parentModule.runtimeType,
-            existingScope.module.runtimeType,
-          );
-          progress = true;
-          continue;
-        }
 
         // Check for missing dependencies
-        final missingDependencies = _providerRegistry.getMissingDependencies(
-          provider.inject,
-        );
+        final missingDependencies = _providerRegistry
+            .getMissingDependenciesForScope(
+              parentScope,
+              provider.inject,
+              _scopeManager,
+            );
         if (missingDependencies.isNotEmpty) {
-          _checkForCircularDependencies(
-            provider,
-            parentModule,
-            missingDependencies,
-          );
           if (existingDependency == null) {
             _providerDependencies.add(
               ProviderDependencyEntry(
@@ -141,23 +140,13 @@ class ComposedProviderResolver {
         }
 
         // Verify all dependencies are available
-        final initializedProviders = parentScope.unifiedProviders.where(
-          (e) => provider.inject.contains(e.runtimeType),
-        );
-        final availableFromProviders = initializedProviders
-            .map((e) => e.runtimeType)
-            .toSet();
-        // Get available value types (unnamed values only for inject matching)
-        final availableFromValues = parentScope.unifiedValues.keys
-            .where(
-              (token) =>
-                  token.name == null && provider.inject.contains(token.type),
+        final setDifferences = _providerRegistry
+            .getMissingDependenciesForScope(
+              parentScope,
+              provider.inject,
+              _scopeManager,
             )
-            .map((token) => token.type)
             .toSet();
-        final setDifferences = provider.inject.toSet().difference(
-          availableFromProviders.union(availableFromValues),
-        );
         if (setDifferences.isNotEmpty) {
           _throwMissingDependenciesError(
             provider,
@@ -168,32 +157,14 @@ class ComposedProviderResolver {
 
         // Initialize the provider
         final stopwatch = Stopwatch()..start();
-        final context = _scopeManager.buildCompositionContext(
-          parentScope.unifiedProviders,
-          parentScope.unifiedValues,
+        final context = _providerRegistry.buildCompositionContextForScope(
+          parentScope,
+          _scopeManager,
         );
         final result = await provider.init(context);
         _checkResultType(provider, result, parentModule);
 
         final resultType = result.runtimeType;
-
-        // Check if another instance was created while we were initializing
-        if (_providerRegistry.isRegistered(resultType)) {
-          _attachExistingProviderToScope(parentScope, providerType: resultType);
-          _removeEntry(token, provider);
-          if (existingDependency != null) {
-            existingDependency.isInitialized = true;
-          }
-          if (stopwatch.isRunning) {
-            stopwatch.stop();
-          }
-          _logger.warning(
-            'Provider $resultType already initialized. Ignoring duplicate '
-            'composed provider instance from ${parentModule.runtimeType}.',
-          );
-          progress = true;
-          continue;
-        }
 
         await _providerRegistry.initIfUnregistered(result);
         _replaceModuleProviderInstance(parentScope, replacement: result);
@@ -212,9 +183,6 @@ class ComposedProviderResolver {
           stopwatch.stop();
         }
 
-        // Propagate to importing modules
-        _propagateToImporters(parentScope, result, providerToken);
-
         _removeEntry(token, provider);
         if (existingDependency != null) {
           existingDependency.isInitialized = true;
@@ -223,6 +191,68 @@ class ComposedProviderResolver {
       }
     }
     return progress;
+  }
+
+  /// Initializes a single pending composed provider.
+  Future<bool> initializeEntry(PendingComposedProvider pending) async {
+    final token = pending.token;
+    final provider = pending.provider;
+    final parentModule = _scopeManager.getModuleByToken(token);
+    final parentScope = _scopeManager.getScopeOrNull(token);
+
+    if (parentScope == null) {
+      throw InitializationError('Module with token $token not found');
+    }
+
+    final missingDependencies = _providerRegistry
+        .getMissingDependenciesForScope(
+          parentScope,
+          provider.inject,
+          _scopeManager,
+        );
+    if (missingDependencies.isNotEmpty) {
+      return false;
+    }
+
+    final setDifferences = _providerRegistry
+        .getMissingDependenciesForScope(
+          parentScope,
+          provider.inject,
+          _scopeManager,
+        )
+        .toSet();
+    if (setDifferences.isNotEmpty) {
+      _throwMissingDependenciesError(provider, parentModule, setDifferences);
+    }
+
+    final stopwatch = Stopwatch()..start();
+    final context = _providerRegistry.buildCompositionContextForScope(
+      parentScope,
+      _scopeManager,
+    );
+    final result = await provider.init(context);
+    _checkResultType(provider, result, parentModule);
+
+    final resultType = result.runtimeType;
+
+    await _providerRegistry.initIfUnregistered(result);
+    _replaceModuleProviderInstance(parentScope, replacement: result);
+
+    final providerToken = InjectionToken.fromType(resultType);
+    _providerRegistry.register(result, parentScope);
+    parentScope.addToProviders(result);
+    parentScope.instanceMetadata[providerToken] = _createInstanceWrapper(
+      provider,
+      token,
+      parentScope,
+      stopwatch.elapsedMicroseconds,
+    );
+
+    if (stopwatch.isRunning) {
+      stopwatch.stop();
+    }
+    _removeEntry(token, provider);
+    return true;
   }
 
   /// Resolves pending provider dependencies
@@ -241,8 +271,7 @@ class ComposedProviderResolver {
           continue;
         }
 
-        final ProviderDependencyEntry(:provider, :module, :dependencies) =
-            entry;
+        final ProviderDependencyEntry(:provider, :module) = entry;
         final token = InjectionToken.fromModule(module);
         final currentScope = _scopeManager.getScopeOrNull(token);
 
@@ -250,52 +279,15 @@ class ComposedProviderResolver {
           throw InitializationError('Module with token $token not found');
         }
 
-        final providerType = provider.type;
-        final existingScope = _providerRegistry.getScopeByProvider(
-          providerType,
-        );
-
-        // Handle duplicate
-        if (existingScope != null) {
-          _attachExistingProviderToScope(
-            currentScope,
-            providerType: providerType,
-          );
-          _removeEntry(token, provider);
-          entry.isInitialized = true;
-          _providerRegistry.logDuplicateWarning(
-            providerType,
-            module.runtimeType,
-            existingScope.module.runtimeType,
-          );
-          updated = true;
-          progress = true;
-          continue;
-        }
-
         final stopwatch = Stopwatch()..start();
-        final initializedProviders = currentScope.unifiedProviders.where(
-          (e) => dependencies.contains(e.runtimeType),
-        );
+        final missingDependencies = _providerRegistry
+            .getMissingDependenciesForScope(
+              currentScope,
+              provider.inject,
+              _scopeManager,
+            );
 
-        _checkForCircularDependencies(provider, module, dependencies.toList());
-
-        final dependenciesMap = _providerRegistry.generateDependenciesMap(
-          initializedProviders,
-        );
-        // Also check for value providers as dependencies (unnamed values only for inject matching)
-        final valueTypes = currentScope.unifiedValues.keys
-            .where((token) => token.name == null)
-            .map((token) => token.type)
-            .toSet();
-        final cannotResolveDependencies = !(provider.inject.every(
-          (key) => dependenciesMap[key] != null || valueTypes.contains(key),
-        ));
-
-        if ((initializedProviders.isEmpty &&
-                dependencies.isNotEmpty &&
-                !dependencies.every((d) => valueTypes.contains(d))) ||
-            cannotResolveDependencies) {
+        if (missingDependencies.isNotEmpty) {
           if (failOnUnresolved) {
             throw InitializationError(
               '[${module.runtimeType}] Cannot resolve dependencies for the '
@@ -310,9 +302,9 @@ class ComposedProviderResolver {
           continue;
         }
 
-        final context = _scopeManager.buildCompositionContext(
-          currentScope.unifiedProviders,
-          currentScope.unifiedValues,
+        final context = _providerRegistry.buildCompositionContextForScope(
+          currentScope,
+          _scopeManager,
         );
         final result = await provider.init(context);
         _checkResultType(provider, result, module);
@@ -321,7 +313,7 @@ class ComposedProviderResolver {
         _logger.info('Initialized ${provider.type} in ${module.runtimeType}');
 
         await _providerRegistry.initIfUnregistered(result);
-        final providerToken = InjectionToken.fromProvider(provider);
+        final providerToken = InjectionToken.fromProvider(result);
 
         _providerRegistry.register(result, currentScope);
         currentScope.addToProviders(result);
@@ -336,9 +328,6 @@ class ComposedProviderResolver {
           stopwatch.stop();
         }
 
-        // Propagate to importers
-        _propagateToImporters(currentScope, result, providerToken);
-
         _removeEntry(token, provider);
         entry.isInitialized = true;
         updated = true;
@@ -347,28 +336,6 @@ class ComposedProviderResolver {
     } while (updated);
 
     return progress;
-  }
-
-  /// Checks for circular dependencies between providers
-  void _checkForCircularDependencies(
-    ComposedProvider provider,
-    Module parentModule,
-    List<Type> dependencies,
-  ) {
-    final branchProviders = [
-      ...parentModule.imports.map((e) => e.providers).flatten(),
-      ...parentModule.providers,
-    ];
-    for (final p in branchProviders) {
-      if (p is ComposedProvider &&
-          dependencies.contains(p.type) &&
-          p.inject.contains(provider.type)) {
-        throw InitializationError(
-          '[${parentModule.runtimeType}] Circular dependency found while '
-          'resolving ${provider.type}',
-        );
-      }
-    }
   }
 
   /// Validates the result type of a composed provider
@@ -491,7 +458,7 @@ class ComposedProviderResolver {
     int initTime,
   ) {
     return InstanceWrapper(
-      name: InjectionToken.fromType(provider.runtimeType),
+      name: InjectionToken.fromType(provider.type),
       dependencies: provider.inject.map((e) {
         final providerScope = _providerRegistry.getScopeByProvider(e);
         return InstanceWrapper(
@@ -506,36 +473,12 @@ class ComposedProviderResolver {
       metadata: ClassMetadataNode(
         type: InjectableType.provider,
         sourceModuleName: token,
-        exported: scope.exports.contains(provider.runtimeType),
+        exported: scope.exports.contains(provider.type),
         composed: false,
         initTime: initTime,
       ),
       host: token,
     );
-  }
-
-  /// Propagates a provider to all modules that import the scope
-  void _propagateToImporters(
-    ModuleScope scope,
-    Provider result,
-    InjectionToken providerToken,
-  ) {
-    for (final importedBy in scope.importedBy) {
-      final importerScope = _scopeManager.getScopeOrNull(importedBy);
-      if (importerScope == null) {
-        throw InitializationError('Module with token $importedBy not found');
-      }
-      importerScope.extend(
-        providers: [
-          for (final exported in scope.exports)
-            if (exported == result.runtimeType) result,
-        ],
-      );
-      if (scope.instanceMetadata.containsKey(providerToken)) {
-        importerScope.instanceMetadata[providerToken] =
-            scope.instanceMetadata[providerToken]!;
-      }
-    }
   }
 
   /// Exposes the attach method for external use

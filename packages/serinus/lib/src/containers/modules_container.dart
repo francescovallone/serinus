@@ -3,7 +3,6 @@ import 'dart:async';
 import '../core/core.dart';
 import '../errors/initialization_error.dart';
 import '../extensions/iterable_extansions.dart';
-import '../injector/tree/topology_tree.dart';
 import '../inspector/node.dart';
 import '../services/logger_service.dart';
 import 'injection_token.dart';
@@ -137,6 +136,7 @@ final class ModulesContainer {
   Future<void> registerModule(
     ModuleScope currentScope, {
     bool internal = false,
+    int depth = 0,
   }) async {
     final token = currentScope.token;
     if (_scopeManager.hasScope(token)) {
@@ -185,7 +185,7 @@ final class ModulesContainer {
 
     // Register imported modules
     for (final subModule in currentScope.imports.toList()) {
-      await registerModules(subModule, internal: internal);
+      await registerModules(subModule, internal: internal, depth: depth + 1);
       _linkImportedModule(currentScope, subModule);
     }
 
@@ -197,6 +197,11 @@ final class ModulesContainer {
       );
       await _composedModuleResolver.initializeComposedModules();
     }
+
+    _scopeManager.refreshUnifiedProviders(
+      _providerRegistry.globalProviders,
+      _providerRegistry.globalValueProviders,
+    );
   }
 
   /// Registers modules starting from an entrypoint module.
@@ -206,6 +211,7 @@ final class ModulesContainer {
   Future<void> registerModules(
     Module entrypoint, {
     bool internal = false,
+    int depth = 0,
   }) async {
     if (!internal && !isInitialized && entrypoint is ComposedModule) {
       throw InitializationError(
@@ -215,6 +221,11 @@ final class ModulesContainer {
     }
 
     final token = InjectionToken.fromModule(entrypoint);
+
+    if (_findEquivalentScope(entrypoint) != null) {
+      return;
+    }
+
     if (_scopeManager.hasScope(token)) {
       return;
     }
@@ -233,9 +244,9 @@ final class ModulesContainer {
       importedBy: {},
     );
 
-    if (entrypoint.isGlobal) {
-      currentScope.distance = double.maxFinite;
-    }
+    currentScope.distance = entrypoint.isGlobal
+        ? double.maxFinite
+        : depth.toDouble();
 
     if (entrypointToken == token && currentScope.exports.isNotEmpty) {
       throw InitializationError('The entrypoint module cannot have exports');
@@ -257,64 +268,55 @@ final class ModulesContainer {
       );
     }
 
-    await registerModule(currentScope, internal: internal);
+    await registerModule(currentScope, internal: internal, depth: depth);
   }
 
   /// Finalizes the registration of all deferred providers and modules.
   ///
-  /// This method resolves composed modules and providers in multiple passes
-  /// until all dependencies are satisfied or an error is thrown.
+  /// This method resolves composed modules and providers using a deterministic
+  /// topological execution order derived from their inject dependencies.
   Future<void> finalize(Module entrypoint) async {
-    bool shouldRepeat;
+    bool progressed;
     do {
-      bool progress;
-      do {
-        _scopeManager.refreshUnifiedProviders(
-          _providerRegistry.globalProviders,
-          _providerRegistry.globalValueProviders,
-        );
-        progress = false;
+      progressed = false;
 
-        final resolvedByComposedModules = await _composedModuleResolver
-            .initializeComposedModules();
-        if (resolvedByComposedModules) {
-          progress = true;
-        }
+      _scopeManager.refreshUnifiedProviders(
+        _providerRegistry.globalProviders,
+        _providerRegistry.globalValueProviders,
+      );
 
-        _scopeManager.refreshUnifiedProviders(
-          _providerRegistry.globalProviders,
-          _providerRegistry.globalValueProviders,
-        );
+      final plan = _buildInitializationPlan();
+      if (plan.isEmpty) {
+        break;
+      }
 
-        final resolvedByComposedProviders = await _composedProviderResolver
-            .initializeComposedProviders();
-        if (resolvedByComposedProviders) {
-          progress = true;
-        }
-
+      for (final node in plan) {
         _scopeManager.refreshUnifiedProviders(
           _providerRegistry.globalProviders,
           _providerRegistry.globalValueProviders,
         );
 
-        if (await _composedProviderResolver.resolveProvidersDependencies(
-          failOnUnresolved: false,
-        )) {
-          progress = true;
+        switch (node) {
+          case _ProviderInitNode(:final pending):
+            final initialized = await _composedProviderResolver.initializeEntry(
+              pending,
+            );
+            progressed = progressed || initialized;
+          case _ModuleInitNode(:final entry):
+            final initialized = await _composedModuleResolver.initializeEntry(
+              entry,
+              entry.parentToken,
+            );
+            progressed = progressed || initialized;
         }
-      } while (progress);
-
-      final resolvedByFinalPass = await _composedProviderResolver
-          .resolveProvidersDependencies();
-      shouldRepeat = resolvedByFinalPass;
-    } while (shouldRepeat);
+      }
+    } while (progressed);
 
     _scopeManager.refreshUnifiedProviders(
       _providerRegistry.globalProviders,
       _providerRegistry.globalValueProviders,
     );
 
-    // Check for unresolved composed modules
     final unresolvedModules = _composedModuleResolver.getPendingModules();
     if (unresolvedModules.isNotEmpty) {
       throw InitializationError(
@@ -322,28 +324,26 @@ final class ModulesContainer {
       );
     }
 
-    _scopeManager.refreshUnifiedProviders(
-      _providerRegistry.globalProviders,
-      _providerRegistry.globalValueProviders,
-    );
-    calculateModuleDistances();
-  }
-
-  /// Calculates the distance between modules for resolution ordering.
-  void calculateModuleDistances() {
-    final entrypoint = _scopeManager.getScopeOrNull(entrypointToken!);
-    if (entrypoint == null) {
-      throw ArgumentError('Module with token $entrypointToken not found');
-    }
-    final tree = TopologyTree(entrypoint.module);
-    tree.walk((module, depth) {
-      final scope = _scopeManager.getScopeOrNull(
-        InjectionToken.fromModule(module),
+    final unresolvedProviders = _composedProviderResolver.getPendingEntries();
+    if (unresolvedProviders.isNotEmpty) {
+      final buffer = StringBuffer(
+        'Cannot resolve composed providers due to missing dependencies:\n',
       );
-      if (scope != null && !scope.module.isGlobal) {
-        scope.distance = depth.toDouble();
+      for (final pending in unresolvedProviders) {
+        final scope = _scopeManager.getScope(pending.token);
+        final module = scope.module;
+        final missing = _providerRegistry.getMissingDependenciesForScope(
+          scope,
+          pending.provider.inject,
+          _scopeManager,
+        );
+        buffer.writeln(
+          ' - [${module.runtimeType}] ${pending.provider.type}: '
+          '[${missing.map((e) => e.toString()).join(', ')}]',
+        );
       }
-    });
+      throw InitializationError(buffer.toString());
+    }
   }
 
   /// Initializes a provider if it implements lifecycle hooks.
@@ -373,28 +373,6 @@ final class ModulesContainer {
   /// Checks if a ComposedProvider can be initialized instantly.
   List<Type> canInit(List<Type> providersToInject) {
     return _providerRegistry.getMissingDependencies(providersToInject);
-  }
-
-  /// Checks for circular dependencies (exposed for backwards compatibility).
-  void checkForCircularDependencies(
-    ComposedProvider provider,
-    Module parentModule,
-    List<Type> dependencies,
-  ) {
-    final branchProviders = [
-      ...parentModule.imports.map((e) => e.providers).flatten(),
-      ...parentModule.providers,
-    ];
-    for (final p in branchProviders) {
-      if (p is ComposedProvider &&
-          dependencies.contains(p.type) &&
-          p.inject.contains(provider.type)) {
-        throw InitializationError(
-          '[${parentModule.runtimeType}] Circular dependency found while '
-          'resolving ${provider.type}',
-        );
-      }
-    }
   }
 
   /// Checks the result type of a composed provider.
@@ -429,6 +407,169 @@ final class ModulesContainer {
     return _providerRegistry.generateDependenciesMap(initializedProviders);
   }
 
+  List<_InitNode> _buildInitializationPlan() {
+    final pendingProviders = _composedProviderResolver.getPendingEntries();
+    final pendingModules = _composedModuleResolver.getPendingModules();
+
+    if (pendingProviders.isEmpty && pendingModules.isEmpty) {
+      return const [];
+    }
+
+    final nodes = <_InitNode>[];
+
+    for (final pending in pendingProviders) {
+      nodes.add(_ProviderInitNode(pending: pending));
+    }
+    for (final entry in pendingModules) {
+      nodes.add(_ModuleInitNode(entry: entry));
+    }
+
+    final producerByType = <Type, _InitNode>{};
+    for (final node in nodes) {
+      producerByType.putIfAbsent(node.outputType, () => node);
+    }
+
+    final adjacency = <_InitNode, Set<_InitNode>>{};
+    final inDegree = <_InitNode, int>{};
+
+    for (final node in nodes) {
+      inDegree[node] = 0;
+      adjacency[node] = <_InitNode>{};
+    }
+
+    for (final node in nodes) {
+      for (final dependency in node.inject) {
+        final producer = producerByType[dependency];
+        if (producer != null && !identical(producer, node)) {
+          final added = adjacency[producer]!.add(node);
+          if (added) {
+            inDegree[node] = (inDegree[node] ?? 0) + 1;
+          }
+        }
+      }
+    }
+
+    final orderIndex = <_InitNode, int>{
+      for (final item in nodes.indexed) item.$2: item.$1,
+    };
+    final ready =
+        inDegree.entries.where((e) => e.value == 0).map((e) => e.key).toList()
+          ..sort((a, b) {
+            final p = _nodePriority(a).compareTo(_nodePriority(b));
+            if (p != 0) {
+              return p;
+            }
+            return orderIndex[a]!.compareTo(orderIndex[b]!);
+          });
+
+    final sorted = <_InitNode>[];
+    while (ready.isNotEmpty) {
+      final current = ready.removeAt(0);
+      sorted.add(current);
+
+      final neighbors = adjacency[current]!.toList()
+        ..sort((a, b) {
+          final p = _nodePriority(a).compareTo(_nodePriority(b));
+          if (p != 0) {
+            return p;
+          }
+          return orderIndex[a]!.compareTo(orderIndex[b]!);
+        });
+
+      for (final neighbor in neighbors) {
+        final nextDegree = (inDegree[neighbor] ?? 0) - 1;
+        inDegree[neighbor] = nextDegree;
+        if (nextDegree == 0) {
+          ready.add(neighbor);
+          ready.sort((a, b) {
+            final p = _nodePriority(a).compareTo(_nodePriority(b));
+            if (p != 0) {
+              return p;
+            }
+            return orderIndex[a]!.compareTo(orderIndex[b]!);
+          });
+        }
+      }
+    }
+
+    if (sorted.length != nodes.length) {
+      final remaining = inDegree.entries
+          .where((e) => e.value > 0)
+          .map((e) => e.key)
+          .toSet();
+      final cycleNodes = _findCycleNodes(remaining, adjacency);
+      final cycleTrace = cycleNodes.map((n) => n.label).join(' -> ');
+      final firstNode = cycleNodes.first;
+      final sourceModuleName = _nodeSourceModuleName(firstNode);
+      throw InitializationError(
+        '[$sourceModuleName] Circular dependency found while resolving '
+        '${firstNode.outputType}\n'
+        'Circular dependency detected while finalizing modules: $cycleTrace',
+      );
+    }
+
+    return sorted;
+  }
+
+  int _nodePriority(_InitNode node) {
+    return switch (node) {
+      _ModuleInitNode() => 0,
+      _ProviderInitNode() => 1,
+    };
+  }
+
+  List<_InitNode> _findCycleNodes(
+    Set<_InitNode> remaining,
+    Map<_InitNode, Set<_InitNode>> adjacency,
+  ) {
+    final state = <_InitNode, int>{};
+    final stack = <_InitNode>[];
+    List<_InitNode>? trace;
+
+    bool dfs(_InitNode node) {
+      state[node] = 1;
+      stack.add(node);
+
+      for (final neighbor in adjacency[node] ?? const <_InitNode>{}) {
+        if (!remaining.contains(neighbor)) {
+          continue;
+        }
+        final s = state[neighbor] ?? 0;
+        if (s == 0) {
+          if (dfs(neighbor)) {
+            return true;
+          }
+        } else if (s == 1) {
+          final start = stack.indexOf(neighbor);
+          final cycle = [...stack.sublist(start), neighbor];
+          trace = cycle;
+          return true;
+        }
+      }
+
+      stack.removeLast();
+      state[node] = 2;
+      return false;
+    }
+
+    for (final node in remaining) {
+      if ((state[node] ?? 0) == 0 && dfs(node)) {
+        break;
+      }
+    }
+
+    return trace ?? remaining.toList();
+  }
+
+  String _nodeSourceModuleName(_InitNode node) {
+    return switch (node) {
+      _ProviderInitNode(:final pending) =>
+        _scopeManager.getModuleByToken(pending.token).runtimeType.toString(),
+      _ModuleInitNode(:final entry) =>
+        entry.parentModule.runtimeType.toString(),
+    };
+  }
+
   // ============================================================
   // Private Helper Methods
   // ============================================================
@@ -442,16 +583,6 @@ final class ModulesContainer {
     final providerType =
         _providerRegistry.getCustomToken(provider) ?? provider.runtimeType;
     final providerToken = InjectionToken.fromProvider(provider);
-
-    final existingScope = _providerRegistry.getScopeByProvider(providerType);
-    if (existingScope != null) {
-      _composedProviderResolver.attachExistingProviderToScope(
-        currentScope,
-        providerType: providerType,
-        pendingProvider: provider,
-      );
-      return;
-    }
 
     await _providerRegistry.initIfUnregistered(provider);
     _providerRegistry.register(provider, currentScope, asType: providerType);
@@ -477,27 +608,14 @@ final class ModulesContainer {
     final valueToken = valueProvider.token;
     final valueProviderToken = InjectionToken.fromValueToken(valueToken);
 
-    final existingScope = _providerRegistry.getScopeByValueToken(valueToken);
-    if (existingScope != null) {
-      // Same module type (e.g., TestModule imported multiple times) - skip silently
-      if (existingScope.module.runtimeType == currentScope.module.runtimeType) {
-        return;
-      }
-      // Different module types with same ValueToken - this is a conflict
-      throw InitializationError(
-        '[${currentScope.module.runtimeType}] Duplicate ValueProvider detected '
-        'for type ${valueToken.type}'
-        '${valueToken.name != null ? ' with name "${valueToken.name}"' : ''}. '
-        'A ValueProvider of the same type was already registered by '
-        '${existingScope.module.runtimeType}.',
-      );
-    }
-
-    _providerRegistry.registerValue(
+    final registered = _providerRegistry.registerValue(
       valueProvider.value,
       currentScope,
       token: valueToken,
     );
+    if (!registered) {
+      return;
+    }
 
     // Add value to the scope's unified values
     currentScope.addToUnifiedValues(valueToken, valueProvider.value);
@@ -547,8 +665,7 @@ final class ModulesContainer {
 
   /// Links an imported module to its parent scope.
   void _linkImportedModule(ModuleScope currentScope, Module subModule) {
-    final subModuleToken = InjectionToken.fromModule(subModule);
-    final subModuleScope = _scopeManager.getScopeOrNull(subModuleToken);
+    final subModuleScope = _scopeManager.resolveImportedScope(subModule);
     if (subModuleScope == null) {
       return;
     }
@@ -565,32 +682,6 @@ final class ModulesContainer {
     }
 
     subModuleScope.importedBy.add(currentScope.token);
-
-    // Import exported providers
-    final exportedProviders = subModuleScope.providers.where(
-      (provider) => subModuleScope.exports.contains(provider.runtimeType),
-    );
-
-    currentScope.extend(providers: exportedProviders);
-
-    for (final provider in exportedProviders) {
-      final exportedProviderToken = InjectionToken.fromType(
-        provider.runtimeType,
-      );
-      currentScope.instanceMetadata[exportedProviderToken] =
-          subModuleScope.instanceMetadata[exportedProviderToken]!;
-    }
-
-    // Import exported value providers
-    for (final exportType in subModuleScope.exports) {
-      final valueToken = exportType is Export
-          ? exportType.toValueToken()
-          : ValueToken(exportType, null);
-      if (subModuleScope.unifiedValues.containsKey(valueToken)) {
-        final value = subModuleScope.unifiedValues[valueToken];
-        currentScope.addToUnifiedValues(valueToken, value);
-      }
-    }
   }
 
   /// Checks if a value token is exported by matching against the exports set.
@@ -613,4 +704,102 @@ final class ModulesContainer {
     }
     return false;
   }
+
+  ModuleScope? _findEquivalentScope(Module module) {
+    for (final scope in _scopeManager.scopes) {
+      if (_isEquivalentModule(scope.module, module)) {
+        return scope;
+      }
+    }
+    return null;
+  }
+
+  bool _isEquivalentModule(Module a, Module b) {
+    if (a.runtimeType != b.runtimeType) {
+      return false;
+    }
+    if (a.isGlobal != b.isGlobal || a.token != b.token) {
+      return false;
+    }
+
+    bool sameTypeBag(Iterable<Type> left, Iterable<Type> right) {
+      final l = left.toList()
+        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      final r = right.toList()
+        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      if (l.length != r.length) {
+        return false;
+      }
+      for (var i = 0; i < l.length; i++) {
+        if (l[i] != r[i]) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    final aProviderTypes = a.providers.map((p) => p.runtimeType);
+    final bProviderTypes = b.providers.map((p) => p.runtimeType);
+    if (!sameTypeBag(aProviderTypes, bProviderTypes)) {
+      return false;
+    }
+
+    if (!sameTypeBag(a.exports, b.exports)) {
+      return false;
+    }
+
+    final aControllerTypes = a.controllers.map((c) => c.runtimeType);
+    final bControllerTypes = b.controllers.map((c) => c.runtimeType);
+    if (!sameTypeBag(aControllerTypes, bControllerTypes)) {
+      return false;
+    }
+
+    final aImportTypes = a.imports.map((m) => m.runtimeType);
+    final bImportTypes = b.imports.map((m) => m.runtimeType);
+    if (!sameTypeBag(aImportTypes, bImportTypes)) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
+sealed class _InitNode {
+  Type get outputType;
+
+  List<Type> get inject;
+
+  String get label;
+}
+
+final class _ProviderInitNode extends _InitNode {
+  final PendingComposedProvider pending;
+
+  _ProviderInitNode({required this.pending});
+
+  @override
+  Type get outputType => pending.provider.type;
+
+  @override
+  List<Type> get inject => pending.provider.inject;
+
+  @override
+  String get label =>
+      '[${pending.token}] ComposedProvider<${pending.provider.type}>';
+}
+
+final class _ModuleInitNode extends _InitNode {
+  final ComposedModuleEntry entry;
+
+  _ModuleInitNode({required this.entry});
+
+  @override
+  Type get outputType => entry.module.type;
+
+  @override
+  List<Type> get inject => entry.module.inject;
+
+  @override
+  String get label =>
+      '[${entry.parentToken}] ComposedModule<${entry.module.type}>';
 }

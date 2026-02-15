@@ -1,8 +1,16 @@
 # Changelog
 
+## 2.1.1
+
+**Released on:** 15-02-2026
+
+### Refactor
+
+- Refactor how Serinus handlers module generation to use topological sorting of the modules to ensure that the modules are generated in the correct order. This improves the performance of the application startup and reduces the memory usage during the module generation process.
+
 ## 2.1.0
 
-**Released on:** 27-01-2026
+**Released on:** 12-02-2026
 
 ### Features
 

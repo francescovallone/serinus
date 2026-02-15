@@ -18,10 +18,19 @@ class ComposedModuleResolver {
   final Map<InjectionToken, List<ComposedModuleEntry>> _composedModules = {};
 
   /// Callback to register a new module
-  final Future<void> Function(Module, {bool internal}) _registerModule;
+  final Future<void> Function(Module, {bool internal, int depth})
+  _registerModule;
 
   /// Creates a new composed module resolver
   ComposedModuleResolver(this._scopeManager, this._registerModule);
+
+  int _nextDepthFor(InjectionToken parentToken) {
+    final parentScope = _scopeManager.getScopeOrNull(parentToken);
+    if (parentScope == null || !parentScope.distance.isFinite) {
+      return 1;
+    }
+    return parentScope.distance.toInt() + 1;
+  }
 
   /// Adds a composed module entry for a parent token
   void addPending(InjectionToken parentToken, ComposedModuleEntry entry) {
@@ -111,90 +120,10 @@ class ComposedModuleResolver {
           continue;
         }
 
-        final missing = getMissingDependencies(
-          entry.module.inject,
-          parentScope.unifiedProviders,
-          parentScope.unifiedValues,
-        );
-        entry.missingDependencies
-          ..clear()
-          ..addAll(missing);
-
-        if (missing.isNotEmpty) {
-          continue;
+        final initialized = await initializeEntry(entry, snapshot.token);
+        if (initialized) {
+          progress = true;
         }
-
-        final stopwatch = Stopwatch()..start();
-        final context = _scopeManager.buildCompositionContext(
-          parentScope.unifiedProviders,
-          parentScope.unifiedValues,
-        );
-        final dynamic resolvedModule = await entry.module.init(context);
-        if (stopwatch.isRunning) {
-          stopwatch.stop();
-        }
-
-        if (resolvedModule is! Module) {
-          throw InitializationError(
-            '[${entry.parentModule.runtimeType}] ${entry.module.runtimeType} '
-            'did not return a Module instance.',
-          );
-        }
-
-        final Module moduleInstance = resolvedModule;
-        entry.isInitialized = true;
-        entry.missingDependencies.clear();
-        progress = true;
-
-        await _registerModule(moduleInstance, internal: true);
-
-        final refreshedParentScope = _scopeManager.getScopeOrNull(
-          snapshot.token,
-        );
-        if (refreshedParentScope == null) {
-          throw InitializationError(
-            'Module with token ${snapshot.token} not found',
-          );
-        }
-
-        refreshedParentScope.imports.add(moduleInstance);
-        if (!refreshedParentScope.module.imports.contains(moduleInstance)) {
-          refreshedParentScope.module.imports = [
-            ...refreshedParentScope.module.imports,
-            moduleInstance,
-          ];
-        }
-
-        final subModuleToken = InjectionToken.fromModule(moduleInstance);
-        final subModuleScope = _scopeManager.getScopeOrNull(subModuleToken);
-        if (subModuleScope == null) {
-          throw InitializationError(
-            'Module with token $subModuleToken not found',
-          );
-        }
-
-        subModuleScope.composed = true;
-        subModuleScope.initTime = stopwatch.elapsedMicroseconds;
-        subModuleScope.importedBy.add(snapshot.token);
-
-        // Propagate exports
-        final exportedProviders = subModuleScope.providers.where(
-          (provider) => subModuleScope.exports.contains(provider.runtimeType),
-        );
-
-        refreshedParentScope.providers.addAll(exportedProviders);
-        refreshedParentScope.unifiedProviders.addAll(exportedProviders);
-
-        for (final provider in exportedProviders) {
-          final providerToken = InjectionToken.fromType(provider.runtimeType);
-          final metadata = subModuleScope.instanceMetadata[providerToken];
-          if (metadata != null) {
-            refreshedParentScope.instanceMetadata[providerToken] = metadata;
-          }
-        }
-
-        // Propagate to modules that import the parent
-        _propagateExportsToImporters(refreshedParentScope, exportedProviders);
       }
     }
 
@@ -202,32 +131,90 @@ class ComposedModuleResolver {
     return progress;
   }
 
-  /// Propagates exports to all modules that import the given scope
-  void _propagateExportsToImporters(
-    ModuleScope scope,
-    Iterable<Provider> exportedProviders,
-  ) {
-    for (final importerToken in scope.importedBy) {
-      final importerScope = _scopeManager.getScopeOrNull(importerToken);
-      if (importerScope == null) {
-        continue;
-      }
-
-      final reexportedProviders = exportedProviders.where(
-        (provider) => scope.exports.contains(provider.runtimeType),
-      );
-
-      importerScope.providers.addAll(reexportedProviders);
-      importerScope.unifiedProviders.addAll(reexportedProviders);
-
-      for (final provider in reexportedProviders) {
-        final providerToken = InjectionToken.fromType(provider.runtimeType);
-        final metadata = scope.instanceMetadata[providerToken];
-        if (metadata != null) {
-          importerScope.instanceMetadata[providerToken] = metadata;
-        }
-      }
+  /// Initializes a single composed module entry.
+  ///
+  /// Returns true if the module was initialized, false when dependencies are missing.
+  Future<bool> initializeEntry(
+    ComposedModuleEntry entry,
+    InjectionToken parentToken,
+  ) async {
+    if (entry.isInitialized) {
+      return false;
     }
+
+    final parentScope = _scopeManager.getScopeOrNull(parentToken);
+    if (parentScope == null) {
+      throw InitializationError('Module with token $parentToken not found');
+    }
+
+    final missing = getMissingDependencies(
+      entry.module.inject,
+      parentScope.unifiedProviders,
+      parentScope.unifiedValues,
+    );
+    entry.missingDependencies
+      ..clear()
+      ..addAll(missing);
+
+    if (missing.isNotEmpty) {
+      return false;
+    }
+
+    final stopwatch = Stopwatch()..start();
+    final context = _scopeManager.buildCompositionContext(
+      parentScope.unifiedProviders,
+      parentScope.unifiedValues,
+    );
+    final dynamic resolvedModule = await entry.module.init(context);
+    if (stopwatch.isRunning) {
+      stopwatch.stop();
+    }
+
+    if (resolvedModule is! Module) {
+      throw InitializationError(
+        '[${entry.parentModule.runtimeType}] ${entry.module.runtimeType} '
+        'did not return a Module instance.',
+      );
+    }
+
+    final moduleInstance = resolvedModule;
+    entry.isInitialized = true;
+    entry.missingDependencies.clear();
+
+    await _registerModule(
+      moduleInstance,
+      internal: true,
+      depth: _nextDepthFor(parentToken),
+    );
+
+    final refreshedParentScope = _scopeManager.getScopeOrNull(parentToken);
+    if (refreshedParentScope == null) {
+      throw InitializationError('Module with token $parentToken not found');
+    }
+
+    refreshedParentScope.imports.add(moduleInstance);
+    if (!refreshedParentScope.module.imports.contains(moduleInstance)) {
+      refreshedParentScope.module.imports = [
+        ...refreshedParentScope.module.imports,
+        moduleInstance,
+      ];
+    }
+
+    final subModuleToken = InjectionToken.fromModule(moduleInstance);
+    final subModuleScope = _scopeManager.getScopeOrNull(subModuleToken);
+    if (subModuleScope == null) {
+      throw InitializationError('Module with token $subModuleToken not found');
+    }
+
+    if (!subModuleScope.module.isGlobal) {
+      subModuleScope.distance = _nextDepthFor(parentToken).toDouble();
+    }
+
+    subModuleScope.composed = true;
+    subModuleScope.initTime = stopwatch.elapsedMicroseconds;
+    subModuleScope.importedBy.add(parentToken);
+
+    return true;
   }
 
   /// Creates an error message for unresolved composed modules

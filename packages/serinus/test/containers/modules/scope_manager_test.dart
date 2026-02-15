@@ -79,6 +79,38 @@ void main() {
       expect(manager.controllers.first.module, equals(module));
     });
 
+    test('should ignore duplicate controller types across scopes', () {
+      final moduleA = TestModule(controllers: [TestController()]);
+      final scopeA = ModuleScope(
+        token: InjectionToken('TestModuleA'),
+        providers: {},
+        exports: {},
+        controllers: {moduleA.controllers.first},
+        imports: {},
+        module: moduleA,
+        importedBy: {},
+      );
+
+      final moduleB = TestModule(controllers: [TestController()]);
+      final scopeB = ModuleScope(
+        token: InjectionToken('TestModuleB'),
+        providers: {},
+        exports: {},
+        controllers: {moduleB.controllers.first},
+        imports: {},
+        module: moduleB,
+        importedBy: {},
+      );
+
+      manager.registerScope(scopeA);
+      manager.addControllers(scopeA);
+      manager.registerScope(scopeB);
+      manager.addControllers(scopeB);
+
+      expect(manager.controllers.length, equals(1));
+      expect(manager.controllers.first.module, equals(moduleA));
+    });
+
     test('should get module by token', () {
       final module = TestModule();
       final token = InjectionToken('TestModule');

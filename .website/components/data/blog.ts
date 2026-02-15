@@ -21,23 +21,23 @@ export interface Post {
 }
 
 export const posts: Post[] = [
-    // {
-    //     title: 'Why Dart Backends Need Architecture, Not Just Scaffolding',
-    //     src: '/blog/architecture_over_scaffolding/architecture_over_scaffolding.webp',
-    //     alt: 'Why Dart Backends Need Architecture, Not Just Scaffolding',
-    //     desc: 'Over the last years, Dart has proven over and over again to be a great language for building frontend applications, Flutter being the prime example of this. On the server, however, Dart is still treated like a shortcut language, something you use to avoid context switching, not something you design systems with.',
-    //     author: 'Francesco Vallone',
-    //     date: '01 Jan 2025',
-    //     href: '/blog/architecture_over_scaffolding',
-    //     tags: ['general'],
-    // },
+    {
+        title: 'Why Dart Backends Need Architecture, Not Just Scaffolding',
+        src: '/blog/architecture_over_scaffolding/architecture_over_scaffolding.webp',
+        alt: 'Why Dart Backends Need Architecture, Not Just Scaffolding',
+        desc: 'Over the last years, Dart has proven over and over again to be a great language for building frontend applications, Flutter being the prime example of this. On the server, however, Dart is still treated like a shortcut language, something you use to avoid context switching, not something you design systems with.',
+        author: 'Francesco Vallone',
+        date: '01 Jan 2025',
+        href: '/blog/architecture_over_scaffolding',
+        tags: ['general'],
+    },
     {
         title: 'Serinus 2.1 - Morning Song',
         src: '/blog/serinus_2_1/serinus_2_1.webp',
         alt: 'Serinus 2.1 - Morning Song',
         desc: 'Introducing new router, Class and Value Providers and Loxia integration',
         author: 'Francesco Vallone',
-        date: '03 Feb 2026',
+        date: '12 Feb 2026',
         href: '/blog/serinus_2_1',
         tags: ['releases'],
     },

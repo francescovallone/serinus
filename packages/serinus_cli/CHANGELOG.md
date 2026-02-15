@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.1
+
+- fix: module generation now works correctly
+
 ## 2.1.0
 
 - feat: add Agents command to the CLI to create AGENTS.md and CLAUDE.md files in the project.
