@@ -366,6 +366,36 @@ const HeartIcon = defineComponent({
 	])
 });
 
+const ChevronRight = defineComponent({
+	name: 'ChevronRight',
+	setup: () => () => h('svg', {
+		viewBox: '0 0 24 24',
+		fill: 'none',	
+		stroke: 'currentColor',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
+		class: 'w-5 h-5'
+	}, [
+		h('path', { d: 'm9 6l6 6l-6 6' })
+	])
+});
+
+const CheckIcon = defineComponent({
+	name: 'CheckIcon',
+	setup: () => () => h('svg', {
+		viewBox: '0 0 24 24',
+		fill: 'none',
+		stroke: 'currentColor',
+		'stroke-width': '2',	
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
+		class: 'w-5 h-5'
+	}, [
+		h('path', { d: 'M20 6L9 17l-5-5' })
+	])
+});
+
 export {
 	ShieldIcon,
 	LightningIcon,
@@ -390,6 +420,8 @@ export {
 	ChatGptIcon,
 	ClaudeIcon,
 	MarkdownIcon,
+	CheckIcon,
 	DiscordIcon,
+	ChevronRight,
 	HeartIcon
 }

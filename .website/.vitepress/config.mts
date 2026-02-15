@@ -127,8 +127,12 @@ export default defineConfig({
     siteTitle: false,
     nav: [
       {
-        text: 'Documentation',
+        text: 'Docs',
         link: '/introduction'
+      },
+      {
+        text: 'Roadmap',
+        link: '/roadmap'
       },
       {
         text: 'Blog',
