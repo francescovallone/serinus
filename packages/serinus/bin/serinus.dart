@@ -130,10 +130,9 @@ void main(List<String> arguments) async {
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );
-  application.enableShutdownHooks();
+  application.provide(TestProvider());
   application.get('/', (RequestContext context) async {
-    return {'message': 'Hello from root route!'};
+    return context.use<TestProvider>().counter;
   });
-  // application.trace(ServerTimingTracer());
   await application.serve();
 }

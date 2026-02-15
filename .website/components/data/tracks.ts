@@ -23,7 +23,7 @@ export const roadmapTracks: RoadmapTrack[] = [
     color: "52 100% 50%",
     progress: 0,
     items: [
-      { id: "c1", title: "Minimal Application", status: "planned", version: "v2.2" },
+      { id: "c1", title: "Minimal Application", status: "in-progress", version: "v2.2" },
       { id: "c2", title: "Observability", status: "in-progress", version: "v2.2" },
       { id: "c3", title: "Injection Scopes", status: "planned" },
     ],
