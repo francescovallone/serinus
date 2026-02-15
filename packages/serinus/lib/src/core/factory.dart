@@ -79,6 +79,7 @@ final class SerinusFactory {
     return app;
   }
 
+  /// The [createMinimalApplication] method is used to create a new instance of the [SerinusMinimalApplication] class.
   Future<SerinusMinimalApplication> createMinimalApplication({
     required Module entrypoint,
     String host = 'localhost',
