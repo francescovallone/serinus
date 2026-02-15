@@ -123,7 +123,7 @@ class MyModelProvider extends ModelProvider {
 }
 
 void main(List<String> arguments) async {
-  final application = await serinus.createApplication(
+  final application = await serinus.createMinimalApplication(
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
@@ -131,6 +131,9 @@ void main(List<String> arguments) async {
     modelProvider: MyModelProvider(),
   );
   application.enableShutdownHooks();
+  application.get('/', (RequestContext context) async {
+    return {'message': 'Hello from root route!'};
+  });
   // application.trace(ServerTimingTracer());
   await application.serve();
 }
