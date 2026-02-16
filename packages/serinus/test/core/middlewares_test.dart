@@ -36,12 +36,7 @@ class TestRequestEvent extends Middleware {
   Future<void> use(ExecutionContext context, NextFunction next) async {
     final argumentsHost = context.argumentsHost;
     if (argumentsHost is HttpArgumentsHost) {
-      print('Subscribing to request close event');
-      argumentsHost.request.on(RequestEvent.all, (event, data) async {
-        print('Received event: $event');
-      });
       argumentsHost.request.on(RequestEvent.close, (event, data) async {
-        print(event);
         hasClosed = true;
         hasException = data.hasException;
       });
