@@ -55,14 +55,13 @@ class SerinusHttpAdapter
   @override
   Future<void> init([ApplicationConfig? config]) async {
     if (securityContext == null) {
-      server = await io.HttpServer.bind(host, port, shared: true, backlog: 8192);
+      server = await io.HttpServer.bind(host, port, shared: true);
     } else {
       server = await io.HttpServer.bindSecure(
         host,
         port,
         securityContext!,
         shared: true,
-        backlog: 8192
       );
     }
     _dateCacheTimer = Timer.periodic(const Duration(seconds: 1), (_) {
