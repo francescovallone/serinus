@@ -46,7 +46,8 @@ class SerinusHeaders {
 
   /// The [asFullMap] method is used to get all the headers as a map.
   Map<String, String> asFullMap() {
-    final fullMap = Map<String, String>.from(_requestHeaders.toMap());
+    final fullMap = <String, String>{};
+    _requestHeaders.copyTo(fullMap);
     fullMap.addAll(values);
     return Map.unmodifiable(fullMap);
   }

@@ -72,12 +72,20 @@ extension SplitTypes<T> on Iterable<T> {
 
 /// This extension is used to convert a list of headers to a map
 extension HeadersToMap on HttpHeaders {
+  /// Copies headers directly into the [target] map.
+  ///
+  /// This avoids allocating an intermediate map when callers already have
+  /// a destination map.
+  void copyTo(Map<String, String> target) {
+    forEach((key, values) {
+      target[key] = values.join(',');
+    });
+  }
+
   /// This method is used to convert the headers to a map
   Map<String, String> toMap() {
     final headers = <String, String>{};
-    forEach((key, values) {
-      headers[key] = values.join(',');
-    });
+    copyTo(headers);
     return headers;
   }
 }

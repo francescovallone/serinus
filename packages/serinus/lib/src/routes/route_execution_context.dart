@@ -12,8 +12,6 @@ import '../core/middlewares/middleware_executor.dart';
 import '../engines/view_engine.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
-import '../extensions/iterable_extansions.dart';
-import '../extensions/object_extensions.dart';
 import '../http/http.dart';
 import '../utils/wrapped_response.dart';
 import 'route_response_controller.dart';
@@ -119,21 +117,22 @@ class RouteExecutionContext {
         }
       }
       final middlewares = context
-          .getMiddlewares(request)
-          .toList(growable: false);
+          .getMiddlewares(request);
       if (middlewares.isNotEmpty) {
         final executor = MiddlewareExecutor();
         await executor.execute(
-          middlewares,
+          middlewares.toList(growable: false),
           executionContext,
           response,
           onDataReceived: (data) async {
             await _executeOnResponse(context, executionContext!, data);
             data = processResult(data, executionContext);
-            request.emit(
-              RequestEvent.data,
-              EventData(data: data, properties: executionContext.response),
-            );
+            if (request.events.hasListener) {
+              request.emit(
+                RequestEvent.data,
+                EventData(data: data, properties: executionContext.response),
+              );
+            }
             await _responseController.sendResponse(
               response,
               request,
@@ -141,18 +140,16 @@ class RouteExecutionContext {
               executionContext.response,
               viewEngine: viewEngine,
             );
-            request.emit(
-              RequestEvent.close,
-              EventData(
-                data: data,
-                properties: executionContext.response
-                  ..headers.addAll(
-                    (response.currentHeaders is SerinusHeaders)
-                        ? response.currentHeaders.values
-                        : (response.currentHeaders as HttpHeaders).toMap(),
-                  ),
-              ),
-            );
+            if (request.events.hasListener) {
+              request.emit(
+                RequestEvent.close,
+                EventData(
+                  data: data,
+                  properties: executionContext.response
+                    ..addHeadersFrom(response.currentHeaders),
+                ),
+              );
+            }
           },
         );
         if (response.isClosed) {
@@ -165,54 +162,54 @@ class RouteExecutionContext {
       final responseData = WrappedResponse(handlerResult);
       await _executeAfterHandle(executionContext, context, responseData);
       await _executeOnResponse(context, executionContext, responseData);
-      final currentResponseHeaders = (response.currentHeaders is SerinusHeaders)
-          ? response.currentHeaders.values
-          : (response.currentHeaders as HttpHeaders).toMap();
       final data = responseData.data;
       if (data is View) {
-        request.emit(
-          RequestEvent.data,
-          EventData(data: data, properties: executionContext.response),
-        );
-        request.emit(
-          RequestEvent.close,
-          EventData(
-            data: data,
-            properties: executionContext.response
-              ..addHeaders(currentResponseHeaders),
-          ),
-        );
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(data: data, properties: executionContext.response),
+          );
+          request.emit(
+            RequestEvent.close,
+            EventData(
+              data: data,
+              properties: executionContext.response
+                ..addHeadersFrom(response.currentHeaders),
+            ),
+          );
+        }
         await _responseController.render(
           response,
           data,
           executionContext.response,
         );
       } else if (data is Redirect) {
-        request.emit(
-          RequestEvent.redirect,
-          EventData(
-            data: responseData.data,
-            properties: executionContext.response,
-          ),
-        );
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(data: data, properties: executionContext.response),
+          );
+          request.emit(
+            RequestEvent.close,
+            EventData(
+              data: data,
+              properties: executionContext.response
+                ..addHeadersFrom(response.currentHeaders),
+            ),
+          );
+        }
         await _responseController.redirect(
           response,
           data,
           executionContext.response,
         );
       } else {
-        request.emit(
-          RequestEvent.data,
-          EventData(data: data, properties: executionContext.response),
-        );
-        request.emit(
-          RequestEvent.close,
-          EventData(
-            data: data,
-            properties: executionContext.response
-              ..addHeaders(currentResponseHeaders),
-          ),
-        );
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(data: responseData.data, properties: executionContext.response),
+          );
+        }
         await _responseController.sendResponse(
           response,
           request,
@@ -220,6 +217,15 @@ class RouteExecutionContext {
           executionContext.response,
           viewEngine: viewEngine,
         );
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.close,
+            EventData(
+              data: responseData.data,
+              properties: executionContext.response,
+            ),
+          );
+        }
       }
     } on SerinusException catch (e, stackTrace) {
       executionContext ??= ExecutionContext(
@@ -330,10 +336,18 @@ class RouteExecutionContext {
 
     // Prefer to produce bytes for JSON-able and model objects here, so downstream
     // sending code doesn't re-encode and we avoid double-encoding.
-    if (data.canBeJson()) {
+    if (data is Uint8List || data is List<int> || data is File) {
+      context.response.contentType ??= ContentType.binary;
+    } else if (data is Map || data is Iterable) {
       responseData = sharedJsonUtf8Encoder.convert(data);
       result.isEncoded = true;
       context.response.contentType ??= ContentType.json;
+    } else if (data is String) {
+      responseData = data;
+      context.response.contentType ??= ContentType.text;
+    } else if (data is num || data is bool) {
+      responseData = data.toString();
+      context.response.contentType ??= ContentType.text;
     } else {
       final modelKey = data.runtimeType.toString();
       final models = modelProvider?.toJsonModels;
@@ -342,8 +356,6 @@ class RouteExecutionContext {
         responseData = sharedJsonUtf8Encoder.convert(modelObj);
         result.isEncoded = true;
         context.response.contentType ??= ContentType.json;
-      } else if (data is Uint8List || data is File) {
-        context.response.contentType ??= ContentType.binary;
       }
     }
 

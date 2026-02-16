@@ -150,7 +150,9 @@ class SerinusHttpAdapter
     WrappedResponse body,
     ResponseContext properties,
   ) async {
-    response.cookies.addAll(properties.cookies);
+    if (properties.cookies.isNotEmpty) {
+      response.cookies.addAll(properties.cookies);
+    }
     final contentTypeValue =
         properties.contentTypeString ??
         properties.contentType?.toString() ??
@@ -190,7 +192,7 @@ class SerinusHttpAdapter
       return response.addStream(readPipe);
     }
 
-    var responseBody = List<int>.empty(growable: true);
+    List<int> responseBody;
     if (bodyData is List<int>) {
       responseBody = bodyData;
     } else {

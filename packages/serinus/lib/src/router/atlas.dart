@@ -265,6 +265,9 @@ final class Atlas<T> {
     if (_pathsCache.containsKey(path)) {
       return _pathsCache[path]!;
     }
+    if (_pathsCache.length > 10000) {
+      _pathsCache.remove(_pathsCache.keys.first);
+    }
     if (path.isEmpty || path == '/') {
       return const <String>[];
     }
@@ -274,8 +277,7 @@ final class Atlas<T> {
     final start = path.startsWith('/') ? 1 : 0;
     final end = path.endsWith('/') ? path.length - 1 : path.length;
     final segments = path.substring(start, end).split('/');
-    _pathsCache[path] = segments;
-    return segments;
+    return _pathsCache[path] = segments;
   }
 
   /// Inserts a segment into the tree, creating appropriate node types.

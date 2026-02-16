@@ -1,12 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
 
 import '../containers/serinus_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
-import '../extensions/iterable_extansions.dart';
 import '../http/http.dart';
 import '../router/atlas.dart';
 import '../router/router.dart';
@@ -146,34 +144,30 @@ class RoutesResolver {
     );
     executionContext.attachHttpContext(requestContext);
     executionContext.response.statusCode = exception.statusCode;
-    request.emit(
-      RequestEvent.error,
-      EventData(
-        data: exception,
-        properties: executionContext.response
-          ..headers.addAll(
-            (response.currentHeaders is SerinusHeaders)
-                ? (response.currentHeaders as SerinusHeaders).values
-                : (response.currentHeaders as HttpHeaders).toMap(),
-          ),
-      ),
-    );
+    if (request.events.hasListener) {
+      request.emit(
+        RequestEvent.error,
+        EventData(
+          data: exception,
+          properties: executionContext.response
+            ..addHeadersFrom(response.currentHeaders),
+        ),
+      );
+    }
     for (final filter in _container.config.globalExceptionFilters) {
       if (filter.catchTargets.contains(exception.runtimeType)) {
         await filter.onException(executionContext, exception);
         if (executionContext.response.body != null) {
-          request.emit(
-            RequestEvent.data,
-            EventData(
-              data: executionContext.response.body,
-              properties: executionContext.response
-                ..headers.addAll(
-                  (response.currentHeaders is SerinusHeaders)
-                      ? (response.currentHeaders as SerinusHeaders).values
-                      : (response.currentHeaders as HttpHeaders).toMap(),
-                ),
-            ),
-          );
+          if (request.events.hasListener) {
+            request.emit(
+              RequestEvent.data,
+              EventData(
+                data: executionContext.response.body,
+                properties: executionContext.response
+                  ..addHeadersFrom(response.currentHeaders),
+              ),
+            );
+          }
           return _container.applicationRef.reply(
             response,
             request,
@@ -187,18 +181,16 @@ class RoutesResolver {
           );
         }
         if (executionContext.response.closed) {
-          request.emit(
-            RequestEvent.data,
-            EventData(
-              data: executionContext.response.body,
-              properties: executionContext.response
-                ..headers.addAll(
-                  (response.currentHeaders is SerinusHeaders)
-                      ? (response.currentHeaders as SerinusHeaders).values
-                      : (response.currentHeaders as HttpHeaders).toMap(),
-                ),
-            ),
-          );
+          if (request.events.hasListener) {
+            request.emit(
+              RequestEvent.data,
+              EventData(
+                data: executionContext.response.body,
+                properties: executionContext.response
+                  ..addHeadersFrom(response.currentHeaders),
+              ),
+            );
+          }
           return _container.applicationRef.reply(
             response,
             request,
@@ -211,18 +203,16 @@ class RoutesResolver {
     for (final hook in _container.config.globalHooks.resHooks) {
       await hook.onResponse(executionContext, WrappedResponse(exception));
       if (executionContext.response.body != null) {
-        request.emit(
-          RequestEvent.data,
-          EventData(
-            data: executionContext.response.body,
-            properties: executionContext.response
-              ..headers.addAll(
-                (response.currentHeaders is SerinusHeaders)
-                    ? (response.currentHeaders as SerinusHeaders).values
-                    : (response.currentHeaders as HttpHeaders).toMap(),
-              ),
-          ),
-        );
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..addHeadersFrom(response.currentHeaders),
+            ),
+          );
+        }
         return _container.applicationRef.reply(
           response,
           request,
@@ -236,18 +226,16 @@ class RoutesResolver {
         );
       }
       if (executionContext.response.closed) {
-        request.emit(
-          RequestEvent.data,
-          EventData(
-            data: executionContext.response.body,
-            properties: executionContext.response
-              ..headers.addAll(
-                (response.currentHeaders is SerinusHeaders)
-                    ? (response.currentHeaders as SerinusHeaders).values
-                    : (response.currentHeaders as HttpHeaders).toMap(),
-              ),
-          ),
-        );
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..addHeadersFrom(response.currentHeaders),
+            ),
+          );
+        }
         return _container.applicationRef.reply(
           response,
           request,
@@ -261,18 +249,16 @@ class RoutesResolver {
         );
       }
     }
-    request.emit(
-      RequestEvent.data,
-      EventData(
-        data: executionContext.response.body,
-        properties: executionContext.response
-          ..headers.addAll(
-            (response.currentHeaders is SerinusHeaders)
-                ? (response.currentHeaders as SerinusHeaders).values
-                : (response.currentHeaders as HttpHeaders).toMap(),
-          ),
-      ),
-    );
+    if (request.events.hasListener) {
+      request.emit(
+        RequestEvent.data,
+        EventData(
+          data: executionContext.response.body,
+          properties: executionContext.response
+            ..addHeadersFrom(response.currentHeaders),
+        ),
+      );
+    }
     return _container.applicationRef.reply(
       response,
       request,
@@ -311,18 +297,16 @@ class RoutesResolver {
     for (final hook in reqHooks) {
       await hook.onRequest(executionContext);
       if (executionContext.response.closed) {
-        request.emit(
-          RequestEvent.data,
-          EventData(
-            data: executionContext.response.body,
-            properties: executionContext.response
-              ..headers.addAll(
-                (response.currentHeaders is SerinusHeaders)
-                    ? (response.currentHeaders as SerinusHeaders).values
-                    : (response.currentHeaders as HttpHeaders).toMap(),
-              ),
-          ),
-        );
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..addHeadersFrom(response.currentHeaders),
+            ),
+          );
+        }
         return _container.applicationRef.reply(
           response,
           request,
@@ -372,18 +356,16 @@ class RoutesResolver {
     for (final hook in reqHooks) {
       await hook.onRequest(executionContext);
       if (executionContext.response.closed) {
-        request.emit(
-          RequestEvent.data,
-          EventData(
-            data: executionContext.response.body,
-            properties: executionContext.response
-              ..headers.addAll(
-                (response.currentHeaders is SerinusHeaders)
-                    ? (response.currentHeaders as SerinusHeaders).values
-                    : (response.currentHeaders as HttpHeaders).toMap(),
-              ),
-          ),
-        );
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..addHeadersFrom(response.currentHeaders),
+            ),
+          );
+        }
         return _container.applicationRef.reply(
           response,
           request,

@@ -34,6 +34,27 @@ enum HttpMethod {
 
   /// Parses a string to return the corresponding [HttpMethod]
   static HttpMethod parse(String method) {
+    if (identical(method, 'GET') || method == 'GET') {
+      return HttpMethod.get;
+    }
+    if (identical(method, 'POST') || method == 'POST') {
+      return HttpMethod.post;
+    }
+    if (identical(method, 'PUT') || method == 'PUT') {
+      return HttpMethod.put;
+    }
+    if (identical(method, 'DELETE') || method == 'DELETE') {
+      return HttpMethod.delete;
+    }
+    if (identical(method, 'PATCH') || method == 'PATCH') {
+      return HttpMethod.patch;
+    }
+    if (identical(method, 'HEAD') || method == 'HEAD') {
+      return HttpMethod.head;
+    }
+    if (identical(method, 'OPTIONS') || method == 'OPTIONS') {
+      return HttpMethod.options;
+    }
     switch (method.toUpperCase().trim()) {
       case 'POST':
         return HttpMethod.post;

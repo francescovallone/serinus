@@ -14,7 +14,6 @@ import '../core/middlewares/middleware_registry.dart';
 import '../core/websockets/ws_exceptions.dart';
 import '../enums/http_method.dart';
 import '../enums/request_event.dart';
-import '../extensions/iterable_extansions.dart';
 import '../http/http.dart';
 import '../router/atlas.dart';
 import 'adapters.dart';
@@ -286,11 +285,7 @@ class WebSocketAdapter extends WsAdapter {
           EventData(
             data: context.response.body,
             properties: context.response
-              ..headers.addAll(
-                (response.currentHeaders is SerinusHeaders)
-                    ? (response.currentHeaders as SerinusHeaders).values
-                    : (response.currentHeaders as HttpHeaders).toMap(),
-              ),
+              ..addHeadersFrom(response.currentHeaders),
           ),
         );
         return;

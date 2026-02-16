@@ -46,8 +46,17 @@ class Request {
   SerinusHeaders get headers => _original.headers;
 
   /// The query parameters of the request.
-  Map<String, dynamic> get query =>
-      _query ??= Map.of(_original.queryParameters);
+  Map<String, dynamic> get query {
+    if (_query != null) {
+      return _query!;
+    }
+    final queryParameters = _original.queryParameters;
+    if (queryParameters.isEmpty) {
+      _query = <String, dynamic>{};
+      return _query!;
+    }
+    return _query = Map<String, dynamic>.from(queryParameters);
+  }
 
   Map<String, dynamic>? _query;
 
@@ -58,8 +67,16 @@ class Request {
   HttpConnectionInfo? get clientInfo => _original.clientInfo;
 
   /// The params of the request.
-  Map<String, dynamic> get params =>
-      _params ??= Map<String, dynamic>.from(_routeParams);
+  Map<String, dynamic> get params {
+    if (_params != null) {
+      return _params!;
+    }
+    if (_routeParams.isEmpty) {
+      _params = <String, dynamic>{};
+      return _params!;
+    }
+    return _params = Map<String, dynamic>.from(_routeParams);
+  }
 
   /// The content type of the request.
   ContentType get contentType => _original.contentType;

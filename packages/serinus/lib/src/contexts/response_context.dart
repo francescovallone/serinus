@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../extensions/iterable_extansions.dart';
 import '../http/headers.dart';
 import 'base_context.dart';
 
@@ -92,6 +93,31 @@ class ResponseContext extends BaseContext {
       );
     }
     _headers.addAll(headers);
+  }
+
+  /// The [addHeadersFrom] method is used to add headers from supported header
+  /// containers without requiring an intermediate map allocation.
+  void addHeadersFrom(Object headers) {
+    if (_closed) {
+      throw StateError(
+        'Response context has been closed and cannot be modified.',
+      );
+    }
+
+    switch (headers) {
+      case SerinusHeaders serinusHeaders:
+        _headers.addAll(serinusHeaders.values);
+      case HttpHeaders httpHeaders:
+        httpHeaders.copyTo(_headers);
+      case Map<String, String> headersMap:
+        _headers.addAll(headersMap);
+      default:
+        throw ArgumentError.value(
+          headers,
+          'headers',
+          'Unsupported headers type: ${headers.runtimeType}',
+        );
+    }
   }
 
   int? _contentLength;
@@ -257,6 +283,31 @@ final class ResponseProperties {
       );
     }
     _headers.addAll(headers);
+  }
+
+  /// Adds headers from a supported container without requiring an intermediate
+  /// map allocation.
+  void addHeadersFrom(Object headers) {
+    if (_closed) {
+      throw StateError(
+        'Response properties have been closed and cannot be modified.',
+      );
+    }
+
+    switch (headers) {
+      case SerinusHeaders serinusHeaders:
+        _headers.addAll(serinusHeaders.values);
+      case HttpHeaders httpHeaders:
+        httpHeaders.copyTo(_headers);
+      case Map<String, String> headersMap:
+        _headers.addAll(headersMap);
+      default:
+        throw ArgumentError.value(
+          headers,
+          'headers',
+          'Unsupported headers type: ${headers.runtimeType}',
+        );
+    }
   }
 
   set contentType(ContentType? contentType) {

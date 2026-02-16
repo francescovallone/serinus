@@ -29,17 +29,17 @@ class RequestContext<TBody> extends BaseContext {
     bool shouldValidateMultipart = false,
   }) : request = httpRequest,
        _bodyType = explicitType ?? _typeOf<TBody>(),
-       _converter = _BodyConverter(modelProvider),
        _body = body,
        shouldValidateMultipart = shouldValidateMultipart,
        super(providers, values, hooksServices) {
-    this.body = _converter.convert(_bodyType, body);
+    _converter ??= _BodyConverter(modelProvider);
+    this.body = _converter?.convert(_bodyType, body);
   }
 
   RequestContext._(
     this.request,
     this._bodyType,
-    this._converter,
+    _BodyConverter? converter,
     TBody? body,
     Map<Type, Provider> providers,
     Map<ValueToken, Object?> values,
@@ -47,7 +47,11 @@ class RequestContext<TBody> extends BaseContext {
     bool shouldValidateMultipart,
   ) : _body = body,
       shouldValidateMultipart = shouldValidateMultipart,
-      super(providers, values, hooksServices);
+      super(providers, values, hooksServices) {
+    _converter ??= converter ?? _BodyConverter(null);
+  }
+
+  static _BodyConverter? _converter;
 
   /// Creates a [RequestContext] instance reading and converting the request body to [TBody].
   static Future<RequestContext<TBody>> create<TBody>({
@@ -60,13 +64,13 @@ class RequestContext<TBody> extends BaseContext {
     Type? explicitType,
     bool shouldValidateMultipart = false,
   }) async {
-    final converter = _BodyConverter(modelProvider);
+    _converter ??= _BodyConverter(modelProvider);
     final targetType = explicitType ?? _typeOf<TBody>();
     if (shouldValidateMultipart && request.contentType.isMultipart) {
       return RequestContext._(
         request,
         targetType,
-        converter,
+        _converter,
         null,
         providers,
         values,
@@ -74,9 +78,15 @@ class RequestContext<TBody> extends BaseContext {
         shouldValidateMultipart,
       );
     }
-    final raw = await request.parseBody(rawBody: rawBody);
+    final hasBody = request.contentLength > 0 || request.headers.containsKey('transfer-encoding');
+    Object? raw;
+    if (hasBody) {
+      raw = await request.parseBody(rawBody: rawBody);
+    } else {
+      raw = null;
+    }
     if (explicitType != null) {
-      final converted = converter.convert(targetType, raw) as TBody;
+      final converted = _converter?.convert(targetType, raw) as TBody;
       request.body = converted;
     } else {
       request.body = raw;
@@ -84,7 +94,7 @@ class RequestContext<TBody> extends BaseContext {
     return RequestContext._(
       request,
       targetType,
-      converter,
+      _converter,
       request.body as TBody,
       providers,
       values,
@@ -97,8 +107,6 @@ class RequestContext<TBody> extends BaseContext {
   final Request request;
 
   final Type _bodyType;
-
-  final _BodyConverter _converter;
 
   /// Indicates whether multipart requests should be validated before accessing the body.
   final bool shouldValidateMultipart;
@@ -137,7 +145,7 @@ class RequestContext<TBody> extends BaseContext {
       return bodyAs<T>();
     }
     final formData = await request.parseBody(rawBody: false, onPart: onPart);
-    final converted = _converter.convert(_bodyType, formData) as T;
+    final converted = _converter?.convert(_bodyType, formData) as T;
     body = converted;
     request.body = converted;
     return converted;
@@ -145,7 +153,7 @@ class RequestContext<TBody> extends BaseContext {
 
   /// Replaces the body value ensuring it conforms to [TBody].
   set body(Object? value) {
-    _body = _converter.convert(_bodyType, value) as TBody;
+    _body = _converter?.convert(_bodyType, value) as TBody;
     request.body = _body;
   }
 
@@ -154,7 +162,7 @@ class RequestContext<TBody> extends BaseContext {
     if (body is T && !override) {
       return body as T;
     }
-    return _converter.convert(_typeOf<T>(), body) as T;
+    return _converter?.convert(_typeOf<T>(), body) as T;
   }
 
   /// Casts the current body to a list of a different type.
@@ -166,7 +174,7 @@ class RequestContext<TBody> extends BaseContext {
       throw BadRequestException('The element is not of the expected type');
     }
     return List<T>.from(
-      (body as List).map((e) => _converter.convert(_typeOf<T>(), e) as T),
+      (body as List).map((e) => _converter?.convert(_typeOf<T>(), e) as T),
     );
   }
 
@@ -205,19 +213,19 @@ class RequestContext<TBody> extends BaseContext {
   /// It tries to convert the parameter to the specified type [T].
   T? queryAs<T>([String? name]) {
     if (name == null) {
-      return _converter.convert(_typeOf<T>(), query) as T;
+      return _converter?.convert(_typeOf<T>(), query) as T;
     }
     if (!query.containsKey(name)) {
       return null;
     }
-    return _converter.convert(_typeOf<T>(), query[name]) as T;
+    return _converter?.convert(_typeOf<T>(), query[name]) as T;
   }
 
   /// Retrieves a route parameter by name, or all parameters if no name is provided.
   /// It tries to convert the parameter to the specified type [T].
   T paramAs<T>([String? name]) {
     if (name == null) {
-      return _converter.convert(_typeOf<T>(), params) as T;
+      return _converter?.convert(_typeOf<T>(), params) as T;
     }
     final value = params[name];
     if (value == null) {
@@ -227,7 +235,7 @@ class RequestContext<TBody> extends BaseContext {
       }
       throw ArgumentError('Path parameter $name not found');
     }
-    return _converter.convert(_typeOf<T>(), value) as T;
+    return _converter?.convert(_typeOf<T>(), value) as T;
   }
 }
 
