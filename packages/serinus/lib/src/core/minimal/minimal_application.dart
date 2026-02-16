@@ -112,7 +112,18 @@ class SerinusMinimalApplication extends SerinusApplication {
   }
 
   /// Functional GET route
-  void get<T, B>(String path, Future<T> Function(RequestContext<B> context) handler) {
+  void get<T, B>(
+    String path, Future<T> 
+    Function(RequestContext<B> context) handler,
+    {List<Middleware> middlewares = const []}
+  ) {
+    if (middlewares.isNotEmpty) {
+      _rootModule.addMiddlewareConfig((consumer) {
+        consumer
+            .apply(middlewares)
+            .forRoutes([RouteInfo(path, method: HttpMethod.get)]);
+      });
+    }
     _rootModule.minimalController.registerRoute<T, B>(
       Route.get(path), // Or Route(path, HttpMethod.get) depending on your Route API
       handler,
@@ -120,7 +131,18 @@ class SerinusMinimalApplication extends SerinusApplication {
   }
 
   /// Functional POST route
-  void post<T, B>(String path, Future<T> Function(RequestContext<B> context) handler) {
+  void post<T, B>(
+    String path, 
+    Future<T> Function(RequestContext<B> context) handler,
+    {List<Middleware> middlewares = const []}
+  ) {
+    if (middlewares.isNotEmpty) {
+      _rootModule.addMiddlewareConfig((consumer) {
+        consumer
+            .apply(middlewares)
+            .forRoutes([RouteInfo(path, method: HttpMethod.post)]);
+      });
+    }
     _rootModule.minimalController.registerRoute<T, B>(
       Route.post(path), 
       handler,
@@ -128,7 +150,18 @@ class SerinusMinimalApplication extends SerinusApplication {
   }
   
   /// Function PUT route
-  void put<T, B>(String path, Future<T> Function(RequestContext<B> context) handler) {
+  void put<T, B>(
+    String path, 
+    Future<T> Function(RequestContext<B> context) handler,
+    {List<Middleware> middlewares = const []}
+  ) {
+    if (middlewares.isNotEmpty) {
+      _rootModule.addMiddlewareConfig((consumer) {
+        consumer
+            .apply(middlewares)
+            .forRoutes([RouteInfo(path, method: HttpMethod.put)]);
+      });
+    }
     _rootModule.minimalController.registerRoute<T, B>(
       Route.put(path), 
       handler,
@@ -136,7 +169,17 @@ class SerinusMinimalApplication extends SerinusApplication {
   }
 
   /// Function DELETE route
-  void delete<T, B>(String path, Future<T> Function(RequestContext<B> context) handler) {
+  void delete<T, B>(
+    String path, Future<T> Function(RequestContext<B> context) handler,
+    {List<Middleware> middlewares = const []}
+  ) {
+    if (middlewares.isNotEmpty) {
+      _rootModule.addMiddlewareConfig((consumer) {
+        consumer
+            .apply(middlewares)
+            .forRoutes([RouteInfo(path, method: HttpMethod.delete)]);
+      });
+    }
     _rootModule.minimalController.registerRoute<T, B>(
       Route.delete(path), 
       handler,
@@ -144,7 +187,18 @@ class SerinusMinimalApplication extends SerinusApplication {
   }
 
   /// Function PATCH route
-  void patch<T, B>(String path, Future<T> Function(RequestContext<B> context) handler) {
+  void patch<T, B>(
+    String path, 
+    Future<T> Function(RequestContext<B> context) handler,
+    {List<Middleware> middlewares = const []}
+  ) {
+    if (middlewares.isNotEmpty) {
+      _rootModule.addMiddlewareConfig((consumer) {
+        consumer
+            .apply(middlewares)
+            .forRoutes([RouteInfo(path, method: HttpMethod.patch)]);
+      });
+    }
     _rootModule.minimalController.registerRoute<T, B>(
       Route.patch(path), 
       handler,
@@ -152,7 +206,18 @@ class SerinusMinimalApplication extends SerinusApplication {
   }
 
   /// Function ALL route
-  void all<T, B>(String path, Future<T> Function(RequestContext<B> context) handler) {
+  void all<T, B>(
+    String path, 
+    Future<T> Function(RequestContext<B> context) handler,
+    {List<Middleware> middlewares = const []}
+  ) {
+    if (middlewares.isNotEmpty) {
+      _rootModule.addMiddlewareConfig((consumer) {
+        consumer
+            .apply(middlewares)
+            .forRoutes([RouteInfo(path, method: HttpMethod.all)]);
+      });
+    }
     _rootModule.minimalController.registerRoute<T, B>(
       Route(path: path, method: HttpMethod.all), 
       handler,

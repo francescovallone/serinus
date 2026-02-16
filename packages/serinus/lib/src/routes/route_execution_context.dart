@@ -80,7 +80,9 @@ class RouteExecutionContext {
         rawBody: rawBody,
       );
       executionContext.attachHttpContext(requestContext);
-      for (final hook in context.reqHooks) {
+
+      for (int i = 0; i < context.reqHooks.length; i++) {
+        final hook = context.reqHooks[i];
         await hook.onRequest(executionContext);
         if (executionContext.response.body != null) {
           await _responseController.sendResponse(
@@ -112,8 +114,8 @@ class RouteExecutionContext {
         );
       }
       if (context.pipes.isNotEmpty) {
-        for (final pipe in context.pipes) {
-          await pipe.transform(executionContext);
+        for (int i = 0; i < context.pipes.length; i++) {
+          await context.pipes[i].transform(executionContext);
         }
       }
       final middlewares = context
@@ -272,7 +274,8 @@ class RouteExecutionContext {
     RouteContext context,
     SerinusException exception,
   ) async {
-    for (final filter in context.exceptionFilters) {
+    for (int i = 0; i < context.exceptionFilters.length; i++) {
+      final filter = context.exceptionFilters.elementAt(i);
       if (filter.catchTargets.contains(exception.runtimeType) ||
           filter.catchTargets.isEmpty) {
         await filter.onException(executionContext, exception);
@@ -295,8 +298,8 @@ class RouteExecutionContext {
     if (context.afterHooks.isEmpty) {
       return;
     }
-    for (final hook in context.afterHooks) {
-      await hook.afterHandle(executionContext, response);
+    for (int i = 0; i < context.afterHooks.length; i++) {
+      await context.afterHooks[i].afterHandle(executionContext, response);
     }
   }
 
@@ -307,8 +310,8 @@ class RouteExecutionContext {
     if (context.beforeHooks.isEmpty) {
       return;
     }
-    for (final hook in context.beforeHooks) {
-      await hook.beforeHandle(executionContext);
+    for (int i = 0; i < context.beforeHooks.length; i++) {
+      await context.beforeHooks[i].beforeHandle(executionContext);
     }
   }
 
@@ -356,8 +359,8 @@ class RouteExecutionContext {
     if (context.resHooks.isEmpty) {
       return;
     }
-    for (final hook in context.resHooks) {
-      await hook.onResponse(executionContext, responseData);
+    for (int i = 0; i < context.resHooks.length; i++) {
+      await context.resHooks[i].onResponse(executionContext, responseData);
     }
   }
 }

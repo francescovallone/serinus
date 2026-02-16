@@ -116,7 +116,12 @@ class Request {
   int get contentLength =>
       _original.contentLength > -1 ? _original.contentLength : _bodyLength;
 
+  int? _rawBodyLengthCache;
+
   int get _bodyLength {
+    if (_rawBodyLengthCache != null) {
+      return _rawBodyLengthCache!;
+    }
     final currentBody = body;
     if (currentBody == null) {
       return 0;
@@ -133,7 +138,7 @@ class Request {
     if (currentBody is FormData) {
       return currentBody.length;
     }
-    return utf8.encode(currentBody.toString()).length;
+    return currentBody.toString().length;
   }
 
   /// This method is used to parse the body of the request.
@@ -155,6 +160,7 @@ class Request {
 
     // Read bytes once and cache - all other paths need this
     final bytes = await _original.bytes();
+    _rawBodyLengthCache = bytes.length;
 
     if (bytes.isEmpty) {
       _setBody(null);

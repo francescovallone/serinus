@@ -132,7 +132,8 @@ class RouteContext<T extends RouteHandlerSpec> {
       return _staticMetadataView;
     }
     final resolved = <String, Metadata>{..._staticMetadata};
-    for (final meta in _metadataCache) {
+    for (int i = 0; i < _metadataCache.length; i++) {
+      final meta = _metadataCache[i];
       if (meta is ContextualizedMetadata) {
         resolved[meta.name] = await meta.resolve(context);
       }

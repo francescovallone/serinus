@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
@@ -30,6 +31,9 @@ class SerinusHttpAdapter
   /// The [isRunning] property returns true if the server is running.
   bool get isRunning => server != null;
 
+  String _cachedDate = formatHttpDate(DateTime.now());
+  Timer? _dateCacheTimer;
+
   @override
   bool get isOpen => isRunning;
 
@@ -51,15 +55,19 @@ class SerinusHttpAdapter
   @override
   Future<void> init([ApplicationConfig? config]) async {
     if (securityContext == null) {
-      server = await io.HttpServer.bind(host, port, shared: true);
+      server = await io.HttpServer.bind(host, port, shared: true, backlog: 8192);
     } else {
       server = await io.HttpServer.bindSecure(
         host,
         port,
         securityContext!,
         shared: true,
+        backlog: 8192
       );
     }
+    _dateCacheTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _cachedDate = formatHttpDate(DateTime.now());
+    });
     // apply keep-alive idle timeout when configured
     if (keepAliveIdleTimeout != null) {
       server?.idleTimeout = keepAliveIdleTimeout!;
@@ -71,6 +79,7 @@ class SerinusHttpAdapter
   }
 
   Future<void> close() async {
+    _dateCacheTimer?.cancel();
     await server?.close(force: true);
   }
 
@@ -197,7 +206,7 @@ class SerinusHttpAdapter
     response.headers({
       ...headers,
       io.HttpHeaders.contentLengthHeader: contentLength.toString(),
-      io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
+      io.HttpHeaders.dateHeader: _cachedDate,
       if (response.currentHeaders.value('etag') == null)
         io.HttpHeaders.etagHeader: body.eTag,
     }, preserveHeaderCase: preserveHeaderCase);

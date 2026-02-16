@@ -40,11 +40,7 @@ abstract class SerinusBenchmark {
     ]);
     Result? result;
     process.stdout.transform(utf8.decoder).listen((message) {
-      print(message);
       result = _parseWrkResult(message);
-    });
-    process.stderr.transform(utf8.decoder).listen((message) {
-      print(message);
     });
     await process.exitCode;
     return result!;

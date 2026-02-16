@@ -362,26 +362,33 @@ class InternalRequest extends IncomingMessage {
     if (method != 'GET') {
       return false;
     }
-    final connection = original.headers['connection']?.join(',');
-    if (connection == null) {
-      return false;
-    }
-    final tokens = connection
-        .toLowerCase()
-        .split(',')
-        .map((token) => token.trim());
-    if (!tokens.contains('upgrade')) {
-      return false;
-    }
-    final upgrade = original.headers.value('Upgrade');
-    if (upgrade == null) {
-      return false;
-    }
-    if (upgrade.toLowerCase() != 'websocket') {
+
+    // 1. Fetch the raw list of connection headers (Dart handles case-insensitive lookup)
+    final connectionHeaders = original.headers['connection'];
+    if (connectionHeaders == null) {
       return false;
     }
 
-    final version = original.headers.value('Sec-WebSocket-Version');
+    // 2. Iterate directly to avoid .join(), .split(), and .map()
+    bool hasUpgrade = false;
+    for (var i = 0; i < connectionHeaders.length; i++) {
+      if (connectionHeaders[i].toLowerCase().contains('upgrade')) {
+        hasUpgrade = true;
+        break;
+      }
+    }
+
+    if (!hasUpgrade) {
+      return false;
+    }
+
+    // Use lowercase 'upgrade' to avoid internal case conversions in Dart's HttpHeaders
+    final upgrade = original.headers.value('upgrade');
+    if (upgrade == null || upgrade.toLowerCase() != 'websocket') {
+      return false;
+    }
+
+    final version = original.headers.value('sec-websocket-version');
     if (version == null) {
       throw BadRequestException('missing Sec-WebSocket-Version header.');
     } else if (version != '13') {
@@ -394,8 +401,7 @@ class InternalRequest extends IncomingMessage {
       );
     }
 
-    final key = original.headers.value('Sec-WebSocket-Key');
-
+    final key = original.headers.value('sec-websocket-key');
     if (key == null) {
       throw BadRequestException('missing Sec-WebSocket-Key header.');
     }
