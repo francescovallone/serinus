@@ -155,26 +155,26 @@ class SerinusHttpAdapter
         properties.contentTypeString ??
         properties.contentType?.toString() ??
         'text/plain; charset=utf-8';
-    final headers = {...properties.headers, 'content-type': contentTypeValue};
+    final Map<String, String> headers = Map.from(properties.headers);
+    headers[io.HttpHeaders.contentTypeHeader] = contentTypeValue;
 
     final bodyData = body.data;
     if (bodyData is io.File) {
       final fileStat = await bodyData.stat();
       final rawFileName = bodyData.uri.pathSegments.last;
       final sanitizedFileName = rawFileName.replaceAll('"', '');
-      response.headers({
-        ...headers,
-        'content-type':
-            properties.contentTypeString ??
-            properties.contentType?.toString() ??
-            'application/octet-stream',
-        io.HttpHeaders.dateHeader: formatHttpDate(DateTime.now()),
-        if (response.currentHeaders.value('etag') == null)
-          io.HttpHeaders.etagHeader: fileStat.eTag,
-        io.HttpHeaders.contentDisposition:
-            'attachment; filename*=UTF-8\'\'"$sanitizedFileName"',
-        io.HttpHeaders.contentLengthHeader: fileStat.size.toString(),
-      }, preserveHeaderCase: preserveHeaderCase);
+      headers[io.HttpHeaders.contentTypeHeader] =
+          properties.contentTypeString ??
+          properties.contentType?.toString() ??
+          'application/octet-stream';
+      headers[io.HttpHeaders.dateHeader] = _cachedDate;
+      if (response.currentHeaders.value('etag') == null) {
+        headers[io.HttpHeaders.etagHeader] = fileStat.eTag;
+      }
+      headers[io.HttpHeaders.contentDisposition] =
+          'attachment; filename*=UTF-8\'\'"$sanitizedFileName"';
+      headers[io.HttpHeaders.contentLengthHeader] = fileStat.size.toString();
+      response.headers(headers, preserveHeaderCase: preserveHeaderCase);
       response.status(properties.statusCode);
       if (request.fresh) {
         response.status(304);
@@ -202,13 +202,12 @@ class SerinusHttpAdapter
     }
 
     final contentLength = properties.contentLength ?? responseBody.length;
-    response.headers({
-      ...headers,
-      io.HttpHeaders.contentLengthHeader: contentLength.toString(),
-      io.HttpHeaders.dateHeader: _cachedDate,
-      if (response.currentHeaders.value('etag') == null)
-        io.HttpHeaders.etagHeader: body.eTag,
-    }, preserveHeaderCase: preserveHeaderCase);
+    headers[io.HttpHeaders.contentLengthHeader] = contentLength.toString();
+    headers[io.HttpHeaders.dateHeader] = _cachedDate;
+    if (response.currentHeaders.value('etag') == null) {
+      headers[io.HttpHeaders.etagHeader] = body.eTag;
+    }
+    response.headers(headers, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
     if (request.fresh) {
       response.status(304);

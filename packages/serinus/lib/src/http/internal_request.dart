@@ -89,9 +89,11 @@ abstract class IncomingMessage {
     Future<void> Function(MimeMultipart part)? onPart,
   });
 
+  StreamController<(RequestEvent, EventData)>? _events;
+
   /// The [events] property contains the events of the request
-  StreamController<(RequestEvent, EventData)> events =
-      StreamController.broadcast(sync: true);
+  StreamController<(RequestEvent, EventData)> get events => 
+    _events ??= StreamController.broadcast(sync: true);
 
   /// This method is used to listen to a request event.
   ///
@@ -114,7 +116,7 @@ abstract class IncomingMessage {
   ///
   /// It add the event and data to the events stream and can be listened whenever the request is processed.
   void emit(RequestEvent event, EventData data) {
-    events.sink.add((event, data));
+    _events?.sink.add((event, data));
   }
 
   /// The [ifModifiedSince] getter is used to get the if-modified-since header of the request
@@ -155,8 +157,10 @@ abstract class IncomingMessage {
 class InternalRequest extends IncomingMessage {
   static int _idCounter = 0;
 
+  String? _id;
+
   @override
-  final String id;
+  String get id => _id ??= 'req-${original.hashCode ^ ++_idCounter}';
 
   // Cache the parsed URI to avoid repeated Uri.parse work on hot paths.
   late final Uri _uri = original.requestedUri;
@@ -239,7 +243,7 @@ class InternalRequest extends IncomingMessage {
     required this.original,
     required this.port,
     required this.host,
-  }) : id = 'req-${original.hashCode ^ ++_idCounter}';
+  });
 
   /// The [response] getter is used to get the response of the request
   InternalResponse get response {

@@ -7,13 +7,13 @@ import '../core.dart';
 class _MinimalController extends Controller {
   // Mounts at the root path
   _MinimalController() : super('/');
-  
+
   // Exposes the protected 'on' method from the base Controller
   void registerRoute<T, B>(
-    Route route, 
-    Future<T> Function(RequestContext<B> context) handler, 
-    {bool shouldValidateMultipart = false}
-  ) {
+    Route route,
+    Future<T> Function(RequestContext<B> context) handler, {
+    bool shouldValidateMultipart = false,
+  }) {
     on<T, B>(route, handler, shouldValidateMultipart: shouldValidateMultipart);
   }
 }
@@ -56,7 +56,6 @@ class _MinimalModule extends Module {
       config(consumer);
     }
   }
-
 }
 
 /// A minimal application class that allows dynamic registration of providers, modules, and routes.
@@ -113,115 +112,114 @@ class SerinusMinimalApplication extends SerinusApplication {
 
   /// Functional GET route
   void get<T, B>(
-    String path, Future<T> 
-    Function(RequestContext<B> context) handler,
-    {List<Middleware> middlewares = const []}
-  ) {
+    String path,
+    Future<T> Function(RequestContext<B> context) handler, {
+    List<Middleware> middlewares = const [],
+  }) {
     if (middlewares.isNotEmpty) {
       _rootModule.addMiddlewareConfig((consumer) {
-        consumer
-            .apply(middlewares)
-            .forRoutes([RouteInfo(path, method: HttpMethod.get)]);
+        consumer.apply(middlewares).forRoutes([
+          RouteInfo(path, method: HttpMethod.get),
+        ]);
       });
     }
     _rootModule.minimalController.registerRoute<T, B>(
-      Route.get(path), // Or Route(path, HttpMethod.get) depending on your Route API
+      Route.get(
+        path,
+      ), // Or Route(path, HttpMethod.get) depending on your Route API
       handler,
     );
   }
 
   /// Functional POST route
   void post<T, B>(
-    String path, 
-    Future<T> Function(RequestContext<B> context) handler,
-    {List<Middleware> middlewares = const []}
-  ) {
+    String path,
+    Future<T> Function(RequestContext<B> context) handler, {
+    List<Middleware> middlewares = const [],
+  }) {
     if (middlewares.isNotEmpty) {
       _rootModule.addMiddlewareConfig((consumer) {
-        consumer
-            .apply(middlewares)
-            .forRoutes([RouteInfo(path, method: HttpMethod.post)]);
+        consumer.apply(middlewares).forRoutes([
+          RouteInfo(path, method: HttpMethod.post),
+        ]);
       });
     }
     _rootModule.minimalController.registerRoute<T, B>(
-      Route.post(path), 
-      handler,
-    );
-  }
-  
-  /// Function PUT route
-  void put<T, B>(
-    String path, 
-    Future<T> Function(RequestContext<B> context) handler,
-    {List<Middleware> middlewares = const []}
-  ) {
-    if (middlewares.isNotEmpty) {
-      _rootModule.addMiddlewareConfig((consumer) {
-        consumer
-            .apply(middlewares)
-            .forRoutes([RouteInfo(path, method: HttpMethod.put)]);
-      });
-    }
-    _rootModule.minimalController.registerRoute<T, B>(
-      Route.put(path), 
+      Route.post(path),
       handler,
     );
   }
 
-  /// Function DELETE route
-  void delete<T, B>(
-    String path, Future<T> Function(RequestContext<B> context) handler,
-    {List<Middleware> middlewares = const []}
-  ) {
+  /// Function PUT route
+  void put<T, B>(
+    String path,
+    Future<T> Function(RequestContext<B> context) handler, {
+    List<Middleware> middlewares = const [],
+  }) {
     if (middlewares.isNotEmpty) {
       _rootModule.addMiddlewareConfig((consumer) {
-        consumer
-            .apply(middlewares)
-            .forRoutes([RouteInfo(path, method: HttpMethod.delete)]);
+        consumer.apply(middlewares).forRoutes([
+          RouteInfo(path, method: HttpMethod.put),
+        ]);
+      });
+    }
+    _rootModule.minimalController.registerRoute<T, B>(Route.put(path), handler);
+  }
+
+  /// Function DELETE route
+  void delete<T, B>(
+    String path,
+    Future<T> Function(RequestContext<B> context) handler, {
+    List<Middleware> middlewares = const [],
+  }) {
+    if (middlewares.isNotEmpty) {
+      _rootModule.addMiddlewareConfig((consumer) {
+        consumer.apply(middlewares).forRoutes([
+          RouteInfo(path, method: HttpMethod.delete),
+        ]);
       });
     }
     _rootModule.minimalController.registerRoute<T, B>(
-      Route.delete(path), 
+      Route.delete(path),
       handler,
     );
   }
 
   /// Function PATCH route
   void patch<T, B>(
-    String path, 
-    Future<T> Function(RequestContext<B> context) handler,
-    {List<Middleware> middlewares = const []}
-  ) {
+    String path,
+    Future<T> Function(RequestContext<B> context) handler, {
+    List<Middleware> middlewares = const [],
+  }) {
     if (middlewares.isNotEmpty) {
       _rootModule.addMiddlewareConfig((consumer) {
-        consumer
-            .apply(middlewares)
-            .forRoutes([RouteInfo(path, method: HttpMethod.patch)]);
+        consumer.apply(middlewares).forRoutes([
+          RouteInfo(path, method: HttpMethod.patch),
+        ]);
       });
     }
     _rootModule.minimalController.registerRoute<T, B>(
-      Route.patch(path), 
+      Route.patch(path),
       handler,
     );
   }
 
   /// Function ALL route
   void all<T, B>(
-    String path, 
-    Future<T> Function(RequestContext<B> context) handler,
-    {List<Middleware> middlewares = const []}
-  ) {
+    String path,
+    Future<T> Function(RequestContext<B> context) handler, {
+    List<Middleware> middlewares = const [],
+  }) {
     if (middlewares.isNotEmpty) {
       _rootModule.addMiddlewareConfig((consumer) {
-        consumer
-            .apply(middlewares)
-            .forRoutes([RouteInfo(path, method: HttpMethod.all)]);
+        consumer.apply(middlewares).forRoutes([
+          RouteInfo(path, method: HttpMethod.all),
+        ]);
       });
     }
     _rootModule.minimalController.registerRoute<T, B>(
-      Route(path: path, method: HttpMethod.all), 
+      Route(path: path, method: HttpMethod.all),
       handler,
-    ); 
+    );
   }
-
 }

@@ -59,7 +59,7 @@ class Request {
 
   /// The params of the request.
   Map<String, dynamic> get params =>
-      _params ?? Map<String, String>.from(_routeParams);
+      _params ??= Map<String, dynamic>.from(_routeParams);
 
   /// The content type of the request.
   ContentType get contentType => _original.contentType;
