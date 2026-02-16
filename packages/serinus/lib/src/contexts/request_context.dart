@@ -32,7 +32,9 @@ class RequestContext<TBody> extends BaseContext {
        _body = body,
        shouldValidateMultipart = shouldValidateMultipart,
        super(providers, values, hooksServices) {
-    _converter ??= _BodyConverter(modelProvider);
+    if (_converter?.modelProvider == null) {
+      _converter = _BodyConverter(modelProvider);
+    }
     this.body = _converter?.convert(_bodyType, body);
   }
 
@@ -64,6 +66,9 @@ class RequestContext<TBody> extends BaseContext {
     Type? explicitType,
     bool shouldValidateMultipart = false,
   }) async {
+    if (_converter == null || _converter?.modelProvider == null) {
+      _converter = _BodyConverter(modelProvider);
+    }
     _converter ??= _BodyConverter(modelProvider);
     final targetType = explicitType ?? _typeOf<TBody>();
     if (shouldValidateMultipart && request.contentType.isMultipart) {
