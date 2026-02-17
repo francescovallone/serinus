@@ -172,5 +172,7 @@ _Config _parseArgs(List<String> args) {
 final _scenarios = <_Scenario>[
   _Scenario('serinus', () => benchmarks.SerinusAppBenchmark().report()),
   _Scenario('shelf', () => benchmarks.ShelfAppBenchmark().report()),
+  _Scenario('dart_frog', () => benchmarks.DartFrogAppBenchmark().report()),
+  _Scenario('relic', () => benchmarks.RelicAppBenchmark().report()),
   _Scenario('dart_http', () => benchmarks.DartHttpAppBenchmark().report()),
 ];

@@ -9,10 +9,11 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  # dart_frog: ^1.1.0
+  dart_frog: ^1.2.6
   http: ^1.2.1
-  serinus: ^2.0.3
+  serinus: ^2.1.1
   shelf: ^1.4.2
+  relic: ^1.0.0
   benchmark_harness: ^2.2.2 
   # vania: ^0.4.1
   # pharaoh: ^0.0.7
