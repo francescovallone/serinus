@@ -25,7 +25,8 @@ export const roadmapTracks: RoadmapTrack[] = [
     items: [
       { id: "c1", title: "Minimal Application", status: "in-progress", version: "v2.2" },
       { id: "c2", title: "Observability", status: "in-progress", version: "v2.2" },
-      { id: "c3", title: "Injection Scopes", status: "planned" },
+      { id: "c3", title: "Injection Scopes", status: "planned", version: "v2.3" },
+      { id: "c4", title: "CSRF", status: "in-progress", version: "v2.2" },
     ],
   },
 //   {
@@ -47,7 +48,7 @@ export const roadmapTracks: RoadmapTrack[] = [
     color: "220 70% 55%",
     progress: 0,
     items: [
-      { id: "f1", title: "Policies", status: "planned" },
+      { id: "f1", title: "Policies", status: "planned", version: "v1.1" },
     ],
   },
   {
@@ -65,7 +66,7 @@ export const roadmapTracks: RoadmapTrack[] = [
     color: "15 80% 55%",
     progress: 0,
     items: [
-      { id: "t4", title: "Seeding utilities", status: "planned" },
+      { id: "t4", title: "Seeding utilities", status: "planned", version: "v1.1" },
     ],
   },
 ];

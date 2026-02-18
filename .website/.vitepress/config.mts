@@ -190,6 +190,7 @@ export default defineConfig({
               { text: 'Authentication', link: 'authentication' },
               { text: 'Rate Limiting', link: 'rate_limiting' },
               { text: 'Body Size', link: 'body_size' },
+              { text: 'CSRF', link: 'csrf' },
               { text: 'CORS', link: 'cors' },
             ]
           },

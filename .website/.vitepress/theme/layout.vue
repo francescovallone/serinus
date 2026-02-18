@@ -19,7 +19,7 @@ import OpenIn from '../../components/open-in.vue';
                 <p>Serinus is MIT licensed open-source project and it grows thanks to the community's support. If you want to support us and the project, read more <a href="/support" class="text-serinus hover:text-serinus-2 underline">here</a>.</p>
                 <div class="flex w-auto">
                     <a
-                        href="https://discord.gg/zydgnJ3ksJ"
+                        href="https://github.com/sponsors/francescovallone"
                         target="_blank"
                         rel="noopener noreferrer"
                         class="sponsor-link inline-flex items-center gap-3 px-6 py-4 editorial-border text-foreground font-display font-semibold text-lg hover:bg-foreground transition-all"

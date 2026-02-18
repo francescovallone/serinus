@@ -17,11 +17,12 @@ const config = statusConfig[props.item.status];
 <template>
 	<motion.div
 		layout="position"
-		:initial="{ opacity: 0, y: 12}"
+		:initial="{ opacity: 0, y: 12 }"
 		:animate="{ opacity: 1, y: 0 }"
-		:exit="{ opacity: 0, y: -8}"
+		:exit="{ opacity: 0, y: -8 }"
+		:transition="{ duration: 0.2 }"
 		:class="[
-			'group relative p-4 rounded-lg border transition-all duration-200 hover:shadow-md',
+			'group relative p-4 rounded-lg border transition-shadow duration-200 hover:shadow-md',
 			config.class
 		]"
 	>
