@@ -1,11 +1,8 @@
 <script setup>
 import Ecosystem from './ecosystem.vue'
 import Hero from './hero.vue'
-import Partners from './partners.vue'
-import Highlights from './highlights.vue'
 import Features from './features.vue'
 import CommunitySection from './community_section.vue'
-import { plugins } from '../data/ecosystem';
 </script>
 
 <template>
