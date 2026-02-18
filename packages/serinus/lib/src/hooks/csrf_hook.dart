@@ -8,13 +8,13 @@ import '../../serinus.dart';
 class CsrfHook extends Hook with OnRequest, OnResponse {
   /// Methods to ignore (do not validate CSRF token for these).
   final List<String> ignoreMethods;
-  
+
   /// The name of the header to check for the token.
   final String headerName;
-  
+
   /// The key used to store the token in the session.
   final String sessionKey;
-  
+
   /// UUID generator for secure tokens.
   final Uuid _uuid = const Uuid();
 
@@ -45,7 +45,7 @@ class CsrfHook extends Hook with OnRequest, OnResponse {
     }
     final requestContext = context.switchToHttp();
     final request = requestContext.request;
-   final session = request.session;
+    final session = request.session;
     if (session.get(sessionKey) == null) {
       session.put(sessionKey, _uuid.v4());
     }
@@ -61,7 +61,10 @@ class CsrfHook extends Hook with OnRequest, OnResponse {
   }
 
   @override
-  Future<void> onResponse(ExecutionContext context, WrappedResponse response) async {
+  Future<void> onResponse(
+    ExecutionContext context,
+    WrappedResponse response,
+  ) async {
     if (context.argumentsHost is! HttpArgumentsHost) {
       return;
     }
@@ -72,7 +75,7 @@ class CsrfHook extends Hook with OnRequest, OnResponse {
       context.response.cookies.add(
         Cookie(cookieName, token)
           ..httpOnly = false
-          ..path = '/' 
+          ..path = '/'
           ..secure = true
           ..sameSite = SameSite.strict,
       );

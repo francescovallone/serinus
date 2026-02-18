@@ -83,7 +83,9 @@ class RequestContext<TBody> extends BaseContext {
         shouldValidateMultipart,
       );
     }
-    final hasBody = request.contentLength > 0 || request.headers.containsKey('transfer-encoding');
+    final hasBody =
+        request.contentLength > 0 ||
+        request.headers.containsKey('transfer-encoding');
     Object? raw;
     if (hasBody) {
       raw = await request.parseBody(rawBody: rawBody);

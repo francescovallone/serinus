@@ -92,8 +92,8 @@ abstract class IncomingMessage {
   StreamController<(RequestEvent, EventData)>? _events;
 
   /// The [events] property contains the events of the request
-  StreamController<(RequestEvent, EventData)> get events => 
-    _events ??= StreamController.broadcast(sync: true);
+  StreamController<(RequestEvent, EventData)> get events =>
+      _events ??= StreamController.broadcast(sync: true);
 
   /// This method is used to listen to a request event.
   ///

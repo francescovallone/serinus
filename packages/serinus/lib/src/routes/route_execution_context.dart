@@ -116,8 +116,7 @@ class RouteExecutionContext {
           await context.pipes[i].transform(executionContext);
         }
       }
-      final middlewares = context
-          .getMiddlewares(request);
+      final middlewares = context.getMiddlewares(request);
       if (middlewares.isNotEmpty) {
         final executor = MiddlewareExecutor();
         await executor.execute(
@@ -207,7 +206,10 @@ class RouteExecutionContext {
         if (request.events.hasListener) {
           request.emit(
             RequestEvent.data,
-            EventData(data: responseData.data, properties: executionContext.response),
+            EventData(
+              data: responseData.data,
+              properties: executionContext.response,
+            ),
           );
         }
         await _responseController.sendResponse(
