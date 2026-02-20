@@ -1,4 +1,5 @@
 import '../../serinus.dart';
+import '../core/middlewares/middleware_registry.dart';
 
 /// The [HandlerFunction] is a function that handles the incoming request and returns a response.
 typedef HandlerFunction =
@@ -141,8 +142,10 @@ class RouteContext<T extends RouteHandlerSpec> {
     return resolved;
   }
 
-  /// Returns the middlewares for the route.
-  Iterable<Middleware> getMiddlewares(IncomingMessage message) {
-    return moduleScope.getRouteMiddlewares(id, message, this);
+  List<CompiledMiddleware>? _compiledMiddlewaresCache;
+
+  /// The [compiledMiddlewares] is used to store the compiled middlewares for the route.
+  List<CompiledMiddleware> get compiledMiddlewares {
+    return _compiledMiddlewaresCache ??= moduleScope.getRouteMiddlewares(id);
   }
 }

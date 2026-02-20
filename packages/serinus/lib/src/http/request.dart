@@ -168,9 +168,10 @@ class Request {
     if (_bodyParsed) {
       return body;
     }
-
+    final rawContentType = _original.headers['content-type'];
+    final isMultipart = rawContentType != null && rawContentType.startsWith('multipart/');
     // Handle multipart early - it has its own stream handling
-    if (!rawBody && contentType.isMultipart) {
+    if (!rawBody && isMultipart) {
       _setBody(await _original.formData(onPart: onPart));
       return body;
     }

@@ -1,6 +1,5 @@
 import '../../adapters/sse_adapter.dart';
 import '../../containers/injection_token.dart';
-import '../../contexts/route_context.dart';
 import '../../errors/initialization_error.dart';
 import '../../mixins/mixins.dart';
 import '../../services/logger_service.dart';
@@ -42,24 +41,6 @@ class SseRegistry extends Provider
           _config.globalHooks,
           controller.hooks,
         ]);
-        final routeContext = RouteContext(
-          id: spec.key,
-          path: route.path,
-          method: route.method,
-          controller: controller,
-          routeCls: route.runtimeType,
-          moduleToken: currentModuleScope.token,
-          spec: spec.value,
-          moduleScope: currentModuleScope,
-          hooksContainer: hooks,
-          hooksServices: hooks.services,
-          pipes: [...controller.pipes, ...route.pipes, ..._config.globalPipes],
-          exceptionFilters: {
-            ...controller.exceptionFilters,
-            ...route.exceptionFilters,
-            ..._config.globalExceptionFilters,
-          },
-        );
         router.add(
           route.method,
           route.path,
@@ -73,13 +54,7 @@ class SseRegistry extends Provider
             Map.unmodifiable(currentModuleScope.unifiedValues),
             hooks,
             [...spec.value.route.metadata, ...controller.metadata],
-            (request) {
-              return currentModuleScope.getRouteMiddlewares(
-                spec.key,
-                request,
-                routeContext,
-              );
-            },
+            currentModuleScope.getRouteMiddlewares(spec.key),
           ),
         );
         _logger.info('Mapped {${route.path}} Server-Sent Event Route');

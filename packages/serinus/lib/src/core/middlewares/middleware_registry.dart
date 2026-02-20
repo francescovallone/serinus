@@ -5,6 +5,36 @@ import '../../extensions/string_extensions.dart';
 import '../../inspector/entrypoint.dart';
 import 'route_info_path_extractor.dart';
 
+class CompiledMiddleware {
+  final Middleware middleware;
+  final List<RegExp> inclusionRegexes;
+  final List<RegExp> exclusionRegexes;
+
+  CompiledMiddleware({
+    required this.middleware,
+    required this.inclusionRegexes,
+    required this.exclusionRegexes,
+  });
+
+  /// Fast-path check at request time
+  bool appliesTo(String requestPath) {
+    // If it hits an exclusion, short-circuit false
+    for (final ex in exclusionRegexes) {
+      if (ex.hasMatch(requestPath)) return false;
+    }
+    
+    // If there are no specific inclusions, it applies by default
+    if (inclusionRegexes.isEmpty) return true;
+    
+    // Otherwise, it must match an inclusion
+    for (final inc in inclusionRegexes) {
+      if (inc.hasMatch(requestPath)) return true;
+    }
+    
+    return false;
+  }
+}
+
 /// Registers middleware for the application.
 class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
   final ApplicationConfig _config;
@@ -170,36 +200,57 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
     for (final entry in entriesSortedByDistance) {
       _registerAllConfigs(entry.value);
     }
+    
     for (final scope in _config.modulesContainer.scopes) {
       for (final route in _middlewareByRoute.keys) {
-        scope.setRouteMiddlewares(route, (request, context) {
-          final requestRouteInfo = RouteInfo(
-            request.uri.path.stripEndSlash().addLeadingSlash(),
-            method: HttpMethod.parse(request.method),
-            versions: [
-              if (context.spec.route.version != null)
-                VersioningOptions.uri(version: context.spec.route.version!),
-              if (context.controller.version != null)
-                VersioningOptions.uri(version: context.controller.version!),
-              if (_config.versioningOptions != null) _config.versioningOptions!,
-            ],
-          );
-          final middlewares = _middlewareByRoute[route]?.where((configuration) {
-            return (configuration.routes.any(
-                  (routeInfo) => _canResolve(requestRouteInfo, routeInfo),
-                )) &&
-                !configuration.excludedRoutes.any(
-                  (excludeRoute) => _canResolve(requestRouteInfo, excludeRoute),
-                );
-          });
-          final resultMiddlewares = <Middleware>[];
-          for (final middleware in middlewares ?? <MiddlewareConfiguration>[]) {
-            resultMiddlewares.addAll(middleware.middlewares);
+        
+        final configurations = _middlewareByRoute[route] ?? {};
+        final compiledMiddlewares = <CompiledMiddleware>[];
+        
+        for (final config in configurations) {
+          // Pre-compile the regexes exactly ONCE
+          final inclusions = config.routes
+              .map((r) => _compileRoutePattern(r.path))
+              .toList(growable: false);
+              
+          final exclusions = config.excludedRoutes
+              .map((r) => _compileRoutePattern(r.path))
+              .toList(growable: false);
+
+          for (final middleware in config.middlewares) {
+            compiledMiddlewares.add(
+              CompiledMiddleware(
+                middleware: middleware,
+                inclusionRegexes: inclusions,
+                exclusionRegexes: exclusions,
+              )
+            );
           }
-          return resultMiddlewares;
-        });
+        }
+
+        // Pass the pre-compiled pipeline to the scope/route
+        scope.setRouteMiddlewares(route, compiledMiddlewares);
       }
     }
+  }
+
+  /// Converts an Atlas path into a fast, compiled RegExp.
+  RegExp _compileRoutePattern(String path) {
+    var pattern = path;
+    // 1. Escape regex control characters (except *, <, >, :)
+    pattern = pattern.replaceAllMapped(RegExp(r'([.+?^$()[\]{}|\\])'), (m) => '\\${m[1]}');
+    
+    // 2. Convert <id> and :id to capture groups
+    pattern = pattern.replaceAll(RegExp(r'<[^>]+>'), r'([^/]+)');
+    pattern = pattern.replaceAll(RegExp(r':[^/]+'), r'([^/]+)');
+    
+    // 3. Convert tail wildcards (**)
+    pattern = pattern.replaceAll('**', r'.*');
+    
+    // 4. Convert single wildcards (*)
+    pattern = pattern.replaceAll('*', r'[^/]+');
+    
+    return RegExp('^$pattern\$');
   }
 
   void _registerAllConfigs(Set<MiddlewareConfiguration> configuration) {

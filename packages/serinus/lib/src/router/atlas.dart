@@ -171,7 +171,7 @@ final class Atlas<T> {
     return true;
   }
 
-  final _handlersCache = <String, AtlasResult<T>>{};
+  final _handlersCache = <(int, String), AtlasResult<T>>{};
 
   /// Looks up a route matching the given [method] and [path].
   ///
@@ -182,7 +182,7 @@ final class Atlas<T> {
   /// - `params`: Map of extracted parameters
   @pragma('vm:prefer-inline')
   AtlasResult<T> lookup(HttpMethod method, String path) {
-    final cacheKey = '${method.index}|$path';
+    final cacheKey = (method.index, path);
     if (_handlersCache.containsKey(cacheKey)) {
       return _handlersCache[cacheKey]!;
     }

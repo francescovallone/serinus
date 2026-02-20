@@ -1,8 +1,7 @@
 import '../../contexts/composition_context.dart';
-import '../../contexts/route_context.dart';
 import '../../core/core.dart';
+import '../../core/middlewares/middleware_registry.dart';
 import '../../extensions/iterable_extansions.dart';
-import '../../http/http.dart';
 import '../../inspector/node.dart';
 import '../injection_token.dart';
 
@@ -130,11 +129,7 @@ class ModuleScope {
   int initTime = 0;
 
   /// Middleware factories mapped by route ID
-  final Map<
-    String,
-    Function(IncomingMessage request, RouteContext routeContext)
-  >
-  _middlewaresToRoutes = {};
+  final Map<String, List<CompiledMiddleware>> _middlewaresToRoutes = {};
 
   /// Creates a new module scope
   ModuleScope({
@@ -212,23 +207,16 @@ class ModuleScope {
   /// Sets middleware factory for a route
   void setRouteMiddlewares(
     String routeId,
-    Iterable<Middleware> Function(
-      IncomingMessage request,
-      RouteContext routeContext,
-    )
-    middlewareFactory,
+    List<CompiledMiddleware> middlewares
   ) {
-    _middlewaresToRoutes[routeId] = middlewareFactory;
+    _middlewaresToRoutes[routeId] = middlewares;
   }
 
   /// Gets middlewares for a specific route
-  Iterable<Middleware> getRouteMiddlewares(
+  List<CompiledMiddleware> getRouteMiddlewares(
     String routeId,
-    IncomingMessage request,
-    RouteContext routeContext,
   ) {
-    return _middlewaresToRoutes[routeId]?.call(request, routeContext) ??
-        <Middleware>[];
+    return _middlewaresToRoutes[routeId] ?? const [];
   }
 
   @override

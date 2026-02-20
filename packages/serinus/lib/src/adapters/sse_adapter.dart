@@ -11,6 +11,7 @@ import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../core/middlewares/middleware_executor.dart';
+import '../core/middlewares/middleware_registry.dart';
 import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/object_extensions.dart';
@@ -22,37 +23,37 @@ import 'adapters.dart';
 /// The [SseScope] class is used to define the scope of a Server-Sent Events (SSE) gateway.
 /// It contains the [SseRouteSpec], the providers, and the hooks.
 class SseScope {
-  /// The [gateway] property contains the WebSocket gateway.
+  /// The [gateway] property contains the SSE Route.
   final SseRouteHandlerSpec sseRouteSpec;
 
-  /// The [providers] property contains the providers of the WebSocket gateway.
+  /// The [providers] property contains the providers of the SSE Route.
   final Map<Type, Provider> providers;
 
   /// The [values] property contains the values from ValueProviders.
   final Map<ValueToken, Object?> values;
 
-  /// The [hooks] property contains the hooks of the WebSocket gateway.
+  /// The [hooks] property contains the hooks of the SSE Route.
   final HooksContainer hooks;
 
-  /// The [metadata] property contains the metadata of the WebSocket gateway.
+  /// The [metadata] property contains the metadata of the SSE Route.
   final List<Metadata> metadata;
 
-  /// The [middlewares] property contains the middlewares of the WebSocket gateway.
-  final Iterable<Middleware> Function(IncomingMessage request) middlewares;
+  /// The [compiledMiddlewares] property contains the compiled middlewares for the SSE Route.
+  final List<CompiledMiddleware>? compiledMiddlewares;
 
-  /// The [GatewayScope] constructor is used to create a new instance of the [GatewayScope] class.
+  /// The [SseScope] constructor is used to create a new instance of the [SseScope] class.
   const SseScope(
     this.sseRouteSpec,
     this.providers,
     this.values,
     this.hooks,
     this.metadata,
-    this.middlewares,
+    this.compiledMiddlewares,
   );
 
   @override
   String toString() {
-    return 'GatewayScope(gateway: $sseRouteSpec, providers: $providers)';
+    return 'SseScope(sseRouteSpec: $sseRouteSpec, providers: $providers)';
   }
 }
 
@@ -178,11 +179,18 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
         ..httpOnly = true
         ..path = '/',
     );
-    final middlewares = currentScope.middlewares(request);
-    if (middlewares.isNotEmpty) {
+    final middlewares = currentScope.compiledMiddlewares;
+    final activeMiddlewares = <Middleware>[];
+    if (middlewares != null && middlewares.isNotEmpty) {
+      // Fast, allocation-free loop checking compiled regexes
+      for (var i = 0; i < middlewares.length; i++) {
+        if (middlewares[i].appliesTo(wrappedRequest.uri.path)) {
+          activeMiddlewares.add(middlewares[i].middleware);
+        }
+      }
       final executor = MiddlewareExecutor();
       await executor.execute(
-        middlewares,
+        activeMiddlewares,
         executionContext,
         response,
         onDataReceived: (data) async {
