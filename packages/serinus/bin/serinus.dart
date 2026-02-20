@@ -123,16 +123,12 @@ class MyModelProvider extends ModelProvider {
 }
 
 void main(List<String> arguments) async {
-  final application = await serinus.createMinimalApplication(
+  final application = await serinus.createApplication(
     entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );
-  application.provide(TestProvider());
-  application.get('/', (RequestContext context) async {
-    return context.use<TestProvider>().counter;
-  });
   await application.serve();
 }

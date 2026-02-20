@@ -3,6 +3,7 @@ import 'dart:io' as io;
 import 'dart:typed_data';
 
 import 'package:http_parser/http_parser.dart';
+import 'package:server_native/server_native.dart';
 
 import '../contexts/contexts.dart';
 import '../core/core.dart';
@@ -55,7 +56,7 @@ class SerinusHttpAdapter
   @override
   Future<void> init([ApplicationConfig? config]) async {
     if (securityContext == null) {
-      server = await io.HttpServer.bind(host, port, shared: true);
+      server = await NativeHttpServer.bind(host, port, shared: true);
     } else {
       server = await io.HttpServer.bindSecure(
         host,
