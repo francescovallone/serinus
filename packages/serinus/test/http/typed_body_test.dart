@@ -33,7 +33,7 @@ class MockHttpHeaders extends Mock implements HttpHeaders {}
 
 Request _buildRequest({ContentType? contentType}) {
   final incoming = _MockIncomingMessage();
-  final effectiveContentType = contentType ?? ContentType.json;
+  final effectiveContentType = contentType ?? jsonContentType;
   when(() => incoming.queryParameters).thenReturn({});
   when(() => incoming.headers).thenReturn(SerinusHeaders(MockHttpHeaders()));
   when(() => incoming.contentType).thenReturn(effectiveContentType);

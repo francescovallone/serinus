@@ -250,7 +250,7 @@ class RouteExecutionContext {
         HttpArgumentsHost(Request(request, params)),
       );
       executionContext.response.statusCode = e.statusCode;
-      executionContext.response.contentType ??= ContentType.json;
+      executionContext.response.contentType ??= jsonContentType;
       final result = await _executeOnException(executionContext, context, e);
       if (result != null) {
         await _responseController.sendResponse(
@@ -352,7 +352,7 @@ class RouteExecutionContext {
     } else if (data is Map || data is Iterable) {
       responseData = sharedJsonUtf8Encoder.convert(data);
       result.isEncoded = true;
-      context.response.contentType ??= ContentType.json;
+      context.response.contentType ??= jsonContentType;
     } else if (data is String) {
       responseData = data;
       context.response.contentType ??= ContentType.text;
@@ -366,7 +366,7 @@ class RouteExecutionContext {
         final modelObj = modelProvider?.to(data);
         responseData = sharedJsonUtf8Encoder.convert(modelObj);
         result.isEncoded = true;
-        context.response.contentType ??= ContentType.json;
+        context.response.contentType ??= jsonContentType;
       }
     }
 
