@@ -5,11 +5,18 @@ import '../../extensions/string_extensions.dart';
 import '../../inspector/entrypoint.dart';
 import 'route_info_path_extractor.dart';
 
+/// Represents a middleware along with its pre-compiled route patterns for efficient matching at request time.
 class CompiledMiddleware {
+  /// The actual middleware instance.
   final Middleware middleware;
+
+  /// Pre-compiled regexes for included routes.
   final List<RegExp> inclusionRegexes;
+
+  /// Pre-compiled regexes for excluded routes.
   final List<RegExp> exclusionRegexes;
 
+  /// Constructs a [CompiledMiddleware] with the given middleware and its associated route patterns.
   CompiledMiddleware({
     required this.middleware,
     required this.inclusionRegexes,
@@ -20,17 +27,23 @@ class CompiledMiddleware {
   bool appliesTo(String requestPath) {
     // If it hits an exclusion, short-circuit false
     for (final ex in exclusionRegexes) {
-      if (ex.hasMatch(requestPath)) return false;
+      if (ex.hasMatch(requestPath)) {
+        return false;
+      }
     }
-    
+
     // If there are no specific inclusions, it applies by default
-    if (inclusionRegexes.isEmpty) return true;
-    
+    if (inclusionRegexes.isEmpty) {
+      return true;
+    }
+
     // Otherwise, it must match an inclusion
     for (final inc in inclusionRegexes) {
-      if (inc.hasMatch(requestPath)) return true;
+      if (inc.hasMatch(requestPath)) {
+        return true;
+      }
     }
-    
+
     return false;
   }
 }
@@ -200,19 +213,18 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
     for (final entry in entriesSortedByDistance) {
       _registerAllConfigs(entry.value);
     }
-    
+
     for (final scope in _config.modulesContainer.scopes) {
       for (final route in _middlewareByRoute.keys) {
-        
         final configurations = _middlewareByRoute[route] ?? {};
         final compiledMiddlewares = <CompiledMiddleware>[];
-        
+
         for (final config in configurations) {
           // Pre-compile the regexes exactly ONCE
           final inclusions = config.routes
               .map((r) => _compileRoutePattern(r.path))
               .toList(growable: false);
-              
+
           final exclusions = config.excludedRoutes
               .map((r) => _compileRoutePattern(r.path))
               .toList(growable: false);
@@ -223,7 +235,7 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
                 middleware: middleware,
                 inclusionRegexes: inclusions,
                 exclusionRegexes: exclusions,
-              )
+              ),
             );
           }
         }
@@ -238,18 +250,21 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
   RegExp _compileRoutePattern(String path) {
     var pattern = path;
     // 1. Escape regex control characters (except *, <, >, :)
-    pattern = pattern.replaceAllMapped(RegExp(r'([.+?^$()[\]{}|\\])'), (m) => '\\${m[1]}');
-    
+    pattern = pattern.replaceAllMapped(
+      RegExp(r'([.+?^$()[\]{}|\\])'),
+      (m) => '\\${m[1]}',
+    );
+
     // 2. Convert <id> and :id to capture groups
     pattern = pattern.replaceAll(RegExp(r'<[^>]+>'), r'([^/]+)');
     pattern = pattern.replaceAll(RegExp(r':[^/]+'), r'([^/]+)');
-    
+
     // 3. Convert tail wildcards (**)
     pattern = pattern.replaceAll('**', r'.*');
-    
+
     // 4. Convert single wildcards (*)
     pattern = pattern.replaceAll('*', r'[^/]+');
-    
+
     return RegExp('^$pattern\$');
   }
 

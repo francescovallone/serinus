@@ -116,11 +116,12 @@ class RouteExecutionContext {
           await context.pipes[i].transform(executionContext);
         }
       }
-      final middlewares = context.compiledMiddlewares; // Instant O(1) cache read
+      final middlewares =
+          context.compiledMiddlewares; // Instant O(1) cache read
       final activeMiddlewares = <Middleware>[];
       if (middlewares.isNotEmpty) {
         final requestPath = request.uri.path;
-          
+
         // Fast, allocation-free loop checking compiled regexes
         for (var i = 0; i < middlewares.length; i++) {
           if (middlewares[i].appliesTo(requestPath)) {

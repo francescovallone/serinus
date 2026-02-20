@@ -3,13 +3,27 @@ import 'dart:io';
 import '../../serinus.dart';
 
 /// The json content type with charset utf-8.
-final ContentType jsonContentType = ContentType('application', 'json', charset: 'utf-8');
+final ContentType jsonContentType = ContentType(
+  'application',
+  'json',
+  charset: 'utf-8',
+);
+
 /// The text content type with charset utf-8.
-final ContentType textContentType = ContentType('text', 'plain', charset: 'utf-8');
+final ContentType textContentType = ContentType(
+  'text',
+  'plain',
+  charset: 'utf-8',
+);
+
 /// The html content type with charset utf-8.
 final ContentType htmlContentType = ContentType('text', 'html');
+
 /// The binary content type.
-final ContentType binaryContentType = ContentType('application', 'octet-stream');
+final ContentType binaryContentType = ContentType(
+  'application',
+  'octet-stream',
+);
 
 /// The [SerinusHeaders] are a helper class to expose the headers in the Serinus Framework.
 ///

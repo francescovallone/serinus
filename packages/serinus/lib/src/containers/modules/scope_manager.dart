@@ -207,15 +207,13 @@ class ModuleScope {
   /// Sets middleware factory for a route
   void setRouteMiddlewares(
     String routeId,
-    List<CompiledMiddleware> middlewares
+    List<CompiledMiddleware> middlewares,
   ) {
     _middlewaresToRoutes[routeId] = middlewares;
   }
 
   /// Gets middlewares for a specific route
-  List<CompiledMiddleware> getRouteMiddlewares(
-    String routeId,
-  ) {
+  List<CompiledMiddleware> getRouteMiddlewares(String routeId) {
     return _middlewaresToRoutes[routeId] ?? const [];
   }
 
