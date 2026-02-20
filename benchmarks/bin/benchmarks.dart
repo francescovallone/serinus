@@ -91,6 +91,7 @@ Map<String, dynamic> _buildStats(List<Result> samples) {
   if (samples.isEmpty) {
     return {
       'count': 0,
+      'stability': 0,
       'rpsMean': 0,
       'rpsStddev': 0,
       'rpsMin': 0,
@@ -99,11 +100,20 @@ Map<String, dynamic> _buildStats(List<Result> samples) {
   }
 
   final rpsValues = samples.map((e) => e.rps).toList();
+  final latencyValues = samples.map((e) => e.avgLatency).toList();
   final mean = _mean(rpsValues);
   final stddev = _stddev(rpsValues, mean);
+  final latencyMean = _mean(latencyValues);
+  final latencyStddev = _stddev(latencyValues, latencyMean);
   return {
     'count': samples.length,
     'rpsMean': mean,
+    'stability': mean == 0 ? 0 : 100 - (stddev / mean) * 100,
+    'latencyMean': latencyMean,
+    'latencyStddev': latencyStddev,
+    'latencyStability': latencyMean == 0
+        ? 0
+        : 100 - (latencyStddev / latencyMean) * 100,
     'rpsStddev': stddev,
     'rpsMin': rpsValues.reduce((a, b) => a < b ? a : b),
     'rpsMax': rpsValues.reduce((a, b) => a > b ? a : b),
@@ -112,14 +122,21 @@ Map<String, dynamic> _buildStats(List<Result> samples) {
 
 void _printSummary(Map<String, List<Result>> results, String tag) {
   stdout.writeln('Summary for $tag');
-  results.forEach((scenario, samples) {
-    final stats = _buildStats(samples);
+  final sortedResult = Map.fromEntries(results.entries.toList()
+    ..sort((a, b) {
+      final aMean = _mean(a.value.map((e) => e.rps).toList());
+      final bMean = _mean(b.value.map((e) => e.rps).toList());
+      return bMean.compareTo(aMean);
+    }));
+  for (final scenario in sortedResult.keys.indexed) {
+    final stats = _buildStats(sortedResult[scenario.$2]!);
     final count = stats['count'] as int;
     final mean = stats['rpsMean'] as double;
     final stddev = stats['rpsStddev'] as double;
+    final stability = stats['stability'] as double;
     stdout.writeln(
-        '- $scenario: n=$count rpsMean=${mean.toStringAsFixed(2)} rpsStddev=${stddev.toStringAsFixed(2)}');
-  });
+        '- ${scenario.$2}: n=$count rpsMean=${mean.toStringAsFixed(2)} rpsStddev=${stddev.toStringAsFixed(2)} stability=${stability.toStringAsFixed(2)}% ${scenario.$1 == 0 ? '(fastest)' : ''}');
+  }
 }
 
 double _mean(List<double> values) {
