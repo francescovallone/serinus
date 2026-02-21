@@ -64,11 +64,13 @@ class SerinusContainer {
   /// It registers the modules and finalizes the container.
   Future<void> init(Module entrypoint, RoutesResolver? routesResolver) async {
     if (!modulesContainer.isInitialized) {
+      final internalCoreModule = InternalCoreModule(inspector, config.microservices.isNotEmpty);
       await modulesContainer.registerModules(
-        InternalCoreModule(inspector, config.microservices.isNotEmpty),
+        internalCoreModule,
         internal: true,
       );
       await modulesContainer.registerModules(entrypoint);
+      modulesContainer.addEntrypointToInternalCoreModule(internalCoreModule);
     }
     routesResolver?.resolve();
     await modulesContainer.finalize(entrypoint);

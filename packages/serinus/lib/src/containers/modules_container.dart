@@ -242,6 +242,7 @@ final class ModulesContainer {
       controllers: {...entrypoint.controllers},
       imports: {...entrypoint.imports},
       importedBy: {},
+      internal: internal,
     );
 
     currentScope.distance = entrypoint.isGlobal
@@ -759,8 +760,16 @@ final class ModulesContainer {
     if (!sameTypeBag(aImportTypes, bImportTypes)) {
       return false;
     }
-
+  
     return true;
+  }
+
+  void addEntrypointToInternalCoreModule(Module internalCoreModule) {
+    final entryScope = _scopeManager.getScope(entrypointToken!);
+    final internalCoreModuleScope = _scopeManager.getScope(InjectionToken.fromModule(internalCoreModule));
+    internalCoreModuleScope.imports.add(entryScope.module);
+    internalCoreModuleScope.module.imports.add(entryScope.module);
+    entryScope.importedBy.add(internalCoreModuleScope.token); 
   }
 }
 

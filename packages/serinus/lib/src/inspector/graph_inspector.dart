@@ -3,7 +3,6 @@ import '../containers/modules_container.dart';
 import '../core/core.dart';
 import 'edge.dart';
 import 'entrypoint.dart';
-import 'inspector_module.dart';
 import 'node.dart';
 import 'serialized_graph.dart';
 
@@ -15,7 +14,7 @@ class GraphInspector extends Provider {
 
   final ModulesContainer _container;
 
-  final List<Type> _internal = const [GraphInspector, InspectorModule];
+  final List<Type> _internal = const [];
 
   /// Creates a new instance of [GraphInspector].
   const GraphInspector(this.graph, this._container);
