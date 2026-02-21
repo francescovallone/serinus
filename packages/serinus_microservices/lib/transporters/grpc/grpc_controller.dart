@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:grpc/grpc.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:serinus/serinus.dart';
@@ -15,35 +17,61 @@ class GrpcRoute extends Route {
 }
 
 /// The [GrpcHandler] typedef is the gRPC handler function.
-class GrpcUnaryHandler<Req extends GeneratedMessage, Res extends GeneratedMessage> {
-  /// The handler function.
-  final Future<Res> Function(ServiceCall call, Req request, RpcContext context) _handler;
+class GrpcUnaryHandler<Req extends GeneratedMessage> {
+  /// The handler function. It may transform the request; returning null means passthrough.
+  final FutureOr<Req?> Function(ServiceCall call, Req request, RpcContext context) _handler;
 
   /// Creates a gRPC unary handler.
   GrpcUnaryHandler(this._handler);
 
   /// Calls the handler function.
-  Future<Res> call(ServiceCall call, Req request, RpcContext context) {
+  FutureOr<Req?> call(ServiceCall call, Req request, RpcContext context) {
     return _handler(call, request, context);
   }
 }
 
+/// Default forwarders that delegate to the underlying gRPC service through the invoker.
+class GrpcDefaultForwarders {
+  const GrpcDefaultForwarders._();
+
+  /// Unary forwarder: runs the Serinus pipeline, then delegates to the service invoker.
+  static Future<Req?> unary<Req extends GeneratedMessage, Res extends GeneratedMessage>(
+    ServiceCall call,
+    Req request,
+    RpcContext context,
+  ) async {
+    // Return null to indicate passthrough of the original request.
+    return null;
+  }
+
+  /// Streaming forwarder: runs the Serinus pipeline, then delegates to the service invoker.
+  static Future<Stream<Req>?> stream<Req extends GeneratedMessage>(
+    ServiceCall call,
+    Stream<Req> requests,
+    RpcContext context,
+  ) async {
+    // Return null to indicate passthrough of the original request stream.
+    return null;
+  }
+
+}
+
 /// The [GrpcStreamHandler] typedef is the gRPC stream handler function.
-class GrpcStreamHandler<Req extends GeneratedMessage, Res extends GeneratedMessage> {
+class GrpcStreamHandler<Req extends GeneratedMessage> {
   /// The handler function.
-  final Stream<Res> Function(ServiceCall call, Stream<Req> requests, RpcContext context) _handler;
+  final FutureOr<Stream<Req>?> Function(ServiceCall call, Stream<Req> requests, RpcContext context) _handler;
 
   /// Creates a gRPC stream handler.
   GrpcStreamHandler(this._handler);
 
   /// Calls the handler function.
-  Stream<Res> call(ServiceCall call, Stream<Req> requests, RpcContext context) {
+  FutureOr<Stream<Req>?> call(ServiceCall call, Stream<Req> requests, RpcContext context) {
     return _handler(call, requests, context);
   }
 }
 
 /// The [GrpcRouteSpec] class is used to define a gRPC route handler specification.
-abstract class GrpcRouteSpec<T, Req, Res> extends RouteHandlerSpec<T> {
+abstract class GrpcRouteSpec<T, Req> extends RouteHandlerSpec<T> {
   @override
   T get handler => super.handler;
 
@@ -52,23 +80,23 @@ abstract class GrpcRouteSpec<T, Req, Res> extends RouteHandlerSpec<T> {
 }
 
 /// The [GrpcRouteHandlerSpec] class is the gRPC route handler specification.
-class GrpcRouteHandlerSpec<Req extends GeneratedMessage, Res extends GeneratedMessage>
-    extends GrpcRouteSpec<GrpcUnaryHandler, Req, Res> {
+class GrpcRouteHandlerSpec<Req extends GeneratedMessage>
+    extends GrpcRouteSpec<GrpcUnaryHandler, Req> {
   /// Creates a gRPC route handler specification.
   GrpcRouteHandlerSpec(
     GrpcRoute route,
-    Future<Res> Function(ServiceCall call, Req request, RpcContext context) handler,
-  ) : super(route, GrpcUnaryHandler<Req, Res>(handler));
+    FutureOr<Req?> Function(ServiceCall call, Req request, RpcContext context) handler,
+  ) : super(route, GrpcUnaryHandler<Req>(handler));
 }
 
 /// The [GrpcStreamRouteHandlerSpec] class is the gRPC streaming route handler specification.
-class GrpcStreamRouteHandlerSpec<Req extends GeneratedMessage, Res extends GeneratedMessage>
-    extends GrpcRouteSpec<GrpcStreamHandler, Req, Res> {
+class GrpcStreamRouteHandlerSpec<Req extends GeneratedMessage>
+    extends GrpcRouteSpec<GrpcStreamHandler, Req> {
   /// Creates a gRPC stream route handler specification.
   GrpcStreamRouteHandlerSpec(
     GrpcRoute route,
-    Stream<Res> Function(ServiceCall call, Stream<Req> requests, RpcContext context) handler,
-  ) : super(route, GrpcStreamHandler<Req, Res>(handler));
+    FutureOr<Stream<Req>?> Function(ServiceCall call, Stream<Req> requests, RpcContext context) handler,
+  ) : super(route, GrpcStreamHandler<Req>(handler));
 }
 
 /// The [GrpcController] mixin is used to add gRPC routes to a controller.
@@ -77,34 +105,34 @@ mixin GrpcController on Controller {
   final Map<String, GrpcRouteSpec> grpcRoutes = {};
 
   /// Registers a gRPC route with the controller.
-  void grpc<Req extends GeneratedMessage, Res extends GeneratedMessage>(
-    GrpcRoute route,
-    Future<Res> Function(ServiceCall call, Req request, RpcContext context) handler,
-  ) {
+  void grpc<Req extends GeneratedMessage>(
+    GrpcRoute route, [
+    FutureOr<Req?> Function(ServiceCall call, Req request, RpcContext context)? handler,
+  ]) {
     if (grpcRoutes.containsKey(route.path)) {
       throw StateError(
         'A gRPC method with name "${route.path}" is already registered in the controller.',
       );
     }
-    grpcRoutes[route.path] = GrpcRouteHandlerSpec<Req, Res>(
+    grpcRoutes[route.path] = GrpcRouteHandlerSpec<Req>(
       route,
-      handler,
+      handler ?? GrpcDefaultForwarders.unary,
     );
   }
 
   /// Registers a gRPC streaming route with the controller.
-  void grpcStream<Req extends GeneratedMessage, Res extends GeneratedMessage>(
-    GrpcRoute route,
-    Stream<Res> Function(ServiceCall call, Stream<Req> requests, RpcContext context) handler,
-  ) {
+  void grpcStream<Req extends GeneratedMessage>(
+    GrpcRoute route, [
+    Stream<Req>? Function(ServiceCall call, Stream<Req> requests, RpcContext context)? handler,
+  ]) {
     if (grpcRoutes.containsKey(route.path)) {
       throw StateError(
         'A gRPC streaming method with name "${route.path}" is already registered in the controller.',
       );
     }
-    grpcRoutes[route.path] = GrpcStreamRouteHandlerSpec<Req, Res>(
+    grpcRoutes[route.path] = GrpcStreamRouteHandlerSpec<Req>(
       route,
-      handler,
+      handler ?? GrpcDefaultForwarders.stream,
     );
   }
 }

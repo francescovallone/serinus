@@ -8,7 +8,7 @@
 // ignore_for_file: constant_identifier_names
 // ignore_for_file: curly_braces_in_flow_control_structures
 // ignore_for_file: deprecated_member_use_from_same_package, library_prefixes
-// ignore_for_file: non_constant_identifier_names
+// ignore_for_file: non_constant_identifier_names, prefer_relative_imports
 
 import 'dart:core' as $core;
 
@@ -56,8 +56,6 @@ class HelloRequest extends $pb.GeneratedMessage {
   static HelloRequest create() => HelloRequest._();
   @$core.override
   HelloRequest createEmptyInstance() => create();
-  static $pb.PbList<HelloRequest> createRepeated() =>
-      $pb.PbList<HelloRequest>();
   @$core.pragma('dart2js:noInline')
   static HelloRequest getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<HelloRequest>(create);
@@ -112,7 +110,6 @@ class HelloReply extends $pb.GeneratedMessage {
   static HelloReply create() => HelloReply._();
   @$core.override
   HelloReply createEmptyInstance() => create();
-  static $pb.PbList<HelloReply> createRepeated() => $pb.PbList<HelloReply>();
   @$core.pragma('dart2js:noInline')
   static HelloReply getDefault() => _defaultInstance ??=
       $pb.GeneratedMessage.$_defaultFor<HelloReply>(create);
