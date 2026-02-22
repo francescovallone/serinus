@@ -760,16 +760,19 @@ final class ModulesContainer {
     if (!sameTypeBag(aImportTypes, bImportTypes)) {
       return false;
     }
-  
+
     return true;
   }
 
+  /// Adds the entrypoint scope to the imports of the internal core module.
   void addEntrypointToInternalCoreModule(Module internalCoreModule) {
     final entryScope = _scopeManager.getScope(entrypointToken!);
-    final internalCoreModuleScope = _scopeManager.getScope(InjectionToken.fromModule(internalCoreModule));
+    final internalCoreModuleScope = _scopeManager.getScope(
+      InjectionToken.fromModule(internalCoreModule),
+    );
     internalCoreModuleScope.imports.add(entryScope.module);
     internalCoreModuleScope.module.imports.add(entryScope.module);
-    entryScope.importedBy.add(internalCoreModuleScope.token); 
+    entryScope.importedBy.add(internalCoreModuleScope.token);
   }
 }
 

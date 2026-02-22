@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.1.2
+
+**Released on:** 22-02-2026
+
+### Features
+
+- Add `CsrfHook` to provide built-in CSRF protection for Serinus applications. This hook can be easily integrated into the request lifecycle to ensure that all incoming requests are properly validated for CSRF tokens, enhancing the security of the application against cross-site request forgery attacks.
+- Add initial implementation of the `SerinusMinimalApplication` to provide a flexible and customizable way to create Serinus applications with minimal configuration. This allows developers to have more control over the application setup and configuration while still benefiting from the core features of Serinus.
+
+### Fixes
+
+- Fix a bug in the modules initialization process that caused the `InternalCoreModule` to be orphaned and not properly initialized. This fix ensures that the `InternalCoreModule` is correctly initialized and integrated into the application, preventing potential issues with module dependencies and application startup.
+- Fix a bug in the `MiddlewareRegistry` implementation that prevented the correct registration of middlewares when using the new Atlas router.
+
+### Performance Improvements
+
+- Improved RPS performance of the application by optimizing the request handling process and reducing unnecessary overhead in the request lifecycle. This results in faster response times and improved overall performance of Serinus applications. (Up to 15% improvement in RPS performance)
+
 ## 2.1.1
 
 **Released on:** 15-02-2026
