@@ -30,7 +30,7 @@ const config = statusConfig[props.item.status];
 			<div class="flex-1 min-w-0">
 				<div class="flex items-center gap-2 mb-1">
 					<component :is="config.icon" class="w-3.5 h-3.5 shrink-0" />
-					<span class="text-sm font-display font-semibold truncate">{{ props.item.title }}</span>
+					<a :href="props.item.githubIssueUrl" class="text-sm font-display font-semibold truncate">{{ props.item.title }}</a>
 				</div>
 				<div v-if="props.item.description" class="text-xs text-muted-foreground mt-1 line-clamp-2">
 					{{ props.item.description }}
