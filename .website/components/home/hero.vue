@@ -38,7 +38,7 @@ import CliSequence from './cli_sequence.vue';
                         :transition="{ duration: 0.6, delay: 0.1 }"
                         :inViewOptions="{ once: true }"
                     >
-                        v2.0 - Dawn Chorus
+                        v2.1 - Morning Song
                     </motion.div>
                     
                     <motion.div
