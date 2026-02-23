@@ -150,7 +150,6 @@ export default defineConfig({
             text: 'Overview',
             base: '/',
             items: [
-              { text: 'Quick Start', link: 'quick_start' },
               { text: 'Modules', link: 'modules' },
               { text: 'Controllers', link: 'controllers' },
               { text: 'Routes', link: 'routes' },
