@@ -129,11 +129,14 @@ class UserController extends Controller {
 
 ## Status Codes
 
-You can return a status code from a controller method by setting the `res.statusCode` property of the `RequestContext` object. The default status code is `201` for POST requests and `200` for all other requests.
+You can change the status code of the response by setting the `res.statusCode` property of the `RequestContext` object.
 
 ```dart
-Future<User> createUser(RequestContext context) async {
-  return await context.use<UsersService>().createUser(context.body);
+Future<Map<String, dynamic>> customError(RequestContext context) async {
+  context.res.statusCode = 400;
+  return {
+    'error': 'Bad Request',
+  };
 }
 ```
 
