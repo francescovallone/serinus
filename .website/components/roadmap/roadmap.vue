@@ -103,8 +103,8 @@ const itemsByStatus = (track, status) =>
 								<div class="text-xl font-display font-bold text-foreground">
 									{{ track.label }}
 								</div>
-								<span class="text-xs font-mono text-muted-foreground ml-auto">
-									{{ track.progress }}% complete
+								<span v-if="track.wip" class="text-xs font-mono text-primary ml-auto">
+									[ WIP ]
 								</span>
 							</div>
 

@@ -17,7 +17,7 @@ defineProps<{
 			isActive ? 'border-primary/40 bg-primary/5' : 'border-transparent hover-border-border hover:bg-card/50'
 		]"
 	>
-		<div class="flex items-center justify-between mb-2">
+		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-2">
 				<div
 					class="w-2.5 h-2.5 rounded-full"
@@ -26,6 +26,9 @@ defineProps<{
 					}"
 				></div>
 				<span class="text-sm font-display font-semibold text-foreground">{{ track.label }}</span>
+				<span v-if="track.wip" class="text-xs font-mono text-primary">
+					[ WIP ]
+				</span>
 			</div>
 			<ChevronRight
 				:class="[
@@ -34,15 +37,6 @@ defineProps<{
 				]"
 			>
 			</ChevronRight>
-		</div>
-		<div class="flex items-center gap-3">
-			<div class="w-full bg-muted rounded-full h-1 overflow-hidden">
-				<div
-					class="bg-primary h-1 rounded-full transition-all duration-300"
-					:style="{ width: `${track.progress}%` }"
-				></div>
-			</div>
-			<span class="text-xs font-mono text-muted-foreground">{{ track.progress }}%</span>
 		</div>
 	</div>
 </template>
