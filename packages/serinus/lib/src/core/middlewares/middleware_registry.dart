@@ -394,23 +394,32 @@ class MiddlewareRegistry extends Provider with OnApplicationBootstrap {
     }
 
     // Check if resolver path is parametric and can match target
-    final parametricRegex = RegExp(r'<[^>]+>');
-
-    if (resolverPath.contains('<')) {
+    if (_hasDynamicSegments(resolverPath)) {
       // Convert parametric path to regex pattern
-      final pattern = resolverPath.replaceAll(parametricRegex, r'([^/]+)');
+      final pattern = _toParametricPattern(resolverPath);
       final regex = RegExp('^$pattern\$');
       return regex.hasMatch(targetPath);
     }
 
     // Check if target path is parametric and can match resolver
-    if (targetPath.contains('<')) {
-      final pattern = targetPath.replaceAll(parametricRegex, r'([^/]+)');
+    if (_hasDynamicSegments(targetPath)) {
+      final pattern = _toParametricPattern(targetPath);
       final regex = RegExp('^$pattern\$');
       return regex.hasMatch(resolverPath);
     }
 
     return false;
+  }
+
+  bool _hasDynamicSegments(String path) {
+    return path.contains('<') || path.contains(RegExp(r':[A-Za-z_]\w*\??'));
+  }
+
+  String _toParametricPattern(String path) {
+    var pattern = path;
+    pattern = pattern.replaceAll(RegExp(r'<[^>]+>\??'), r'([^/]+)');
+    pattern = pattern.replaceAll(RegExp(r':[A-Za-z_]\w*\??'), r'([^/]+)');
+    return pattern;
   }
 
   /// Checks if versions are compatible

@@ -94,6 +94,9 @@ class TestModule extends Module {
         .apply([TestModuleMiddleware(), shelfMiddleware, shelfAltMiddleware])
         .forControllers([TestController])
         .exclude([RouteInfo('/request-event')]);
+    consumer.apply([DynamicParamMiddleware()]).forControllers([
+      DynamicController,
+    ]);
     consumer.apply([r]).forRoutes([RouteInfo('/request-event')]);
   }
 }
@@ -109,11 +112,33 @@ class TestModuleMiddleware extends Middleware {
   }
 }
 
+class DynamicParamMiddleware extends Middleware {
+  @override
+  Future<void> use(ExecutionContext context, NextFunction next) async {
+    final argumentsHost = context.argumentsHost;
+    if (argumentsHost is HttpArgumentsHost) {
+      final postId = argumentsHost.params['postId'];
+      if (postId != null) {
+        context.response.headers['x-post-id'] = postId.toString();
+      }
+    }
+    return next();
+  }
+}
+
+class DynamicController extends Controller {
+  DynamicController() : super('/posts/:postId') {
+    on(Route.get('/comments'), (context) async => 'dynamic-route-ok');
+  }
+}
+
 void main() {
   group('$Middleware', () {
     SerinusApplication? app;
 
-    final module = TestModule(controllers: [TestController()]);
+    final module = TestModule(
+      controllers: [TestController(), DynamicController()],
+    );
     setUpAll(() async {
       app = await serinus.createApplication(
         entrypoint: module,
@@ -194,6 +219,20 @@ void main() {
         expect(response.statusCode, 200);
         expect(r.hasClosed, true);
         expect(r.hasException, false);
+      },
+    );
+
+    test(
+      '''when a controller has a dynamic base path, middleware should resolve params for matched requests''',
+      () async {
+        final request = await HttpClient().getUrl(
+          Uri.parse('http://localhost:8888/posts/77/comments'),
+        );
+        final response = await request.close();
+        final body = await response.transform(utf8.decoder).join();
+        expect(response.statusCode, 200);
+        expect(body, contains('dynamic-route-ok'));
+        expect(response.headers.value('x-post-id'), '77');
       },
     );
   });

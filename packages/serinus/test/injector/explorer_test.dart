@@ -46,7 +46,7 @@ void main() {
     );
 
     test(
-      'when the application startup, and a controller has not a static path, then the explorer will throw an error',
+      'when the application startup, and a controller has a dynamic path, then the explorer should register matching routes',
       () async {
         final router = Router();
         final config = ApplicationConfig(
@@ -59,9 +59,12 @@ void main() {
         final container = SerinusContainer(config, _MockAdapter());
         final explorer = RoutesExplorer(container, router);
         await container.modulesContainer.registerModules(
-          SimpleMockModule(controllers: [MockControllerWithWrongPath()]),
+          SimpleMockModule(controllers: [MockControllerWithDynamicPath()]),
         );
-        expect(() => explorer.resolveRoutes(), throwsException);
+        explorer.resolveRoutes();
+        final result = router.lookup('/42', HttpMethod.get);
+        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect(result.params['id'], '42');
       },
     );
 

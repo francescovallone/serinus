@@ -14,7 +14,7 @@
   "license": "ISC",
   "devDependencies": {
     "baseline-browser-mapping": "^2.8.30",
-    "vitepress": "2.0.0-alpha.15"
+    "vitepress": "2.0.0-alpha.16"
   },
   "dependencies": {
     "@avesbox/canary": "^0.1.0",

@@ -35,9 +35,6 @@ final class RoutesExplorer {
         ),
     };
     for (var controller in controllers.entries) {
-      if (controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))) {
-        throw Exception('Invalid controller path: ${controller.value.path}');
-      }
       logger.info('${controller.key.runtimeType} {${controller.value.path}}');
       final versioningOptions = _container.config.versioningOptions;
       final globalVersioningEnabled =

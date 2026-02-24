@@ -387,23 +387,27 @@ class _BodyConverter {
       }
     }
     if (modelProvider != null) {
-      if (value is FormData) {
-        final map = {...value.fields, ...value.files};
-        return modelProvider!.from(
-          '$targetType',
-          Map<String, dynamic>.from(map),
-        );
-      }
-      if (value is Map) {
-        final mapped = value.map((key, val) => MapEntry('$key', val));
-        final result = modelProvider!.from(
-          '$targetType',
-          Map<String, dynamic>.from(mapped),
-        );
-        if (allowsNull && result == null) {
-          return null;
+      try {
+        if (value is FormData) {
+          final map = {...value.fields, ...value.files};
+          return modelProvider!.from(
+            '$targetType',
+            Map<String, dynamic>.from(map),
+          );
         }
-        return result;
+        if (value is Map) {
+          final mapped = value.map((key, val) => MapEntry('$key', val));
+          final result = modelProvider!.from(
+            '$targetType',
+            Map<String, dynamic>.from(mapped),
+          );
+          if (allowsNull && result == null) {
+            return null;
+          }
+          return result;
+        }
+      } catch (e) {
+        throw BadRequestException('An error occured when parsing the object');
       }
       if (value is List) {
         throw BadRequestException('The element is not of the expected type');

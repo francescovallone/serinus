@@ -7,9 +7,9 @@ class MockController extends Controller {
   }
 }
 
-class MockControllerWithWrongPath extends Controller {
+class MockControllerWithDynamicPath extends Controller {
   @override
-  MockControllerWithWrongPath([super.path = '/:id']) {
+  MockControllerWithDynamicPath([super.path = '/:id']) {
     on(Route.get('/'), (context) => Future.value('Hello world'));
   }
 }

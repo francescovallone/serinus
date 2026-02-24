@@ -55,9 +55,6 @@ class RoutesResolver {
         entry.controller: ControllerSpec(entry.controller.path, entry.module),
     };
     for (var controller in mappedControllers.entries) {
-      if (controller.value.path.contains(RegExp(r'([\/]{2,})*([\:][\w+]+)'))) {
-        throw Exception('Invalid controller path: ${controller.value.path}');
-      }
       _logger.info('${controller.key.runtimeType} {${controller.value.path}}');
       _explorer.explore(
         controller,

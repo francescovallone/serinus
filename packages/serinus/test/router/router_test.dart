@@ -89,6 +89,44 @@ void main() async {
         expect(result, isA<FoundRoute>());
         final found = result as FoundRoute<RouterEntry>;
         expect(found.values.first.context.path, equals('/test'));
+        expect(found.params, isEmpty);
+      },
+    );
+
+    test(
+      '''when a hierarchical dynamic route is registered,
+            then it should resolve params from the controller-level segment
+          ''',
+      () {
+        final router = Router();
+        final routeContext = RouteContext(
+          moduleScope: ModuleScope(
+            token: InjectionToken('moduleToken'),
+            providers: {},
+            exports: {},
+            controllers: {},
+            imports: {},
+            module: TestModule(),
+            importedBy: {},
+          ),
+          hooksContainer: HooksContainer(),
+          id: 'id',
+          path: '/posts/:postId/comments',
+          method: HttpMethod.get,
+          controller: TestController(),
+          routeCls: Type,
+          moduleToken: InjectionToken('moduleToken'),
+          spec: RestRouteHandlerSpec(
+            Route.get('/comments'),
+            ReqResHandler((context) async => 'hi'),
+          ),
+        );
+        router.registerRoute(context: routeContext);
+        final result = router.lookup('/posts/123/comments', HttpMethod.get);
+        expect(result, isA<FoundRoute>());
+        final found = result as FoundRoute<RouterEntry>;
+        expect(found.values.first.context.path, equals('/posts/:postId/comments'));
+        expect(found.params['postId'], equals('123'));
       },
     );
 
