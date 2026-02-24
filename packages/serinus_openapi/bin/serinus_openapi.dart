@@ -55,6 +55,16 @@ class AppController extends Controller {
     });
   }
 
+  @Headers({'X-Custom-Header': 'This is a custom header'})
+  @Body(MyObject)
+  @Query([
+    QueryParameter('name', 'string', required: false),
+    QueryParameter('page', 'integer', required: false),
+  ])
+  @Responses({
+    200: Response.oneOf(description: 'Successful response', types: [MyObject, List<MyObject>]),
+    400: Response(description: 'Bad Request', type: BadRequestException),
+  })
   Future<List<MyObject>> _handleHelloWorld(RequestContext context) async {
     return [MyObject('Alice'), MyObject('Bob')];
   }
@@ -87,6 +97,7 @@ class AppModule extends Module {
               version: '1.0.0',
               description: 'This is my API',
             ),
+            analyze: true
           ),
         ],
       );

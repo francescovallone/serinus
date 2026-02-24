@@ -42,6 +42,12 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   /// List of paths to include in the analysis.
   final List<String> includePaths;
 
+  /// Schemas generated from analyzer for OpenAPI v2 definitions.
+  Map<String, SchemaObjectV2> _generatedDefinitions = {};
+
+  /// Schemas generated from analyzer for OpenAPI v3 components.schemas.
+  Map<String, OpenApiObject> _generatedComponentSchemas = {};
+
   /// The generated OpenAPI document content.
   String get content {
     return _content!;
@@ -109,9 +115,13 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
       switch (version) {
         case OpenApiVersion.v2:
           final documentV2 = this.document as DocumentV2;
+          final mergedDefinitions = <String, SchemaObjectV2>{
+            ...documentV2.definitions,
+            ..._generatedDefinitions,
+          };
           document = DocumentV2(
             info: documentV2.info,
-            definitions: documentV2.definitions,
+            definitions: mergedDefinitions,
             paths: Map<String, PathItemObjectV2>.from(_paths),
             externalDocs: documentV2.externalDocs,
             tags: documentV2.tags,
@@ -120,10 +130,24 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           break;
         case OpenApiVersion.v3_0:
           final documentV3 = this.document as DocumentV3;
+          final mergedComponents = ComponentsObjectV3(
+            schemas: {
+              ...?documentV3.components?.schemas,
+              ..._generatedComponentSchemas,
+            },
+            responses: documentV3.components?.responses,
+            parameters: documentV3.components?.parameters,
+            examples: documentV3.components?.examples,
+            requestBodies: documentV3.components?.requestBodies,
+            headers: documentV3.components?.headers,
+            securitySchemes: documentV3.components?.securitySchemes,
+            links: documentV3.components?.links,
+            callbacks: documentV3.components?.callbacks,
+          );
           document = DocumentV3(
             info: documentV3.info,
             paths: Map<String, PathItemObjectV3>.from(_paths),
-            components: documentV3.components,
+            components: mergedComponents,
             externalDocs: documentV3.externalDocs,
             tags: documentV3.tags,
             security: documentV3.security,
@@ -131,12 +155,27 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           break;
         case OpenApiVersion.v3_1:
           final documentV31 = this.document as DocumentV31;
+          final mergedComponents = ComponentsObjectV31(
+            schemas: {
+              ...?documentV31.components?.schemas,
+              ..._generatedComponentSchemas,
+            },
+            responses: documentV31.components?.responses,
+            parameters: documentV31.components?.parameters,
+            examples: documentV31.components?.examples,
+            requestBodies: documentV31.components?.requestBodies,
+            headers: documentV31.components?.headers,
+            securitySchemes: documentV31.components?.securitySchemes,
+            links: documentV31.components?.links,
+            callbacks: documentV31.components?.callbacks,
+            pathItems: documentV31.components?.pathItems,
+          );
           document = DocumentV31(
             info: documentV31.info as InfoObjectV31,
             structure: PathsWebhooksComponentsV31(
               paths: Map<String, PathItemObjectV31>.from(_paths),
               webhooks: documentV31.webhooks,
-              components: documentV31.components,
+              components: mergedComponents,
             ),
             externalDocs: documentV31.externalDocs,
             tags: documentV31.tags,
@@ -167,8 +206,11 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   Future<void> _exploreModules([int? modificationStamp]) async {
     final result = <String, List<RouteDescription>>{};
     final analyzer = Analyzer(version);
+    _generatedDefinitions = {};
+    _generatedComponentSchemas = {};
     if (analyze) {
       result.addAll(await analyzer.analyze(modificationStamp));
+      _collectGeneratedSchemas(analyzer);
     }
     final controllers = <Controller>[];
     final paths = <String, OpenApiPathItem>{};
@@ -463,6 +505,14 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
             operation,
             description.exceptions,
           );
+          operation = _applyAnnotatedQueryParameters(
+            operation,
+            description.annotatedQueryParameters,
+          );
+          operation = _applyAnnotatedResponses(
+            operation,
+            description.annotatedResponses,
+          );
         }
         final Map<String, OpenApiOperation> methodOperations =
             _calculateOperationsBasedOnHttpMethod(route.method, operation);
@@ -493,6 +543,27 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
       }
     }
     _paths = paths;
+  }
+
+  void _collectGeneratedSchemas(Analyzer analyzer) {
+    for (final entry in analyzer.modelTypeSchemas.entries) {
+      final modelName = entry.key.name ?? entry.key.displayName;
+      if (modelName.isEmpty) {
+        continue;
+      }
+      final descriptor = entry.value;
+      switch (version) {
+        case OpenApiVersion.v2:
+          _generatedDefinitions[modelName] = descriptor.toV2();
+          break;
+        case OpenApiVersion.v3_0:
+          _generatedComponentSchemas[modelName] = descriptor.toV3(use31: false);
+          break;
+        case OpenApiVersion.v3_1:
+          _generatedComponentSchemas[modelName] = descriptor.toV3(use31: true);
+          break;
+      }
+    }
   }
 
   OpenApiOperation _applyQueryParameters(
@@ -713,6 +784,230 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
             deprecated: opV31.deprecated,
             security: opV31.security,
             extensions: opV31.extensions,
+          );
+        }
+        break;
+    }
+    return operation;
+  }
+
+  OpenApiOperation _applyAnnotatedResponses(
+    OpenApiOperation operation,
+    Map<int, OpenApiObject> annotatedResponses,
+  ) {
+    if (annotatedResponses.isEmpty) {
+      return operation;
+    }
+    switch (version) {
+      case OpenApiVersion.v2:
+        if (operation is OperationObjectV2) {
+          final responses = Map<String, ResponseObjectV2>.from(
+            operation.responses,
+          );
+          for (final entry in annotatedResponses.entries) {
+            final response = entry.value;
+            if (response is ResponseObjectV2) {
+              responses[entry.key.toString()] = response;
+            }
+          }
+          final opV2 = operation;
+          return OperationObjectV2(
+            tags: opV2.tags,
+            summary: opV2.summary,
+            description: opV2.description,
+            externalDocs: opV2.externalDocs,
+            operationId: opV2.operationId,
+            parameters: opV2.parameters,
+            responses: responses,
+            consumes: opV2.consumes,
+            produces: opV2.produces,
+            security: opV2.security,
+            extensions: opV2.extensions,
+          );
+        }
+        break;
+      case OpenApiVersion.v3_0:
+        if (operation is OperationObjectV3) {
+          final responses = Map<String, ResponseObjectV3>.from(
+            operation.responses?.responses ?? const {},
+          );
+          for (final entry in annotatedResponses.entries) {
+            final response = entry.value;
+            if (response is ResponseObjectV3) {
+              responses[entry.key.toString()] = response;
+            }
+          }
+          final opV3 = operation;
+          return OperationObjectV3(
+            tags: opV3.tags,
+            summary: opV3.summary,
+            description: opV3.description,
+            externalDocs: opV3.externalDocs,
+            operationId: opV3.operationId,
+            parameters: opV3.parameters,
+            requestBody: opV3.requestBody,
+            responses: ResponsesV3(responses),
+            deprecated: opV3.deprecated,
+            security: opV3.security,
+            servers: opV3.servers,
+            extensions: opV3.extensions,
+          );
+        }
+        break;
+      case OpenApiVersion.v3_1:
+        if (operation is OperationObjectV31) {
+          final responses = Map<String, ResponseObjectV3>.from(
+            operation.responses?.responses ?? const {},
+          );
+          for (final entry in annotatedResponses.entries) {
+            final response = entry.value;
+            if (response is ResponseObjectV3) {
+              responses[entry.key.toString()] = response;
+            }
+          }
+          final opV31 = operation;
+          return OperationObjectV31(
+            servers: opV31.servers,
+            tags: opV31.tags,
+            summary: opV31.summary,
+            description: opV31.description,
+            externalDocs: opV31.externalDocs,
+            operationId: opV31.operationId,
+            parameters: opV31.parameters,
+            requestBody: opV31.requestBody,
+            responses: ResponsesV31(responses),
+            callbacks: opV31.callbacks,
+            deprecated: opV31.deprecated,
+            security: opV31.security,
+            extensions: opV31.extensions,
+          );
+        }
+        break;
+    }
+    return operation;
+  }
+
+  OpenApiOperation _applyAnnotatedQueryParameters(
+    OpenApiOperation operation,
+    Map<String, QueryParameterInfo> annotatedQueryParameters,
+  ) {
+    if (annotatedQueryParameters.isEmpty) {
+      return operation;
+    }
+    switch (version) {
+      case OpenApiVersion.v2:
+        if (operation is OperationObjectV2) {
+          final existing = List<ParameterObjectV2>.from(
+            operation.parameters ?? const <ParameterObjectV2>[],
+          );
+          for (final entry in annotatedQueryParameters.entries) {
+            existing.removeWhere(
+              (param) => param.in_ == 'query' && param.name == entry.key,
+            );
+            final openApiType = entry.value.schema.type;
+            final typeString = openApiType.type == 'object'
+                ? 'string'
+                : openApiType.type;
+            final formatString = openApiType.type == 'object'
+                ? null
+                : openApiType.format;
+            existing.add(
+              ParameterObjectV2(
+                name: entry.key,
+                in_: 'query',
+                required: entry.value.required,
+                type: typeString,
+                format: formatString,
+              ),
+            );
+          }
+          return OperationObjectV2(
+            tags: operation.tags,
+            summary: operation.summary,
+            description: operation.description,
+            externalDocs: operation.externalDocs,
+            operationId: operation.operationId,
+            parameters: existing,
+            responses: operation.responses,
+            consumes: operation.consumes,
+            produces: operation.produces,
+            security: operation.security,
+            extensions: operation.extensions,
+          );
+        }
+        break;
+      case OpenApiVersion.v3_0:
+        if (operation is OperationObjectV3) {
+          final existing = List<OpenApiObject>.from(
+            operation.parameters ?? const <OpenApiObject>[],
+          );
+          for (final entry in annotatedQueryParameters.entries) {
+            existing.removeWhere(
+              (param) =>
+                  param is ParameterObjectV3 &&
+                  param.in_ == 'query' &&
+                  param.name == entry.key,
+            );
+            existing.add(
+              ParameterObjectV3(
+                name: entry.key,
+                in_: 'query',
+                required: entry.value.required,
+                schema: entry.value.schema.toV3(use31: false),
+              ),
+            );
+          }
+          return OperationObjectV3(
+            tags: operation.tags,
+            summary: operation.summary,
+            description: operation.description,
+            externalDocs: operation.externalDocs,
+            operationId: operation.operationId,
+            parameters: existing,
+            requestBody: operation.requestBody,
+            responses: operation.responses,
+            deprecated: operation.deprecated,
+            security: operation.security,
+            servers: operation.servers,
+            extensions: operation.extensions,
+          );
+        }
+        break;
+      case OpenApiVersion.v3_1:
+        if (operation is OperationObjectV31) {
+          final existing = List<OpenApiObject>.from(
+            operation.parameters ?? const <OpenApiObject>[],
+          );
+          for (final entry in annotatedQueryParameters.entries) {
+            existing.removeWhere(
+              (param) =>
+                  param is ParameterObjectV3 &&
+                  param.in_ == 'query' &&
+                  param.name == entry.key,
+            );
+            existing.add(
+              ParameterObjectV3(
+                name: entry.key,
+                in_: 'query',
+                required: entry.value.required,
+                schema: entry.value.schema.toV3(use31: true),
+              ),
+            );
+          }
+          return OperationObjectV31(
+            servers: operation.servers,
+            tags: operation.tags,
+            summary: operation.summary,
+            description: operation.description,
+            externalDocs: operation.externalDocs,
+            operationId: operation.operationId,
+            parameters: existing,
+            requestBody: operation.requestBody,
+            responses: operation.responses,
+            callbacks: operation.callbacks,
+            deprecated: operation.deprecated,
+            security: operation.security,
+            extensions: operation.extensions,
           );
         }
         break;
