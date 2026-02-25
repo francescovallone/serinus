@@ -125,7 +125,10 @@ void main() async {
         final result = router.lookup('/posts/123/comments', HttpMethod.get);
         expect(result, isA<FoundRoute>());
         final found = result as FoundRoute<RouterEntry>;
-        expect(found.values.first.context.path, equals('/posts/:postId/comments'));
+        expect(
+          found.values.first.context.path,
+          equals('/posts/:postId/comments'),
+        );
         expect(found.params['postId'], equals('123'));
       },
     );

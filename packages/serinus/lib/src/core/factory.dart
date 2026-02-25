@@ -81,7 +81,6 @@ final class SerinusFactory {
 
   /// The [createMinimalApplication] method is used to create a new instance of the [SerinusMinimalApplication] class.
   Future<SerinusMinimalApplication> createMinimalApplication({
-    required Module entrypoint,
     String host = 'localhost',
     int port = 3000,
     Set<LogLevel>? logLevels,

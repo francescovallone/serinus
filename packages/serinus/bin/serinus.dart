@@ -124,7 +124,6 @@ class MyModelProvider extends ModelProvider {
 
 void main(List<String> arguments) async {
   final application = await serinus.createMinimalApplication(
-    entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),

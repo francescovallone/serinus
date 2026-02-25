@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.3
+
+**Released on:** 25-02-2026
+
+### Fixes
+
+- Remove useless `entrypoint` parameter from the `createMinimalApplication` method in the `SerinusFactory` class. This parameter is not needed for the creation of a minimal application and its presence can cause confusion for developers. Removing it simplifies the API and improves the developer experience when creating minimal applications with Serinus.
+
 ## 2.1.2
 
 **Released on:** 22-02-2026

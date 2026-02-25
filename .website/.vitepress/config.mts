@@ -253,6 +253,7 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Testing', link: 'testing' },
+              { text: 'Minimal Application', link: 'minimal_application' },
               // { text: 'Liquify', link: 'liquify' },
             ]
           },
