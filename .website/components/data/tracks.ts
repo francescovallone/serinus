@@ -26,6 +26,8 @@ export const roadmapTracks: RoadmapTrack[] = [
       { id: "c1", title: "Minimal Application", status: "in-progress", version: "v2.2" },
       { id: "c2", title: "Observability", status: "in-progress", version: "v2.2" },
       { id: "c3", title: "Injection Scopes", status: "planned", version: "v2.3" },
+      { id: "c5", title: "Change the HttpAdapter at runtime", status: "planned", version: "v2.2" },
+      { id: "c6", title: "Streaming responses", status: "planned", version: "v2.2" },
       { id: "c4", title: "CSRF", status: "done", version: "v2.1.2" },
     ],
   },

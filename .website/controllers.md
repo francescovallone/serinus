@@ -268,12 +268,6 @@ class UserController extends Controller {
 }
 ```
 
-::: warning
-The path parameters cannot be used inside the `Controller` path.
-:::
-
-
-
 ## Query Parameters
 
 You can access query parameters in the route path by using the `query` property of the `RequestContext` object.
