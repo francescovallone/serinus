@@ -10,8 +10,16 @@ import '../contexts/contexts.dart';
 import '../http/http.dart';
 import 'core.dart';
 
+/// The [RestHandler] class is an abstract class that defines a REST handler. It takes a [RequestContext] and returns a response of type [T].
+abstract class RestHandler<T, B> {
+
+  /// The handler function.
+  T call(RequestContext<B> context);  
+
+}
+
 /// Shortcut for a request-response handler. It takes a [RequestContext] and returns a [Response].
-class ReqResHandler<T, B> {
+class ReqResHandler<T, B> extends RestHandler<Future<T>, B> {
   /// The handler function.
   final Future<T> Function(RequestContext<B> context) _handler;
 
@@ -19,7 +27,22 @@ class ReqResHandler<T, B> {
   ReqResHandler(this._handler);
 
   /// Calls the handler function.
+  @override
   Future<T> call(RequestContext<B> context) {
+    return _handler(context);
+  }
+}
+
+/// Shortcut for a stream handler. It takes a [RequestContext] and returns a [Stream].
+class StreamHandler<T, B> extends RestHandler<Stream<T>, B> {
+  final Stream<T> Function(RequestContext<B> context) _handler;
+
+  /// Creates a stream handler.
+  StreamHandler(this._handler);
+
+  /// Calls the handler function.
+  @override
+  Stream<T> call(RequestContext<B> context) {
     return _handler(context);
   }
 }
@@ -47,21 +70,25 @@ abstract class RouteHandlerSpec<T> {
 }
 
 /// The [RestRouteHandlerSpec] class is used to define a REST route handler specification.
-class RestRouteHandlerSpec<T, B> extends RouteHandlerSpec<ReqResHandler<T, B>> {
+class RestRouteHandlerSpec<T, B> extends RouteHandlerSpec<RestHandler<T, B>> {
   /// The [shouldValidateMultipart] property determines if multipart form data should be validated.
   final bool shouldValidateMultipart;
 
   /// The [isStatic] property determines if the route is static.
   final bool isStatic;
 
+  /// The [streaming] property determines if the route is streaming.
+  final bool streaming;
+
   late final _RequestContextBuilder _requestContextBuilder;
 
   /// The [RestRouteHandlerSpec] constructor is used to create a new instance of the [RestRouteHandlerSpec] class.
   RestRouteHandlerSpec(
     Route route,
-    ReqResHandler<T, B> handler, {
+    RestHandler<T, B> handler, {
     this.shouldValidateMultipart = false,
     this.isStatic = false,
+    this.streaming = false,
   }) : super(route, handler) {
     _requestContextBuilder =
         ({
@@ -158,7 +185,7 @@ abstract class Controller {
       );
     }
 
-    _routes[UuidV4().generate()] = RestRouteHandlerSpec<T, B>(
+    _routes[UuidV4().generate()] = RestRouteHandlerSpec<Future<T>, B>(
       route,
       ReqResHandler<T, B>(handler),
       shouldValidateMultipart: shouldValidateMultipart,
@@ -183,11 +210,34 @@ abstract class Controller {
       );
     }
 
-    _routes[UuidV4().generate()] = RestRouteHandlerSpec<T, dynamic>(
+    _routes[UuidV4().generate()] = RestRouteHandlerSpec<Future<T>, dynamic>(
       route,
       ReqResHandler<T, dynamic>((_) async => handler),
       shouldValidateMultipart: false,
       isStatic: true,
+    );
+  }
+
+  @mustCallSuper
+  void onStream<R, B>(
+    Route route,
+    Stream<R> Function(RequestContext<B> context) handler, {
+    bool shouldValidateMultipart = false,
+  }) {
+    final routeExists = _routes.values.any(
+      (r) => r.route.path == route.path && r.route.method == route.method,
+    );
+    if (routeExists) {
+      throw StateError(
+        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
+      );
+    }
+
+    _routes[UuidV4().generate()] = RestRouteHandlerSpec<Stream<R>, B>(
+      route,
+      StreamHandler<R, B>(handler),
+      shouldValidateMultipart: shouldValidateMultipart,
+      streaming: true
     );
   }
 }

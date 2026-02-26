@@ -161,6 +161,39 @@ class SerinusHttpAdapter
     headers[io.HttpHeaders.contentTypeHeader] = contentTypeValue;
 
     final bodyData = body.data;
+    if (bodyData is Stream) {
+      headers[io.HttpHeaders.dateHeader] = _cachedDate;
+      response.toggleBuffering(false);
+      headers[io.HttpHeaders.contentTypeHeader] = contentTypeValue;
+      headers[io.HttpHeaders.transferEncodingHeader] = 'chunked';
+      headers['X-Content-Type-Options'] = 'nosniff';
+      headers['Cache-Control'] = 'no-cache, no-transform';
+      headers['Connection'] = 'keep-alive';
+      response.headers(headers, preserveHeaderCase: preserveHeaderCase);
+      try {
+        await for (final chunk in bodyData) {
+          if (chunk is List<int>) {
+            response.add(chunk);
+          } else if (chunk is String) {
+            response.write(chunk);
+          } else {
+            throw StateError('Unsupported stream data type: ${chunk.runtimeType}');
+          }
+          await response.flush();
+        }
+      } catch (e) {
+        // Handle errors during streaming
+        if (!response.isClosed) {
+          io.stderr.writeln('Stream error: $e');
+        }
+      } finally {
+        // Close the connection when the stream is done.
+        if (!response.isClosed) {
+          await response.flushAndClose();
+        }
+      }
+      return;
+    }
     if (bodyData is io.File) {
       final fileStat = await bodyData.stat();
       final rawFileName = bodyData.uri.pathSegments.last;
