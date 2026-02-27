@@ -1,49 +1,9 @@
+import 'dart:async';
+
 import 'package:grpc/grpc.dart';
 import 'package:serinus/serinus.dart';
 import 'grpc_controller.dart';
-
-/// The [GrpcPayload] class is the gRPC payload.
-sealed class GrpcPayload<T, R> {
-  /// The gRPC service call.
-  final ServiceCall call;
-
-  /// The future request.
-  final T futureRequest;
-
-  /// Creates a gRPC payload.
-  GrpcPayload(this.call, this.futureRequest);
-
-  /// Gets the request.
-  T getRequest();
-}
-
-/// The [GrpcPayloadUnitary] class is the gRPC unary payload.
-class GrpcPayloadUnitary<O> extends GrpcPayload<Future<O>, O> {
-  /// Creates a gRPC unary payload.
-  GrpcPayloadUnitary(ServiceCall call, Future<O> futureRequest) : super(call, futureRequest);
-
-  O? _request;
-
-  @override
-  Future<O> getRequest() async {
-    if (_request != null) {
-      return _request!;
-    }
-    _request = await futureRequest;
-    return _request!;
-  }
-}
-
-/// The [GrpcPayloadStream] class is the gRPC stream payload.
-class GrpcPayloadStream<O> extends GrpcPayload<Stream<O>, O> {
-  /// Creates a gRPC stream payload.
-  GrpcPayloadStream(ServiceCall call, Stream<O> futureRequest) : super(call, futureRequest);
-
-  @override
-  Stream<O> getRequest() async* {
-    yield* futureRequest;
-  }
-}
+import 'grpc_payload.dart';
 
 /// The [GrpcRouteContext] class is the gRPC route context.
 sealed class GrpcRouteContext<T> {
@@ -116,6 +76,8 @@ class GrpcMessageResolver extends MessagesResolver {
   /// The [resolvedAlready] property is used to check if the routes have been resolved already.
   bool resolvedAlready = false;
 
+  final Logger _logger = Logger('GrpcMessageResolver');
+
   /// The [GrpcMessageResolver] constructor is used to create a new instance of the [MessagesResolver] class.
   GrpcMessageResolver(super.config, this.services);
 
@@ -127,21 +89,23 @@ class GrpcMessageResolver extends MessagesResolver {
     for (final module in config.modulesContainer.scopes) {
       for (final controllerEntry in module.controllers.whereType<GrpcController>()) {
         for (final entry in controllerEntry.grpcRoutes.entries) {
-          if (resolvedMessageRoutes.containsKey(entry.value.route.path)) {
+          final grpcRoute = entry.value.route as GrpcRoute;
+          if (resolvedMessageRoutes.containsKey(grpcRoute.path)) {
             throw StateError(
-              'A message route with pattern "${entry.value.route.path}" is already registered in the application.',
+              'A message route with pattern "${grpcRoute.path}" is already registered in the application.',
             );
           }
-          final service = entry.value.route.path.split('.').first;
+          final routeInfo = grpcRoute.path.split('.');
+          final service = routeInfo.first;
           final serviceNames = services.map((e) => e.runtimeType.toString());
           if (!serviceNames.contains(service)) {
             throw StateError(
-              'Service "$service" for gRPC route "${entry.value.route.path}" is not registered in the gRPC server.',
+              'Service "$service" for gRPC route "${grpcRoute.path}" is not registered in the gRPC server.',
             );
           }
           switch (entry.value) {
             case GrpcRouteHandlerSpec():
-              resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextHandler(
+              resolvedMessageRoutes[grpcRoute.path] = GrpcRouteContextHandler(
                 handler: entry.value.handler,
                 providers: {
                   for (final providerEntry in module.unifiedProviders) providerEntry.runtimeType: providerEntry,
@@ -161,6 +125,9 @@ class GrpcMessageResolver extends MessagesResolver {
                   ...config.globalExceptionFilters,
                 },
                 values: module.unifiedValues,
+              );
+              _logger.info(
+                'Mapped {${grpcRoute.serviceName}, ${grpcRoute.methodName}} route',
               );
               break;
             case GrpcStreamRouteHandlerSpec():
@@ -184,6 +151,9 @@ class GrpcMessageResolver extends MessagesResolver {
                   ...config.globalExceptionFilters,
                 },
                 values: module.unifiedValues,
+              );
+              _logger.info(
+                'Mapped {${grpcRoute.serviceName}, ${grpcRoute.methodName}} route',
               );
               break;
             default:
@@ -220,20 +190,48 @@ class GrpcMessageResolver extends MessagesResolver {
       for (final pipe in routeContext.pipes) {
         await pipe.transform(executionContext);
       }
-      final grpcPayload = packet.payload as GrpcPayload;
+      final grpcPayload = packet.payload as GrpcPayload<dynamic, dynamic, dynamic>;
       final call = grpcPayload.call;
-      final request = await grpcPayload.getRequest();
-      final result = await routeContext.handler(
-        call,
-        request,
-        executionContext.switchToRpc(),
-      );
-      if (packet.id != null) {
-        return ResponsePacket(
-          pattern: packet.pattern,
-          id: packet.id,
-          payload: result,
+
+      if (routeContext.streaming) {
+        final originalStream = grpcPayload.getRequest() as Stream<dynamic>;
+        final transformed = await Future.value(
+          routeContext.handler(
+            call,
+            originalStream,
+            executionContext.switchToRpc(),
+          ),
         );
+        final Stream<dynamic> forwardedStream = transformed is Stream ? transformed : originalStream;
+        final responseStream = grpcPayload.invoke(grpcPayload.coerceStream(forwardedStream));
+        if (packet.id != null) {
+          return ResponsePacket(
+            pattern: packet.pattern,
+            id: packet.id,
+            payload: responseStream,
+          );
+        }
+      } else {
+        final originalRequest = await (grpcPayload.getRequest() as Future<dynamic>);
+        final handler = routeContext.handler as dynamic;
+        final Object? transformed = await Future<Object?>.value(
+          handler(
+            call,
+            originalRequest,
+            executionContext.switchToRpc(),
+          ),
+        );
+        final forwardedRequest = transformed ?? originalRequest;
+        final coerced = grpcPayload.coerceSingle(forwardedRequest);
+        final responseStream = grpcPayload.invoke(Stream.value(coerced));
+        final response = grpcPayload.streamingResponse ? await responseStream.first : await responseStream.single;
+        if (packet.id != null) {
+          return ResponsePacket(
+            pattern: packet.pattern,
+            id: packet.id,
+            payload: response,
+          );
+        }
       }
     } on RpcException catch (e) {
       for (final filter in routeContext.exceptionFilters) {
