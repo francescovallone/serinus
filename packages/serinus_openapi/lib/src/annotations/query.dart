@@ -28,9 +28,15 @@ class Query extends OpenApiAnnotation {
 
 /// This class represents a query parameter in an OpenAPI specification. It contains the name, type, and whether the parameter is required or not.
 class QueryParameter {
+  /// The name of the query parameter.
   final String name;
+
+  /// The type of the query parameter (e.g., 'string', 'integer').
   final String type;
+
+  /// Whether the query parameter is required or not. Defaults to false.
   final bool required;
 
+  /// Creates a new QueryParameter with the given name, type, and required flag.
   const QueryParameter(this.name, this.type, {this.required = false});
 }

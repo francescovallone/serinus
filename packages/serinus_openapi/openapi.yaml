@@ -33,9 +33,11 @@ paths:
           content:
             application/json:
               schema:
-                type: "array"
-                items:
-                  $ref: "#/components/schemas/MyObject"
+                oneOf:
+                  - $ref: "#/components/schemas/MyObject"
+                  - type: "array"
+                    items:
+                      $ref: "#/components/schemas/MyObject"
         400:
           description: "Bad Request"
           content:

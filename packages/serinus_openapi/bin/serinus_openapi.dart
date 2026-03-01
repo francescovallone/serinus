@@ -62,7 +62,10 @@ class AppController extends Controller {
     QueryParameter('page', 'integer', required: false),
   ])
   @Responses({
-    200: Response.oneOf(description: 'Successful response', types: [MyObject, List<MyObject>]),
+    200: Response.oneOf(
+      description: 'Successful response',
+      types: [MyObject, List<MyObject>],
+    ),
     400: Response(description: 'Bad Request', type: BadRequestException),
   })
   Future<List<MyObject>> _handleHelloWorld(RequestContext context) async {
@@ -97,7 +100,8 @@ class AppModule extends Module {
               version: '1.0.0',
               description: 'This is my API',
             ),
-            analyze: true
+            options: ScalarUIOptions(),
+            analyze: true,
           ),
         ],
       );

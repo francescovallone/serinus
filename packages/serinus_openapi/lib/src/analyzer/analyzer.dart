@@ -3,12 +3,13 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:openapi_types/openapi_types.dart';
+
 import '../annotations/open_api_annotation.dart';
 import 'models.dart';
 import 'visitors/exceptions_visitor.dart';
@@ -241,6 +242,9 @@ class Analyzer {
 
   void _registerModelType(InterfaceType type) {
     final element = type.element;
+    if (!_isRegisterableModelElement(element)) {
+      return;
+    }
     if (!modelProviderTypes.add(element)) {
       return;
     }
@@ -250,6 +254,10 @@ class Analyzer {
       <InterfaceElement>{},
     );
     modelTypeSchemas[element] = descriptor;
+  }
+
+  bool _isRegisterableModelElement(InterfaceElement element) {
+    return element.library.uri.scheme != 'dart';
   }
 
   SchemaDescriptor _buildSchemaDescriptorFromClass(
@@ -499,6 +507,19 @@ class Analyzer {
           description.annotatedQueryParameters.addAll(query);
         }
       }
+      if (name == 'Headers') {
+        final constant = annotation.elementAnnotation?.computeConstantValue();
+        final parsedHeaders = _parseHeadersFromDartObject(constant);
+        if (parsedHeaders.isNotEmpty) {
+          final response = _buildResponseObject(
+            'Success response',
+            null,
+            'application/json',
+            parsedHeaders,
+          );
+          description.annotatedResponses.putIfAbsent(200, () => response);
+        }
+      }
 
       final generic = _parseGenericOpenApiAnnotation(annotation);
       if (generic != null) {
@@ -669,56 +690,21 @@ class Analyzer {
 
     final parsedHeaders = _parseHeadersFromDartObject(spec['headers']);
 
-    switch (version) {
-      case OpenApiVersion.v2:
-        return ResponseObjectV2(
-          description: description,
-          schema: schema?.toV2(),
-          headers: parsedHeaders.isEmpty
-              ? null
-              : {
-                  for (final entry in parsedHeaders.entries)
-                    entry.key: HeaderObjectV2(
-                      description: entry.value,
-                      type: OpenApiType.string(),
-                    ),
-                },
-        );
-      case OpenApiVersion.v3_0:
-      case OpenApiVersion.v3_1:
-        final resolvedContentType =
-            contentType ??
-            (schema != null ? inferContentType(schema) : 'application/json');
-        return ResponseObjectV3(
-          description: description,
-          headers: parsedHeaders.isEmpty
-              ? null
-              : {
-                  for (final entry in parsedHeaders.entries)
-                    entry.key: HeaderObjectV3(
-                      description: entry.value,
-                      schema: SchemaObjectV3(type: OpenApiType.string()),
-                    ),
-                },
-          content: schema == null
-              ? null
-              : {
-                  resolvedContentType: MediaTypeObjectV3(
-                    schema: schema.toV3(use31: version == OpenApiVersion.v3_1),
-                  ),
-                },
-        );
-    }
+    return _buildResponseObject(
+      description,
+      schema,
+      contentType,
+      parsedHeaders,
+    );
   }
 
-  /// Extracts a `Map<String, String>` from a [Headers] annotation constant
-  /// value, where keys are header names and values are their descriptions.
-  Map<String, String> _parseHeadersFromDartObject(DartObject? headersAnnotation) {
-    if (headersAnnotation == null) {
+  Map<String, String> _parseHeadersFromDartObject(
+    DartObject? headersAnnotation,
+  ) {
+    if (headersAnnotation == null || headersAnnotation.isNull) {
       return {};
     }
-    final headersMap =
-        headersAnnotation.getField('headers')?.toMapValue();
+    final headersMap = headersAnnotation.getField('headers')?.toMapValue();
     if (headersMap == null) {
       return {};
     }
@@ -892,7 +878,117 @@ class Analyzer {
     return result;
   }
 
+  SchemaDescriptor? _parseBodySchemaFromDartObject(DartObject? schemaObj) {
+    if (schemaObj == null || schemaObj.isNull) {
+      return null;
+    }
+
+    final typeStr = schemaObj.getField('type')?.toStringValue();
+    final refStr = schemaObj.getField('ref')?.toStringValue();
+
+    if (refStr != null) {
+      return SchemaDescriptor.ref(refStr);
+    }
+
+    final oneOfTypes = schemaObj.getField('oneOfTypes')?.toListValue();
+    if (oneOfTypes != null) {
+      final schemas = <SchemaDescriptor>[];
+      for (final typeObj in oneOfTypes) {
+        final dartType = typeObj.toTypeValue();
+        if (dartType != null) {
+          final schema = schemaFromDartType(dartType);
+          if (schema != null) {
+            schemas.add(schema);
+          }
+        }
+      }
+      if (schemas.isNotEmpty) {
+        return SchemaDescriptor(type: OpenApiType.object(), oneOf: schemas);
+      }
+    }
+
+    if (typeStr != null) {
+      OpenApiType apiType;
+      switch (typeStr) {
+        case 'string':
+          apiType = OpenApiType.string();
+          break;
+        case 'integer':
+          apiType = OpenApiType.int32();
+          break;
+        case 'number':
+          apiType = OpenApiType.double();
+          break;
+        case 'boolean':
+          apiType = OpenApiType.boolean();
+          break;
+        case 'array':
+          apiType = OpenApiType.array();
+          break;
+        case 'object':
+          apiType = OpenApiType.object();
+          break;
+        default:
+          apiType = OpenApiType.object();
+      }
+
+      final itemsObj = schemaObj.getField('items');
+      SchemaDescriptor? itemsSchema;
+      if (itemsObj != null && !itemsObj.isNull) {
+        itemsSchema = _parseBodySchemaFromDartObject(itemsObj);
+      }
+
+      final propertiesObj = schemaObj.getField('properties')?.toMapValue();
+      Map<String, SchemaDescriptor>? properties;
+      if (propertiesObj != null) {
+        properties = {};
+        for (final entry in propertiesObj.entries) {
+          final key = entry.key?.toStringValue();
+          if (key != null) {
+            final valSchema = _parseBodySchemaFromDartObject(entry.value);
+            if (valSchema != null) {
+              properties[key] = valSchema;
+            }
+          }
+        }
+      }
+
+      return SchemaDescriptor(
+        type: apiType,
+        items: itemsSchema,
+        properties: properties,
+      );
+    }
+    return null;
+  }
+
   RequestBodyInfo? _parseBodyAnnotation(Annotation annotation) {
+    final constant = annotation.elementAnnotation?.computeConstantValue();
+    if (constant != null) {
+      final schemaObj = constant.getField('schema');
+      final manualSchema = _parseBodySchemaFromDartObject(schemaObj);
+
+      final typeObj = constant.getField('type')?.toTypeValue();
+      final contentType =
+          constant.getField('contentType')?.toStringValue() ??
+          'application/json';
+      final required = constant.getField('required')?.toBoolValue() ?? true;
+
+      SchemaDescriptor? schema = manualSchema;
+      if (schema == null && typeObj != null) {
+        schema = schemaFromDartType(typeObj);
+      }
+
+      if (schema != null) {
+        return RequestBodyInfo(
+          schema: schema,
+          contentType: contentType,
+          isRequired: required,
+        );
+      }
+    }
+
+    // Fallback to generic parsing for AST expressions
     final args = annotation.arguments?.arguments;
     if (args == null || args.isEmpty) {
       return null;
@@ -972,6 +1068,56 @@ class Analyzer {
   }
 
   OpenApiObject? _parseResponseAnnotation(Annotation annotation) {
+    final constant = annotation.elementAnnotation?.computeConstantValue();
+    if (constant != null) {
+      final description =
+          constant.getField('description')?.toStringValue() ??
+          'Success response';
+      final contentType =
+          constant.getField('contentType')?.toStringValue() ??
+          'application/json';
+
+      final headersMap = _parseHeadersFromDartObject(
+        constant.getField('headers'),
+      );
+
+      final schemaObj = constant.getField('schema');
+      final manualSchema = _parseBodySchemaFromDartObject(schemaObj);
+
+      final typeObj = constant.getField('type')?.toTypeValue();
+
+      final oneOfTypesList = constant.getField('oneOfTypes')?.toListValue();
+      SchemaDescriptor? schema = manualSchema;
+
+      if (schema == null &&
+          oneOfTypesList != null &&
+          oneOfTypesList.isNotEmpty) {
+        final oneOfSchemas = <SchemaDescriptor>[];
+        for (final t in oneOfTypesList) {
+          final dartType = t.toTypeValue();
+          if (dartType != null) {
+            final s = schemaFromDartType(dartType);
+            if (s != null) {
+              oneOfSchemas.add(s);
+            }
+          }
+        }
+        if (oneOfSchemas.isNotEmpty) {
+          schema = SchemaDescriptor(
+            type: OpenApiType.object(),
+            oneOf: oneOfSchemas,
+          );
+        }
+      }
+
+      if (schema == null && typeObj != null) {
+        schema = schemaFromDartType(typeObj);
+      }
+
+      return _buildResponseObject(description, schema, contentType, headersMap);
+    }
+
+    // Fallback to AST Parsing
     final constructorName = annotation.constructorName?.name;
     if (constructorName != null &&
         constructorName != 'schema' &&
@@ -997,6 +1143,54 @@ class Analyzer {
       expression.argumentList.arguments,
       constructorName: constructorName,
     );
+  }
+
+  OpenApiObject _buildResponseObject(
+    String description,
+    SchemaDescriptor? schema,
+    String? contentType,
+    Map<String, String> parsedHeaders,
+  ) {
+    switch (version) {
+      case OpenApiVersion.v2:
+        return ResponseObjectV2(
+          description: description,
+          schema: schema?.toV2(),
+          headers: parsedHeaders.isEmpty
+              ? null
+              : {
+                  for (final entry in parsedHeaders.entries)
+                    entry.key: HeaderObjectV2(
+                      description: entry.value,
+                      type: OpenApiType.string(),
+                    ),
+                },
+        );
+      case OpenApiVersion.v3_0:
+      case OpenApiVersion.v3_1:
+        final resolvedContentType =
+            contentType ??
+            (schema != null ? inferContentType(schema) : 'application/json');
+        return ResponseObjectV3(
+          description: description,
+          headers: parsedHeaders.isEmpty
+              ? null
+              : {
+                  for (final entry in parsedHeaders.entries)
+                    entry.key: HeaderObjectV3(
+                      description: entry.value,
+                      schema: SchemaObjectV3(type: OpenApiType.string()),
+                    ),
+                },
+          content: schema == null
+              ? null
+              : {
+                  resolvedContentType: MediaTypeObjectV3(
+                    schema: schema.toV3(use31: version == OpenApiVersion.v3_1),
+                  ),
+                },
+        );
+    }
   }
 
   OpenApiObject? _buildResponseFromArguments(
@@ -1042,49 +1236,14 @@ class Analyzer {
     }
     schema ??= fallbackSchema;
 
-    switch (version) {
-      case OpenApiVersion.v2:
-        return ResponseObjectV2(
-          description: description,
-          schema: schema?.toV2(),
-          headers: parsedHeaders.isEmpty
-              ? null
-              : {
-                  for (final entry in parsedHeaders.entries)
-                    entry.key: HeaderObjectV2(
-                      description: entry.value,
-                      type: OpenApiType.string(),
-                    ),
-                },
-        );
-      case OpenApiVersion.v3_0:
-      case OpenApiVersion.v3_1:
-        final resolvedContentType =
-            contentType ??
-            (schema != null ? inferContentType(schema) : 'application/json');
-        return ResponseObjectV3(
-          description: description,
-          headers: parsedHeaders.isEmpty
-              ? null
-              : {
-                  for (final entry in parsedHeaders.entries)
-                    entry.key: HeaderObjectV3(
-                      description: entry.value,
-                      schema: SchemaObjectV3(type: OpenApiType.string()),
-                    ),
-                },
-          content: schema == null
-              ? null
-              : {
-                  resolvedContentType: MediaTypeObjectV3(
-                    schema: schema.toV3(use31: version == OpenApiVersion.v3_1),
-                  ),
-                },
-        );
-    }
+    return _buildResponseObject(
+      description,
+      schema,
+      contentType,
+      parsedHeaders,
+    );
   }
 
-  /// Builds a response object from a [Response.oneOf] constructor argument list.
   OpenApiObject? _buildOneOfResponseFromArguments(
     Iterable<Expression> arguments,
   ) {
@@ -1105,16 +1264,12 @@ class Analyzer {
         }
       } else if (label == 'types') {
         if (arg.expression is ListLiteral) {
-          for (final element
-              in (arg.expression as ListLiteral).elements) {
+          for (final element in (arg.expression as ListLiteral).elements) {
             if (element is! Expression) {
               continue;
             }
             final interfaceType = _resolveInterfaceType(element);
             if (interfaceType != null) {
-              // Ensure the type is registered as a component schema so that
-              // schemaFromDartType returns a ReferenceObject ($ref) instead of
-              // an inline SchemaObjectV3, which is not accepted in oneOf.
               _registerModelType(interfaceType);
             }
             final schema = interfaceType != null
@@ -1143,49 +1298,14 @@ class Analyzer {
       type: OpenApiType.object(),
       oneOf: oneOfSchemas,
     );
-    final resolvedContentType = contentType ?? 'application/json';
-
-    switch (version) {
-      case OpenApiVersion.v2:
-        return ResponseObjectV2(
-          description: description,
-          schema: oneOfSchema.toV2(),
-          headers: parsedHeaders.isEmpty
-              ? null
-              : {
-                  for (final entry in parsedHeaders.entries)
-                    entry.key: HeaderObjectV2(
-                      description: entry.value,
-                      type: OpenApiType.string(),
-                    ),
-                },
-        );
-      case OpenApiVersion.v3_0:
-      case OpenApiVersion.v3_1:
-        return ResponseObjectV3(
-          description: description,
-          headers: parsedHeaders.isEmpty
-              ? null
-              : {
-                  for (final entry in parsedHeaders.entries)
-                    entry.key: HeaderObjectV3(
-                      description: entry.value,
-                      schema: SchemaObjectV3(type: OpenApiType.string()),
-                    ),
-                },
-          content: {
-            resolvedContentType: MediaTypeObjectV3(
-              schema: oneOfSchema.toV3(
-                use31: version == OpenApiVersion.v3_1,
-              ),
-            ),
-          },
-        );
-    }
+    return _buildResponseObject(
+      description,
+      oneOfSchema,
+      contentType,
+      parsedHeaders,
+    );
   }
 
-  /// Parses a [Headers] annotation expression into a plain `Map<String, String>`
-  /// where keys are header names and values are descriptions.
   Map<String, String> _parseHeadersToStringMap(Expression expression) {
     if (expression is! InstanceCreationExpression) {
       return {};
@@ -1500,7 +1620,7 @@ class Analyzer {
     return key.toSource();
   }
 
-  /// Converts a Dart type to a schema descriptor.
+  /// Attempts to derive a [SchemaDescriptor] from a given [DartType].
   SchemaDescriptor? schemaFromDartType(DartType? type) {
     return _schemaFromDartTypeInternal(type, <InterfaceElement>{});
   }
@@ -1624,7 +1744,8 @@ class Analyzer {
       }
       if (_isSerinusExceptionType(type)) {
         final exName = type.element.displayName;
-        final defaultExample = builtInExceptionsMap[exName]?.$2 ??
+        final defaultExample =
+            builtInExceptionsMap[exName]?.$2 ??
             builtInExceptionsMap.entries
                 .where(
                   (e) => type.allSupertypes.any(
@@ -1701,7 +1822,7 @@ class Analyzer {
     return SchemaDescriptor(type: OpenApiType.object());
   }
 
-  /// Infers the content type for a given schema descriptor.
+  /// Infers a content type based on the provided [SchemaDescriptor].
   String inferContentType(SchemaDescriptor schema) {
     if (schema.ref != null) {
       return 'application/json';

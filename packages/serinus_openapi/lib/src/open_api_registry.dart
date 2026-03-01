@@ -130,6 +130,11 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           break;
         case OpenApiVersion.v3_0:
           final documentV3 = this.document as DocumentV3;
+          final generatedPaths = _paths.isNotEmpty
+              ? Map<String, PathItemObjectV3>.from(_paths)
+              : (documentV3.paths.isNotEmpty
+                    ? Map<String, PathItemObjectV3>.from(documentV3.paths)
+                    : {'/': PathItemObjectV3(operations: {})});
           final mergedComponents = ComponentsObjectV3(
             schemas: {
               ...?documentV3.components?.schemas,
@@ -146,7 +151,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           );
           document = DocumentV3(
             info: documentV3.info,
-            paths: Map<String, PathItemObjectV3>.from(_paths),
+            paths: generatedPaths,
             components: mergedComponents,
             externalDocs: documentV3.externalDocs,
             tags: documentV3.tags,
@@ -381,16 +386,14 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
             case OpenApiVersion.v3_0:
               if (operation is OperationObjectV3) {
                 final responses = operation.responses;
-                if (responses != null) {
-                  final response = description.returnType;
-                  if (response is ResponseObjectV3) {
-                    responses[responseKey] = response;
-                  } else if (!responses.responses.containsKey(responseKey)) {
-                    responses[responseKey] = ResponseObjectV3(
-                      description: 'Success response',
-                      headers: {},
-                    );
-                  }
+                final response = description.returnType;
+                if (response is ResponseObjectV3) {
+                  responses[responseKey] = response;
+                } else if (!responses.responses.containsKey(responseKey)) {
+                  responses[responseKey] = ResponseObjectV3(
+                    description: 'Success response',
+                    headers: {},
+                  );
                 }
                 final requestInfo = description.requestBody;
                 if (requestInfo != null) {
@@ -441,16 +444,14 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
             case OpenApiVersion.v3_1:
               if (operation is OperationObjectV31) {
                 final responses = operation.responses;
-                if (responses != null) {
-                  final response = description.returnType;
-                  if (response is ResponseObjectV3) {
-                    responses[responseKey] = response;
-                  } else if (!responses.responses.containsKey(responseKey)) {
-                    responses[responseKey] = ResponseObjectV3(
-                      description: 'Success response',
-                      headers: {},
-                    );
-                  }
+                final response = description.returnType;
+                if (response is ResponseObjectV3) {
+                  responses[responseKey] = response;
+                } else if (!responses.responses.containsKey(responseKey)) {
+                  responses[responseKey] = ResponseObjectV3(
+                    description: 'Success response',
+                    headers: {},
+                  );
                 }
                 final requestInfo = description.requestBody;
                 if (requestInfo != null) {
@@ -735,7 +736,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
       case OpenApiVersion.v3_0:
         if (operation is OperationObjectV3) {
           final responses = Map<String, ResponseObjectV3>.from(
-            operation.responses?.responses ?? const {},
+            operation.responses.responses,
           );
           for (final entry in exceptions.entries) {
             responses[entry.key.toString()] = _buildExceptionResponseV3(
@@ -762,7 +763,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
       case OpenApiVersion.v3_1:
         if (operation is OperationObjectV31) {
           final responses = Map<String, ResponseObjectV3>.from(
-            operation.responses?.responses ?? const {},
+            operation.responses.responses,
           );
           for (final entry in exceptions.entries) {
             responses[entry.key.toString()] = _buildExceptionResponseV3(
@@ -829,7 +830,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
       case OpenApiVersion.v3_0:
         if (operation is OperationObjectV3) {
           final responses = Map<String, ResponseObjectV3>.from(
-            operation.responses?.responses ?? const {},
+            operation.responses.responses,
           );
           for (final entry in annotatedResponses.entries) {
             final response = entry.value;
@@ -857,7 +858,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
       case OpenApiVersion.v3_1:
         if (operation is OperationObjectV31) {
           final responses = Map<String, ResponseObjectV3>.from(
-            operation.responses?.responses ?? const {},
+            operation.responses.responses,
           );
           for (final entry in annotatedResponses.entries) {
             final response = entry.value;

@@ -1,0 +1,56 @@
+name: Serinus Tests
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/serinus_openapi.yml"
+      - "packages/serinus_openapi/lib/**"
+      - "packages/serinus_openapi/test/**"
+      - "packages/serinus_openapi/pubspec.yaml"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/serinus_openapi.yml"
+      - "packages/serinus_openapi/lib/**"
+      - "packages/serinus_openapi/test/**"
+      - "packages/serinus_openapi/pubspec.yaml"
+
+jobs:
+  build:    
+    defaults:
+      run:
+        working-directory: ./packages/serinus_openapi
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v3
+
+      - name: 🎯 Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: 📦 Install Dependencies
+        run: dart pub get --no-example
+
+      # - name: 🕵️ Analyze
+      #   run: dart analyze --fatal-infos --fatal-warnings lib test
+
+      - name: 🧪 Run Tests
+        run: |
+          dart test
+      
+      # - name: 📊 Check Code Coverage
+      #   uses: VeryGoodOpenSource/very_good_coverage@v2
+      #   with:
+      #     path: ./packages/serinus/coverage/lcov.info
+      #     min_coverage: 80
+      
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   env:
+      #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  
+  pana:
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/pana.yml@v1
+    with:
+      working_directory: packages/serinus

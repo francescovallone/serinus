@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0
+
+- feat: add a complete test suite for `serinus_openapi` (annotations, analyzer, routes, schema descriptors, renderers, and module factories).
+- feat: document a custom annotation example in README (`OperationId` pattern based on `OpenApiAnnotation`).
+- fix: avoid invalid OpenAPI v3 initialization by ensuring `DocumentV3.paths` is never empty in `OpenApiModule.v3`.
+- fix: make OpenAPI document generation resilient when analyzed v3 paths are empty by reusing existing document paths or a safe default path.
+- fix: prevent Dart SDK core types (for example `List`) from being registered as generated model schemas during analyzer model registration.
+- fix: align v3/v3.1 response handling in `OpenApiRegistry` with non-null `responses` API from `openapi_types`.
+- chore: bump package version to `1.1.0`.
+- chore: update `openapi_types` dependency to `^2.1.0`.
+- docs/example: update package example to use `ScalarUIOptions` and refresh generated `openapi.yaml` output.
+
+
 ## 1.0.14
 
 - chore: update dependencies.
