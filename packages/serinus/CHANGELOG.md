@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.4
+
+**Released on:** 01-03-2026
+
+### Fixes
+
+- Fix a bug in the `Atlas` router that caused incorrect handling of tail wildcard routes. Basically `/` was not matched by the tail wildcard route when no static route was present before it. This fix ensures that tail wildcard routes are correctly matched even when no static route is present.
+
 ## 2.1.3
 
 **Released on:** 25-02-2026

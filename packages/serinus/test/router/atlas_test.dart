@@ -369,6 +369,29 @@ void main() {
         expect(result.params['**'], 'file.js');
       });
 
+      test('should match / with /** when root route is not defined', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/**', 'handler');
+
+        final result = atlas.lookup(HttpMethod.get, '/');
+
+        expect(result, isA<FoundRoute<String>>());
+        expect(result.values, contains('handler'));
+        expect(result.params['**'], '');
+      });
+
+      test('should prefer static root route over /** for /', () {
+        final atlas = Atlas<String>();
+        atlas.add(HttpMethod.get, '/**', 'wildcard-handler');
+        atlas.add(HttpMethod.get, '/', 'root-handler');
+
+        final result = atlas.lookup(HttpMethod.get, '/');
+
+        expect(result, isA<FoundRoute<String>>());
+        expect(result.values, contains('root-handler'));
+        expect(result.values, isNot(contains('wildcard-handler')));
+      });
+
       test('should throw when adding children to tail wildcard', () {
         final atlas = Atlas<String>();
 
