@@ -76,11 +76,13 @@ class AppController extends Controller {
 /// Another controller to demonstrate multiple controllers
 class App2Controller extends Controller {
   App2Controller() : super('/a') {
+    on(PostRoute(path: '/post'), _createAPost);
     on(HelloWorldRoute(), _handleHelloWorld);
-    on(PostRoute(path: '/post'), (RequestContext context) async {
-      final data = context.bodyAs<String>();
-      return {'message': 'Post $data'};
-    });
+  }
+
+  Future<Map<String, String>> _createAPost(RequestContext context) async {
+    final data = context.bodyAs<String>();
+    return {'message': 'Post $data'};
   }
 
   Future<String> _handleHelloWorld(RequestContext context) async {

@@ -15,8 +15,9 @@ class SchemaDescriptor {
   });
 
   /// Creates a descriptor that references an OpenAPI component schema.
-  SchemaDescriptor.ref(this.ref)
-    : type = OpenApiType.object(),
+  SchemaDescriptor.ref(String ref)
+    : ref = ref,
+      type = OpenApiType.object(),
       properties = null,
       items = null,
       additionalProperties = null,
@@ -72,7 +73,7 @@ class SchemaDescriptor {
     }
     if (oneOf != null && oneOf!.isNotEmpty) {
       return SchemaObjectV2(
-        oneOf: oneOf!.map((d) => d.toV2()).toList(),
+        allOf: oneOf!.map((d) => d.toV2()).toList(),
         example: example,
       );
     }

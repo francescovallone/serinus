@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:serinus/serinus.dart';
 
 import '../serinus_openapi.dart';
@@ -116,8 +117,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
         case OpenApiVersion.v2:
           final documentV2 = this.document as DocumentV2;
           final mergedDefinitions = <String, SchemaObjectV2>{
-            ...documentV2.definitions,
             ..._generatedDefinitions,
+            ...documentV2.definitions,
           };
           document = DocumentV2(
             info: documentV2.info,
@@ -137,8 +138,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
                     : {'/': PathItemObjectV3(operations: {})});
           final mergedComponents = ComponentsObjectV3(
             schemas: {
-              ...?documentV3.components?.schemas,
               ..._generatedComponentSchemas,
+              ...?documentV3.components?.schemas,
             },
             responses: documentV3.components?.responses,
             parameters: documentV3.components?.parameters,
@@ -162,8 +163,8 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           final documentV31 = this.document as DocumentV31;
           final mergedComponents = ComponentsObjectV31(
             schemas: {
-              ...?documentV31.components?.schemas,
               ..._generatedComponentSchemas,
+              ...?documentV31.components?.schemas,
             },
             responses: documentV31.components?.responses,
             parameters: documentV31.components?.parameters,
@@ -547,11 +548,20 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   }
 
   void _collectGeneratedSchemas(Analyzer analyzer) {
+    final seen = <String, InterfaceElement>{};
     for (final entry in analyzer.modelTypeSchemas.entries) {
       final modelName = entry.key.name ?? entry.key.displayName;
       if (modelName.isEmpty) {
         continue;
       }
+      final previous = seen[modelName];
+      if (previous != null && previous != entry.key) {
+        throw StateError(
+          'OpenAPI schema name collision for "$modelName". '
+          'Use unique model names to avoid schema overwrite.',
+        );
+      }
+      seen[modelName] = entry.key;
       final descriptor = entry.value;
       switch (version) {
         case OpenApiVersion.v2:

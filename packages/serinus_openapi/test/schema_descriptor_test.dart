@@ -27,8 +27,8 @@ void main() {
       final v2 = descriptor.toV2();
       final v3 = descriptor.toV3(use31: false) as SchemaObjectV3;
 
-      expect(v2.oneOf, isNotNull);
-      expect(v2.oneOf, hasLength(2));
+      expect(v2.allOf, isNotNull);
+      expect(v2.allOf, hasLength(2));
       expect(v3.oneOf, isNotNull);
       expect(v3.oneOf, hasLength(2));
     });

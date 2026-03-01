@@ -511,13 +511,10 @@ class Analyzer {
         final constant = annotation.elementAnnotation?.computeConstantValue();
         final parsedHeaders = _parseHeadersFromDartObject(constant);
         if (parsedHeaders.isNotEmpty) {
-          final response = _buildResponseObject(
-            'Success response',
-            null,
-            'application/json',
+          _mergeHeadersIntoAnnotatedResponse(
+            description,
             parsedHeaders,
           );
-          description.annotatedResponses.putIfAbsent(200, () => response);
         }
       }
 
@@ -953,10 +950,26 @@ class Analyzer {
         }
       }
 
+      SchemaDescriptor? additionalProperties;
+      final additionalPropertiesObj = schemaObj.getField(
+        'additionalProperties',
+      );
+      if (additionalPropertiesObj != null && !additionalPropertiesObj.isNull) {
+        final boolValue = additionalPropertiesObj.toBoolValue();
+        if (boolValue == true) {
+          additionalProperties = SchemaDescriptor(type: OpenApiType.object());
+        } else if (boolValue != false) {
+          additionalProperties = _parseBodySchemaFromDartObject(
+            additionalPropertiesObj,
+          );
+        }
+      }
+
       return SchemaDescriptor(
         type: apiType,
         items: itemsSchema,
         properties: properties,
+        additionalProperties: additionalProperties,
       );
     }
     return null;
@@ -967,6 +980,8 @@ class Analyzer {
     if (constant != null) {
       final schemaObj = constant.getField('schema');
       final manualSchema = _parseBodySchemaFromDartObject(schemaObj);
+      final useRefForCustomTypes =
+          constant.getField('useRefForCustomTypes')?.toBoolValue() ?? true;
 
       final typeObj = constant.getField('type')?.toTypeValue();
       final contentType =
@@ -976,7 +991,10 @@ class Analyzer {
 
       SchemaDescriptor? schema = manualSchema;
       if (schema == null && typeObj != null) {
-        schema = schemaFromDartType(typeObj);
+        schema = _schemaFromDartTypeWithRefPreference(
+          typeObj,
+          useRefForCustomTypes: useRefForCustomTypes,
+        );
       }
 
       if (schema != null) {
@@ -1073,6 +1091,8 @@ class Analyzer {
       final description =
           constant.getField('description')?.toStringValue() ??
           'Success response';
+      final useRefForCustomTypes =
+          constant.getField('useRefForCustomTypes')?.toBoolValue() ?? true;
       final contentType =
           constant.getField('contentType')?.toStringValue() ??
           'application/json';
@@ -1096,7 +1116,10 @@ class Analyzer {
         for (final t in oneOfTypesList) {
           final dartType = t.toTypeValue();
           if (dartType != null) {
-            final s = schemaFromDartType(dartType);
+            final s = _schemaFromDartTypeWithRefPreference(
+              dartType,
+              useRefForCustomTypes: useRefForCustomTypes,
+            );
             if (s != null) {
               oneOfSchemas.add(s);
             }
@@ -1111,7 +1134,10 @@ class Analyzer {
       }
 
       if (schema == null && typeObj != null) {
-        schema = schemaFromDartType(typeObj);
+        schema = _schemaFromDartTypeWithRefPreference(
+          typeObj,
+          useRefForCustomTypes: useRefForCustomTypes,
+        );
       }
 
       return _buildResponseObject(description, schema, contentType, headersMap);
@@ -1142,6 +1168,42 @@ class Analyzer {
     return _buildResponseFromArguments(
       expression.argumentList.arguments,
       constructorName: constructorName,
+    );
+  }
+
+  SchemaDescriptor? _schemaFromDartTypeWithRefPreference(
+    DartType? type, {
+    required bool useRefForCustomTypes,
+  }) {
+    final schema = schemaFromDartType(type);
+    if (schema == null || useRefForCustomTypes) {
+      return schema;
+    }
+    return _inlineSchemaDescriptor(schema);
+  }
+
+  SchemaDescriptor _inlineSchemaDescriptor(SchemaDescriptor schema) {
+    if (schema.ref != null) {
+      return SchemaDescriptor(
+        type: OpenApiType.object(),
+        nullable: schema.nullable,
+        example: schema.example,
+      );
+    }
+    return SchemaDescriptor(
+      type: schema.type,
+      properties: schema.properties?.map(
+        (key, value) => MapEntry(key, _inlineSchemaDescriptor(value)),
+      ),
+      items: schema.items == null ? null : _inlineSchemaDescriptor(schema.items!),
+      additionalProperties: schema.additionalProperties == null
+          ? null
+          : _inlineSchemaDescriptor(schema.additionalProperties!),
+      nullable: schema.nullable,
+      example: schema.example,
+      oneOf: schema.oneOf
+          ?.map(_inlineSchemaDescriptor)
+          .toList(growable: false),
     );
   }
 
@@ -1190,6 +1252,57 @@ class Analyzer {
                   ),
                 },
         );
+    }
+  }
+
+  void _mergeHeadersIntoAnnotatedResponse(
+    RouteDescription description,
+    Map<String, String> parsedHeaders,
+  ) {
+    final existingResponse = description.annotatedResponses[200];
+    if (existingResponse == null) {
+      description.annotatedResponses[200] = _buildResponseObject(
+        'Success response',
+        null,
+        'application/json',
+        parsedHeaders,
+      );
+      return;
+    }
+
+    if (existingResponse is ResponseObjectV2) {
+      final mergedHeaders = <String, HeaderObjectV2>{
+        ...?existingResponse.headers,
+        for (final entry in parsedHeaders.entries)
+          entry.key: HeaderObjectV2(
+            description: entry.value,
+            type: OpenApiType.string(),
+          ),
+      };
+
+      description.annotatedResponses[200] = ResponseObjectV2(
+        description: existingResponse.description,
+        schema: existingResponse.schema,
+        headers: mergedHeaders,
+      );
+      return;
+    }
+
+    if (existingResponse is ResponseObjectV3) {
+      final mergedHeaders = <String, OpenApiObject>{
+        ...?existingResponse.headers,
+        for (final entry in parsedHeaders.entries)
+          entry.key: HeaderObjectV3(
+            description: entry.value,
+            schema: SchemaObjectV3(type: OpenApiType.string()),
+          ),
+      };
+
+      description.annotatedResponses[200] = ResponseObjectV3(
+        description: existingResponse.description,
+        headers: mergedHeaders,
+        content: existingResponse.content,
+      );
     }
   }
 
@@ -1787,7 +1900,10 @@ class Analyzer {
     if (a.type == b.type) {
       if (a.ref != null || b.ref != null) {
         if (a.ref != null && a.ref == b.ref) {
-          return SchemaDescriptor.ref(a.ref).asNullable();
+          final refDescriptor = SchemaDescriptor.ref(a.ref!);
+          return (a.nullable || b.nullable)
+            ? refDescriptor.asNullable()
+            : refDescriptor;
         }
         return SchemaDescriptor(type: OpenApiType.object());
       }

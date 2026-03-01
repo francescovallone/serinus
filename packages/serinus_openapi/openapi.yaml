@@ -99,7 +99,7 @@ paths:
     post:
       tags:
         - "App2Controller"
-      operationId: "handleHelloWorld"
+      operationId: "createAPost"
       parameters: []
       responses:
         201:

@@ -62,7 +62,7 @@ The resulting OpenAPI specification won't include the versioned route because th
 
 ## Annotations
 
-The packages exports some custom built annotations that you can use on your handler methods to customize the generated OpenAPI specification. For example, you can use the `@Body(MyObject)` annotation to specify that the request body of a handler method should be documented as an instance of `MyObject` in the generated OpenAPI specification.
+The package exports some custom built-in annotations that you can use on your handler methods to customize the generated OpenAPI specification. For example, you can use the `@Body(MyObject)` annotation to specify that the request body of a handler method should be documented as an instance of `MyObject` in the generated OpenAPI specification.
 
 ::: info
 These annotations are used only to make more robust assumptions about the structure of your code, the plugin will still try to generate a valid OpenAPI specification even if you don't use them, but they can be useful to avoid edge cases and to make the generated specification more accurate.
@@ -72,8 +72,8 @@ Currently, the following annotations are available:
 
 - `@Body()`: specifies the type of the request body for a handler method.
 - `@Query()`: specifies the type of a query parameter for a handler method.
-- `@Header()`: specifies the type of a header parameter for a handler method.
-- `@Responses()`: specifies the type of a responses for a handler method.
+- `@Headers()`: specifies header metadata for a handler method.
+- `@Responses()`: specifies response metadata for a handler method.
 
 ## Custom Annotations
 

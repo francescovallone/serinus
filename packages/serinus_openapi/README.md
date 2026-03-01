@@ -38,25 +38,3 @@ class AppModule extends Module {
         );
 }
 ```
-
-## Custom annotation example
-
-You can build analyzer-driven custom annotations by extending `OpenApiAnnotation`.
-
-The package also includes an example `OperationId` annotation:
-
-```dart
-import 'package:serinus/serinus.dart';
-import 'package:serinus_openapi/serinus_openapi.dart';
-
-class UsersController extends Controller {
-  UsersController() : super('/users') {
-    on(Route.get('/'), listUsers);
-  }
-
-  @OperationId('users.list')
-  Future<String> listUsers(RequestContext context) async {
-    return 'ok';
-  }
-}
-```
