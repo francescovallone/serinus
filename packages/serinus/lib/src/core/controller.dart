@@ -218,6 +218,10 @@ abstract class Controller {
     );
   }
 
+  /// The [onStream] method is used to register a streaming route.
+  /// It takes a [Route] and a [Stream] handler function.
+  /// The handler function receives a [RequestContext] and returns a [Stream] of type [R].
+  /// It should not be overridden.
   @mustCallSuper
   void onStream<R, B>(
     Route route,
