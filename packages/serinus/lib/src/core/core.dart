@@ -9,6 +9,7 @@ export 'factory.dart';
 export 'hook.dart';
 export 'metadata.dart';
 export 'middlewares/middleware.dart';
+export 'minimal/minimal_application.dart';
 export 'module.dart';
 export 'pipe.dart';
 export 'provider.dart';
