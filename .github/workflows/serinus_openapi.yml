@@ -1,4 +1,4 @@
-name: Serinus Tests
+name: Serinus OpenAPI Tests
 
 on:
   pull_request:
