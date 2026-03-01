@@ -395,6 +395,15 @@ final class Atlas<T> {
       if (_hasAnyHandler(node)) {
         return (node, params);
       }
+
+      // Tail wildcard can also match an empty remaining path.
+      final tailWildcard = node.tailWildcardChild;
+      if (tailWildcard != null && _hasAnyHandler(tailWildcard)) {
+        final newParams = List<ParamAndValue>.from(params)
+          ..add((name: '**', value: ''));
+        return (tailWildcard, newParams);
+      }
+
       return null;
     }
 
