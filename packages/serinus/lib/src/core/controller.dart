@@ -176,14 +176,7 @@ abstract class Controller {
     Future<T> Function(RequestContext<B> context) handler, {
     bool shouldValidateMultipart = false,
   }) {
-    final routeExists = _routes.values.any(
-      (r) => r.route.path == route.path && r.route.method == route.method,
-    );
-    if (routeExists) {
-      throw StateError(
-        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
-      );
-    }
+    _ensureRouteDoesNotExist(route);
 
     _routes[UuidV4().generate()] = RestRouteHandlerSpec<Future<T>, B>(
       route,
@@ -201,14 +194,7 @@ abstract class Controller {
     if (handler is Function) {
       throw StateError('The handler must be a static value');
     }
-    final routeExists = _routes.values.any(
-      (r) => r.route.path == route.path && r.route.method == route.method,
-    );
-    if (routeExists) {
-      throw StateError(
-        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
-      );
-    }
+    _ensureRouteDoesNotExist(route);
 
     _routes[UuidV4().generate()] = RestRouteHandlerSpec<Future<T>, dynamic>(
       route,
@@ -228,14 +214,7 @@ abstract class Controller {
     Stream<R> Function(RequestContext<B> context) handler, {
     bool shouldValidateMultipart = false,
   }) {
-    final routeExists = _routes.values.any(
-      (r) => r.route.path == route.path && r.route.method == route.method,
-    );
-    if (routeExists) {
-      throw StateError(
-        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
-      );
-    }
+    _ensureRouteDoesNotExist(route);
 
     _routes[UuidV4().generate()] = RestRouteHandlerSpec<Stream<R>, B>(
       route,
@@ -244,4 +223,16 @@ abstract class Controller {
       streaming: true
     );
   }
+
+  void _ensureRouteDoesNotExist(Route route) {
+    final routeExists = _routes.values.any(
+      (r) => r.route.path == route.path && r.route.method == route.method,
+    );
+    if (routeExists) {
+      throw StateError(
+        'A route with the same path and method already exists. [${route.path}] [${route.method}]',
+      );
+    }
+  }
+
 }
