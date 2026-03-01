@@ -49,8 +49,3 @@ jobs:
       #   uses: codecov/codecov-action@v4
       #   env:
       #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-  
-  pana:
-    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/pana.yml@v1
-    with:
-      working_directory: packages/serinus
