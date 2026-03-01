@@ -4,10 +4,13 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:openapi_types/openapi_types.dart';
+
+import '../annotations/open_api_annotation.dart';
 import 'models.dart';
 import 'visitors/exceptions_visitor.dart';
 import 'visitors/models_provider_visitor.dart';
@@ -157,10 +160,16 @@ class Analyzer {
               );
             }
           }
+          final annotated = _analyzeMethodAnnotations(method);
+          _mergeRouteDescriptions(savedHandler, annotated);
           savedHandler.operationId =
-              (analyzed.operationId ?? methodName).startsWith('_')
-              ? (analyzed.operationId ?? methodName).substring(1)
-              : (analyzed.operationId ?? methodName);
+              (savedHandler.operationId ?? analyzed.operationId ?? methodName)
+                  .startsWith('_')
+              ? (savedHandler.operationId ?? analyzed.operationId ?? methodName)
+                    .substring(1)
+              : (savedHandler.operationId ??
+                    analyzed.operationId ??
+                    methodName);
         }
       }
       if (isController) {
@@ -233,6 +242,9 @@ class Analyzer {
 
   void _registerModelType(InterfaceType type) {
     final element = type.element;
+    if (!_isRegisterableModelElement(element)) {
+      return;
+    }
     if (!modelProviderTypes.add(element)) {
       return;
     }
@@ -242,6 +254,10 @@ class Analyzer {
       <InterfaceElement>{},
     );
     modelTypeSchemas[element] = descriptor;
+  }
+
+  bool _isRegisterableModelElement(InterfaceElement element) {
+    return element.library.uri.scheme != 'dart';
   }
 
   SchemaDescriptor _buildSchemaDescriptorFromClass(
@@ -450,10 +466,1075 @@ class Analyzer {
     if (additional.responseContentType != null) {
       base.responseContentType = additional.responseContentType;
     }
+    if (additional.operationId != null) {
+      base.operationId = additional.operationId;
+    }
     for (final entry in additional.exceptions.entries) {
       base.exceptions.putIfAbsent(entry.key, () => entry.value);
     }
+    for (final entry in additional.annotatedResponses.entries) {
+      base.annotatedResponses[entry.key] = entry.value;
+    }
+    for (final entry in additional.annotatedQueryParameters.entries) {
+      base.annotatedQueryParameters[entry.key] = entry.value;
+    }
     return base;
+  }
+
+  RouteDescription _analyzeMethodAnnotations(MethodDeclaration method) {
+    var description = RouteDescription();
+    for (final annotation in method.metadata) {
+      final name = _annotationClassElement(annotation)?.displayName;
+      if (name == 'Body') {
+        final body = _parseBodyAnnotation(annotation);
+        if (body != null) {
+          description.requestBody = body;
+        }
+      }
+      if (name == 'Responses') {
+        final responses = _parseResponsesAnnotation(annotation);
+        description.annotatedResponses.addAll(responses);
+      }
+      if (name == 'Response') {
+        final response = _parseResponseAnnotation(annotation);
+        if (response != null) {
+          description.annotatedResponses[200] = response;
+        }
+      }
+      if (name == 'Query') {
+        final query = _parseQueryAnnotation(annotation);
+        if (query.isNotEmpty) {
+          description.annotatedQueryParameters.addAll(query);
+        }
+      }
+      if (name == 'Headers') {
+        final constant = annotation.elementAnnotation?.computeConstantValue();
+        final parsedHeaders = _parseHeadersFromDartObject(constant);
+        if (parsedHeaders.isNotEmpty) {
+          _mergeHeadersIntoAnnotatedResponse(
+            description,
+            parsedHeaders,
+          );
+        }
+      }
+
+      final generic = _parseGenericOpenApiAnnotation(annotation);
+      if (generic != null) {
+        description = _mergeRouteDescriptions(description, generic);
+      }
+    }
+    return description;
+  }
+
+  RouteDescription? _parseGenericOpenApiAnnotation(Annotation annotation) {
+    final classElement = _annotationClassElement(annotation);
+    if (classElement == null || !_isOpenApiAnnotationSubclass(classElement)) {
+      return null;
+    }
+
+    final constant = annotation.elementAnnotation?.computeConstantValue();
+    if (constant == null) {
+      return null;
+    }
+
+    final kindObject =
+        constant.getField('analyzerKind') ??
+        constant.getField('kind') ??
+        constant.getField('annotationKind');
+    final specObject =
+        constant.getField('analyzerSpec') ??
+        constant.getField('spec') ??
+        constant.getField('annotationSpec');
+
+    final kind = _resolveGenericKind(kindObject);
+    if (kind == null || kind.isEmpty) {
+      return null;
+    }
+
+    final normalizedKind = kind.toLowerCase();
+    final description = RouteDescription();
+
+    if (normalizedKind == 'body') {
+      final body = _parseGenericBodySpec(specObject);
+      if (body != null) {
+        description.requestBody = body;
+      }
+      return description;
+    }
+
+    if (normalizedKind == 'response') {
+      final response = _parseGenericResponseSpec(specObject);
+      if (response != null) {
+        description.annotatedResponses[200] = response;
+      }
+      return description;
+    }
+
+    if (normalizedKind == 'responses') {
+      final responses = _parseGenericResponsesSpec(specObject);
+      if (responses.isNotEmpty) {
+        description.annotatedResponses.addAll(responses);
+      }
+      return description;
+    }
+
+    if (normalizedKind == 'query') {
+      final query = _parseGenericQuerySpec(specObject);
+      if (query.isNotEmpty) {
+        description.annotatedQueryParameters.addAll(query);
+      }
+      return description;
+    }
+
+    if (normalizedKind == 'operationid') {
+      final operationId = _parseGenericOperationIdSpec(specObject);
+      if (operationId != null && operationId.isNotEmpty) {
+        description.operationId = operationId;
+      }
+      return description;
+    }
+
+    return null;
+  }
+
+  String? _resolveGenericKind(DartObject? kindObject) {
+    if (kindObject == null) {
+      return null;
+    }
+
+    final asString = kindObject.toStringValue();
+    if (asString != null && asString.isNotEmpty) {
+      return asString;
+    }
+
+    final enumName = kindObject.getField('name')?.toStringValue();
+    if (enumName != null && enumName.isNotEmpty) {
+      return enumName;
+    }
+
+    final byIndex = kindObject.getField('index')?.toIntValue();
+    if (byIndex != null &&
+        byIndex >= 0 &&
+        byIndex < OpenApiAnnotationKind.values.length) {
+      return OpenApiAnnotationKind.values[byIndex].name;
+    }
+
+    final fallback = kindObject.toString();
+    if (fallback.contains('.')) {
+      return fallback.split('.').last;
+    }
+    return fallback;
+  }
+
+  InterfaceElement? _annotationClassElement(Annotation annotation) {
+    final element = annotation.elementAnnotation?.element;
+    if (element is ConstructorElement) {
+      return element.enclosingElement;
+    }
+    if (element is InterfaceElement) {
+      return element;
+    }
+    return null;
+  }
+
+  bool _isOpenApiAnnotationSubclass(InterfaceElement element) {
+    if (element.name == 'OpenApiAnnotation') {
+      return true;
+    }
+    return element.allSupertypes.any(
+      (type) => type.element.name == 'OpenApiAnnotation',
+    );
+  }
+
+  RequestBodyInfo? _parseGenericBodySpec(DartObject? specObject) {
+    final spec = _asStringKeyMap(specObject);
+    if (spec == null) {
+      return null;
+    }
+
+    final dartType = spec['type']?.toTypeValue();
+    if (dartType == null) {
+      return null;
+    }
+
+    final schema = schemaFromDartType(dartType);
+    if (schema == null) {
+      return null;
+    }
+
+    return RequestBodyInfo(
+      schema: schema,
+      contentType:
+          spec['contentType']?.toStringValue() ?? inferContentType(schema),
+      isRequired: spec['required']?.toBoolValue() ?? true,
+    );
+  }
+
+  OpenApiObject? _parseGenericResponseSpec(DartObject? specObject) {
+    final spec = _asStringKeyMap(specObject);
+    if (spec == null) {
+      return null;
+    }
+
+    final description =
+        spec['description']?.toStringValue() ?? 'Success response';
+    final contentType = spec['contentType']?.toStringValue();
+    final responseType = spec['type']?.toTypeValue();
+
+    final schema = responseType == null
+        ? null
+        : schemaFromDartType(responseType);
+
+    final parsedHeaders = _parseHeadersFromDartObject(spec['headers']);
+
+    return _buildResponseObject(
+      description,
+      schema,
+      contentType,
+      parsedHeaders,
+    );
+  }
+
+  Map<String, String> _parseHeadersFromDartObject(
+    DartObject? headersAnnotation,
+  ) {
+    if (headersAnnotation == null || headersAnnotation.isNull) {
+      return {};
+    }
+    final headersMap = headersAnnotation.getField('headers')?.toMapValue();
+    if (headersMap == null) {
+      return {};
+    }
+    final result = <String, String>{};
+    for (final entry in headersMap.entries) {
+      final key = entry.key?.toStringValue();
+      final value = entry.value?.toStringValue();
+      if (key != null && value != null) {
+        result[key] = value;
+      }
+    }
+    return result;
+  }
+
+  Map<int, OpenApiObject> _parseGenericResponsesSpec(DartObject? specObject) {
+    final result = <int, OpenApiObject>{};
+    final map = specObject?.toMapValue();
+    if (map == null) {
+      return result;
+    }
+
+    for (final entry in map.entries) {
+      final key = entry.key?.toIntValue();
+      if (key == null) {
+        continue;
+      }
+      final response = _parseGenericResponseSpec(entry.value);
+      if (response != null) {
+        result[key] = response;
+      }
+    }
+    return result;
+  }
+
+  Map<String, QueryParameterInfo> _parseGenericQuerySpec(
+    DartObject? specObject,
+  ) {
+    final result = <String, QueryParameterInfo>{};
+    final map = specObject?.toMapValue();
+    if (map == null) {
+      return result;
+    }
+
+    for (final entry in map.entries) {
+      final key = entry.key?.toStringValue();
+      if (key == null) {
+        continue;
+      }
+
+      DartType? dartType = entry.value?.toTypeValue();
+      var required = false;
+      if (dartType == null) {
+        final valueMap = _asStringKeyMap(entry.value);
+        dartType = valueMap?['type']?.toTypeValue();
+        required = valueMap?['required']?.toBoolValue() ?? false;
+      }
+      if (dartType == null) {
+        continue;
+      }
+
+      final schema = schemaFromDartType(dartType);
+      if (schema != null) {
+        result[key] = QueryParameterInfo(schema: schema, required: required);
+      }
+    }
+    return result;
+  }
+
+  Map<String, QueryParameterInfo> _parseQueryAnnotation(Annotation annotation) {
+    final result = <String, QueryParameterInfo>{};
+    final args = annotation.arguments?.arguments;
+    if (args == null || args.isEmpty) {
+      return result;
+    }
+
+    final first = args.first;
+    if (first is! ListLiteral) {
+      return result;
+    }
+
+    for (final element in first.elements) {
+      if (element is! InstanceCreationExpression) {
+        continue;
+      }
+      final typeName = element.constructorName.type.name.lexeme;
+      if (typeName != 'QueryParameter') {
+        continue;
+      }
+
+      final queryArgs = element.argumentList.arguments;
+      if (queryArgs.length < 2) {
+        continue;
+      }
+
+      final name = _stringFromExpression(queryArgs[0]);
+      final typeString = _stringFromExpression(queryArgs[1]);
+      if (name == null || typeString == null) {
+        continue;
+      }
+
+      var required = false;
+      for (final queryArg in queryArgs.whereType<NamedExpression>()) {
+        if (queryArg.name.label.name == 'required') {
+          required = _boolFromExpression(queryArg.expression) ?? required;
+        }
+      }
+
+      final schema = _schemaFromQueryTypeString(typeString);
+      if (schema != null) {
+        result[name] = QueryParameterInfo(schema: schema, required: required);
+      }
+    }
+
+    return result;
+  }
+
+  SchemaDescriptor? _schemaFromQueryTypeString(String type) {
+    switch (type.toLowerCase()) {
+      case 'string':
+        return SchemaDescriptor(type: OpenApiType.string());
+      case 'integer':
+      case 'int':
+      case 'int32':
+        return SchemaDescriptor(type: OpenApiType.int32());
+      case 'number':
+      case 'double':
+      case 'float':
+        return SchemaDescriptor(type: OpenApiType.double());
+      case 'boolean':
+      case 'bool':
+        return SchemaDescriptor(type: OpenApiType.boolean());
+      case 'array':
+        return SchemaDescriptor(
+          type: OpenApiType.array(),
+          items: SchemaDescriptor(type: OpenApiType.string()),
+        );
+      case 'object':
+        return SchemaDescriptor(type: OpenApiType.object());
+      default:
+        return null;
+    }
+  }
+
+  String? _parseGenericOperationIdSpec(DartObject? specObject) {
+    final direct = specObject?.toStringValue();
+    if (direct != null && direct.isNotEmpty) {
+      return direct;
+    }
+
+    final map = _asStringKeyMap(specObject);
+    final value = map?['value']?.toStringValue();
+    if (value != null && value.isNotEmpty) {
+      return value;
+    }
+    return null;
+  }
+
+  Map<String, DartObject?>? _asStringKeyMap(DartObject? object) {
+    final raw = object?.toMapValue();
+    if (raw == null) {
+      return null;
+    }
+    final result = <String, DartObject?>{};
+    for (final entry in raw.entries) {
+      final key = entry.key?.toStringValue();
+      if (key == null) {
+        continue;
+      }
+      result[key] = entry.value;
+    }
+    return result;
+  }
+
+  SchemaDescriptor? _parseBodySchemaFromDartObject(DartObject? schemaObj) {
+    if (schemaObj == null || schemaObj.isNull) {
+      return null;
+    }
+
+    final typeStr = schemaObj.getField('type')?.toStringValue();
+    final refStr = schemaObj.getField('ref')?.toStringValue();
+
+    if (refStr != null) {
+      return SchemaDescriptor.ref(refStr);
+    }
+
+    final oneOfTypes = schemaObj.getField('oneOfTypes')?.toListValue();
+    if (oneOfTypes != null) {
+      final schemas = <SchemaDescriptor>[];
+      for (final typeObj in oneOfTypes) {
+        final dartType = typeObj.toTypeValue();
+        if (dartType != null) {
+          final schema = schemaFromDartType(dartType);
+          if (schema != null) {
+            schemas.add(schema);
+          }
+        }
+      }
+      if (schemas.isNotEmpty) {
+        return SchemaDescriptor(type: OpenApiType.object(), oneOf: schemas);
+      }
+    }
+
+    if (typeStr != null) {
+      OpenApiType apiType;
+      switch (typeStr) {
+        case 'string':
+          apiType = OpenApiType.string();
+          break;
+        case 'integer':
+          apiType = OpenApiType.int32();
+          break;
+        case 'number':
+          apiType = OpenApiType.double();
+          break;
+        case 'boolean':
+          apiType = OpenApiType.boolean();
+          break;
+        case 'array':
+          apiType = OpenApiType.array();
+          break;
+        case 'object':
+          apiType = OpenApiType.object();
+          break;
+        default:
+          apiType = OpenApiType.object();
+      }
+
+      final itemsObj = schemaObj.getField('items');
+      SchemaDescriptor? itemsSchema;
+      if (itemsObj != null && !itemsObj.isNull) {
+        itemsSchema = _parseBodySchemaFromDartObject(itemsObj);
+      }
+
+      final propertiesObj = schemaObj.getField('properties')?.toMapValue();
+      Map<String, SchemaDescriptor>? properties;
+      if (propertiesObj != null) {
+        properties = {};
+        for (final entry in propertiesObj.entries) {
+          final key = entry.key?.toStringValue();
+          if (key != null) {
+            final valSchema = _parseBodySchemaFromDartObject(entry.value);
+            if (valSchema != null) {
+              properties[key] = valSchema;
+            }
+          }
+        }
+      }
+
+      SchemaDescriptor? additionalProperties;
+      final additionalPropertiesObj = schemaObj.getField(
+        'additionalProperties',
+      );
+      if (additionalPropertiesObj != null && !additionalPropertiesObj.isNull) {
+        final boolValue = additionalPropertiesObj.toBoolValue();
+        if (boolValue == true) {
+          additionalProperties = SchemaDescriptor(type: OpenApiType.object());
+        } else if (boolValue != false) {
+          additionalProperties = _parseBodySchemaFromDartObject(
+            additionalPropertiesObj,
+          );
+        }
+      }
+
+      return SchemaDescriptor(
+        type: apiType,
+        items: itemsSchema,
+        properties: properties,
+        additionalProperties: additionalProperties,
+      );
+    }
+    return null;
+  }
+
+  RequestBodyInfo? _parseBodyAnnotation(Annotation annotation) {
+    final constant = annotation.elementAnnotation?.computeConstantValue();
+    if (constant != null) {
+      final schemaObj = constant.getField('schema');
+      final manualSchema = _parseBodySchemaFromDartObject(schemaObj);
+      final useRefForCustomTypes =
+          constant.getField('useRefForCustomTypes')?.toBoolValue() ?? true;
+
+      final typeObj = constant.getField('type')?.toTypeValue();
+      final contentType =
+          constant.getField('contentType')?.toStringValue() ??
+          'application/json';
+      final required = constant.getField('required')?.toBoolValue() ?? true;
+
+      SchemaDescriptor? schema = manualSchema;
+      if (schema == null && typeObj != null) {
+        schema = _schemaFromDartTypeWithRefPreference(
+          typeObj,
+          useRefForCustomTypes: useRefForCustomTypes,
+        );
+      }
+
+      if (schema != null) {
+        return RequestBodyInfo(
+          schema: schema,
+          contentType: contentType,
+          isRequired: required,
+        );
+      }
+    }
+
+    // Fallback to generic parsing for AST expressions
+    final args = annotation.arguments?.arguments;
+    if (args == null || args.isEmpty) {
+      return null;
+    }
+
+    InterfaceType? type;
+    SchemaDescriptor? fallbackSchema;
+    String? contentType;
+    bool required = true;
+
+    for (final arg in args) {
+      if (arg is! NamedExpression) {
+        final resolved = _resolveInterfaceType(arg);
+        if (resolved != null) {
+          type = resolved;
+        } else {
+          fallbackSchema = _schemaFromTypeExpression(arg) ?? fallbackSchema;
+        }
+        continue;
+      }
+      final label = arg.name.label.name;
+      if (label == 'contentType') {
+        final value = _stringFromExpression(arg.expression);
+        if (value != null) {
+          contentType = value;
+        }
+      }
+      if (label == 'required') {
+        final value = _boolFromExpression(arg.expression);
+        if (value != null) {
+          required = value;
+        }
+      }
+    }
+
+    if (type == null && fallbackSchema == null) {
+      return null;
+    }
+
+    final schema = type != null ? schemaFromDartType(type) : fallbackSchema;
+    if (schema == null) {
+      return null;
+    }
+
+    return RequestBodyInfo(
+      schema: schema,
+      contentType: contentType ?? inferContentType(schema),
+      isRequired: required,
+    );
+  }
+
+  Map<int, OpenApiObject> _parseResponsesAnnotation(Annotation annotation) {
+    final result = <int, OpenApiObject>{};
+    final args = annotation.arguments?.arguments;
+    if (args == null || args.isEmpty) {
+      return result;
+    }
+    final first = args.first;
+    if (first is! SetOrMapLiteral || !first.isMap) {
+      return result;
+    }
+
+    for (final element in first.elements) {
+      if (element is! MapLiteralEntry) {
+        continue;
+      }
+      final status = _intFromExpression(element.key);
+      if (status == null) {
+        continue;
+      }
+      final response = _parseResponseExpression(element.value);
+      if (response != null) {
+        result[status] = response;
+      }
+    }
+    return result;
+  }
+
+  OpenApiObject? _parseResponseAnnotation(Annotation annotation) {
+    final constant = annotation.elementAnnotation?.computeConstantValue();
+    if (constant != null) {
+      final description =
+          constant.getField('description')?.toStringValue() ??
+          'Success response';
+      final useRefForCustomTypes =
+          constant.getField('useRefForCustomTypes')?.toBoolValue() ?? true;
+      final contentType =
+          constant.getField('contentType')?.toStringValue() ??
+          'application/json';
+
+      final headersMap = _parseHeadersFromDartObject(
+        constant.getField('headers'),
+      );
+
+      final schemaObj = constant.getField('schema');
+      final manualSchema = _parseBodySchemaFromDartObject(schemaObj);
+
+      final typeObj = constant.getField('type')?.toTypeValue();
+
+      final oneOfTypesList = constant.getField('oneOfTypes')?.toListValue();
+      SchemaDescriptor? schema = manualSchema;
+
+      if (schema == null &&
+          oneOfTypesList != null &&
+          oneOfTypesList.isNotEmpty) {
+        final oneOfSchemas = <SchemaDescriptor>[];
+        for (final t in oneOfTypesList) {
+          final dartType = t.toTypeValue();
+          if (dartType != null) {
+            final s = _schemaFromDartTypeWithRefPreference(
+              dartType,
+              useRefForCustomTypes: useRefForCustomTypes,
+            );
+            if (s != null) {
+              oneOfSchemas.add(s);
+            }
+          }
+        }
+        if (oneOfSchemas.isNotEmpty) {
+          schema = SchemaDescriptor(
+            type: OpenApiType.object(),
+            oneOf: oneOfSchemas,
+          );
+        }
+      }
+
+      if (schema == null && typeObj != null) {
+        schema = _schemaFromDartTypeWithRefPreference(
+          typeObj,
+          useRefForCustomTypes: useRefForCustomTypes,
+        );
+      }
+
+      return _buildResponseObject(description, schema, contentType, headersMap);
+    }
+
+    // Fallback to AST Parsing
+    final constructorName = annotation.constructorName?.name;
+    if (constructorName != null &&
+        constructorName != 'schema' &&
+        constructorName != 'oneOf') {
+      return null;
+    }
+    return _buildResponseFromArguments(
+      annotation.arguments?.arguments ?? const <Expression>[],
+      constructorName: constructorName,
+    );
+  }
+
+  OpenApiObject? _parseResponseExpression(Expression expression) {
+    if (expression is! InstanceCreationExpression) {
+      return null;
+    }
+    final typeName = expression.constructorName.type.name.lexeme;
+    if (typeName != 'Response') {
+      return null;
+    }
+    final constructorName = expression.constructorName.name?.name;
+    return _buildResponseFromArguments(
+      expression.argumentList.arguments,
+      constructorName: constructorName,
+    );
+  }
+
+  SchemaDescriptor? _schemaFromDartTypeWithRefPreference(
+    DartType? type, {
+    required bool useRefForCustomTypes,
+  }) {
+    final schema = schemaFromDartType(type);
+    if (schema == null || useRefForCustomTypes) {
+      return schema;
+    }
+    return _inlineSchemaDescriptor(schema);
+  }
+
+  SchemaDescriptor _inlineSchemaDescriptor(SchemaDescriptor schema) {
+    if (schema.ref != null) {
+      return SchemaDescriptor(
+        type: OpenApiType.object(),
+        nullable: schema.nullable,
+        example: schema.example,
+      );
+    }
+    return SchemaDescriptor(
+      type: schema.type,
+      properties: schema.properties?.map(
+        (key, value) => MapEntry(key, _inlineSchemaDescriptor(value)),
+      ),
+      items: schema.items == null ? null : _inlineSchemaDescriptor(schema.items!),
+      additionalProperties: schema.additionalProperties == null
+          ? null
+          : _inlineSchemaDescriptor(schema.additionalProperties!),
+      nullable: schema.nullable,
+      example: schema.example,
+      oneOf: schema.oneOf
+          ?.map(_inlineSchemaDescriptor)
+          .toList(growable: false),
+    );
+  }
+
+  OpenApiObject _buildResponseObject(
+    String description,
+    SchemaDescriptor? schema,
+    String? contentType,
+    Map<String, String> parsedHeaders,
+  ) {
+    switch (version) {
+      case OpenApiVersion.v2:
+        return ResponseObjectV2(
+          description: description,
+          schema: schema?.toV2(),
+          headers: parsedHeaders.isEmpty
+              ? null
+              : {
+                  for (final entry in parsedHeaders.entries)
+                    entry.key: HeaderObjectV2(
+                      description: entry.value,
+                      type: OpenApiType.string(),
+                    ),
+                },
+        );
+      case OpenApiVersion.v3_0:
+      case OpenApiVersion.v3_1:
+        final resolvedContentType =
+            contentType ??
+            (schema != null ? inferContentType(schema) : 'application/json');
+        return ResponseObjectV3(
+          description: description,
+          headers: parsedHeaders.isEmpty
+              ? null
+              : {
+                  for (final entry in parsedHeaders.entries)
+                    entry.key: HeaderObjectV3(
+                      description: entry.value,
+                      schema: SchemaObjectV3(type: OpenApiType.string()),
+                    ),
+                },
+          content: schema == null
+              ? null
+              : {
+                  resolvedContentType: MediaTypeObjectV3(
+                    schema: schema.toV3(use31: version == OpenApiVersion.v3_1),
+                  ),
+                },
+        );
+    }
+  }
+
+  void _mergeHeadersIntoAnnotatedResponse(
+    RouteDescription description,
+    Map<String, String> parsedHeaders,
+  ) {
+    final existingResponse = description.annotatedResponses[200];
+    if (existingResponse == null) {
+      description.annotatedResponses[200] = _buildResponseObject(
+        'Success response',
+        null,
+        'application/json',
+        parsedHeaders,
+      );
+      return;
+    }
+
+    if (existingResponse is ResponseObjectV2) {
+      final mergedHeaders = <String, HeaderObjectV2>{
+        ...?existingResponse.headers,
+        for (final entry in parsedHeaders.entries)
+          entry.key: HeaderObjectV2(
+            description: entry.value,
+            type: OpenApiType.string(),
+          ),
+      };
+
+      description.annotatedResponses[200] = ResponseObjectV2(
+        description: existingResponse.description,
+        schema: existingResponse.schema,
+        headers: mergedHeaders,
+      );
+      return;
+    }
+
+    if (existingResponse is ResponseObjectV3) {
+      final mergedHeaders = <String, OpenApiObject>{
+        ...?existingResponse.headers,
+        for (final entry in parsedHeaders.entries)
+          entry.key: HeaderObjectV3(
+            description: entry.value,
+            schema: SchemaObjectV3(type: OpenApiType.string()),
+          ),
+      };
+
+      description.annotatedResponses[200] = ResponseObjectV3(
+        description: existingResponse.description,
+        headers: mergedHeaders,
+        content: existingResponse.content,
+      );
+    }
+  }
+
+  OpenApiObject? _buildResponseFromArguments(
+    Iterable<Expression> arguments, {
+    String? constructorName,
+  }) {
+    if (constructorName == 'oneOf') {
+      return _buildOneOfResponseFromArguments(arguments);
+    }
+    String description = 'Success response';
+    InterfaceType? responseType;
+    SchemaDescriptor? fallbackSchema;
+    String? contentType;
+    var parsedHeaders = <String, String>{};
+
+    for (final arg in arguments) {
+      if (arg is! NamedExpression) {
+        continue;
+      }
+      final label = arg.name.label.name;
+      if (label == 'description') {
+        final value = _stringFromExpression(arg.expression);
+        if (value != null) {
+          description = value;
+        }
+      } else if (label == 'type') {
+        responseType = _resolveInterfaceType(arg.expression) ?? responseType;
+        fallbackSchema =
+            _schemaFromTypeExpression(arg.expression) ?? fallbackSchema;
+      } else if (label == 'contentType') {
+        final value = _stringFromExpression(arg.expression);
+        if (value != null) {
+          contentType = value;
+        }
+      } else if (label == 'headers') {
+        parsedHeaders = _parseHeadersToStringMap(arg.expression);
+      }
+    }
+
+    SchemaDescriptor? schema;
+    if (responseType != null) {
+      schema = schemaFromDartType(responseType);
+    }
+    schema ??= fallbackSchema;
+
+    return _buildResponseObject(
+      description,
+      schema,
+      contentType,
+      parsedHeaders,
+    );
+  }
+
+  OpenApiObject? _buildOneOfResponseFromArguments(
+    Iterable<Expression> arguments,
+  ) {
+    String description = 'Success response';
+    String? contentType;
+    var parsedHeaders = <String, String>{};
+    final oneOfSchemas = <SchemaDescriptor>[];
+
+    for (final arg in arguments) {
+      if (arg is! NamedExpression) {
+        continue;
+      }
+      final label = arg.name.label.name;
+      if (label == 'description') {
+        final value = _stringFromExpression(arg.expression);
+        if (value != null) {
+          description = value;
+        }
+      } else if (label == 'types') {
+        if (arg.expression is ListLiteral) {
+          for (final element in (arg.expression as ListLiteral).elements) {
+            if (element is! Expression) {
+              continue;
+            }
+            final interfaceType = _resolveInterfaceType(element);
+            if (interfaceType != null) {
+              _registerModelType(interfaceType);
+            }
+            final schema = interfaceType != null
+                ? schemaFromDartType(interfaceType)
+                : _schemaFromTypeExpression(element);
+            if (schema != null) {
+              oneOfSchemas.add(schema);
+            }
+          }
+        }
+      } else if (label == 'contentType') {
+        final value = _stringFromExpression(arg.expression);
+        if (value != null) {
+          contentType = value;
+        }
+      } else if (label == 'headers') {
+        parsedHeaders = _parseHeadersToStringMap(arg.expression);
+      }
+    }
+
+    if (oneOfSchemas.isEmpty) {
+      return null;
+    }
+
+    final oneOfSchema = SchemaDescriptor(
+      type: OpenApiType.object(),
+      oneOf: oneOfSchemas,
+    );
+    return _buildResponseObject(
+      description,
+      oneOfSchema,
+      contentType,
+      parsedHeaders,
+    );
+  }
+
+  Map<String, String> _parseHeadersToStringMap(Expression expression) {
+    if (expression is! InstanceCreationExpression) {
+      return {};
+    }
+    final typeName = expression.constructorName.type.name.lexeme;
+    if (typeName != 'Headers') {
+      return {};
+    }
+    final args = expression.argumentList.arguments;
+    if (args.isEmpty) {
+      return {};
+    }
+    final first = args.first;
+    if (first is! SetOrMapLiteral || !first.isMap) {
+      return {};
+    }
+    final result = <String, String>{};
+    for (final element in first.elements) {
+      if (element is! MapLiteralEntry) {
+        continue;
+      }
+      final key = _stringFromExpression(element.key);
+      final value = _stringFromExpression(element.value);
+      if (key != null && value != null) {
+        result[key] = value;
+      }
+    }
+    return result;
+  }
+
+  String? _stringFromExpression(Expression expression) {
+    final normalized = _normalizeExpression(expression);
+    if (normalized is SimpleStringLiteral) {
+      return normalized.value;
+    }
+    return null;
+  }
+
+  bool? _boolFromExpression(Expression expression) {
+    final normalized = _normalizeExpression(expression);
+    if (normalized is BooleanLiteral) {
+      return normalized.value;
+    }
+    return null;
+  }
+
+  int? _intFromExpression(Expression expression) {
+    final normalized = _normalizeExpression(expression);
+    if (normalized is IntegerLiteral) {
+      return normalized.value;
+    }
+    return null;
+  }
+
+  SchemaDescriptor? _schemaFromTypeExpression(Expression expression) {
+    final source = _normalizeTypeSource(expression.toSource());
+    if (source.isEmpty) {
+      return null;
+    }
+    return _schemaFromTypeSource(source);
+  }
+
+  String _normalizeTypeSource(String source) {
+    var result = source.replaceAll(' ', '');
+    if (result.endsWith('?')) {
+      result = result.substring(0, result.length - 1);
+    }
+    return result;
+  }
+
+  SchemaDescriptor? _schemaFromTypeSource(String source) {
+    if (source == 'String') {
+      return SchemaDescriptor(type: OpenApiType.string());
+    }
+    if (source == 'int') {
+      return SchemaDescriptor(type: OpenApiType.int32());
+    }
+    if (source == 'double' || source == 'num') {
+      return SchemaDescriptor(type: OpenApiType.double());
+    }
+    if (source == 'bool') {
+      return SchemaDescriptor(type: OpenApiType.boolean());
+    }
+
+    if (source.startsWith('List<') && source.endsWith('>')) {
+      final inner = source.substring(5, source.length - 1);
+      return SchemaDescriptor(
+        type: OpenApiType.array(),
+        items:
+            _schemaFromTypeSource(inner) ??
+            SchemaDescriptor(type: OpenApiType.object()),
+      );
+    }
+
+    if (source.startsWith('Map<')) {
+      return SchemaDescriptor(
+        type: OpenApiType.object(),
+        additionalProperties: SchemaDescriptor(type: OpenApiType.object()),
+      );
+    }
+
+    final simpleName = source.contains('.') ? source.split('.').last : source;
+
+    if (simpleName.endsWith('Exception')) {
+      final defaultExample = builtInExceptionsMap[simpleName]?.$2;
+      return _schemaForSerinusException(defaultExample);
+    }
+
+    final model = modelProviderTypes
+        .where((e) => e.name == simpleName)
+        .firstOrNull;
+    if (model != null) {
+      return SchemaDescriptor.ref('#/components/schemas/$simpleName');
+    }
+
+    return null;
   }
 
   RequestBodyInfo? _extractRequestBody(FunctionBody body) {
@@ -652,7 +1733,7 @@ class Analyzer {
     return key.toSource();
   }
 
-  /// Converts a Dart type to a schema descriptor.
+  /// Attempts to derive a [SchemaDescriptor] from a given [DartType].
   SchemaDescriptor? schemaFromDartType(DartType? type) {
     return _schemaFromDartTypeInternal(type, <InterfaceElement>{});
   }
@@ -698,10 +1779,13 @@ class Analyzer {
     if (type is InterfaceType) {
       final element = type.element;
       if (modelProviderTypes.where((e) => e.name == coreDisplay).isNotEmpty) {
-        final descriptor =
-            modelTypeSchemas[element] ??
-            _buildSchemaDescriptorFromClass(type, visited);
-        return wrapNullable(descriptor);
+        modelTypeSchemas.putIfAbsent(
+          element,
+          () => _buildSchemaDescriptorFromClass(type, visited),
+        );
+        return wrapNullable(
+          SchemaDescriptor.ref('#/components/schemas/${element.name}'),
+        );
       }
 
       if (_isRedirectType(type)) {
@@ -771,6 +1855,20 @@ class Analyzer {
           ),
         );
       }
+      if (_isSerinusExceptionType(type)) {
+        final exName = type.element.displayName;
+        final defaultExample =
+            builtInExceptionsMap[exName]?.$2 ??
+            builtInExceptionsMap.entries
+                .where(
+                  (e) => type.allSupertypes.any(
+                    (s) => s.element.displayName == e.key,
+                  ),
+                )
+                .map((e) => e.value.$2)
+                .firstOrNull;
+        return wrapNullable(_schemaForSerinusException(defaultExample));
+      }
       if (_implementsJsonObject(type)) {
         return wrapNullable(
           SchemaDescriptor(
@@ -800,6 +1898,15 @@ class Analyzer {
       return a;
     }
     if (a.type == b.type) {
+      if (a.ref != null || b.ref != null) {
+        if (a.ref != null && a.ref == b.ref) {
+          final refDescriptor = SchemaDescriptor.ref(a.ref!);
+          return (a.nullable || b.nullable)
+            ? refDescriptor.asNullable()
+            : refDescriptor;
+        }
+        return SchemaDescriptor(type: OpenApiType.object());
+      }
       if (a.type == OpenApiType.object()) {
         final merged = <String, SchemaDescriptor>{};
         for (final entry
@@ -831,8 +1938,11 @@ class Analyzer {
     return SchemaDescriptor(type: OpenApiType.object());
   }
 
-  /// Infers the content type for a given schema descriptor.
+  /// Infers a content type based on the provided [SchemaDescriptor].
   String inferContentType(SchemaDescriptor schema) {
+    if (schema.ref != null) {
+      return 'application/json';
+    }
     if (schema.type == OpenApiType.binary()) {
       return 'application/octet-stream';
     }
@@ -894,6 +2004,32 @@ class Analyzer {
               method.displayName == 'toJson' ||
               method.displayName == 'fromJson',
         );
+  }
+
+  bool _isSerinusExceptionType(InterfaceType type) {
+    bool isSerinusExceptionElement(InterfaceElement element) {
+      if (element.displayName != 'SerinusException') {
+        return false;
+      }
+      return element.library.uri.path.contains('serinus');
+    }
+
+    return isSerinusExceptionElement(type.element) ||
+        type.allSupertypes.any((e) => isSerinusExceptionElement(e.element));
+  }
+
+  SchemaDescriptor _schemaForSerinusException([
+    Map<String, dynamic>? example,
+  ]) {
+    return SchemaDescriptor(
+      type: OpenApiType.object(),
+      properties: {
+        'message': SchemaDescriptor(type: OpenApiType.string()),
+        'statusCode': SchemaDescriptor(type: OpenApiType.int32()),
+        'uri': SchemaDescriptor(type: OpenApiType.string()),
+      },
+      example: example,
+    );
   }
 
   bool _isRedirectType(InterfaceType type) {

@@ -55,6 +55,19 @@ class AppController extends Controller {
     });
   }
 
+  @Headers({'X-Custom-Header': 'This is a custom header'})
+  @Body(MyObject)
+  @Query([
+    QueryParameter('name', 'string', required: false),
+    QueryParameter('page', 'integer', required: false),
+  ])
+  @Responses({
+    200: Response.oneOf(
+      description: 'Successful response',
+      types: [MyObject, List<MyObject>],
+    ),
+    400: Response(description: 'Bad Request', type: BadRequestException),
+  })
   Future<List<MyObject>> _handleHelloWorld(RequestContext context) async {
     return [MyObject('Alice'), MyObject('Bob')];
   }
@@ -63,11 +76,13 @@ class AppController extends Controller {
 /// Another controller to demonstrate multiple controllers
 class App2Controller extends Controller {
   App2Controller() : super('/a') {
+    on(PostRoute(path: '/post'), _createAPost);
     on(HelloWorldRoute(), _handleHelloWorld);
-    on(PostRoute(path: '/post'), (RequestContext context) async {
-      final data = context.bodyAs<String>();
-      return {'message': 'Post $data'};
-    });
+  }
+
+  Future<Map<String, String>> _createAPost(RequestContext context) async {
+    final data = context.bodyAs<String>();
+    return {'message': 'Post $data'};
   }
 
   Future<String> _handleHelloWorld(RequestContext context) async {
@@ -87,6 +102,8 @@ class AppModule extends Module {
               version: '1.0.0',
               description: 'This is my API',
             ),
+            options: ScalarUIOptions(),
+            analyze: true,
           ),
         ],
       );
