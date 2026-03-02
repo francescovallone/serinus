@@ -90,17 +90,21 @@ void main() {
         );
         WebSocket? ws;
         WebSocket? unexpectedWs;
+        var invalidPathRejected = false;
         await app.serve();
         try {
           try {
             unexpectedWs = await WebSocket.connect(
               'ws://localhost:3001/',
             ).timeout(const Duration(seconds: 5));
-            await unexpectedWs.close().timeout(const Duration(seconds: 2));
-            unexpectedWs = null;
+            fail(
+              'Expected invalid websocket path ws://localhost:3001/ to be rejected, but connection succeeded.',
+            );
           } on WebSocketException {
-            // Acceptable: invalid path rejected.
+            invalidPathRejected = true;
           }
+
+          expect(invalidPathRejected, isTrue);
 
           ws = await WebSocket.connect(
             'ws://localhost:3001/ws',
