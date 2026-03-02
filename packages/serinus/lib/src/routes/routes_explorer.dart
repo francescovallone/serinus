@@ -93,6 +93,7 @@ final class RoutesExplorer {
         method: routeMethod,
         moduleToken: moduleToken,
         isStatic: spec.isStatic,
+        streaming: spec.streaming,
         spec: spec,
         moduleScope: moduleScope,
         hooksServices: mergedContainer.services,
