@@ -31,12 +31,13 @@ class RequestContext<TBody> extends BaseContext {
        _bodyType = explicitType ?? _typeOf<TBody>(),
        _body = body,
        _bodyConverted = true,
+       _lastSeenRawBody = _staleBodySentinel,
        shouldValidateMultipart = shouldValidateMultipart,
        super(providers, values, hooksServices) {
     if (_converter?.modelProvider == null) {
       _converter = _BodyConverter(modelProvider);
     }
-    this.body = _converter?.convert(_bodyType, body);
+    this.body = body;
   }
 
   RequestContext._(
@@ -48,6 +49,7 @@ class RequestContext<TBody> extends BaseContext {
     Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices,
     this._bodyConverted,
+    this._lastSeenRawBody,
     bool shouldValidateMultipart,
   ) : _body = body,
       shouldValidateMultipart = shouldValidateMultipart,
@@ -83,6 +85,7 @@ class RequestContext<TBody> extends BaseContext {
         values,
         hooksServices,
         false,
+        _staleBodySentinel,
         shouldValidateMultipart,
       );
     }
@@ -96,6 +99,11 @@ class RequestContext<TBody> extends BaseContext {
       raw = null;
     }
     request.body = raw;
+    final targetTypeName = targetType.toString();
+    final isDynamicLikeTarget =
+        targetTypeName == 'dynamic' ||
+        targetTypeName == 'Object' ||
+        targetTypeName == 'Object?';
     return RequestContext._(
       request,
       targetType,
@@ -104,7 +112,8 @@ class RequestContext<TBody> extends BaseContext {
       providers,
       values,
       hooksServices,
-      explicitType == null,
+      isDynamicLikeTarget,
+      isDynamicLikeTarget ? request.body : _staleBodySentinel,
       shouldValidateMultipart,
     );
   }
@@ -117,9 +126,18 @@ class RequestContext<TBody> extends BaseContext {
   /// Indicates whether multipart requests should be validated before accessing the body.
   final bool shouldValidateMultipart;
 
+  /// Unique sentinel that signals the converted body is stale and
+  /// needs reconversion. Using a private object guarantees it can
+  /// never collide with a real body value.
+  static final Object _staleBodySentinel = Object();
+
   Object? _body;
 
   bool _bodyConverted;
+
+  /// The last raw body reference that was converted. Compared via
+  /// [identical] to detect external mutations to [request.body].
+  Object? _lastSeenRawBody;
 
   /// Returns the request path.
   String get path => request.path;
@@ -152,6 +170,9 @@ class RequestContext<TBody> extends BaseContext {
     if (!_bodyConverted) {
       return request.body as dynamic;
     }
+    if (!identical(_lastSeenRawBody, request.body)) {
+      _applyConversion(request.body);
+    }
     if (_body == null) {
       if (shouldValidateMultipart && request.contentType.isMultipart) {
         throw StateError(
@@ -170,18 +191,12 @@ class RequestContext<TBody> extends BaseContext {
       return bodyAs<T>();
     }
     final formData = await request.parseBody(rawBody: false, onPart: onPart);
-    final converted = _converter?.convert(_bodyType, formData) as T;
-    _body = converted;
-    request.body = converted;
-    _bodyConverted = true;
-    return converted;
+    return _applyConversion(formData) as T;
   }
 
   /// Replaces the body value ensuring it conforms to [TBody].
   set body(Object? value) {
-    _body = _converter?.convert(_bodyType, value);
-    request.body = _body;
-    _bodyConverted = true;
+    _applyConversion(value);
   }
 
   /// Replaces the body value without forcing conversion to [TBody].
@@ -189,6 +204,7 @@ class RequestContext<TBody> extends BaseContext {
     _body = value;
     request.body = value;
     _bodyConverted = false;
+    _lastSeenRawBody = _staleBodySentinel;
   }
 
   /// Converts the current raw body to the declared [TBody] type.
@@ -199,10 +215,19 @@ class RequestContext<TBody> extends BaseContext {
     if (shouldValidateMultipart && request.contentType.isMultipart) {
       return;
     }
-    final converted = _converter?.convert(_bodyType, request.body) as TBody;
+    _applyConversion(request.body);
+  }
+
+  /// Centralised conversion helper. Converts [rawValue] to [_bodyType],
+  /// stores the result locally, mirrors it on [request.body], and records
+  /// the reference so that future [identical] checks pass.
+  Object? _applyConversion(Object? rawValue) {
+    final converted = _converter?.convert(_bodyType, rawValue);
     _body = converted;
     request.body = converted;
     _bodyConverted = true;
+    _lastSeenRawBody = converted;
+    return converted;
   }
 
   /// Casts the current body to a different type safely, operating on the raw [_body].

@@ -243,6 +243,33 @@ void main() {
       expect(context.request.body, isA<TestObject>());
     });
 
+    test(
+      'defers typed conversion for create<TBody> without explicitType',
+      () async {
+        final request = _buildRequestWithBody(jsonBody: {'name': 'bird'});
+        final context = await RequestContext.create<TestObject>(
+          request: request,
+          providers: <Type, Provider>{},
+          values: <ValueToken, Object?>{},
+          hooksServices: <Type, Object>{},
+          modelProvider: _TestModelProvider(),
+          rawBody: false,
+        );
+
+        expect(context.rawBody, isA<Map<String, dynamic>>());
+        expect(
+          (context.rawBody as Map<String, dynamic>)['name'],
+          equals('bird'),
+        );
+
+        context.convertBodyToDeclaredType();
+
+        expect(context.body, isA<TestObject>());
+        expect(context.body.name, equals('bird'));
+        expect(context.request.body, isA<TestObject>());
+      },
+    );
+
     test('switchToHttp exposes raw body before conversion', () async {
       final request = _buildRequestWithBody(jsonBody: {'name': 'bird'});
       final context = await RequestContext.create<TestObject>(
@@ -276,5 +303,28 @@ void main() {
 
       expect(context.body, isA<TestObject>());
     });
+
+    test(
+      're-converts typed body when request.body is replaced later',
+      () async {
+        final request = _buildRequestWithBody(jsonBody: {'name': 'bird'});
+        final context = await RequestContext.create<TestObject>(
+          request: request,
+          providers: <Type, Provider>{},
+          values: <ValueToken, Object?>{},
+          hooksServices: <Type, Object>{},
+          modelProvider: _TestModelProvider(),
+          rawBody: false,
+        );
+
+        context.convertBodyToDeclaredType();
+        expect(context.body.name, equals('bird'));
+
+        request.body = {'name': 'hawk'};
+
+        expect(context.body, isA<TestObject>());
+        expect(context.body.name, equals('hawk'));
+      },
+    );
   });
 }
