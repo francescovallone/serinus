@@ -95,7 +95,7 @@ class AppModule extends Module {
     : super(
         imports: [Test2Module(), TestModule()],
         providers: [Provider.forValue('AppModuleValue', name: 'appValue')],
-        controllers: [AppController()],
+        controllers: [AppController(), UserController()],
         exports: [],
       );
 }
@@ -126,6 +126,24 @@ class MyModelProvider extends ModelProvider {
   Map<String, Function> get toJsonModels => {
     'MyObject': (model) => (model as MyObject).toJson(),
   };
+}
+
+class UserController extends Controller {
+  UserController(): super('/users') {
+    onStream(Route.get('/stream'), streamUsers);
+  }
+
+  Stream<MyObject> streamUsers(RequestContext context) async* {
+    final users = [
+      MyObject('Alice', 30),
+      MyObject('Bob', 25),
+      MyObject('Charlie', 35),
+    ];
+    for (final user in users) {
+      yield user;
+      await Future.delayed(Duration(seconds: 1));
+    }
+  }
 }
 
 void main(List<String> arguments) async {

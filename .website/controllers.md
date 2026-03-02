@@ -332,3 +332,24 @@ class UserController extends Controller {
 ```
 
 As you can see the `onStatic` method takes the same parameters as the `on` method, but the handler **is** the value that will be sent to the client.
+
+## Stream Routes
+
+You can define stream routes using the `onStream` method. Stream routes are routes that return a stream of data to the client.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class UserController extends Controller {
+  UserController(): super('/users') {
+    onStream(Route.get('/stream'), streamUsers);
+  }
+
+  Stream<User> streamUsers(RequestContext context) async* {
+    final users = await context.use<UsersService>().getUsers();
+    for (final user in users) {
+      yield user;
+    }
+  }
+}
+```
