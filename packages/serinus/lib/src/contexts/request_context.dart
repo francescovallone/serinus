@@ -30,13 +30,13 @@ class RequestContext<TBody> extends BaseContext {
   }) : request = httpRequest,
        _bodyType = explicitType ?? _typeOf<TBody>(),
        _body = body,
+       _bodyConverted = true,
        shouldValidateMultipart = shouldValidateMultipart,
        super(providers, values, hooksServices) {
     if (_converter?.modelProvider == null) {
       _converter = _BodyConverter(modelProvider);
     }
-    // Note: We retain the raw body initially. 
-    // The framework or user should call transformBody() to enforce TBody rules.
+    this.body = _converter?.convert(_bodyType, body);
   }
 
   RequestContext._(
@@ -47,6 +47,7 @@ class RequestContext<TBody> extends BaseContext {
     Map<Type, Provider> providers,
     Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices,
+    this._bodyConverted,
     bool shouldValidateMultipart,
   ) : _body = body,
       shouldValidateMultipart = shouldValidateMultipart,
@@ -81,6 +82,7 @@ class RequestContext<TBody> extends BaseContext {
         providers,
         values,
         hooksServices,
+        false,
         shouldValidateMultipart,
       );
     }
@@ -93,18 +95,16 @@ class RequestContext<TBody> extends BaseContext {
     } else {
       raw = null;
     }
-    
-    // Assign raw body without eager conversion to allow Pipes to validate it first.
     request.body = raw;
-    
     return RequestContext._(
       request,
       targetType,
       _converter,
-      raw,
+      request.body,
       providers,
       values,
       hooksServices,
+      explicitType == null,
       shouldValidateMultipart,
     );
   }
@@ -118,6 +118,8 @@ class RequestContext<TBody> extends BaseContext {
   final bool shouldValidateMultipart;
 
   Object? _body;
+
+  bool _bodyConverted;
 
   /// Returns the request path.
   String get path => request.path;
@@ -133,11 +135,23 @@ class RequestContext<TBody> extends BaseContext {
 
   /// Returns the unconverted, raw payload (e.g., Map<String, dynamic>).
   /// Use this inside Pipes for validation before the body is transformed into a DTO.
-  Object? get rawBody => _body;
+  Object? get rawBody => request.body;
 
   /// Returns the strongly typed body.
-  /// Throws a cast error if accessed before [transformBody] is called on a strict type.
+  ///
+  /// Before conversion is finalized, this returns the current raw payload.
+  /// Use [rawBody] when you explicitly need raw values in pipes.
   TBody get body {
+    if (!_bodyConverted &&
+        shouldValidateMultipart &&
+        request.contentType.isMultipart) {
+      throw StateError(
+        'The route has been marked with shouldValidateMultipart, use validateMultipartPart<T> before.',
+      );
+    }
+    if (!_bodyConverted) {
+      return request.body as dynamic;
+    }
     if (_body == null) {
       if (shouldValidateMultipart && request.contentType.isMultipart) {
         throw StateError(
@@ -146,15 +160,6 @@ class RequestContext<TBody> extends BaseContext {
       }
     }
     return _body as TBody;
-  }
-
-  /// Converts the internal raw body into the strongly-typed [TBody].
-  /// This should be called by the framework after Pipes have successfully executed.
-  void transformBody() {
-    if (_body != null && _body is! TBody) {
-      _body = _converter?.convert(_bodyType, _body);
-      request.body = _body;
-    }
   }
 
   /// Access the next part of a multipart request, validating and converting the entire body to [TBody].
@@ -168,6 +173,7 @@ class RequestContext<TBody> extends BaseContext {
     final converted = _converter?.convert(_bodyType, formData) as T;
     _body = converted;
     request.body = converted;
+    _bodyConverted = true;
     return converted;
   }
 
@@ -175,6 +181,28 @@ class RequestContext<TBody> extends BaseContext {
   set body(Object? value) {
     _body = _converter?.convert(_bodyType, value);
     request.body = _body;
+    _bodyConverted = true;
+  }
+
+  /// Replaces the body value without forcing conversion to [TBody].
+  void replaceRawBody(Object? value) {
+    _body = value;
+    request.body = value;
+    _bodyConverted = false;
+  }
+
+  /// Converts the current raw body to the declared [TBody] type.
+  void convertBodyToDeclaredType() {
+    if (_bodyConverted) {
+      return;
+    }
+    if (shouldValidateMultipart && request.contentType.isMultipart) {
+      return;
+    }
+    final converted = _converter?.convert(_bodyType, request.body) as TBody;
+    _body = converted;
+    request.body = converted;
+    _bodyConverted = true;
   }
 
   /// Casts the current body to a different type safely, operating on the raw [_body].
