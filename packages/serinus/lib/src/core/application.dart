@@ -20,6 +20,9 @@ abstract class Application {
   /// The [level] property contains the log level of the application.
   Set<LogLevel> get levels => Logger.logLevels;
 
+  /// The [logger] property contains the logger of the application.
+  final logger = Logger('Application');
+
   /// The [entrypoint] property contains the entry point of the application.
   final Module entrypoint;
   bool _enableShutdownHooks = false;
@@ -65,6 +68,27 @@ abstract class Application {
     }
   }
 
+  bool _isInitialized = false;
+
+  /// The [initialize] method initializes the application and instructs the container to initialize the modules and their dependencies.
+  Future<void> initialize() async {
+    try {
+      if (_isInitialized) {
+        return;
+      }
+      _isInitialized = true;
+      await _container.init(entrypoint, _routesResolver);
+    } catch (e) {
+      if (abortOnError) {
+        rethrow;
+      }
+      logger.severe(
+        'Error occurred while initializing application',
+        OptionalParameters(error: e, stackTrace: StackTrace.current),
+      );
+    }
+  }
+
   /// The [url] property contains the URL of the application.
   String get url;
 
@@ -86,9 +110,7 @@ abstract class Application {
         } catch (e) {
           // Log the error but continue with exit to ensure process terminates
           try {
-            Logger(
-              'SerinusApplication',
-            ).severe('Error during shutdown', OptionalParameters(error: e));
+            logger.severe('Error during shutdown', OptionalParameters(error: e));
           } catch (_) {
             // If logging fails, silently continue
           }
@@ -124,10 +146,6 @@ abstract class Application {
     }
   }
 
-  /// The [initialize] method is used to initialize the application.
-  @internal
-  Future<void> initialize();
-
   /// The [shutdown] method is used to shutdown the application.
   @internal
   Future<void> shutdown();
@@ -144,7 +162,8 @@ abstract class Application {
 
 /// The [MicroserviceApplication] class is used to create a new instance of the [Application] class.
 class MicroserviceApplication extends Application {
-  final Logger _logger = Logger('MicroserviceApplication');
+  @override
+  final logger = Logger('MicroserviceApplication');
 
   /// The [MicroserviceApplication] constructor is used to create a new instance of the [MicroserviceApplication] class.
   MicroserviceApplication({
@@ -162,7 +181,7 @@ class MicroserviceApplication extends Application {
   @override
   Future<void> serve() async {
     try {
-      _logger.info(
+      logger.info(
         'Starting microservice on ${config.microservices.first.runtimeType} adapter',
       );
       for (final microservice in config.microservices) {
@@ -174,7 +193,7 @@ class MicroserviceApplication extends Application {
       if (abortOnError) {
         rethrow;
       }
-      _logger.severe(
+      logger.severe(
         'Error occurred while starting microservices',
         OptionalParameters(error: e, stackTrace: StackTrace.current),
       );
@@ -205,7 +224,7 @@ class MicroserviceApplication extends Application {
       if (abortOnError) {
         rethrow;
       }
-      _logger.severe(
+      logger.severe(
         'Error occurred while initializing application',
         OptionalParameters(error: e, stackTrace: StackTrace.current),
       );
@@ -214,7 +233,7 @@ class MicroserviceApplication extends Application {
 
   @override
   Future<void> shutdown() async {
-    _logger.info('Shutting down microservices');
+    logger.info('Shutting down microservices');
     await _container.emitHook<OnApplicationShutdown>();
   }
 
@@ -226,7 +245,9 @@ class MicroserviceApplication extends Application {
 
 /// The [SerinusApplication] class is used to create a new instance of the [Application] class.
 class SerinusApplication extends Application {
-  final Logger _logger = Logger('SerinusApplication');
+
+  @override
+  final logger = Logger('SerinusApplication');
 
   final List<TransportAdapter> _microservices = [];
 
@@ -240,8 +261,6 @@ class SerinusApplication extends Application {
 
   @override
   String get url => config.baseUrl;
-
-  bool _isInizialized = false;
 
   /// The [viewEngine] method is used to set the view engine of the application.
   set viewEngine(ViewEngine viewEngine) {
@@ -267,26 +286,26 @@ class SerinusApplication extends Application {
   Future<void> serve() async {
     try {
       if (config.microservices.isNotEmpty) {
-        _logger.info('Starting microservices');
+        logger.info('Starting microservices');
         for (final microservice in config.microservices) {
           await microservice.init(config);
         }
       }
       await initialize();
-      _logger.info('Starting server on $url');
+      logger.info('Starting server on $url');
       server.listen(
         onRequest: (request, response) =>
             _routesResolver!.handle(request, response),
       );
       await _container.emitHook<OnApplicationReady>();
     } on SocketException catch (e) {
-      _logger.severe('Failed to start server on ${e.address}:${e.port}');
+      logger.severe('Failed to start server on ${e.address}:${e.port}');
       await close();
     } catch (e) {
       if (abortOnError) {
         rethrow;
       }
-      _logger.severe(
+      logger.severe(
         'Error occurred while starting server',
         OptionalParameters(error: e, stackTrace: StackTrace.current),
       );
@@ -303,25 +322,6 @@ class SerinusApplication extends Application {
     }
     await config.serverAdapter.close();
     await shutdown();
-  }
-
-  @override
-  Future<void> initialize() async {
-    try {
-      if (_isInizialized) {
-        return;
-      }
-      _isInizialized = true;
-      await _container.init(entrypoint, _routesResolver);
-    } catch (e) {
-      if (abortOnError) {
-        rethrow;
-      }
-      _logger.severe(
-        'Error occurred while initializing application',
-        OptionalParameters(error: e, stackTrace: StackTrace.current),
-      );
-    }
   }
 
   /// The [connectMicroservice] method is used to connect a microservice to the application.
@@ -346,15 +346,15 @@ class SerinusApplication extends Application {
     for (final microservice in config.microservices) {
       await microservice.init(config);
     }
-    if (!_isInizialized) {
+    if (!_isInitialized) {
       await initialize();
     }
-    _isInizialized = true;
+    _isInitialized = true;
   }
 
   @override
   Future<void> shutdown() async {
-    _logger.info('Shutting down server');
+    logger.info('Shutting down server');
     await _container.emitHook<OnApplicationShutdown>();
   }
 
@@ -368,19 +368,19 @@ class SerinusApplication extends Application {
     switch (processable) {
       case Hook():
         _container.config.globalHooks.addHook(processable);
-        _logger.verbose(
+        logger.verbose(
           'Global Hook ${processable.runtimeType} added to application',
         );
         break;
       case Pipe():
         _container.config.globalPipes.add(processable);
-        _logger.verbose(
+        logger.verbose(
           'Global Pipe ${processable.runtimeType} added to application',
         );
         break;
       case ExceptionFilter():
         _container.config.globalExceptionFilters.add(processable);
-        _logger.verbose(
+        logger.verbose(
           'Global ExceptionFilter ${processable.runtimeType} added to application',
         );
         break;
