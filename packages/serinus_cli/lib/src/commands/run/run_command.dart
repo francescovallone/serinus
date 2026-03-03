@@ -84,9 +84,8 @@ class RunCommand extends Command<int> {
       }
     });
     // Also handle SIGTERM where available
-    try {
-      _sigtermSubscription =
-          ProcessSignal.sigterm.watch().listen((event) async {
+    if (!Platform.isWindows) {
+      _sigtermSubscription = ProcessSignal.sigterm.watch().listen((event) async {
         try {
           await _killProcess(process);
           await signalSubscription?.cancel();
@@ -99,8 +98,6 @@ class RunCommand extends Command<int> {
           exit(1);
         }
       });
-    } catch (_) {
-      // SIGTERM not supported, continue without it
     }
     var restarting = false;
     final restartQueue = Queue<WatchEvent>();

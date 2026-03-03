@@ -12,13 +12,44 @@ class TestProvider extends Provider {
   }
 }
 
+class NotFoundFilter extends ExceptionFilter {
+  NotFoundFilter() : super(catchTargets: [NotFoundException]);
+
+  @override
+  Future<void> onException(
+    ExecutionContext<ArgumentsHost> context,
+    Exception exception,
+  ) async {
+    if (exception is NotFoundException) {
+      context.response
+        ..statusCode = 404
+        ..body = {
+          'message': 'path not found',
+          'path': exception.uri.toString(),
+        };
+      //..close();
+    }
+  }
+}
+
 class TestModule extends Module {
-  TestModule() : super(providers: [TestProvider()], exports: [TestProvider]);
+  TestModule()
+    : super(
+        providers: [
+          TestProvider(),
+          Provider.forValue<String>('TestModuleValue'),
+        ],
+        exports: [TestProvider, Export.value<String>()],
+      );
 }
 
 class Test2Module extends Module {
   Test2Module()
-    : super(imports: [TestModule()], controllers: [Test2Controller()]);
+    : super(
+        imports: [],
+        providers: [TestProvider()],
+        controllers: [Test2Controller()],
+      );
 }
 
 class Test2Controller extends Controller {
@@ -32,19 +63,23 @@ class Test2Controller extends Controller {
 }
 
 class AppController extends Controller {
-  AppController() : super('/app') {
-    on<String, dynamic>(Route.get('/'), (RequestContext context) async {
-      final provider = context.use<TestProvider>();
-      return 'Counter: ${provider.counter}';
+  AppController() : super('/') {
+    on<Map<String, dynamic>, dynamic>(Route.get('/'), (
+      RequestContext context,
+    ) async {
+      return {
+        'message': 'Hello, Serinus!',
+        'time': DateTime.now().toIso8601String(),
+        'complexObject': MyObject('example', 42),
+        'counter': context.use<TestProvider>().counter,
+        'fromContext': context.use<String>(),
+      };
     });
-    on<String, List<dynamic>>(Route.post('/echo'), (
+    on<Map<String, dynamic>, List<dynamic>>(Route.post('/echo'), (
       RequestContext<List<dynamic>> context,
     ) async {
-      final mapBody = context.bodyAs<String>();
-      if (context.body.isEmpty) {
-        throw BadRequestException('Body cannot be empty');
-      }
-      return 'Echo: $mapBody ${context.body}';
+      final id = context.paramAs<int?>('id');
+      return {'message': 'Data for id: $id'};
     });
   }
 }
@@ -53,7 +88,9 @@ class AppModule extends Module {
   AppModule()
     : super(
         imports: [Test2Module(), TestModule()],
+        providers: [Provider.forValue('AppModuleValue', name: 'appValue')],
         controllers: [AppController()],
+        exports: [],
       );
 }
 
@@ -86,8 +123,7 @@ class MyModelProvider extends ModelProvider {
 }
 
 void main(List<String> arguments) async {
-  final application = await serinus.createApplication(
-    entrypoint: AppModule(),
+  final application = await serinus.createMinimalApplication(
     host: InternetAddress.anyIPv4.address,
     port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),

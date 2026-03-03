@@ -29,11 +29,13 @@ class TestObject {
   }
 }
 
+class MockHttpHeaders extends Mock implements HttpHeaders {}
+
 Request _buildRequest({ContentType? contentType}) {
   final incoming = _MockIncomingMessage();
-  final effectiveContentType = contentType ?? ContentType.json;
+  final effectiveContentType = contentType ?? jsonContentType;
   when(() => incoming.queryParameters).thenReturn({});
-  when(() => incoming.headers).thenReturn(SerinusHeaders({}));
+  when(() => incoming.headers).thenReturn(SerinusHeaders(MockHttpHeaders()));
   when(() => incoming.contentType).thenReturn(effectiveContentType);
   when(() => incoming.method).thenReturn('POST');
   when(() => incoming.path).thenReturn('/');
@@ -72,6 +74,7 @@ void main() {
         request,
         'hello',
         <Type, Provider>{},
+        <ValueToken, Object?>{},
         <Type, Object>{},
         explicitType: String,
       );
@@ -86,6 +89,7 @@ void main() {
         request,
         Uint8List(0),
         <Type, Provider>{},
+        <ValueToken, Object?>{},
         <Type, Object>{},
         explicitType: Uint8List,
       );
@@ -103,6 +107,7 @@ void main() {
           {'name': 'serinus'},
         ],
         <Type, Provider>{},
+        <ValueToken, Object?>{},
         <Type, Object>{},
         explicitType: List<Map<String, dynamic>>,
       );
@@ -120,6 +125,7 @@ void main() {
         request,
         ['data', 'info', 'serinus'],
         <Type, Provider>{},
+        <ValueToken, Object?>{},
         <Type, Object>{},
       );
 
@@ -136,6 +142,7 @@ void main() {
         request,
         1,
         <Type, Provider>{},
+        <ValueToken, Object?>{},
         <Type, Object>{},
         explicitType: int,
       );
@@ -153,6 +160,7 @@ void main() {
         request,
         {'name': 'bird'},
         <Type, Provider>{},
+        <ValueToken, Object?>{},
         <Type, Object>{},
         modelProvider: modelProvider,
         explicitType: TestObject,

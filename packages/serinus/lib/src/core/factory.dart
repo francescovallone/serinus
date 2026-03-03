@@ -4,9 +4,11 @@ import '../adapters/adapters.dart';
 import '../constants.dart';
 import '../containers/models_provider.dart';
 import '../enums/log_level.dart';
+import '../http/http.dart';
 import '../microservices/microservices.dart';
 import '../services/logger_service.dart';
 import 'core.dart';
+import 'minimal/minimal_application.dart';
 
 /// The [SerinusFactory] class is used to create a new instance of the [SerinusApplication] class.
 final class SerinusFactory {
@@ -30,6 +32,7 @@ final class SerinusFactory {
     bool enableCompression = true,
     bool rawBody = false,
     NotFoundHandler? notFoundHandler,
+    int bodySizeLimit = kDefaultMaxBodySize,
   }) async {
     final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
     final serverHost = Platform.environment['HOST'] ?? host;
@@ -42,6 +45,7 @@ final class SerinusFactory {
       rawBody: rawBody,
       notFoundHandler: notFoundHandler,
     );
+    IncomingMessage.maxBodySize = bodySizeLimit;
     await server.init();
     final app = SerinusApplication(
       entrypoint: entrypoint,
@@ -69,6 +73,44 @@ final class SerinusFactory {
         modelProvider: modelProvider,
         serverAdapter: NoopAdapter(),
       )..microservices.add(transport),
+      levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
+      logger: logger,
+    );
+    return app;
+  }
+
+  /// The [createMinimalApplication] method is used to create a new instance of the [SerinusMinimalApplication] class.
+  Future<SerinusMinimalApplication> createMinimalApplication({
+    String host = 'localhost',
+    int port = 3000,
+    Set<LogLevel>? logLevels,
+    LoggerService? logger,
+    String poweredByHeader = 'Powered by Serinus',
+    SecurityContext? securityContext,
+    ModelProvider? modelProvider,
+    bool enableCompression = true,
+    bool rawBody = false,
+    NotFoundHandler? notFoundHandler,
+    int bodySizeLimit = kDefaultMaxBodySize,
+  }) async {
+    final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
+    final serverHost = Platform.environment['HOST'] ?? host;
+    final server = SerinusHttpAdapter(
+      host: serverHost,
+      port: serverPort,
+      poweredByHeader: poweredByHeader,
+      securityContext: securityContext,
+      enableCompression: enableCompression,
+      rawBody: rawBody,
+      notFoundHandler: notFoundHandler,
+    );
+    IncomingMessage.maxBodySize = bodySizeLimit;
+    await server.init();
+    final app = SerinusMinimalApplication(
+      config: ApplicationConfig(
+        serverAdapter: server,
+        modelProvider: modelProvider,
+      ),
       levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
       logger: logger,
     );

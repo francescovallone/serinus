@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
-import 'package:collection/collection.dart';
+import 'package:http_parser/http_parser.dart';
 
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../engines/view_engine.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/file_extensions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
 import '../utils/wrapped_response.dart';
@@ -28,6 +30,9 @@ class SerinusHttpAdapter
 
   /// The [isRunning] property returns true if the server is running.
   bool get isRunning => server != null;
+
+  String _cachedDate = formatHttpDate(DateTime.now());
+  Timer? _dateCacheTimer;
 
   @override
   bool get isOpen => isRunning;
@@ -59,6 +64,9 @@ class SerinusHttpAdapter
         shared: true,
       );
     }
+    _dateCacheTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _cachedDate = formatHttpDate(DateTime.now());
+    });
     // apply keep-alive idle timeout when configured
     if (keepAliveIdleTimeout != null) {
       server?.idleTimeout = keepAliveIdleTimeout!;
@@ -70,6 +78,7 @@ class SerinusHttpAdapter
   }
 
   Future<void> close() async {
+    _dateCacheTimer?.cancel();
     await server?.close(force: true);
   }
 
@@ -129,7 +138,7 @@ class SerinusHttpAdapter
   ) async {
     response.headers({
       io.HttpHeaders.locationHeader: redirect.location,
-      ...properties.headers.asMap(),
+      ...properties.headers,
     }, preserveHeaderCase: preserveHeaderCase);
     return response.redirect(redirect);
   }
@@ -137,59 +146,89 @@ class SerinusHttpAdapter
   @override
   Future<void> reply(
     InternalResponse response,
+    InternalRequest request,
     WrappedResponse body,
     ResponseContext properties,
   ) async {
-    response.cookies.addAll(properties.cookies);
-    response.headers(
-      properties.headers.asMap(),
-      preserveHeaderCase: preserveHeaderCase,
-    );
-    Uint8List responseBody = Uint8List(0);
-    response.contentType(
-      properties.contentType ?? io.ContentType.text,
-      preserveHeaderCase: preserveHeaderCase,
-    );
+    if (properties.cookies.isNotEmpty) {
+      response.cookies.addAll(properties.cookies);
+    }
+    final contentTypeValue =
+        properties.contentTypeString ??
+        properties.contentType?.toString() ??
+        'text/plain; charset=utf-8';
+    final Map<String, String> headers = Map.from(properties.headers);
+    headers[io.HttpHeaders.contentTypeHeader] = contentTypeValue;
+
     final bodyData = body.data;
     if (bodyData is io.File) {
-      response.contentType(
-        properties.contentType ??
-            io.ContentType.parse('application/octet-stream'),
-        preserveHeaderCase: preserveHeaderCase,
-      );
-      response.headers({
-        'transfer-encoding': 'chunked',
-      }, preserveHeaderCase: preserveHeaderCase);
+      final fileStat = await bodyData.stat();
+      final rawFileName = bodyData.uri.pathSegments.last;
+      final sanitizedFileName = rawFileName.replaceAll('"', '');
+      headers[io.HttpHeaders.contentTypeHeader] =
+          properties.contentTypeString ??
+          properties.contentType?.toString() ??
+          'application/octet-stream';
+      headers[io.HttpHeaders.dateHeader] = _cachedDate;
+      if (response.currentHeaders.value('etag') == null) {
+        headers[io.HttpHeaders.etagHeader] = fileStat.eTag;
+      }
+      headers[io.HttpHeaders.contentDisposition] =
+          'attachment; filename*=UTF-8\'\'"$sanitizedFileName"';
+      headers[io.HttpHeaders.contentLengthHeader] = fileStat.size.toString();
+      response.headers(headers, preserveHeaderCase: preserveHeaderCase);
+      response.status(properties.statusCode);
+      if (request.fresh) {
+        response.status(304);
+      }
+      if (response.statusCode == 304 || response.statusCode == 204) {
+        response.currentHeaders.removeAll('content-type');
+        response.currentHeaders.removeAll('content-length');
+        response.currentHeaders.removeAll('transfer-encoding');
+        response.currentHeaders.contentLength = -1;
+        return response.send(Uint8List(0));
+      }
       final readPipe = bodyData.openRead();
       return response.addStream(readPipe);
     }
-    responseBody = _convertData(body, response, properties);
-    if (responseBody.isEmpty) {
-      responseBody = Uint8List(0);
+
+    List<int> responseBody;
+    if (bodyData is List<int>) {
+      responseBody = bodyData;
+    } else {
+      responseBody = _convertData(body, response, properties);
     }
-    response.headers({
-      io.HttpHeaders.contentLengthHeader: responseBody.length.toString(),
-    }, preserveHeaderCase: preserveHeaderCase);
+
+    if (responseBody.isEmpty) {
+      responseBody = <int>[];
+    }
+
+    final contentLength = properties.contentLength ?? responseBody.length;
+    headers[io.HttpHeaders.contentLengthHeader] = contentLength.toString();
+    headers[io.HttpHeaders.dateHeader] = _cachedDate;
+    if (response.currentHeaders.value('etag') == null) {
+      headers[io.HttpHeaders.etagHeader] = body.eTag;
+    }
+    response.headers(headers, preserveHeaderCase: preserveHeaderCase);
     response.status(properties.statusCode);
+    if (request.fresh) {
+      response.status(304);
+    }
+    if (response.statusCode == 304 || response.statusCode == 204) {
+      response.currentHeaders.removeAll('content-type');
+      response.currentHeaders.removeAll('content-length');
+      response.currentHeaders.removeAll('transfer-encoding');
+      response.currentHeaders.contentLength = -1;
+      return response.send(Uint8List(0));
+    }
     return response.send(responseBody);
   }
 
-  Uint8List _convertData(
+  List<int> _convertData(
     WrappedResponse data,
     InternalResponse response,
     ResponseContext properties,
   ) {
-    final coding = response.currentHeaders['transfer-encoding']?.join(';');
-    if ((coding != null && !equalsIgnoreAsciiCase(coding, 'identity')) ||
-        (properties.statusCode >= 200 &&
-            properties.statusCode != 204 &&
-            properties.statusCode != 304 &&
-            properties.contentLength == null &&
-            properties.contentType?.mimeType != 'multipart/byteranges')) {
-      response.headers({
-        io.HttpHeaders.transferEncodingHeader: 'chunked',
-      }, preserveHeaderCase: preserveHeaderCase);
-    }
     return data.toBytes();
   }
 
@@ -204,7 +243,7 @@ class SerinusHttpAdapter
     }
     response.cookies.addAll(properties.cookies);
     response.headers(
-      properties.headers.asMap(),
+      properties.headers,
       preserveHeaderCase: preserveHeaderCase,
     );
     final result = await viewEngine!.render(view);

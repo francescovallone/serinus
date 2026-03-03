@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:async/async.dart';
 import 'package:collection/collection.dart';
-import 'package:spanner/spanner.dart';
 import 'package:stream_channel/stream_channel.dart';
 import 'package:uuid/v4.dart';
 
@@ -12,42 +11,49 @@ import '../containers/hooks_container.dart';
 import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../core/middlewares/middleware_executor.dart';
+import '../core/middlewares/middleware_registry.dart';
+import '../enums/http_method.dart';
 import '../exceptions/exceptions.dart';
 import '../extensions/object_extensions.dart';
 import '../http/http.dart';
+import '../router/atlas.dart';
 import '../utils/wrapped_response.dart';
 import 'adapters.dart';
 
 /// The [SseScope] class is used to define the scope of a Server-Sent Events (SSE) gateway.
 /// It contains the [SseRouteSpec], the providers, and the hooks.
 class SseScope {
-  /// The [gateway] property contains the WebSocket gateway.
+  /// The [gateway] property contains the SSE Route.
   final SseRouteHandlerSpec sseRouteSpec;
 
-  /// The [providers] property contains the providers of the WebSocket gateway.
+  /// The [providers] property contains the providers of the SSE Route.
   final Map<Type, Provider> providers;
 
-  /// The [hooks] property contains the hooks of the WebSocket gateway.
+  /// The [values] property contains the values from ValueProviders.
+  final Map<ValueToken, Object?> values;
+
+  /// The [hooks] property contains the hooks of the SSE Route.
   final HooksContainer hooks;
 
-  /// The [metadata] property contains the metadata of the WebSocket gateway.
+  /// The [metadata] property contains the metadata of the SSE Route.
   final List<Metadata> metadata;
 
-  /// The [middlewares] property contains the middlewares of the WebSocket gateway.
-  final Iterable<Middleware> Function(IncomingMessage request) middlewares;
+  /// The [compiledMiddlewares] property contains the compiled middlewares for the SSE Route.
+  final List<CompiledMiddleware>? compiledMiddlewares;
 
-  /// The [GatewayScope] constructor is used to create a new instance of the [GatewayScope] class.
+  /// The [SseScope] constructor is used to create a new instance of the [SseScope] class.
   const SseScope(
     this.sseRouteSpec,
     this.providers,
+    this.values,
     this.hooks,
     this.metadata,
-    this.middlewares,
+    this.compiledMiddlewares,
   );
 
   @override
   String toString() {
-    return 'GatewayScope(gateway: $sseRouteSpec, providers: $providers)';
+    return 'SseScope(sseRouteSpec: $sseRouteSpec, providers: $providers)';
   }
 }
 
@@ -60,7 +66,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
   final HttpAdapter httpAdapter;
 
   /// The [router] property contains the router used by the SSE adapter.
-  final Spanner router = Spanner();
+  final Atlas router = Atlas();
 
   /// The [connections] property contains the active SSE connections.
   Map<String?, SseConnection> get connections =>
@@ -113,8 +119,8 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
 
   /// Starts the SSE connection.
   Future<void> start(IncomingMessage request, OutgoingMessage response) async {
-    final route = router.lookup(HTTPMethod.GET, request.path);
-    if (route == null) {
+    final route = router.lookup(HttpMethod.get, request.path);
+    if (route is NotFoundRoute) {
       final exception =
           httpAdapter.notFoundHandler?.call(Request(request)) ??
           NotFoundException(
@@ -122,8 +128,9 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
           );
       await httpAdapter.reply(
         response,
+        request,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
-        ResponseContext({}, {})
+        ResponseContext({}, {}, {})
           ..headers.addAll({'content-type': 'application/json'})
           ..statusCode = exception.statusCode,
       );
@@ -138,8 +145,9 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
           );
       await httpAdapter.reply(
         response,
+        request,
         WrappedResponse(jsonEncode(exception.toJson()).toBytes()),
-        ResponseContext({}, {})
+        ResponseContext({}, {}, {})
           ..headers.addAll({'content-type': 'application/json'})
           ..statusCode = exception.statusCode,
       );
@@ -156,6 +164,7 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
     final executionContext = ExecutionContext(
       HostType.sse,
       currentScope.providers,
+      currentScope.values,
       currentScope.hooks.services,
       SseArgumentsHost(wrappedRequest, clientId),
     );
@@ -170,11 +179,18 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
         ..httpOnly = true
         ..path = '/',
     );
-    final middlewares = currentScope.middlewares(request);
-    if (middlewares.isNotEmpty) {
+    final middlewares = currentScope.compiledMiddlewares;
+    final activeMiddlewares = <Middleware>[];
+    if (middlewares != null && middlewares.isNotEmpty) {
+      // Fast, allocation-free loop checking compiled regexes
+      for (var i = 0; i < middlewares.length; i++) {
+        if (middlewares[i].appliesTo(wrappedRequest.uri.path)) {
+          activeMiddlewares.add(middlewares[i].middleware);
+        }
+      }
       final executor = MiddlewareExecutor();
       await executor.execute(
-        middlewares,
+        activeMiddlewares,
         executionContext,
         response,
         onDataReceived: (data) async {

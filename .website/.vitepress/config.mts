@@ -1,4 +1,9 @@
 import { defineConfig } from 'vitepress'
+import Tailwind from '@tailwindcss/vite'
+import { serinusNocturneTheme, serinusParchmentTheme } from './theme/serinus-parchment'
+import { serinusTypes } from './serinus-types'
+import { canaryTransformer } from '@avesbox/canary'
+import llmstxt from 'vitepress-plugin-llms'
 
 // https://vitepress.dev/reference/site-config
 
@@ -8,69 +13,91 @@ export default defineConfig({
   titleTemplate: ':title - Serinus | The Flutter modular Backend Framework',
   description,
   head: [
-    ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/serinus-icon-32x32.png"}],
-    ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png"}],
+    ['link', { rel: "icon", type: "image/png", sizes: "32x32", href: "/serinus-icon-32x32.png" }],
+    ['link', { rel: "icon", type: "image/png", sizes: "16x16", href: "/serinus-icon-16x16.png" }],
+    ['link', { rel: "icon", type: "image/png", href: "/serinus-logo.png" }],
+    ['link', { rel: "apple-touch-icon", href: "/serinus-logo.png" }],
     [
-            'meta',
-            {
-                name: 'viewport',
-                content: 'width=device-width,initial-scale=1,user-scalable=no'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:image',
-                content: 'https://serinus.app/cover.jpg'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:image:width',
-                content: '1600'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:image:height',
-                content: '900'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'twitter:card',
-                content: 'summary_large_image'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'twitter:image',
-                content: 'https://serinus.app/cover.jpg'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:title',
-                content: 'Serinus'
-            }
-        ],
-        [
-            'meta',
-            {
-                property: 'og:description',
-                content: description
-            }
-        ]
+        'meta',
+        {
+            name: 'viewport',
+            content: 'width=device-width,initial-scale=1,user-scalable=no'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:image',
+            content: 'https://serinus.app/cover.jpg'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:image:width',
+            content: '1600'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:image:height',
+            content: '900'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'twitter:card',
+            content: 'summary_large_image'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'twitter:image',
+            content: 'https://serinus.app/cover.jpg'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:title',
+            content: 'Serinus'
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'og:description',
+            content: description
+        }
+    ],
+    [
+        'meta',
+        {
+            property: 'keywords',
+            content: 'serinus, dart serinus, serinus framework, serinus dart framework, serinus backend, serinus backend framework, dart backend framework, dart backend, flutter backend, flutter backend framework'
+        }
+    ],
   ],
   markdown: {
     image: {
       lazyLoading: true
     },
+    theme: {
+      light: {
+        ...serinusParchmentTheme,
+        type: "light"
+      },
+      dark: {
+        ...serinusNocturneTheme,
+        type: "dark"
+      }
+    },
+    codeTransformers: [
+      canaryTransformer({ customTypes: serinusTypes, explicitTrigger: true }),
+    ],
   },
   sitemap: {
     hostname: 'https://serinus.app'
@@ -88,20 +115,24 @@ export default defineConfig({
     // https://vitepress.dev/reference/default-theme-config
     logo: '/serinus-logo.png',
     search: {
-      provider: 'local'
+      provider: 'local',
+      options: {
+        translations: {
+          button: {
+            buttonText: 'Search docs...',
+          }
+        }
+      }
     },
     siteTitle: false,
     nav: [
       {
-        text: 'Documentation',
+        text: 'Docs',
         link: '/introduction'
       },
       {
-        text: 'v2.0',
-        items: [
-          { text: 'Breaking Changes', link: '/next/breaking-changes' },
-          { text: 'Analysis', link: '/next/analysis/' }
-        ]
+        text: 'Roadmap',
+        link: '/roadmap'
       },
       {
         text: 'Blog',
@@ -136,11 +167,13 @@ export default defineConfig({
             base: '/techniques/',
             collapsed: true,
             items: [
+              { text: 'Database', link: 'database' },
               { text: 'Configuration', link: 'configuration' },
               { text: 'Logging', link: 'logging' },
               { text: 'Model Provider', link: 'model_provider' },
               { text: 'Model View Controller', link: 'mvc' },
               { text: 'Task Scheduling', link: 'task_scheduling' },
+              { text: 'File Upload', link: 'file_upload' },
               { text: 'Request Events', link: 'request_events' },
               { text: 'Versioning', link: 'versioning' },
               { text: 'Global Prefix', link: 'global_prefix' },
@@ -154,8 +187,10 @@ export default defineConfig({
             base: '/security/',
             collapsed: true,
             items: [
+              { text: 'Authentication', link: 'authentication' },
               { text: 'Rate Limiting', link: 'rate_limiting' },
               { text: 'Body Size', link: 'body_size' },
+              { text: 'CSRF', link: 'csrf' },
               { text: 'CORS', link: 'cors' },
             ]
           },
@@ -200,6 +235,16 @@ export default defineConfig({
               { text: 'Generate', link: 'generate' },
               { text: 'Run', link: 'run' },
               { text: 'Deploy', link: 'deploy' },
+              { text: 'Agents', link: 'agents' },
+            ]
+          },
+          {
+            text: 'Comparisons',
+            base: '/comparisons/',
+            collapsed: true,
+            items: [
+              { text: 'Dart Frog', link: 'dart_frog' },
+              { text: 'Shelf', link: 'shelf' },
             ]
           },
           {
@@ -208,6 +253,17 @@ export default defineConfig({
             collapsed: true,
             items: [
               { text: 'Testing', link: 'testing' },
+              { text: 'Minimal Application', link: 'minimal_application' },
+              // { text: 'Liquify', link: 'liquify' },
+            ]
+          },
+          {
+            text: 'Migrations',
+            base: '/migrations/',
+            collapsed: true,
+            items: [
+              { text: '1.x to 2.x', link: '1_to_2' },
+              { text: 'Flatten module scopes to hierarchical resolution', link: 'flatten_scopes' },
             ]
           },
           // {
@@ -247,10 +303,6 @@ export default defineConfig({
             ],
           },
           {
-            'text': 'Breaking Changes in 2.x',
-            'link': '/next/breaking-changes'
-          },
-          {
             text: 'Support Us',
             link: '/support'
           }
@@ -263,4 +315,19 @@ export default defineConfig({
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ],
   },
+  vite: {
+    plugins: [
+      Tailwind(),
+      process.env.NODE_ENV ? llmstxt({
+        ignoreFiles: [
+          'blog/*',
+          'index.md',
+          'public/*',
+          'plugins/*',
+          'next/*'
+        ],
+        domain: 'https://serinus.app'
+      }) : undefined
+    ]
+  }
 })

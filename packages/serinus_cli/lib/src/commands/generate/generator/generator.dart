@@ -23,6 +23,36 @@ class Generator {
     orderDirectives: true,
   );
 
+  int? _findModuleClassClosingBraceIndex(String source) {
+    final moduleClassMatch = RegExp(
+      r'class\s+\w+\s+extends\s+Module\s*\{',
+      multiLine: true,
+    ).firstMatch(source);
+    if (moduleClassMatch == null) {
+      return null;
+    }
+
+    final classStartBraceIndex = source.indexOf('{', moduleClassMatch.start);
+    if (classStartBraceIndex == -1) {
+      return null;
+    }
+
+    var depth = 0;
+    for (var index = classStartBraceIndex; index < source.length; index++) {
+      final char = source[index];
+      if (char == '{') {
+        depth++;
+      } else if (char == '}') {
+        depth--;
+        if (depth == 0) {
+          return index;
+        }
+      }
+    }
+
+    return null;
+  }
+
   Future<void> replaceGetters(
     String filePath,
     String fileName,
@@ -45,7 +75,9 @@ class Generator {
             update.newValue,
           );
         } else {
-          final lastIndex = contents.lastIndexOf('}');
+          final classClosingBraceIndex =
+              _findModuleClassClosingBraceIndex(contents);
+          final lastIndex = classClosingBraceIndex ?? contents.lastIndexOf('}');
           replaced = contents.replaceRange(
             lastIndex,
             lastIndex,

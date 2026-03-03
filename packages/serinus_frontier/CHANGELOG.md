@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- fix: improve check for the presence of a GuardMeta in the request context when using multiple strategies in the FrontierModule.
+
 ## 1.0.2
 
 - fix: remove needs to define a GuardMeta when using one single strategy in the FrontierModule.

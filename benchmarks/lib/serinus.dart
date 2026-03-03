@@ -10,7 +10,10 @@ class TestModule extends Module {
 
 class TestController extends Controller {
   TestController() : super('/') {
-    on(Route.get('/'), (context) async => 'echo!');
+    on(Route.get('/'), (context) async => {
+      'message': 'Hello, World!',
+      'dateTime': DateTime.now().toIso8601String(),
+    });
   }
 }
 

@@ -8,10 +8,11 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  dart_jsonwebtoken: ^2.17.0
   frontier_jwt: ^1.0.1
-  serinus: ^2.0.4
+  serinus: ^2.0.0
   serinus_config: ^2.0.0
-  serinus_frontier: ^1.0.2
+  serinus_frontier: ^1.0.3
 
 dev_dependencies:
   lints: ^6.0.0

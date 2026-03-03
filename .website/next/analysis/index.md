@@ -20,8 +20,8 @@ head:
 
 
 <script setup>
-    import Blog from '../../components/blog.vue'
+    import Blog from '../../components/blog/blog.vue'
     import { analysis } from '../../components/data/analysis.ts'
 </script>
 
-<Blog :posts="analysis" title="Analysis Archive" desc="Explore our in-depth analysis and insights for old and new features." blog="false"/>
+<Blog :posts="analysis" title="Analysis Archive" desc="Explore our in-depth analysis and insights for old and new features." :blog="false"/>

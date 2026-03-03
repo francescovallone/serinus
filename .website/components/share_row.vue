@@ -1,32 +1,57 @@
 <script setup>
 import { useRoute } from 'vitepress';
 import { computed } from 'vue';
+import { ArrowUpRightIcon, XSocialIcon, LinkedInSocialIcon, LinkIcon } from './home/icons';
 
 const route = useRoute();
 
+const url = `https://serinus.app${route.path}`;
+
 const computedPath = computed(() => {
-  return encodeURI(`Check out this article\n${route.data.frontmatter.title}\n\nhttps://serinus.app${route.path}. 🐤💙`)
+  return encodeURI(`Check out this article\n${route.data.frontmatter.title}\n\n${url}. 🐤💙`)
 });
+
+const links = [
+	{
+	  name: 'X',
+	  href: `https://x.com/intent/post?text=${computedPath.value}`,
+	  icon: XSocialIcon
+  },
+  {
+    name: "LinkedIn",
+    icon: LinkedInSocialIcon,
+    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
+  },
+  {
+    name: 'Copy Link',
+    icon: LinkIcon,
+    href: url,
+  }
+]
 
 </script>
 
 <template>
-  	<div class="flex flex-col gap-4 border-t pt-2 mt-8">
-		<h3>Enjoyed the article?</h3>
-		<div class="flex flex-wrap gap-4">
-			<a :href="'https://x.com/intent/post?text=' + computedPath" target="_blank" class="flex p-2 hover:shadow-md transition-shadow no-underline font-semibold items-center justify-center gap-1 border text-base text-center lg:text-start w-auto border-gray-300 rounded-md">
-				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="m17.687 3.063l-4.996 5.711l-4.32-5.711H2.112l7.477 9.776l-7.086 8.099h3.034l5.469-6.25l4.78 6.25h6.102l-7.794-10.304l6.625-7.571zm-1.064 16.06L5.654 4.782h1.803l10.846 14.34z"/></svg>
-				Share it
-			</a>
-		</div>
-	</div>
+	<div class="flex items-center gap-2">
+      <span class="text-xs font-mono text-muted-foreground uppercase tracking-wider mr-2">
+        Share
+      </span>
+      <a
+        :key="link.name"
+        :href="link.href"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="p-2 border border-border hover:border-primary! hover:text-primary! transition-colors"
+        :aria-label='`Share on ${link.name}`'
+        v-for="link in links"
+    >
+      <component :is="link.icon" class="w-4 h-4" />
+    </a>
+    </div>
 </template>
 
 <style scoped>
-a {
-	text-decoration: none !important;
-}
-.border-t {
-	border-color: var(--vp-c-divider) !important;
+.vp-doc a {
+  color: unset !important;
 }
 </style>

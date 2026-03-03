@@ -29,6 +29,7 @@ paths:
         - name: "data"
           in: "path"
           required: true
+          schema: {}
       requestBody:
         required: true
         content:

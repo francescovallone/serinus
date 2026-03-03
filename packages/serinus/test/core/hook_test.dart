@@ -115,6 +115,7 @@ void main() {
           HostType.http,
           {},
           {},
+          {},
           HttpArgumentsHost(MockRequest()),
         );
         await hook.onRequest(context);

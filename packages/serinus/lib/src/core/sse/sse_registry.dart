@@ -1,7 +1,5 @@
 import '../../adapters/sse_adapter.dart';
 import '../../containers/injection_token.dart';
-import '../../contexts/route_context.dart';
-import '../../enums/enums.dart';
 import '../../errors/initialization_error.dart';
 import '../../mixins/mixins.dart';
 import '../../services/logger_service.dart';
@@ -32,11 +30,8 @@ class SseRegistry extends Provider
       );
       for (final spec in controller.sseRoutes.entries) {
         final route = spec.value.route;
-        final result = router.lookup(
-          HttpMethod.toSpanner(route.method),
-          route.path,
-        );
-        if (result?.values.isNotEmpty ?? false) {
+        final result = router.lookup(route.method, route.path);
+        if (result.values.isNotEmpty) {
           throw InitializationError(
             'SSE Route with path "${route.path}" already exists. '
             'Please use a different path for the route.',
@@ -46,26 +41,8 @@ class SseRegistry extends Provider
           _config.globalHooks,
           controller.hooks,
         ]);
-        final routeContext = RouteContext(
-          id: spec.key,
-          path: route.path,
-          method: route.method,
-          controller: controller,
-          routeCls: route.runtimeType,
-          moduleToken: currentModuleScope.token,
-          spec: spec.value,
-          moduleScope: currentModuleScope,
-          hooksContainer: hooks,
-          hooksServices: hooks.services,
-          pipes: [...controller.pipes, ...route.pipes, ..._config.globalPipes],
-          exceptionFilters: {
-            ...controller.exceptionFilters,
-            ...route.exceptionFilters,
-            ..._config.globalExceptionFilters,
-          },
-        );
-        router.addRoute(
-          HttpMethod.toSpanner(route.method),
+        router.add(
+          route.method,
           route.path,
           SseScope(
             spec.value,
@@ -74,15 +51,10 @@ class SseRegistry extends Provider
                 if (provider.runtimeType != controller.runtimeType)
                   provider.runtimeType: provider,
             },
+            Map.unmodifiable(currentModuleScope.unifiedValues),
             hooks,
             [...spec.value.route.metadata, ...controller.metadata],
-            (request) {
-              return currentModuleScope.getRouteMiddlewares(
-                spec.key,
-                request,
-                routeContext,
-              );
-            },
+            currentModuleScope.getRouteMiddlewares(spec.key),
           ),
         );
         _logger.info('Mapped {${route.path}} Server-Sent Event Route');

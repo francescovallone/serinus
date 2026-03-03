@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import '../core/module.dart';
+import '../core/provider.dart';
 
 /// A simple class to represent an injection token.
 extension type InjectionToken(String name) {
@@ -13,6 +14,11 @@ extension type InjectionToken(String name) {
   /// The token is take from the object type
   factory InjectionToken.fromType(Type type) {
     return InjectionToken(type.toString());
+  }
+
+  /// The token is taken from a [ValueToken].
+  factory InjectionToken.fromValueToken(ValueToken token) {
+    return InjectionToken(token.toString());
   }
 
   /// The token is taken from the module name
@@ -31,5 +37,14 @@ extension type InjectionToken(String name) {
     final generated = InjectionToken('$baseName#$counter');
     _moduleTokens[module] = generated;
     return generated;
+  }
+
+  /// The token is taken from the provider type
+  factory InjectionToken.fromProvider(Provider provider) {
+    if (provider is CustomProvider) {
+      return InjectionToken.fromType(provider.token);
+    } else {
+      return InjectionToken.fromType(provider.runtimeType);
+    }
   }
 }

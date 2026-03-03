@@ -30,6 +30,9 @@ class MessageContext {
   /// The [providers] property contains the providers available in the context.
   final Map<Type, Provider> providers;
 
+  /// The [values] property contains the values from ValueProviders.
+  final Map<ValueToken, Object?> values;
+
   /// The [hooks] property contains the hooks available in the context.
   final HooksContainer hooks;
 
@@ -42,6 +45,7 @@ class MessageContext {
   /// The [MessageContext] constructor is used to create a new instance of the [MessageContext] class.
   const MessageContext({
     required this.providers,
+    required this.values,
     required this.hooks,
     required this.exceptionFilters,
     required this.pipes,
@@ -116,6 +120,7 @@ class DefaultMessagesResolver extends MessagesResolver {
               for (final providerEntry in module.providers)
                 providerEntry.runtimeType: providerEntry,
             },
+            values: Map.unmodifiable(module.unifiedValues),
             hooks: entry.value.route.hooks.merge([
               controllerEntry.hooks,
               config.globalHooks,
@@ -161,6 +166,7 @@ class DefaultMessagesResolver extends MessagesResolver {
               for (final providerEntry in module.providers)
                 providerEntry.runtimeType: providerEntry,
             },
+            values: Map.unmodifiable(module.unifiedValues),
             hooks: entry.value.route.hooks.merge([
               controllerEntry.hooks,
               config.globalHooks,
@@ -210,6 +216,7 @@ class DefaultMessagesResolver extends MessagesResolver {
       final executionContext = ExecutionContext(
         HostType.rpc,
         routeContext.providers,
+        routeContext.values,
         {
           for (final hook in routeContext.hooks.reqHooks)
             hook.runtimeType: hook,
@@ -236,6 +243,7 @@ class DefaultMessagesResolver extends MessagesResolver {
           final executionContext = ExecutionContext(
             HostType.rpc,
             routeContext.providers,
+            routeContext.values,
             {
               for (final hook in routeContext.hooks.reqHooks)
                 hook.runtimeType: hook,
@@ -280,6 +288,7 @@ class DefaultMessagesResolver extends MessagesResolver {
         final executionContext = ExecutionContext(
           HostType.rpc,
           routeContext.providers,
+          routeContext.values,
           {
             for (final hook in routeContext.hooks.reqHooks)
               hook.runtimeType: hook,
@@ -296,11 +305,16 @@ class DefaultMessagesResolver extends MessagesResolver {
         for (final filter in routeContext.exceptionFilters) {
           if (filter.catchTargets.contains(e.runtimeType) ||
               filter.catchTargets.isEmpty) {
-            final executionContext =
-                ExecutionContext(HostType.rpc, routeContext.providers, {
-                  for (final hook in routeContext.hooks.reqHooks)
-                    hook.runtimeType: hook,
-                }, RpcArgumentsHost(packet));
+            final executionContext = ExecutionContext(
+              HostType.rpc,
+              routeContext.providers,
+              routeContext.values,
+              {
+                for (final hook in routeContext.hooks.reqHooks)
+                  hook.runtimeType: hook,
+              },
+              RpcArgumentsHost(packet),
+            );
             await filter.onException(executionContext, e);
             break;
           }

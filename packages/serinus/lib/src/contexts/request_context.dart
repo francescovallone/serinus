@@ -22,57 +22,78 @@ class RequestContext<TBody> extends BaseContext {
     Request httpRequest,
     TBody? body,
     Map<Type, Provider> providers,
+    Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices, {
     ModelProvider? modelProvider,
     Type? explicitType,
     bool shouldValidateMultipart = false,
   }) : request = httpRequest,
        _bodyType = explicitType ?? _typeOf<TBody>(),
-       _converter = _BodyConverter(modelProvider),
        _body = body,
        shouldValidateMultipart = shouldValidateMultipart,
-       super(providers, hooksServices) {
-    this.body = _converter.convert(_bodyType, body);
+       super(providers, values, hooksServices) {
+    if (_converter?.modelProvider == null) {
+      _converter = _BodyConverter(modelProvider);
+    }
+    this.body = _converter?.convert(_bodyType, body);
   }
 
   RequestContext._(
     this.request,
     this._bodyType,
-    this._converter,
+    _BodyConverter? converter,
     TBody? body,
     Map<Type, Provider> providers,
+    Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices,
     bool shouldValidateMultipart,
   ) : _body = body,
       shouldValidateMultipart = shouldValidateMultipart,
-      super(providers, hooksServices);
+      super(providers, values, hooksServices) {
+    _converter ??= converter ?? _BodyConverter(null);
+  }
+
+  static _BodyConverter? _converter;
 
   /// Creates a [RequestContext] instance reading and converting the request body to [TBody].
   static Future<RequestContext<TBody>> create<TBody>({
     required Request request,
     required Map<Type, Provider> providers,
+    required Map<ValueToken, Object?> values,
     required Map<Type, Object> hooksServices,
     required ModelProvider? modelProvider,
     required bool rawBody,
     Type? explicitType,
     bool shouldValidateMultipart = false,
   }) async {
-    final converter = _BodyConverter(modelProvider);
+    if (_converter == null || _converter?.modelProvider == null) {
+      _converter = _BodyConverter(modelProvider);
+    }
+    _converter ??= _BodyConverter(modelProvider);
     final targetType = explicitType ?? _typeOf<TBody>();
     if (shouldValidateMultipart && request.contentType.isMultipart) {
       return RequestContext._(
         request,
         targetType,
-        converter,
+        _converter,
         null,
         providers,
+        values,
         hooksServices,
         shouldValidateMultipart,
       );
     }
-    final raw = await request.parseBody(rawBody: rawBody);
+    final hasBody =
+        request.contentLength > 0 ||
+        request.headers.containsKey('transfer-encoding');
+    Object? raw;
+    if (hasBody) {
+      raw = await request.parseBody(rawBody: rawBody);
+    } else {
+      raw = null;
+    }
     if (explicitType != null) {
-      final converted = converter.convert(targetType, raw) as TBody;
+      final converted = _converter?.convert(targetType, raw) as TBody;
       request.body = converted;
     } else {
       request.body = raw;
@@ -80,9 +101,10 @@ class RequestContext<TBody> extends BaseContext {
     return RequestContext._(
       request,
       targetType,
-      converter,
+      _converter,
       request.body as TBody,
       providers,
+      values,
       hooksServices,
       shouldValidateMultipart,
     );
@@ -92,8 +114,6 @@ class RequestContext<TBody> extends BaseContext {
   final Request request;
 
   final Type _bodyType;
-
-  final _BodyConverter _converter;
 
   /// Indicates whether multipart requests should be validated before accessing the body.
   final bool shouldValidateMultipart;
@@ -132,7 +152,7 @@ class RequestContext<TBody> extends BaseContext {
       return bodyAs<T>();
     }
     final formData = await request.parseBody(rawBody: false, onPart: onPart);
-    final converted = _converter.convert(_bodyType, formData) as T;
+    final converted = _converter?.convert(_bodyType, formData) as T;
     body = converted;
     request.body = converted;
     return converted;
@@ -140,20 +160,28 @@ class RequestContext<TBody> extends BaseContext {
 
   /// Replaces the body value ensuring it conforms to [TBody].
   set body(Object? value) {
-    _body = _converter.convert(_bodyType, value) as TBody;
+    _body = _converter?.convert(_bodyType, value) as TBody;
     request.body = _body;
   }
 
   /// Casts the current body to a different type.
-  T bodyAs<T>() => _converter.convert(_typeOf<T>(), body) as T;
+  T bodyAs<T>({bool override = false}) {
+    if (body is T && !override) {
+      return body as T;
+    }
+    return _converter?.convert(_typeOf<T>(), body) as T;
+  }
 
   /// Casts the current body to a list of a different type.
-  List<T> bodyAsList<T>() {
+  List<T> bodyAsList<T>({bool override = false}) {
+    if (body is List<T> && !override) {
+      return List<T>.from(body as List);
+    }
     if (body is! List) {
       throw BadRequestException('The element is not of the expected type');
     }
     return List<T>.from(
-      (body as List).map((e) => _converter.convert(_typeOf<T>(), e) as T),
+      (body as List).map((e) => _converter?.convert(_typeOf<T>(), e) as T),
     );
   }
 
@@ -195,28 +223,36 @@ class RequestContext<TBody> extends BaseContext {
   /// It tries to convert the parameter to the specified type [T].
   T? queryAs<T>([String? name]) {
     if (name == null) {
-      return _converter.convert(_typeOf<T>(), query) as T;
+      return _converter?.convert(_typeOf<T>(), query) as T;
     }
     if (!query.containsKey(name)) {
       return null;
     }
-    return _converter.convert(_typeOf<T>(), query[name]) as T;
+    return _converter?.convert(_typeOf<T>(), query[name]) as T;
   }
 
   /// Retrieves a route parameter by name, or all parameters if no name is provided.
   /// It tries to convert the parameter to the specified type [T].
-  T? paramAs<T>([String? name]) {
+  T paramAs<T>([String? name]) {
     if (name == null) {
-      return _converter.convert(_typeOf<T>(), params) as T;
+      return _converter?.convert(_typeOf<T>(), params) as T;
     }
-    if (!params.containsKey(name)) {
-      return null;
+    final value = params[name];
+    if (value == null) {
+      final acceptNull = T.toString().endsWith('?');
+      if (acceptNull) {
+        return value;
+      }
+      throw ArgumentError('Path parameter $name not found');
     }
-    return _converter.convert(_typeOf<T>(), params[name]) as T;
+    return _converter?.convert(_typeOf<T>(), value) as T;
   }
 }
 
 final _utf8Decoder = utf8.decoder;
+final _typeNameCache = <Type, String>{};
+
+String _typeName(Type type) => _typeNameCache[type] ??= type.toString();
 
 class _BodyConverter {
   const _BodyConverter(this.modelProvider);
@@ -224,7 +260,7 @@ class _BodyConverter {
   final ModelProvider? modelProvider;
 
   Object? convert(Type targetType, Object? value) {
-    var typeName = targetType.toString();
+    var typeName = _typeName(targetType);
     if (_isDynamicLike(typeName)) {
       return value;
     }
@@ -238,7 +274,7 @@ class _BodyConverter {
     if (allowsNull) {
       typeName = typeName.replaceAll('?', '');
     }
-    if (typeName == value.runtimeType.toString()) {
+    if (typeName == _typeName(value.runtimeType)) {
       return value;
     }
     switch (typeName) {
@@ -258,7 +294,7 @@ class _BodyConverter {
         if (modelProvider != null) {
           final json =
               modelProvider!.toJsonModels.containsKey(
-                value.runtimeType.toString(),
+                _typeName(value.runtimeType),
               )
               ? modelProvider!.to(value)
               : null;
@@ -354,23 +390,27 @@ class _BodyConverter {
       }
     }
     if (modelProvider != null) {
-      if (value is FormData) {
-        final map = {...value.fields, ...value.files};
-        return modelProvider!.from(
-          '$targetType',
-          Map<String, dynamic>.from(map),
-        );
-      }
-      if (value is Map) {
-        final mapped = value.map((key, val) => MapEntry('$key', val));
-        final result = modelProvider!.from(
-          '$targetType',
-          Map<String, dynamic>.from(mapped),
-        );
-        if (allowsNull && result == null) {
-          return null;
+      try {
+        if (value is FormData) {
+          final map = {...value.fields, ...value.files};
+          return modelProvider!.from(
+            '$targetType',
+            Map<String, dynamic>.from(map),
+          );
         }
-        return result;
+        if (value is Map) {
+          final mapped = value.map((key, val) => MapEntry('$key', val));
+          final result = modelProvider!.from(
+            '$targetType',
+            Map<String, dynamic>.from(mapped),
+          );
+          if (allowsNull && result == null) {
+            return null;
+          }
+          return result;
+        }
+      } catch (e) {
+        throw BadRequestException('An error occured when parsing the object');
       }
       if (value is List) {
         throw BadRequestException('The element is not of the expected type');
@@ -391,7 +431,7 @@ class _BodyConverter {
     }
     if (modelProvider != null) {
       final json =
-          modelProvider!.toJsonModels.containsKey(value.runtimeType.toString())
+          modelProvider!.toJsonModels.containsKey(_typeName(value.runtimeType))
           ? modelProvider!.to(value)
           : null;
       if (json is Map<String, dynamic>) {

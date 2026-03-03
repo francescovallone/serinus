@@ -1,6 +1,6 @@
 name: serinus_cli
 description: The official CLI of the Serinus Framework. It allows you to create, build, and manage Serinus projects.
-version: 2.0.3
+version: 2.1.1
 repository: 'https://github.com/francescovallone/serinus'
 homepage: https://serinus.app
 
@@ -15,6 +15,7 @@ dependencies:
   cli_completion: ^0.5.1
   code_builder: ^4.11.0
   dart_style: ^3.1.1
+  http: ^1.6.0
   mason: ^0.1.2
   mason_logger: ^0.3.3
   meta: ^1.17.0

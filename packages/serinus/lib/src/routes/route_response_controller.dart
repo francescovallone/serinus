@@ -12,13 +12,14 @@ class RouteResponseController {
   const RouteResponseController(this._applicationRef);
 
   /// The [sendResponse] method is used to send a response to the client.
-  Future<void> sendResponse<TResponse, TData>(
+  Future<void> sendResponse<TResponse, TRequest, TData>(
     TResponse response,
+    TRequest request,
     WrappedResponse data,
     ResponseContext properties, {
     ViewEngine? viewEngine,
   }) async {
-    await _applicationRef.reply(response, data, properties);
+    await _applicationRef.reply(response, request, data, properties);
   }
 
   /// The [redirect] method is used to redirect the response to a different URL.

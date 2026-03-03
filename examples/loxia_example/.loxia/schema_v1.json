@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "tables": {
+    "users": {
+      "columns": {
+        "id": {
+          "type": "int",
+          "nullable": false,
+          "isPrimaryKey": true,
+          "unique": false
+        },
+        "email": {
+          "type": "varchar",
+          "nullable": false,
+          "isPrimaryKey": false,
+          "unique": false
+        },
+        "role": {
+          "type": "varchar",
+          "nullable": false,
+          "isPrimaryKey": false,
+          "unique": false
+        },
+        "tags": {
+          "type": "json",
+          "nullable": false,
+          "isPrimaryKey": false,
+          "unique": false
+        }
+      }
+    },
+    "posts": {
+      "columns": {
+        "id": {
+          "type": "varchar",
+          "nullable": false,
+          "isPrimaryKey": true,
+          "unique": false
+        },
+        "title": {
+          "type": "varchar",
+          "nullable": false,
+          "isPrimaryKey": false,
+          "unique": false
+        },
+        "content": {
+          "type": "varchar",
+          "nullable": false,
+          "isPrimaryKey": false,
+          "unique": false
+        },
+        "likes": {
+          "type": "int",
+          "nullable": false,
+          "isPrimaryKey": false,
+          "unique": false,
+          "defaultValue": "0"
+        }
+      }
+    },
+    "tag": {
+      "columns": {
+        "id": {
+          "type": "int",
+          "nullable": false,
+          "isPrimaryKey": true,
+          "unique": false
+        },
+        "name": {
+          "type": "varchar",
+          "nullable": false,
+          "isPrimaryKey": false,
+          "unique": false
+        }
+      }
+    }
+  }
+}

@@ -1,8 +1,70 @@
 # Changelog
 
-## Unreleased
+## 2.1.4
 
-- feat!: replace the legacy tracer service with the built-in observability model (ObserveConfig, ObserveHandle, per-route plans, deterministic sampling).
+**Released on:** 01-03-2026
+
+### Fixes
+
+- Fix a bug in the `Atlas` router that caused incorrect handling of tail wildcard routes. Basically `/` was not matched by the tail wildcard route when no static route was present before it. This fix ensures that tail wildcard routes are correctly matched even when no static route is present.
+
+## 2.1.3
+
+**Released on:** 25-02-2026
+
+### Fixes
+
+- Remove useless `entrypoint` parameter from the `createMinimalApplication` method in the `SerinusFactory` class. This parameter is not needed for the creation of a minimal application and its presence can cause confusion for developers. Removing it simplifies the API and improves the developer experience when creating minimal applications with Serinus.
+
+## 2.1.2
+
+**Released on:** 22-02-2026
+
+### Features
+
+- Add `CsrfHook` to provide built-in CSRF protection for Serinus applications. This hook can be easily integrated into the request lifecycle to ensure that all incoming requests are properly validated for CSRF tokens, enhancing the security of the application against cross-site request forgery attacks.
+- Add initial implementation of the `SerinusMinimalApplication` to provide a flexible and customizable way to create Serinus applications with minimal configuration. This allows developers to have more control over the application setup and configuration while still benefiting from the core features of Serinus.
+
+### Fixes
+
+- Fix a bug in the modules initialization process that caused the `InternalCoreModule` to be orphaned and not properly initialized. This fix ensures that the `InternalCoreModule` is correctly initialized and integrated into the application, preventing potential issues with module dependencies and application startup.
+- Fix a bug in the `MiddlewareRegistry` implementation that prevented the correct registration of middlewares when using the new Atlas router.
+
+### Performance Improvements
+
+- Improved RPS performance of the application by optimizing the request handling process and reducing unnecessary overhead in the request lifecycle. This results in faster response times and improved overall performance of Serinus applications. (Up to 15% improvement in RPS performance)
+
+## 2.1.1
+
+**Released on:** 15-02-2026
+
+### Refactor
+
+- Refactor how Serinus handlers module generation to use topological sorting of the modules to ensure that the modules are generated in the correct order. This improves the performance of the application startup and reduces the memory usage during the module generation process.
+
+## 2.1.0
+
+**Released on:** 12-02-2026
+
+### Features
+
+- Add `ClassProvider` to allow inheritance in providers. Now it is possible to pass a class as a provider and have it injected as its subclass. This allows for better abstraction and separation of concerns in the application architecture.
+- Add `etag` to requests to allow for better caching strategies and reduce bandwidth usage.
+- Replace `Spanner` with `Atlas` as the default router for Serinus applications. Atlas provides better performance and more features compared to Spanner allowing for something more robust and flexible routing system.
+- Allow disabling versioning on specific routes or controllers. This provides more flexibility in managing API versions and allows for better control over the versioning strategy.
+- Add `file` method to `FormData` to simplify file part extraction from multipart/form-data requests.
+- Add utility methods to `int` to simplify body size limit configuration.
+
+### Fixes
+
+- Fix WebSocket upgrade handling to prevent wrongful exceptions during connection upgrades.
+- `ResponseContext#body` now does not close the response when set, allowing for proper response handling in hooks and middlewares.
+
+### Changes
+
+- `bodyAs` and `bodyAsList` methods now uses a conservative approach to parsing the body, if the body is already of the requested type it is returned as is, otherwise it is parsed. This improves performance and reduces unnecessary parsing operations.
+- Improve general performances of the handling system reducing memory allocations and CPU usage.
+- Deprecated `BodySizeLimitHook` in favor of `bodySizeLimit` option in `createApplication` method. This simplifies the configuration of body size limits and provides a more consistent approach to application configuration.
 
 ## 2.0.4
 

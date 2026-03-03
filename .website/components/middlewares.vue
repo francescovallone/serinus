@@ -4,8 +4,8 @@
 <template>
 	<svg width="690" height="400" xmlns="http://www.w3.org/2000/svg">
     <!-- Client Side box -->
-    <rect x="10" y="150" width="150" height="60" class="box stroke" rx="8" ry="8"/>
-    <rect x="5" y="145" width="160" height="70" class="box stroke" rx="12" ry="12" style="stroke-width: 1;"/>
+    <rect x="10" y="150" width="150" height="60" class="box stroke"/>
+    <rect x="5" y="145" width="160" height="70" class="box stroke" style="stroke-width: 1;"/>
     <text x="85" y="185" class="text-brand">Client Side</text>
 
     <!-- Dashed arrow (HTTP request) -->
@@ -18,12 +18,12 @@
           repeatCount="indefinite" />
     </line>
     <text x="215" y="165" class="text" style="fill:#aaa; font-size:12px;">Request</text>
-    <rect x="265" y="150" width="150" height="60" class="box" rx="12" ry="12"/>
+    <rect x="265" y="150" width="150" height="60" class="box"/>
     <text x="340" y="185" class="text">Middleware</text>
     <path d="M415 180 C415 180, 415 180, 515 180" class="arrow top-arrow"/>
     <path d="M415 180 C415 180, 415 180, 515 180" class="arrow mid-arrow"/>
 
-    <rect x="515" y="150" width="150" height="60" class="box stroke" rx="12" ry="12"/>
+    <rect x="515" y="150" width="150" height="60" class="box stroke"/>
     <text x="590" y="185" class="text-brand">Route</text>
   </svg>
 </template>
@@ -33,7 +33,7 @@
     .box {
       font-size: 16px;
       font-family: sans-serif;
-      fill: var(--vp-c-brand-light);
+      fill: var(--vp-c-brand-1);
       stroke: none;
       fill-opacity: 1;
     }
@@ -43,15 +43,13 @@
       fill: transparent
     }
     .text {
-      fill: white;
-      font-family: Arial, sans-serif;
+      fill: var(--primary-foreground);;
       font-size: 14px;
       text-anchor: middle;
       font-weight: 600;
     }
     .text-brand {
       fill: var(--vp-c-brand-1);
-	    font-family: Arial, sans-serif;
       font-size: 14px;
       text-anchor: middle;
       font-weight: 600;

@@ -109,13 +109,34 @@ class UserController extends Controller {
 
 The route `/users/*` will match any path that starts with `/users/` and will match routes like `/users/1`, `/users/2`, `/users/3`, etc.
 
-## Status Codes
+## Tail Wildcards
 
-You can return a status code from a controller method by setting the `res.statusCode` property of the `RequestContext` object. The default status code is `201` for POST requests and `200` for all other requests.
+Basic wildcards match only a single segment of the path. If you want to match multiple segments, but only at the end of the path, you can use tail wildcards. Tail wildcards are defined using the `**` characters.
 
 ```dart
-Future<User> createUser(RequestContext context) async {
-  return await context.use<UsersService>().createUser(context.body);
+import 'package:serinus/serinus.dart';
+
+class UserController extends Controller {
+  UserController(): super('/files') {
+    on(Route.get('/**'), getFile);
+  }
+
+  Future<String> getFile(RequestContext context) async {
+    return 'Tail Wildcard';
+  }
+}
+```
+
+## Status Codes
+
+You can change the status code of the response by setting the `res.statusCode` property of the `RequestContext` object.
+
+```dart
+Future<Map<String, dynamic>> customError(RequestContext context) async {
+  context.res.statusCode = 400;
+  return {
+    'error': 'Bad Request',
+  };
 }
 ```
 
@@ -221,31 +242,26 @@ class UserController extends Controller {
     on(Route.get('/<id>'), getUser);
   }
 
-  Future<User> getUser(RequestContext context, String id) async {
+  Future<User> getUser(RequestContext context) async {
+    final id = context.paramAs<String>('id');
     final user = await context.use<UsersService>().getUser(id);
     return user;
   }
 }
 ```
 
-::: warning
-The path parameters cannot be used inside the `Controller` path.
-:::
-
-The path parameters must always be after the `RequestContext` object and the (optional) body parameter.
-
-If you don't want to use the path parameter in the method signature, you can access it using the `params` property of the `RequestContext` object.
+Also since the integration of Atlas as the default Router in Serinus, you can define the path parameters as follow:
 
 ```dart
 import 'package:serinus/serinus.dart';
 
 class UserController extends Controller {
   UserController(): super('/users') {
-    on(Route.get('/<id>'), getUser);
+    on(Route.get('/:id'), getUser);
   }
 
   Future<User> getUser(RequestContext context) async {
-    final id = context.params['id'];
+    final id = context.paramAs<String>('id');
     final user = await context.use<UsersService>().getUser(id);
     return user;
   }

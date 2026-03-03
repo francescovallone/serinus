@@ -1,8 +1,15 @@
+import 'dart:convert';
+
 import 'package:benchmarks/shared/serinus_benchmark.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 
-Response _echoRequest(Request request) => Response.ok('echo!');
+Response _echoRequest(Request request) => Response.ok(
+  jsonEncode({
+    'message': 'Hello, World!',
+    'dateTime': DateTime.now().toIso8601String(),
+  }),
+);
 
 class ShelfAppBenchmark extends SerinusBenchmark {
   // ignore: prefer_typing_uninitialized_variables

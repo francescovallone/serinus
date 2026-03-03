@@ -19,17 +19,28 @@ It also execute build_runner to generate the necessary files. This allows you to
 
 This commands can also be tweaked thanks to the configuration in the `pubspec.yaml` file.
 
-## Client
+### Configuration
 
-The `client` sub-command is used to generate a client for your project.
-The client provide an immediate way to interact with your API from your frontend application.
+To configure the `models` command, you need to add the following configuration to your `pubspec.yaml` file:
 
-Right now the client supports the following languages and libraries:
+```yaml
+serinus:
+  models:
+    extensions: 
+      - "t"
+    deserialize_keywords:
+      - keyword: "fromRequest"
+        static_method: true
+    serialize_keywords:
+      - keyword: "toBody"
+```
 
-| Language | Library | Support |
-| --- | --- | ------ |
-| Dart | `dio` | ✅ |
+In this configuration, you can specify the following options:
 
-The team is also working on adding support for other languages and libraries.
+| Option | Description |
+| --- | --- |
+| `extensions` | A list of file extensions to be considered when generating models. |
+| `deserialize_keywords` | A list of keywords to be used when deserializing JSON objects to Dart objects. |
+| `serialize_keywords` | A list of keywords to be used when serializing Dart objects to JSON objects. |
 
-This commands can also be tweaked thanks to the configuration in the `pubspec.yaml` file.
+The `deserialize_keywords` and `serialize_keywords` options are used to specify the keywords that will be used to identify the methods that will be used for deserialization and serialization respectively. The `keyword` field is used to specify the keyword that will be used to identify the method, while the `static_method` field is used to specify whether the method is a static method or not.

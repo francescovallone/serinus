@@ -1,4 +1,5 @@
 import '../../serinus.dart';
+import '../core/middlewares/middleware_registry.dart';
 
 /// The [HandlerFunction] is a function that handles the incoming request and returns a response.
 typedef HandlerFunction =
@@ -42,6 +43,17 @@ class RouteContext<T extends RouteHandlerSpec> {
 
   /// Pre-resolved observe plan for this route.
   final ResolvedObservePlan observePlan;
+  
+  /// The [providers] property contains the providers of the module.
+  late final Map<Type, Provider> providers = {
+    for (var provider in moduleScope.unifiedProviders)
+      provider.runtimeType: provider,
+  };
+
+  /// The [values] property contains the values from ValueProviders.
+  late final Map<ValueToken, Object?> values = Map.unmodifiable(
+    moduleScope.unifiedValues,
+  );
 
   /// Internal cache for metadata defined at controller and route level.
   late final List<Metadata> _metadataCache = [
@@ -125,7 +137,8 @@ class RouteContext<T extends RouteHandlerSpec> {
       return _staticMetadataView;
     }
     final resolved = <String, Metadata>{..._staticMetadata};
-    for (final meta in _metadataCache) {
+    for (int i = 0; i < _metadataCache.length; i++) {
+      final meta = _metadataCache[i];
       if (meta is ContextualizedMetadata) {
         resolved[meta.name] = await meta.resolve(context);
       }
@@ -133,8 +146,10 @@ class RouteContext<T extends RouteHandlerSpec> {
     return resolved;
   }
 
-  /// Returns the middlewares for the route.
-  Iterable<Middleware> getMiddlewares(IncomingMessage message) {
-    return moduleScope.getRouteMiddlewares(id, message, this);
+  List<CompiledMiddleware>? _compiledMiddlewaresCache;
+
+  /// The [compiledMiddlewares] is used to store the compiled middlewares for the route.
+  List<CompiledMiddleware> get compiledMiddlewares {
+    return _compiledMiddlewaresCache ??= moduleScope.getRouteMiddlewares(id);
   }
 }

@@ -1,0 +1,15 @@
+name: Publish Serinus to pub.dev
+
+on:
+  push:
+    tags:
+    - 'serinus-[0-9]+.[0-9]+.[0-9]+*'
+
+jobs:
+  publish:
+    permissions:
+      id-token: write
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+    with:
+      environment: pub.dev
+      working-directory: packages/serinus

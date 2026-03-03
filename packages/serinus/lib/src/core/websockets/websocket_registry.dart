@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:spanner/spanner.dart';
-
 import '../../adapters/adapters.dart';
 import '../../contexts/contexts.dart';
+import '../../enums/http_method.dart';
 import '../../errors/initialization_error.dart';
 import '../../mixins/mixins.dart';
+import '../../router/atlas.dart';
 import '../../services/logger_service.dart';
 import '../../utils/wrapped_response.dart';
 import '../core.dart';
@@ -31,12 +31,12 @@ class WebsocketRegistry extends Provider
     final mainPort = wsAdapter.httpAdapter.port;
     for (final gateway in gateways) {
       if (gateway.port == null || gateway.port == mainPort) {
-        final router = wsAdapter.router ?? Spanner();
+        final router = wsAdapter.router ?? Atlas();
         final gatewayScope = _config.modulesContainer.getScopeByProvider(
           gateway.runtimeType,
         );
-        final result = router.lookup(HTTPMethod.ALL, gateway.path ?? '/');
-        if (result?.values.isNotEmpty ?? false) {
+        final result = router.lookup(HttpMethod.all, gateway.path ?? '/');
+        if (result.values.isNotEmpty) {
           throw InitializationError(
             'WebSocket Gateway with path "${gateway.path ?? '/'}" already exists. '
             'Please use a different path or port for the gateway.',
@@ -45,8 +45,8 @@ class WebsocketRegistry extends Provider
         _logger.info(
           'Mapped {${gateway.path ?? '/'}, ${gateway.port ?? mainPort}} WebSocket Gateway',
         );
-        router.addRoute(
-          HTTPMethod.ALL,
+        router.add(
+          HttpMethod.all,
           gateway.path ?? '/',
           GatewayScope(
             gateway,
@@ -55,6 +55,7 @@ class WebsocketRegistry extends Provider
                 if (provider.runtimeType != gateway.runtimeType)
                   provider.runtimeType: provider,
             },
+            gatewayScope.unifiedValues,
             gateway.hooks.merge([_config.globalHooks]),
             {...gateway.exceptionFilters, ..._config.globalExceptionFilters},
             {...gateway.pipes, ..._config.globalPipes},
@@ -78,8 +79,9 @@ class WebsocketRegistry extends Provider
             onRequest: (request, response) async {
               differentPortAdapter.reply(
                 response,
+                request,
                 WrappedResponse(''),
-                ResponseContext({}, {})
+                ResponseContext({}, {}, {})
                   ..statusCode = 404
                   ..contentType = ContentType.text,
               );
@@ -89,12 +91,12 @@ class WebsocketRegistry extends Provider
           await customWsAdapter.init(_config);
           _adapters[gateway.port!] = customWsAdapter;
         }
-        final router = customWsAdapter.router ?? Spanner();
+        final router = customWsAdapter.router ?? Atlas();
         final gatewayScope = _config.modulesContainer.getScopeByProvider(
           gateway.runtimeType,
         );
-        final result = router.lookup(HTTPMethod.ALL, gateway.path ?? '/');
-        if (result?.values.isNotEmpty ?? false) {
+        final result = router.lookup(HttpMethod.all, gateway.path ?? '/');
+        if (result.values.isNotEmpty) {
           throw InitializationError(
             'WebSocket Gateway with path "${gateway.path ?? '/'}" already exists. '
             'Please use a different path or port for the gateway.',
@@ -104,8 +106,8 @@ class WebsocketRegistry extends Provider
           'Mapped {${gateway.path ?? '/'}, ${gateway.port ?? mainPort}} WebSocket Gateway',
         );
         // Register the gateway with the custom adapter's router
-        router.addRoute(
-          HTTPMethod.ALL,
+        router.add(
+          HttpMethod.all,
           gateway.path ?? '/',
           GatewayScope(
             gateway,
@@ -114,6 +116,7 @@ class WebsocketRegistry extends Provider
                 if (provider.runtimeType != gateway.runtimeType)
                   provider.runtimeType: provider,
             },
+            gatewayScope.unifiedValues,
             gateway.hooks.merge([_config.globalHooks]),
             gateway.exceptionFilters,
             gateway.pipes,

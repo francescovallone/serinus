@@ -30,3 +30,9 @@ export const spotlights: Spotlight[] = [
         cta: 'Join now'
     }
 ]
+
+export interface OpenInOption {
+  name: string;
+  icon: any;
+  href: string;
+}

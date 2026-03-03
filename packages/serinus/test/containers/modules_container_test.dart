@@ -1,9 +1,8 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
-import 'package:serinus/src/routes/route_execution_context.dart';
-import 'package:serinus/src/routes/route_response_controller.dart';
-import 'package:serinus/src/routes/router.dart';
+import 'package:serinus/src/router/atlas.dart';
+import 'package:serinus/src/router/router.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
 import 'package:test/test.dart';
 
@@ -57,18 +56,14 @@ void main() {
       await container.modulesContainer.registerModules(module);
 
       final router = Router(localConfig.versioningOptions);
-      final executionContext = RouteExecutionContext(
-        RouteResponseController(adapter),
-      );
-      final explorer = RoutesExplorer(container, router, executionContext);
+      final explorer = RoutesExplorer(container, router);
 
       explorer.resolveRoutes();
 
       final token = InjectionToken.fromModule(module);
-      final result = router.checkRouteByPathAndMethod('/', HttpMethod.get);
-
-      expect(result?.spec, isNotNull);
-      final routeContext = result!.spec.route;
+      final result = router.lookup('/', HttpMethod.get);
+      expect(result, isA<FoundRoute>());
+      final routeContext = (result as FoundRoute).values.first.context;
       expect(routeContext.moduleToken, equals(token));
       expect(routeContext.moduleScope.token, equals(token));
     });
@@ -127,7 +122,7 @@ void main() {
     test(
       '''
         registerModule should register a module with imports and injectables,
-        then the ModulesContainer should create two ModuleInjectables which for the main module contains all its own injectables and the providers from the imported module,
+        then the ModulesContainer should keep provider ownership inside each module scope without flattening imported providers into the parent scope,
       ''',
       () async {
         final container = ModulesContainer(config);
@@ -144,7 +139,7 @@ void main() {
         final injectables = container.getScope(
           InjectionToken.fromModule(module),
         );
-        expect(injectables.providers.length, 2);
+        expect(injectables.providers.length, 1);
         final subInjectables = container.getScope(
           InjectionToken.fromModule(importableModule),
         );
@@ -206,5 +201,105 @@ void main() {
         expect(container.get<ValueProviderTwo>(), isNotNull);
       },
     );
+
+    test(
+      'does not register duplicate controllers when same module is imported from different branches',
+      () async {
+        Logger.setLogLevels({LogLevel.none});
+        final adapter = _MockAdapter();
+        final localConfig = ApplicationConfig(serverAdapter: adapter);
+        final container = SerinusContainer(localConfig, adapter);
+        final module = _EntrypointWithDuplicateControllerImports();
+
+        await container.modulesContainer.registerModules(module);
+
+        final router = Router(localConfig.versioningOptions);
+        final explorer = RoutesExplorer(container, router);
+
+        expect(() => explorer.resolveRoutes(), returnsNormally);
+
+        final result = router.lookup('/', HttpMethod.get);
+        expect(result, isA<FoundRoute>());
+      },
+    );
   });
+
+  group('Custom Providers', () {
+    test(
+      'ClassProvider registers useClass instance under token type',
+      () async {
+        Logger.setLogLevels({LogLevel.none});
+        final container = ModulesContainer(config);
+        final module = ModuleWithClassProvider();
+        await container.registerModules(module);
+        await container.finalize(module);
+
+        // Should be able to retrieve the provider
+        final provider = container.get<ConfigService>();
+        expect(provider, isNotNull);
+        expect(provider, isA<ProductionConfigService>());
+      },
+    );
+  });
+}
+
+// Test classes for Custom Providers
+
+abstract class ConfigService extends Provider {
+  String get environment;
+}
+
+class DevelopmentConfigService extends ConfigService {
+  @override
+  String get environment => 'development';
+}
+
+class ProductionConfigService extends ConfigService {
+  @override
+  String get environment => 'production';
+}
+
+class ApiConfigService extends Provider {
+  final String apiKey;
+  final String baseUrl;
+
+  ApiConfigService({
+    required this.apiKey,
+    this.baseUrl = 'https://api.example.com',
+  });
+}
+
+abstract class DatabaseService extends Provider {
+  Future<void> connect();
+}
+
+class SqliteService extends DatabaseService {
+  final String connectionString;
+
+  SqliteService(this.connectionString);
+
+  @override
+  Future<void> connect() async {}
+}
+
+class ModuleWithClassProvider extends Module {
+  ModuleWithClassProvider()
+    : super(
+        providers: [
+          Provider.forClass<ConfigService>(useClass: ProductionConfigService()),
+        ],
+      );
+}
+
+class _DuplicateControllerModule extends Module {
+  _DuplicateControllerModule() : super(controllers: [MockController()]);
+}
+
+class _BranchModule extends Module {
+  _BranchModule() : super(imports: [_DuplicateControllerModule()]);
+}
+
+class _EntrypointWithDuplicateControllerImports extends Module {
+  _EntrypointWithDuplicateControllerImports()
+    : super(imports: [_BranchModule(), _BranchModule()]);
 }

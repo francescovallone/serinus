@@ -110,54 +110,43 @@ class SerinusAnalyzer {
     String content,
   ) {
     final elementsInEntrypoint = getListInEntrypoint(type, getter);
-    var elementsStringified = elements.map((e) => e.name).join(',\n');
-    final startOldValue = calculateStartIndex(
-      content,
-      elementsInEntrypoint,
+    final elementsStringified = elements.map((e) => e.name).join(',\n');
+    final getterPattern = RegExp(
+      '(?:@override\\s+)?List<$type>\\s+get\\s+$getter\\s*=>\\s*\\[[\\s\\S]*?\\];',
+      multiLine: true,
     );
-    var oldValue = startOldValue > -1
-        ? content
-            .substring(
-              startOldValue,
-            )
-            .trim()
-        : null;
-    if (oldValue != null) {
-      oldValue = oldValue.substring(0, oldValue.indexOf(';') + 1);
-      if (!oldValue.contains('[')) {
-        // ignore: leading_newlines_in_multiline_strings
-        elementsStringified = '''
-          
-          @override
-          $elementsInEntrypoint [
-          ...super.$getter,
-          $elementsStringified,
-        ];\n''';
-      } else {
-        // ignore: leading_newlines_in_multiline_strings
-        if (!oldValue.contains(elementsStringified)) {
-          final replacedOldValue = oldValue.replaceFirst('];', '');
-          elementsStringified = '''
+    final getterMatch = getterPattern.firstMatch(content);
+    final oldValue = getterMatch?.group(0);
 
-              $replacedOldValue
-              $elementsStringified,
-            ];\n''';
-        } else {
-          elementsStringified = oldValue;
-        }
-      }
-    } else {
+    String newValue;
+    if (oldValue == null) {
       // ignore: leading_newlines_in_multiline_strings
-      elementsStringified = '''
+      newValue = '''
           
           @override
           $elementsInEntrypoint [
             ...super.$getter,
             $elementsStringified,
           ];\n''';
+    } else {
+      final missingElements = elements
+          .where((element) => !oldValue.contains(element.name))
+          .map((element) => element.name)
+          .toList();
+
+      if (missingElements.isEmpty) {
+        newValue = oldValue;
+      } else {
+        final replacedOldValue = oldValue.replaceFirst('];', '');
+        newValue = '''
+
+              $replacedOldValue
+              ${missingElements.join(',\n')},
+            ];\n''';
+      }
     }
     return FileUpdates(
-      newValue: elementsStringified,
+      newValue: newValue,
       oldValue: oldValue,
       imports: imports
           .map(
@@ -215,12 +204,4 @@ class FileUpdates {
 
 String getListInEntrypoint(String type, String getter) {
   return 'List<$type> get $getter =>';
-}
-
-int calculateStartIndex(String data, String keyword) {
-  return data.indexOf(
-        keyword,
-      ) -
-      '@override'.length -
-      [13, 10].length * 2;
 }

@@ -1,0 +1,15 @@
+name: websockets_example
+description: "A new Serinus application"
+version: 1.0.0
+publish_to: 'none'
+
+
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+
+dependencies:
+  serinus: ^2.0.4
+
+dev_dependencies:
+  serinus_lint: ^0.1.1
+  
