@@ -14,7 +14,11 @@
   "license": "ISC",
   "devDependencies": {
     "baseline-browser-mapping": "^2.8.30",
-    "vitepress": "2.0.0-alpha.16"
+    "vitepress": "2.0.0-alpha.16",
+    "rollup": ">=4.59.0",
+    "minimatch": ">=10.2.3",
+    "@isaacs/brace-expansion": ">=5.0.1",
+    "markdown-it": ">=14.1.1"
   },
   "dependencies": {
     "@avesbox/canary": "^0.1.0",
