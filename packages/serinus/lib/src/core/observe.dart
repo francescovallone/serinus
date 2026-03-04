@@ -10,20 +10,28 @@ import '../services/logger_service.dart';
 enum ObservePhase {
   /// Initial routing and parameter parsing.
   routing,
+
   /// Request hooks
   requestHook,
+
   /// Pipes execution
   pipe,
+
   /// Middleware execution
   middleware,
+
   /// Before handler hooks execution
   beforeHandle,
+
   /// Handler execution
   handle,
+
   /// After handler hooks execution
   afterHandle,
+
   /// response hooks execution
   response,
+
   /// exception filters execution
   exception,
 }
@@ -110,7 +118,7 @@ final class RequestTrace {
 
   /// The controller type handling the request.
   final Type controllerType;
-  
+
   /// The request path
   final String path;
 
@@ -399,18 +407,30 @@ abstract class ObserveHandle {
   RequestTrace get trace;
 
   /// Observe a synchronous step with an optional phase and parent index.
-  T step<T>(String name, T Function(ObserveStepHandle step) body, {ObservePhase? phase});
-  
+  T step<T>(
+    String name,
+    T Function(ObserveStepHandle step) body, {
+    ObservePhase? phase,
+  });
+
   /// Observe an asynchronous step with an optional phase and parent index.
-  Future<T> stepAsync<T>(String name, Future<T> Function(ObserveStepHandle step) body, {ObservePhase? phase});
+  Future<T> stepAsync<T>(
+    String name,
+    Future<T> Function(ObserveStepHandle step) body, {
+    ObservePhase? phase,
+  });
 }
 
 /// A handle specifically tied to a parent step
 abstract class ObserveStepHandle {
   /// Observe a nested synchronous step with an optional phase.
   T step<T>(String name, T Function(ObserveStepHandle step) body);
+
   /// Observe a nested asynchronous step with an optional phase.
-  Future<T> stepAsync<T>(String name, Future<T> Function(ObserveStepHandle step) body);
+  Future<T> stepAsync<T>(
+    String name,
+    Future<T> Function(ObserveStepHandle step) body,
+  );
 }
 
 /// Sink interface for emitting observed traces to external systems.

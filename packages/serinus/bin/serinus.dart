@@ -131,12 +131,7 @@ void main(List<String> arguments) async {
   );
   application.enableShutdownHooks();
   application.observe(
-    ObserveConfig(
-      enabled: true,
-      sinks: [
-        LoggerObserveSink()
-      ]
-    ),
+    ObserveConfig(enabled: true, sinks: [LoggerObserveSink()]),
   );
   // application.trace(ServerTimingTracer());
   await application.serve();

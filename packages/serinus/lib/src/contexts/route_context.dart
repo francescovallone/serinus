@@ -43,7 +43,7 @@ class RouteContext<T extends RouteHandlerSpec> {
 
   /// Pre-resolved observe plan for this route.
   final ResolvedObservePlan observePlan;
-  
+
   /// The [providers] property contains the providers of the module.
   late final Map<Type, Provider> providers = {
     for (var provider in moduleScope.unifiedProviders)

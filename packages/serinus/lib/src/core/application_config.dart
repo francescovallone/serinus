@@ -12,8 +12,8 @@ import '../global_prefix.dart';
 import '../microservices/transports/transports.dart';
 import '../versioning.dart';
 import 'exception_filter.dart';
-import 'pipe.dart' as s;
 import 'observe.dart';
+import 'pipe.dart' as s;
 
 /// The configuration for the application
 /// This is used to configure the application
@@ -136,6 +136,7 @@ final class ApplicationConfig {
 
   /// Observability configuration.
   ObserveConfig observeConfig;
+
   /// The set of exception filters to be applied globally
   final Set<ExceptionFilter> globalExceptionFilters = {};
 
@@ -145,7 +146,7 @@ final class ApplicationConfig {
     this.modelProvider,
     this.keepAliveIdleTimeout,
     ObserveConfig? observeConfig,
-  })  : observeConfig = observeConfig ?? const ObserveConfig.disabled() {
+  }) : observeConfig = observeConfig ?? const ObserveConfig.disabled() {
     adapters.add(serverAdapter);
   }
 }

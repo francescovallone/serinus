@@ -29,6 +29,7 @@ class MockSerinusHeaders extends Mock implements SerinusHeaders {
     return false;
   }
 }
+
 class MockIncomingMessage extends Mock implements IncomingMessage {
   @override
   Map<String, String> get queryParameters => {};
@@ -157,7 +158,7 @@ void main() {
         values: const {},
         hooksServices: const {},
         rawBody: false,
-        modelProvider: null
+        modelProvider: null,
       );
       final executionContext = ExecutionContext(
         HostType.http,

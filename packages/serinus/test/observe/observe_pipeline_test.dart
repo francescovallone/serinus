@@ -23,7 +23,10 @@ class _TraceCaptureHook extends Hook with OnResponse {
   }
 
   @override
-  Future<void> onResponse(ExecutionContext context, WrappedResponse data) async {
+  Future<void> onResponse(
+    ExecutionContext context,
+    WrappedResponse data,
+  ) async {
     capture(context);
   }
 }
@@ -49,7 +52,10 @@ class _ObservePipelineExceptionFilter extends ExceptionFilter {
     : super(catchTargets: const [BadRequestException]);
 
   @override
-  Future<void> onException(ExecutionContext context, Exception exception) async {
+  Future<void> onException(
+    ExecutionContext context,
+    Exception exception,
+  ) async {
     context.response.body = 'handled-exception';
     _TraceCaptureHook.capture(context);
   }
@@ -107,52 +113,40 @@ void main() {
       await app?.close();
     });
 
-    test('captures route/hooks/pipes/middlewares/handler/response automatically', () async {
-      final request = await HttpClient().getUrl(
-        Uri.parse('http://localhost:$_testPort/ok'),
-      );
-      final response = await request.close();
-      final body = await response.transform(utf8.decoder).join();
+    test(
+      'captures route/hooks/pipes/middlewares/handler/response automatically',
+      () async {
+        final request = await HttpClient().getUrl(
+          Uri.parse('http://localhost:$_testPort/ok'),
+        );
+        final response = await request.close();
+        final body = await response.transform(utf8.decoder).join();
 
-      expect(response.statusCode, 200);
-      expect(body, 'ok');
+        expect(response.statusCode, 200);
+        expect(body, 'ok');
 
-      final steps = _TraceCaptureHook.tracesByPath['/ok'];
-      expect(steps, isNotNull);
-      expect(steps!, isNotEmpty);
+        final steps = _TraceCaptureHook.tracesByPath['/ok'];
+        expect(steps, isNotNull);
+        expect(steps!, isNotEmpty);
 
-      expect(steps.any((s) => s.name.startsWith('route.')), isTrue);
-      expect(
-        steps.any((s) => s.phase == ObservePhase.requestHook),
-        isTrue,
-      );
-      expect(steps.any((s) => s.name.startsWith('pipe.')), isTrue);
-      expect(steps.any((s) => s.name.startsWith('middleware.')), isTrue);
-      expect(steps.any((s) => s.name.startsWith('beforeHandle.')), isTrue);
-      expect(steps.any((s) => s.name.startsWith('handler.')), isTrue);
-      expect(steps.any((s) => s.name.startsWith('afterHandle.')), isTrue);
-      expect(steps.any((s) => s.name.startsWith('response.')), isTrue);
+        expect(steps.any((s) => s.name.startsWith('route.')), isTrue);
+        expect(steps.any((s) => s.phase == ObservePhase.requestHook), isTrue);
+        expect(steps.any((s) => s.name.startsWith('pipe.')), isTrue);
+        expect(steps.any((s) => s.name.startsWith('middleware.')), isTrue);
+        expect(steps.any((s) => s.name.startsWith('beforeHandle.')), isTrue);
+        expect(steps.any((s) => s.name.startsWith('handler.')), isTrue);
+        expect(steps.any((s) => s.name.startsWith('afterHandle.')), isTrue);
+        expect(steps.any((s) => s.name.startsWith('response.')), isTrue);
 
-      expect(
-        steps.any((s) => s.phase == ObservePhase.routing),
-        isTrue,
-      );
-      expect(steps.any((s) => s.phase == ObservePhase.pipe), isTrue);
-      expect(
-        steps.any((s) => s.phase == ObservePhase.middleware),
-        isTrue,
-      );
-      expect(
-        steps.any((s) => s.phase == ObservePhase.beforeHandle),
-        isTrue,
-      );
-      expect(steps.any((s) => s.phase == ObservePhase.handle), isTrue);
-      expect(
-        steps.any((s) => s.phase == ObservePhase.afterHandle),
-        isTrue,
-      );
-      expect(steps.any((s) => s.phase == ObservePhase.response), isTrue);
-    });
+        expect(steps.any((s) => s.phase == ObservePhase.routing), isTrue);
+        expect(steps.any((s) => s.phase == ObservePhase.pipe), isTrue);
+        expect(steps.any((s) => s.phase == ObservePhase.middleware), isTrue);
+        expect(steps.any((s) => s.phase == ObservePhase.beforeHandle), isTrue);
+        expect(steps.any((s) => s.phase == ObservePhase.handle), isTrue);
+        expect(steps.any((s) => s.phase == ObservePhase.afterHandle), isTrue);
+        expect(steps.any((s) => s.phase == ObservePhase.response), isTrue);
+      },
+    );
 
     test('captures exception filters automatically', () async {
       final request = await HttpClient().getUrl(
