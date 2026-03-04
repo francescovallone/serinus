@@ -6,6 +6,8 @@ import '../contexts/contexts.dart';
 import '../enums/http_method.dart';
 import '../services/logger_service.dart';
 
+final Logger _observeLogger = Logger('Observability');
+
 /// Pipeline phases that can be observed.
 enum ObservePhase {
   /// Initial routing and parameter parsing.
@@ -392,9 +394,18 @@ final class ObserveConfig {
     for (final sink in sinks) {
       try {
         unawaited(
-          sink.consume(sinkInput).catchError((Object _, StackTrace __) {}),
+          sink.consume(sinkInput).catchError((Object error, StackTrace stack) {
+            _observeLogger.warning(
+              'Observe sink ${sink.runtimeType} failed while consuming trace ${sinkInput.trace.id.value}',
+              OptionalParameters(error: error, stackTrace: stack),
+            );
+          }),
         );
-      } catch (_) {
+      } catch (error, stack) {
+        _observeLogger.warning(
+          'Observe sink ${sink.runtimeType} threw synchronously while consuming trace ${sinkInput.trace.id.value}',
+          OptionalParameters(error: error, stackTrace: stack),
+        );
         // Never fail the response flow because of observability sink issues.
       }
     }

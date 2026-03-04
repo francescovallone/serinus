@@ -73,6 +73,9 @@ class RoutesResolver {
       request.path,
       HttpMethod.parse(request.method),
     );
+    final routeObservePlan = route is FoundRoute<RouterEntry>
+        ? route.values.first.context.observePlan
+        : const ResolvedObservePlan.disabled();
     try {
       if (route is FoundRoute) {
         await _routeExecutionContext.describe(
@@ -92,7 +95,13 @@ class RoutesResolver {
         return;
       }
     } on SerinusException catch (e) {
-      await _handleException(e, request, response, route.params);
+      await _handleException(
+        e,
+        request,
+        response,
+        routeParams: route.params,
+        observePlan: routeObservePlan,
+      );
     } catch (e) {
       rethrow;
     }
@@ -115,10 +124,10 @@ class RoutesResolver {
   Future<void> _handleException(
     SerinusException exception,
     IncomingMessage request,
-    OutgoingMessage response, [
+    OutgoingMessage response, {
     Map<String, dynamic>? routeParams,
     ResolvedObservePlan observePlan = const ResolvedObservePlan.disabled(),
-  ]) async {
+  }) async {
     final wrappedRequest = Request(request, routeParams ?? {});
     final providers = {
       for (var provider in _container.modulesContainer.globalProviders)
@@ -157,7 +166,15 @@ class RoutesResolver {
     }
     for (final filter in _container.config.globalExceptionFilters) {
       if (filter.catchTargets.contains(exception.runtimeType)) {
-        await filter.onException(executionContext, exception);
+        if (observeHandle != null) {
+          await observeHandle.stepAsync(
+            'global.exception',
+            (_) => filter.onException(executionContext, exception),
+            phase: ObservePhase.exception,
+          );
+        } else {
+          await filter.onException(executionContext, exception);
+        }
         if (executionContext.response.body != null) {
           if (request.events.hasListener) {
             request.emit(
