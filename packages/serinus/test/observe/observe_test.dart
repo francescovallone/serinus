@@ -15,6 +15,20 @@ class _CollectSink implements ObserveSink {
     count++;
   }
 }
+
+class _FailingSink implements ObserveSink {
+  @override
+  Future<void> consume(RequestTrace trace) {
+    return Future<void>.error(StateError('sink failure'));
+  }
+}
+
+class MockSerinusHeaders extends Mock implements SerinusHeaders {
+  @override
+  bool containsKey(String key) {
+    return false;
+  }
+}
 class MockIncomingMessage extends Mock implements IncomingMessage {
   @override
   Map<String, String> get queryParameters => {};
@@ -28,12 +42,31 @@ class MockIncomingMessage extends Mock implements IncomingMessage {
   ContentType get contentType => ContentType.text;
 
   @override
+  int get contentLength => 0;
+
+  @override
   Future<Uint8List> bytes() {
     return Future.value(Uint8List(0));
   }
+
+  @override
+  SerinusHeaders get headers => MockSerinusHeaders();
 }
 
 void main() {
+  group('TraceId', () {
+    test('newId generates unique values', () {
+      const iterations = 1000;
+      final ids = <String>{};
+
+      for (var i = 0; i < iterations; i++) {
+        ids.add(TraceId.newId().value);
+      }
+
+      expect(ids.length, iterations);
+    });
+  });
+
   group('ObserveHandle', () {
     test('captures successful steps', () async {
       final config = ObserveConfig(enabled: true);
@@ -46,6 +79,7 @@ void main() {
       final requestContext = await RequestContext.create<dynamic>(
         request: request,
         providers: const {},
+        values: const {},
         hooksServices: const {},
         rawBody: false,
         modelProvider: null,
@@ -75,6 +109,7 @@ void main() {
         request: request,
         providers: const {},
         hooksServices: const {},
+        values: const {},
         rawBody: false,
         modelProvider: null,
       );
@@ -110,6 +145,7 @@ void main() {
       final requestContext = await RequestContext.create<dynamic>(
         request: request,
         providers: const {},
+        values: const {},
         hooksServices: const {},
         rawBody: false,
         modelProvider: null
@@ -118,16 +154,54 @@ void main() {
         HostType.http,
         const {},
         const {},
+        const {},
         HttpArgumentsHost(request),
       );
       executionContext.attachHttpContext(requestContext);
       executionContext.observe = plan.activate(requestContext);
 
-      await config.flush(executionContext);
+      config.flush(executionContext);
 
       expect(sink.count, 1);
       expect(sink.last, isNotNull);
       expect(sink.last!.routeId, 'test');
+    });
+
+    test('flush does not throw when a sink fails', () async {
+      final collectSink = _CollectSink();
+      final config = ObserveConfig(
+        enabled: true,
+        sinks: [_FailingSink(), collectSink],
+      );
+      final plan = config.resolveForRoute(
+        routeId: 'test',
+        controllerType: Object,
+        method: HttpMethod.get,
+      );
+      final request = Request(MockIncomingMessage());
+      final requestContext = await RequestContext.create<dynamic>(
+        request: request,
+        providers: const {},
+        values: const {},
+        hooksServices: const {},
+        rawBody: false,
+        modelProvider: null,
+      );
+      final executionContext = ExecutionContext(
+        HostType.http,
+        const {},
+        const {},
+        const {},
+        HttpArgumentsHost(request),
+      );
+      executionContext.attachHttpContext(requestContext);
+      executionContext.observe = plan.activate(requestContext);
+
+      await expectLater(config.flush(executionContext), completes);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(collectSink.count, 1);
+      expect(collectSink.last, isNotNull);
     });
   });
 }

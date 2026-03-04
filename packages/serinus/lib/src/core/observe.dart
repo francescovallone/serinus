@@ -1,5 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+
 import '../contexts/contexts.dart';
-import '../contexts/request_context.dart';
 import '../enums/http_method.dart';
 import '../services/logger_service.dart';
 
@@ -19,12 +22,13 @@ enum ObservePhase {
 /// Identifier for a trace.
 extension type TraceId(String value) {
 
-  static int _seed = 0;
-
-  /// Generates a new [TraceId] using a monotonically increasing counter.
+  /// Generates a new [TraceId] using timestamp + secure random entropy.
   factory TraceId.newId() {
-    _seed++;
-    return TraceId('tr-${DateTime.now().microsecondsSinceEpoch}-$_seed');
+    final random = Random.secure();
+    final entropy =
+        '${random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}'
+        '${random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}';
+    return TraceId('tr-${DateTime.now().microsecondsSinceEpoch}-$entropy');
   }
 }
 
@@ -118,13 +122,29 @@ final class ObserveSampling {
   }
 
   int _stableHash(ObserveSamplingInput input) {
-    // Use Object.hashAll for a stable, fast hash across provided tokens.
-    return Object.hashAll([
-      input.routeId,
-      input.controllerType,
-      input.method,
-      input.userKey,
-    ]);
+    // Use Jenkins one-at-a-time hash over canonical string tokens.
+    // This is deterministic across process restarts and VM versions.
+    const mask32 = 0xFFFFFFFF;
+    var hash = 0;
+
+    void mix(String token) {
+      for (final byte in utf8.encode(token)) {
+        hash = (hash + byte) & mask32;
+        hash = (hash + ((hash << 10) & mask32)) & mask32;
+        hash ^= hash >> 6;
+      }
+      hash = (hash + 1) & mask32;
+    }
+
+    mix(input.routeId);
+    mix(input.controllerType.toString());
+    mix(input.method.name);
+    mix(input.userKey ?? '');
+
+    hash = (hash + ((hash << 3) & mask32)) & mask32;
+    hash ^= hash >> 11;
+    hash = (hash + ((hash << 15) & mask32)) & mask32;
+    return hash & mask32;
   }
 }
 
@@ -289,7 +309,11 @@ final class ObserveConfig {
       return;
     }
     for (final sink in sinks) {
-      await sink.consume(handle.trace);
+      try {
+        unawaited(sink.consume(handle.trace).catchError((Object _, StackTrace __) {}));
+      } catch (_) {
+        // Never fail the response flow because of observability sink issues.
+      }
     }
   }
 }
