@@ -8,32 +8,46 @@ import '../services/logger_service.dart';
 
 /// Pipeline phases that can be observed.
 enum ObservePhase {
+  /// Initial routing and parameter parsing.
   routing,
+  /// Request hooks
   requestHook,
+  /// Pipes execution
   pipe,
+  /// Middleware execution
   middleware,
+  /// Before handler hooks execution
   beforeHandle,
+  /// Handler execution
   handle,
+  /// After handler hooks execution
   afterHandle,
+  /// response hooks execution
   response,
+  /// exception filters execution
   exception,
 }
 
 /// Identifier for a trace.
 extension type TraceId(String value) {
-
   /// Generates a new [TraceId] using timestamp + secure random entropy.
   factory TraceId.newId() {
+    return TraceId.fromTimestampMicros(DateTime.now().microsecondsSinceEpoch);
+  }
+
+  /// Generates a [TraceId] with the given timestamp and random entropy.
+  factory TraceId.fromTimestampMicros(int timestampMicros) {
     final random = Random.secure();
     final entropy =
         '${random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}'
         '${random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}';
-    return TraceId('tr-${DateTime.now().microsecondsSinceEpoch}-$entropy');
+    return TraceId('tr-$timestampMicros-$entropy');
   }
 }
 
 /// Represents a single observed step.
 final class TraceStep {
+  /// Creates a [TraceStep] with the given parameters.
   TraceStep({
     required this.name,
     required this.startedAtMicros,
@@ -45,9 +59,13 @@ final class TraceStep {
   final String name;
 
   /// Microsecond timestamp when the step started.
+  ///
+  /// This value is relative to [RequestTrace.startedAtMicros].
   final int startedAtMicros;
 
   /// Microsecond timestamp when the step finished.
+  ///
+  /// This value is relative to [RequestTrace.startedAtMicros].
   int? endedAtMicros;
 
   /// Whether the step completed successfully.
@@ -63,25 +81,44 @@ final class TraceStep {
   final ObservePhase? phase;
 
   /// Duration of the step if it has completed.
-  Duration? get duration =>
-      endedAtMicros == null ? null : Duration(microseconds: endedAtMicros! - startedAtMicros);
+  Duration? get duration => endedAtMicros == null
+      ? null
+      : Duration(microseconds: endedAtMicros! - startedAtMicros);
 }
 
 /// Aggregates all steps for a single request.
 final class RequestTrace {
+  /// Creates a [RequestTrace] with the given parameters.
   RequestTrace({
     required this.id,
+    required this.startedAtMicros,
     required this.routeId,
     required this.path,
     required this.controllerType,
     required this.method,
+    this.maxSteps = 500,
   });
 
+  /// Unique identifier for the trace.
   final TraceId id;
+
+  /// Absolute wall-clock start time for this trace.
+  final int startedAtMicros;
+
+  /// The route identifier for the request.
   final String routeId;
+
+  /// The controller type handling the request.
   final Type controllerType;
+  
+  /// The request path
   final String path;
+
+  /// The HTTP method for the request.
   final HttpMethod method;
+
+  /// Maximum number of steps to record before truncating.
+  final int maxSteps;
 
   /// Collected steps in execution order.
   final List<TraceStep> steps = [];
@@ -89,6 +126,7 @@ final class RequestTrace {
 
 /// Input used for deterministic sampling decisions.
 final class ObserveSamplingInput {
+  /// Creates an [ObserveSamplingInput] with the given parameters.
   ObserveSamplingInput({
     required this.routeId,
     required this.controllerType,
@@ -96,9 +134,16 @@ final class ObserveSamplingInput {
     this.userKey,
   });
 
+  /// The route identifier for the request.
   final String routeId;
+
+  /// The controller type handling the request.
   final Type controllerType;
+
+  /// The HTTP method for the request.
   final HttpMethod method;
+
+  /// Optional user key for finer-grained sampling control.
   final String? userKey;
 }
 
@@ -110,12 +155,18 @@ final class ObserveSampling {
   /// Accept bucket value in range [0, modulus).
   final int acceptBucket;
 
+  /// Creates an [ObserveSampling] with the given parameters.
   const ObserveSampling({this.modulus = 1, this.acceptBucket = 0})
-      : assert(modulus > 0, 'modulus must be > 0'),
-        assert(acceptBucket >= 0 && acceptBucket < modulus, 'acceptBucket must be in range');
+    : assert(modulus > 0, 'modulus must be > 0'),
+      assert(
+        acceptBucket >= 0 && acceptBucket < modulus,
+        'acceptBucket must be in range',
+      );
 
+  /// A convenient constant for always sampling.
   const ObserveSampling.always() : this(modulus: 1, acceptBucket: 0);
 
+  /// Determines whether a given input should be sampled based on hashing.
   bool shouldSample(ObserveSamplingInput input) {
     final h = _stableHash(input);
     return h % modulus == acceptBucket;
@@ -150,13 +201,16 @@ final class ObserveSampling {
 
 /// Hook input for providing an optional user key used in sampling.
 final class ObserveUserKeyInput {
+  /// Creates an [ObserveUserKeyInput] with the given [RequestContext].
   ObserveUserKeyInput(this.requestContext);
 
+  /// The request context for the current request, which can be used to extract
   final RequestContext requestContext;
 }
 
 /// Resolved per-route observe plan computed at startup.
 final class ResolvedObservePlan {
+  /// Creates a [ResolvedObservePlan] with the given parameters.
   const ResolvedObservePlan({
     required this.enabled,
     required this.routeId,
@@ -168,15 +222,16 @@ final class ResolvedObservePlan {
     required this.userKeyExtractor,
   });
 
+  /// Disabled plan for quick checks.
   const ResolvedObservePlan.disabled()
-      : enabled = false,
-        routeId = '',
-        controllerType = Object,
-        method = HttpMethod.all,
-        sampling = const ObserveSampling.always(),
-        phases = const {},
-        stepNames = const {},
-        userKeyExtractor = null;
+    : enabled = false,
+      routeId = '',
+      controllerType = Object,
+      method = HttpMethod.all,
+      sampling = const ObserveSampling.always(),
+      phases = const {},
+      stepNames = const {},
+      userKeyExtractor = null;
 
   /// Whether observation is enabled for the route.
   final bool enabled;
@@ -216,8 +271,10 @@ final class ResolvedObservePlan {
     if (!sampling.shouldSample(input)) {
       return null;
     }
+    final traceStartedAtMicros = DateTime.now().microsecondsSinceEpoch;
     final trace = RequestTrace(
-      id: TraceId.newId(),
+      id: TraceId.fromTimestampMicros(traceStartedAtMicros),
+      startedAtMicros: traceStartedAtMicros,
       routeId: routeId,
       path: requestContext.path,
       controllerType: controllerType,
@@ -227,12 +284,14 @@ final class ResolvedObservePlan {
       trace: trace,
       phases: phases,
       stepNames: stepNames,
+      stopwatch: Stopwatch()..start(),
     );
   }
 }
 
 /// Application-level configuration for observability.
 final class ObserveConfig {
+  /// Creates an [ObserveConfig] with the given parameters.
   const ObserveConfig({
     this.enabled = false,
     this.sampling = const ObserveSampling.always(),
@@ -241,9 +300,11 @@ final class ObserveConfig {
     this.phases = const {},
     this.stepNames = const {},
     this.userKeyExtractor,
+    this.appMetadata = const {},
     this.sinks = const [],
   });
 
+  /// Disabled configuration for quick checks.
   const ObserveConfig.disabled() : this(enabled: false);
 
   /// Master enable flag. When false, observability is entirely disabled.
@@ -269,6 +330,12 @@ final class ObserveConfig {
 
   /// Optional hook to produce a user key per request.
   final String? Function(ObserveUserKeyInput input)? userKeyExtractor;
+
+  /// Application-level metadata propagated to sinks.
+  ///
+  /// This can include values like environment, hostname, version, or any other
+  /// static metadata required by APM integrations.
+  final Map<String, Object?> appMetadata;
 
   /// Resolves a per-route plan at startup.
   ResolvedObservePlan resolveForRoute({
@@ -303,14 +370,22 @@ final class ObserveConfig {
     );
   }
 
+  /// Flushes the trace from the execution context to all registered sinks.
   Future<void> flush(ExecutionContext executionContext) async {
     final handle = executionContext.observe;
     if (handle == null || sinks.isEmpty) {
       return;
     }
+    final sinkInput = ObserveSinkInput(
+      trace: handle.trace,
+      executionContext: executionContext,
+      appMetadata: appMetadata,
+    );
     for (final sink in sinks) {
       try {
-        unawaited(sink.consume(handle.trace).catchError((Object _, StackTrace __) {}));
+        unawaited(
+          sink.consume(sinkInput).catchError((Object _, StackTrace __) {}),
+        );
       } catch (_) {
         // Never fail the response flow because of observability sink issues.
       }
@@ -320,31 +395,64 @@ final class ObserveConfig {
 
 /// Public handle for observing steps. Null in disabled mode.
 abstract class ObserveHandle {
-  /// The accumulated trace for the current request.
+  /// The trace being collected for the current request.
   RequestTrace get trace;
 
-  /// Runs a synchronous step with observation.
-  T step<T>(String name, T Function() body, {ObservePhase? phase, int? parentIndex});
+  /// Observe a synchronous step with an optional phase and parent index.
+  T step<T>(String name, T Function(ObserveStepHandle step) body, {ObservePhase? phase});
+  
+  /// Observe an asynchronous step with an optional phase and parent index.
+  Future<T> stepAsync<T>(String name, Future<T> Function(ObserveStepHandle step) body, {ObservePhase? phase});
+}
 
-  /// Runs an asynchronous step with observation.
-  Future<T> stepAsync<T>(String name, Future<T> Function() body, {ObservePhase? phase, int? parentIndex});
+/// A handle specifically tied to a parent step
+abstract class ObserveStepHandle {
+  /// Observe a nested synchronous step with an optional phase.
+  T step<T>(String name, T Function(ObserveStepHandle step) body);
+  /// Observe a nested asynchronous step with an optional phase.
+  Future<T> stepAsync<T>(String name, Future<T> Function(ObserveStepHandle step) body);
+}
+
+/// Sink interface for emitting observed traces to external systems.
+final class ObserveSinkInput {
+  /// Creates an [ObserveSinkInput] with trace and execution metadata.
+  const ObserveSinkInput({
+    required this.trace,
+    required this.executionContext,
+    required this.appMetadata,
+  });
+
+  /// The collected request trace.
+  final RequestTrace trace;
+
+  /// The execution context for this request.
+  final ExecutionContext executionContext;
+
+  /// Application-level metadata configured in [ObserveConfig].
+  final Map<String, Object?> appMetadata;
 }
 
 /// Sink interface for emitting observed traces to external systems.
 abstract class ObserveSink {
-  Future<void> consume(RequestTrace trace);
+  /// Consumes a completed [ObserveSinkInput]. Implementations should never throw.
+  Future<void> consume(ObserveSinkInput input);
 }
 
 /// Logger-based sink for quick inspection and debugging.
 final class LoggerObserveSink implements ObserveSink {
-  LoggerObserveSink([Logger? logger]) : _logger = logger ?? Logger('Observability');
+  /// If no logger is provided, a default one with name 'Observability' is used.
+  LoggerObserveSink([Logger? logger])
+    : _logger = logger ?? Logger('Observability');
 
   final Logger _logger;
 
   @override
-  Future<void> consume(RequestTrace trace) async {
+  Future<void> consume(ObserveSinkInput input) async {
+    final trace = input.trace;
     if (trace.steps.isEmpty) {
-      _logger.info('${trace.routeId} ${trace.method} ${trace.path} (no steps recorded)');
+      _logger.info(
+        '${trace.routeId} ${trace.method} ${trace.path} (no steps recorded)',
+      );
       return;
     }
     for (final step in trace.steps) {
@@ -364,14 +472,17 @@ class _ActiveObserveHandle implements ObserveHandle {
     required this.trace,
     required Set<ObservePhase> phases,
     required Set<String> stepNames,
-  })  : _phases = phases,
-        _stepNames = stepNames;
+    required Stopwatch stopwatch,
+  }) : _phases = phases,
+       _stepNames = stepNames,
+       _stopwatch = stopwatch;
 
   @override
   final RequestTrace trace;
 
   final Set<ObservePhase> _phases;
   final Set<String> _stepNames;
+  final Stopwatch _stopwatch;
 
   bool _shouldCapture(String name, ObservePhase? phase) {
     if (phase != null && _phases.isNotEmpty && !_phases.contains(phase)) {
@@ -383,53 +494,125 @@ class _ActiveObserveHandle implements ObserveHandle {
     return true;
   }
 
-  int _now() => DateTime.now().microsecondsSinceEpoch;
+  int _now() => _stopwatch.elapsedMicroseconds;
+
+  ObserveStepHandle _childHandle(int? parentIndex) =>
+      _ObserveChildStepHandle(this, parentIndex);
+
+  void _recordTruncated({ObservePhase? phase, int? parentIndex}) {
+    if (trace.steps.isNotEmpty && trace.steps.last.name == 'TRUNCATED') {
+      return;
+    }
+    final startedAtMicros = trace.steps.isEmpty
+        ? _now()
+        : trace.steps.last.startedAtMicros;
+    trace.steps.add(
+      TraceStep(
+        name: 'TRUNCATED',
+        startedAtMicros: startedAtMicros,
+        phase: phase,
+        parentIndex: parentIndex,
+      )..endedAtMicros = _now(),
+    );
+  }
 
   @override
-  T step<T>(String name, T Function() body, {ObservePhase? phase, int? parentIndex}) {
+  T step<T>(
+    String name,
+    T Function(ObserveStepHandle step) body, {
+    ObservePhase? phase,
+    int? parentIndex,
+  }) {
+    final passthroughHandle = _childHandle(parentIndex);
     if (!_shouldCapture(name, phase)) {
-      return body();
+      return body(passthroughHandle);
     }
+    if (trace.steps.length >= trace.maxSteps) {
+      _recordTruncated(phase: phase, parentIndex: parentIndex);
+      return body(passthroughHandle);
+    }
+
     final start = _now();
+    final step = TraceStep(
+      name: name,
+      startedAtMicros: start,
+      phase: phase,
+      parentIndex: parentIndex,
+    );
+    trace.steps.add(step);
+    final currentIndex = trace.steps.length - 1;
+    final handle = _childHandle(currentIndex);
+
     try {
-      final result = body();
-      trace.steps.add(
-        TraceStep(name: name, startedAtMicros: start, phase: phase, parentIndex: parentIndex)
-          ..endedAtMicros = _now(),
-      );
+      final result = body(handle);
+      step.endedAtMicros = _now();
       return result;
     } catch (e) {
-      trace.steps.add(
-        TraceStep(name: name, startedAtMicros: start, phase: phase, parentIndex: parentIndex)
-          ..success = false
-          ..errorRef = e
-          ..endedAtMicros = _now(),
-      );
+      step
+        ..success = false
+        ..errorRef = e
+        ..endedAtMicros = _now();
       rethrow;
     }
   }
 
   @override
-  Future<T> stepAsync<T>(String name, Future<T> Function() body, {ObservePhase? phase, int? parentIndex}) async {
+  Future<T> stepAsync<T>(
+    String name,
+    Future<T> Function(ObserveStepHandle step) body, {
+    ObservePhase? phase,
+    int? parentIndex,
+  }) async {
+    final passthroughHandle = _childHandle(parentIndex);
     if (!_shouldCapture(name, phase)) {
-      return body();
+      return body(passthroughHandle);
     }
+    if (trace.steps.length >= trace.maxSteps) {
+      _recordTruncated(phase: phase, parentIndex: parentIndex);
+      return body(passthroughHandle);
+    }
+
     final start = _now();
+    final step = TraceStep(
+      name: name,
+      startedAtMicros: start,
+      phase: phase,
+      parentIndex: parentIndex,
+    );
+    trace.steps.add(step);
+    final currentIndex = trace.steps.length - 1;
+    final handle = _childHandle(currentIndex);
+
     try {
-      final result = await body();
-      trace.steps.add(
-        TraceStep(name: name, startedAtMicros: start, phase: phase, parentIndex: parentIndex)
-          ..endedAtMicros = _now(),
-      );
+      final result = await body(handle);
+      step.endedAtMicros = _now();
       return result;
     } catch (e) {
-      trace.steps.add(
-        TraceStep(name: name, startedAtMicros: start, phase: phase, parentIndex: parentIndex)
-          ..success = false
-          ..errorRef = e
-          ..endedAtMicros = _now(),
-      );
+      step
+        ..success = false
+        ..errorRef = e
+        ..endedAtMicros = _now();
       rethrow;
     }
+  }
+}
+
+final class _ObserveChildStepHandle implements ObserveStepHandle {
+  _ObserveChildStepHandle(this._observeHandle, this._parentIndex);
+
+  final _ActiveObserveHandle _observeHandle;
+  final int? _parentIndex;
+
+  @override
+  T step<T>(String name, T Function(ObserveStepHandle step) body) {
+    return _observeHandle.step(name, body, parentIndex: _parentIndex);
+  }
+
+  @override
+  Future<T> stepAsync<T>(
+    String name,
+    Future<T> Function(ObserveStepHandle step) body,
+  ) {
+    return _observeHandle.stepAsync(name, body, parentIndex: _parentIndex);
   }
 }

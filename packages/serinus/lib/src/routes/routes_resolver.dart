@@ -307,7 +307,7 @@ class RoutesResolver {
       if (observeHandle != null) {
         await observeHandle.stepAsync(
           'global.request',
-          () => hook.onRequest(executionContext),
+          (_) => hook.onRequest(executionContext),
           phase: ObservePhase.requestHook,
         );
       } else {

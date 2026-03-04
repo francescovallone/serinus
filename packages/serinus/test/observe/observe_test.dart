@@ -6,19 +6,19 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class _CollectSink implements ObserveSink {
-  RequestTrace? last;
+  ObserveSinkInput? last;
   int count = 0;
 
   @override
-  Future<void> consume(RequestTrace trace) async {
-    last = trace;
+  Future<void> consume(ObserveSinkInput input) async {
+    last = input;
     count++;
   }
 }
 
 class _FailingSink implements ObserveSink {
   @override
-  Future<void> consume(RequestTrace trace) {
+  Future<void> consume(ObserveSinkInput input) {
     return Future<void>.error(StateError('sink failure'));
   }
 }
@@ -86,7 +86,11 @@ void main() {
       );
       final handle = plan.activate(requestContext)!;
 
-      final result = handle.step('work', () => 2 + 2, phase: ObservePhase.handle);
+      final result = handle.step(
+        'work',
+        (_) => 2 + 2,
+        phase: ObservePhase.handle,
+      );
 
       expect(result, 4);
       expect(handle.trace.steps, hasLength(1));
@@ -116,7 +120,11 @@ void main() {
       final handle = plan.activate(requestContext)!;
 
       expect(
-        () => handle.step('boom', () => throw StateError('fail'), phase: ObservePhase.handle),
+        () => handle.step(
+          'boom',
+          (_) => throw StateError('fail'),
+          phase: ObservePhase.handle,
+        ),
         throwsStateError,
       );
 
@@ -134,6 +142,7 @@ void main() {
       final sink = _CollectSink();
       final config = ObserveConfig(
         enabled: true,
+        appMetadata: {'env': 'test', 'service': 'serinus'},
         sinks: [sink],
       );
       final plan = config.resolveForRoute(
@@ -164,7 +173,9 @@ void main() {
 
       expect(sink.count, 1);
       expect(sink.last, isNotNull);
-      expect(sink.last!.routeId, 'test');
+      expect(sink.last!.trace.routeId, 'test');
+      expect(sink.last!.executionContext, same(executionContext));
+      expect(sink.last!.appMetadata['env'], 'test');
     });
 
     test('flush does not throw when a sink fails', () async {
@@ -202,6 +213,7 @@ void main() {
 
       expect(collectSink.count, 1);
       expect(collectSink.last, isNotNull);
+      expect(collectSink.last!.executionContext, same(executionContext));
     });
   });
 }
