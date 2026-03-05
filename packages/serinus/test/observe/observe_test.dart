@@ -242,10 +242,7 @@ void main() {
 
     test('flush awaits async sinks before returning', () async {
       final delayedSink = _DelayedSink();
-      final config = ObserveConfig(
-        enabled: true,
-        sinks: [delayedSink],
-      );
+      final config = ObserveConfig(enabled: true, sinks: [delayedSink]);
       final plan = config.resolveForRoute(
         routeId: 'test-await',
         controllerType: Object,
@@ -317,10 +314,7 @@ void main() {
   group('ObserveTracer', () {
     test('custom tracer is used by ResolvedObservePlan.activate', () async {
       final customTracer = _CustomTracer();
-      final config = ObserveConfig(
-        enabled: true,
-        tracer: customTracer,
-      );
+      final config = ObserveConfig(enabled: true, tracer: customTracer);
       final plan = config.resolveForRoute(
         routeId: 'custom-route',
         controllerType: Object,
@@ -347,10 +341,7 @@ void main() {
 
     test('custom tracer flush is invoked by ObserveConfig.flush', () async {
       final customTracer = _CustomTracer();
-      final config = ObserveConfig(
-        enabled: true,
-        tracer: customTracer,
-      );
+      final config = ObserveConfig(enabled: true, tracer: customTracer);
       final plan = config.resolveForRoute(
         routeId: 'flush-route',
         controllerType: Object,
@@ -383,10 +374,7 @@ void main() {
 
     test('custom tracer returning null skips observation', () async {
       final customTracer = _NullTracer();
-      final config = ObserveConfig(
-        enabled: true,
-        tracer: customTracer,
-      );
+      final config = ObserveConfig(enabled: true, tracer: customTracer);
       final plan = config.resolveForRoute(
         routeId: 'null-route',
         controllerType: Object,
@@ -412,10 +400,7 @@ void main() {
         sinks: [sink],
         appMetadata: {'env': 'test'},
       );
-      final config = ObserveConfig(
-        enabled: true,
-        tracer: tracer,
-      );
+      final config = ObserveConfig(enabled: true, tracer: tracer);
       final plan = config.resolveForRoute(
         routeId: 'default-tracer-route',
         controllerType: Object,
@@ -520,15 +505,13 @@ class _CustomObserveHandle implements ObserveHandle {
 
 class _NoOpStepHandle implements ObserveStepHandle {
   @override
-  T step<T>(String name, T Function(ObserveStepHandle step) body) =>
-      body(this);
+  T step<T>(String name, T Function(ObserveStepHandle step) body) => body(this);
 
   @override
   Future<T> stepAsync<T>(
     String name,
     Future<T> Function(ObserveStepHandle step) body,
-  ) =>
-      body(this);
+  ) => body(this);
 
   @override
   void recordError(Object error, [StackTrace? stackTrace]) {}

@@ -613,7 +613,6 @@ abstract class ObserveHandle {
 
 /// A handle specifically tied to a parent step
 abstract class ObserveStepHandle {
-
   /// Allows adding W3C compliant attributes (e.g., 'http.status_code', 'http.method')
   void setAttribute(String key, Object value);
 
@@ -832,7 +831,7 @@ final class _ObserveChildStepHandle implements ObserveStepHandle {
   ) {
     return _observeHandle.stepAsync(name, body, parentIndex: _parentIndex);
   }
-  
+
   @override
   void recordError(Object error, [StackTrace? stackTrace]) {
     final index = _parentIndex;

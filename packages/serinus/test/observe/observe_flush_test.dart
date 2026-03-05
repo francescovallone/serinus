@@ -12,9 +12,7 @@ class _RecordingSink implements ObserveSink {
 
   @override
   Future<void> consume(ObserveSinkInput input) async {
-    traces
-        .putIfAbsent(input.trace.routeId, () => [])
-        .add(input.trace);
+    traces.putIfAbsent(input.trace.routeId, () => []).add(input.trace);
   }
 
   void reset() => traces.clear();
@@ -22,7 +20,7 @@ class _RecordingSink implements ObserveSink {
 
 class _FlushTestExceptionFilter extends ExceptionFilter {
   const _FlushTestExceptionFilter()
-      : super(catchTargets: const [BadRequestException]);
+    : super(catchTargets: const [BadRequestException]);
 
   @override
   Future<void> onException(
@@ -44,8 +42,8 @@ class _FlushTestController extends Controller {
 
   @override
   Set<ExceptionFilter> get exceptionFilters => {
-        const _FlushTestExceptionFilter(),
-      };
+    const _FlushTestExceptionFilter(),
+  };
 }
 
 class _FlushTestModule extends Module {
