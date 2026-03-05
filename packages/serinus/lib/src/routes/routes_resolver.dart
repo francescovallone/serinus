@@ -75,24 +75,18 @@ class RoutesResolver {
     );
     final routeObservePlan = _resolveObservePlanForRoute(route, request.method);
     try {
-      if (route is FoundRoute) {
-        await _routeExecutionContext.describe(
-          route.values.first.context,
-          request: request,
-          response: response,
-          params: route.params,
-          observeConfig: _container.config.observeConfig,
-        );
-        return;
-      }
-      if (route is NotFoundRoute) {
-        await _notFound(request, response);
-        return;
-      }
-      if (route is MethodNotAllowedRoute) {
-        await _methodNotAllowed(request, response);
-        return;
-      }
+      return switch(route) {
+        FoundRoute<RouterEntry>(:final values, :final params) => _routeExecutionContext.describe(
+            values.first.context,
+            request: request,
+            response: response,
+            params: params,
+            observeConfig: _container.config.observeConfig,
+        ),
+        NotFoundRoute<RouterEntry>() => _notFound(request, response),
+        MethodNotAllowedRoute<RouterEntry>() => _methodNotAllowed(request, response),
+        _ => _notFound(request, response),
+       };
     } on SerinusException catch (e) {
       await _handleException(
         e,
@@ -201,7 +195,7 @@ class RoutesResolver {
             await filter.onException(executionContext, exception);
           }
           if (executionContext.response.body != null) {
-            await _emitAndReply(
+            return _emitAndReply(
               request,
               response,
               executionContext,
@@ -209,7 +203,7 @@ class RoutesResolver {
             );
           }
           if (executionContext.response.closed) {
-            await _emitAndReply(
+            return _emitAndReply(
               request,
               response,
               executionContext,
@@ -230,7 +224,7 @@ class RoutesResolver {
           await hook.onResponse(executionContext, WrappedResponse(exception));
         }
         if (executionContext.response.body != null) {
-          await _emitAndReply(
+          return _emitAndReply(
             request,
             response,
             executionContext,
@@ -238,7 +232,7 @@ class RoutesResolver {
           );
         }
         if (executionContext.response.closed) {
-          await _emitAndReply(
+          return _emitAndReply(
             request,
             response,
             executionContext,
@@ -247,7 +241,7 @@ class RoutesResolver {
         }
       }
       final payload = executionContext.response.body ?? exception.toJson();
-      await _emitAndReply(
+      return _emitAndReply(
         request,
         response,
         executionContext,
@@ -302,7 +296,7 @@ class RoutesResolver {
     for (final hook in reqHooks) {
       await hook.onRequest(executionContext);
       if (executionContext.response.body != null) {
-        await _emitAndReply(
+        return _emitAndReply(
           request,
           response,
           executionContext,
@@ -310,7 +304,7 @@ class RoutesResolver {
         );
       }
       if (executionContext.response.closed) {
-        await _emitAndReply(
+        return _emitAndReply(
           request,
           response,
           executionContext,
