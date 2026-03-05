@@ -40,7 +40,6 @@ enum ObservePhase {
 
 /// Identifier for a trace.
 extension type TraceId(String value) {
-
   static final _random = Random.secure();
 
   /// Generates a new [TraceId] using timestamp + secure random entropy.
@@ -147,9 +146,9 @@ final class ObserveSamplingInput {
   /// Creates an [ObserveSamplingInput] with the given parameters.
   ObserveSamplingInput({
     required this.routeId,
-    this.stableRouteId,
     required this.controllerType,
     required this.method,
+    this.stableRouteId,
     this.userKey,
   });
 

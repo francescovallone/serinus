@@ -247,7 +247,8 @@ class RoutesResolver {
         if (observeHandle != null) {
           await observeHandle.stepAsync(
             'global.response',
-            (_) => hook.onResponse(executionContext, WrappedResponse(exception)),
+            (_) =>
+                hook.onResponse(executionContext, WrappedResponse(exception)),
             phase: ObservePhase.response,
           );
         } else {
