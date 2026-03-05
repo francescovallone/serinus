@@ -83,6 +83,7 @@ class RoutesResolver {
           request: request,
           response: response,
           params: route.params,
+          observeConfig: _container.config.observeConfig,
         );
         return;
       }
@@ -153,6 +154,7 @@ class RoutesResolver {
     final observeHandle = observePlan.activate(requestContext);
     executionContext.observe = observeHandle;
     requestContext.observe = observeHandle;
+    try {
     executionContext.response.statusCode = exception.statusCode;
     if (request.events.hasListener) {
       request.emit(
@@ -286,6 +288,9 @@ class RoutesResolver {
       ),
       executionContext.response,
     );
+    } finally {
+      await _container.config.observeConfig.flush(executionContext);
+    }
   }
 
   Future<void> _notFound(
@@ -320,6 +325,7 @@ class RoutesResolver {
     final observeHandle = resolvedPlan.activate(requestContext);
     executionContext.observe = observeHandle;
     requestContext.observe = observeHandle;
+    try {
     for (final hook in reqHooks) {
       if (observeHandle != null) {
         await observeHandle.stepAsync(
@@ -357,6 +363,9 @@ class RoutesResolver {
           'Route not found for ${request.method} ${request.uri}',
           request.uri,
         );
+    } finally {
+      await _container.config.observeConfig.flush(executionContext);
+    }
   }
 
   Future<void> _methodNotAllowed(
@@ -366,29 +375,42 @@ class RoutesResolver {
     _logger.verbose('Method not allowed for ${request.method} ${request.uri}');
     final wrappedRequest = Request(request, {});
     final reqHooks = _container.config.globalHooks.reqHooks;
-    final providers = {
-      for (var provider in _container.modulesContainer.globalProviders)
-        provider.runtimeType: provider,
-    };
     final globalValues = _container.modulesContainer.globalValueProviders;
     final executionContext = ExecutionContext(
       HostType.http,
-      providers,
+      _globalProviders,
       globalValues,
       _container.config.globalHooks.services,
       HttpArgumentsHost(wrappedRequest),
     );
     final requestContext = await RequestContext.create<dynamic>(
       request: wrappedRequest,
-      providers: providers,
+      providers: _globalProviders,
       values: globalValues,
       hooksServices: _container.config.globalHooks.services,
       modelProvider: _container.config.modelProvider,
       rawBody: _container.applicationRef.rawBody,
     );
     executionContext.attachHttpContext(requestContext);
+    final resolvedPlan = _container.config.observeConfig.resolveForRoute(
+      routeId: '::method_not_allowed',
+      controllerType: Object,
+      method: HttpMethod.parse(request.method),
+    );
+    final observeHandle = resolvedPlan.activate(requestContext);
+    executionContext.observe = observeHandle;
+    requestContext.observe = observeHandle;
+    try {
     for (final hook in reqHooks) {
-      await hook.onRequest(executionContext);
+      if (observeHandle != null) {
+        await observeHandle.stepAsync(
+          'global.request',
+          (_) => hook.onRequest(executionContext),
+          phase: ObservePhase.requestHook,
+        );
+      } else {
+        await hook.onRequest(executionContext);
+      }
       if (executionContext.response.closed) {
         if (request.events.hasListener) {
           request.emit(
@@ -415,5 +437,8 @@ class RoutesResolver {
       'Method not allowed for ${request.method} ${request.uri}',
       request.uri,
     );
+    } finally {
+      await _container.config.observeConfig.flush(executionContext);
+    }
   }
 }

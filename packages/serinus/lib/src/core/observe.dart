@@ -84,6 +84,12 @@ final class TraceStep {
   /// Optional error reference when the step failed.
   Object? errorRef;
 
+  /// Optional stack trace captured alongside [errorRef].
+  StackTrace? errorStackTrace;
+
+  /// W3C-compliant attributes attached to this step (e.g. 'http.status_code').
+  final Map<String, Object> attributes = {};
+
   /// Optional parent step index for nesting.
   final int? parentIndex;
 
@@ -218,6 +224,146 @@ final class ObserveUserKeyInput {
   final RequestContext requestContext;
 }
 
+/// Strategy interface for creating observe handles and flushing traces.
+///
+/// Implement this to integrate custom tracing backends (e.g., OpenTelemetry).
+/// The default built-in implementation is [DefaultObserveTracer], which uses
+/// [RequestTrace]/[TraceStep] and dispatches to [ObserveSink]s.
+///
+/// Example for OpenTelemetry:
+/// ```dart
+/// class OTelTracer implements ObserveTracer {
+///   final otel.Tracer _tracer;
+///   OTelTracer(this._tracer);
+///
+///   @override
+///   ObserveHandle? activate(ObserveActivateInput input) {
+///     final span = _tracer.startSpan(input.routeId);
+///     return OTelObserveHandle(span, input);
+///   }
+///
+///   @override
+///   Future<void> flush(ExecutionContext context) async {
+///     // End the root span, export, etc.
+///   }
+/// }
+/// ```
+abstract class ObserveTracer {
+  /// Creates an [ObserveHandle] for a sampled request.
+  ///
+  /// Return `null` to skip observation for this request.
+  /// The [input] contains all resolved route metadata and the request context.
+  ObserveHandle? activate(ObserveActivateInput input);
+
+  /// Called after request completion to finalize and export the trace.
+  ///
+  /// Implementations should be resilient to errors and never throw.
+  Future<void> flush(ExecutionContext executionContext);
+}
+
+/// Input provided to [ObserveTracer.activate] with all resolved route metadata.
+final class ObserveActivateInput {
+  /// Creates an [ObserveActivateInput] with the given parameters.
+  const ObserveActivateInput({
+    required this.requestContext,
+    required this.routeId,
+    required this.controllerType,
+    required this.method,
+    required this.phases,
+    required this.stepNames,
+  });
+
+  /// The request context for the current request.
+  final RequestContext requestContext;
+
+  /// The route identifier.
+  final String routeId;
+
+  /// The controller type handling the route.
+  final Type controllerType;
+
+  /// The HTTP method for the route.
+  final HttpMethod method;
+
+  /// Phases enabled for observation; empty set means all phases.
+  final Set<ObservePhase> phases;
+
+  /// Step names to collect; empty set means all steps.
+  final Set<String> stepNames;
+}
+
+/// Default tracer implementation that uses [RequestTrace]/[TraceStep] and
+/// dispatches to [ObserveSink]s.
+///
+/// This is the built-in tracer used when no custom [ObserveTracer] is provided
+/// to [ObserveConfig].
+final class DefaultObserveTracer implements ObserveTracer {
+  /// Creates a [DefaultObserveTracer] with the given sinks and metadata.
+  const DefaultObserveTracer({
+    this.sinks = const [],
+    this.appMetadata = const {},
+  });
+
+  /// Registered sinks for emitting traces.
+  final List<ObserveSink> sinks;
+
+  /// Application-level metadata propagated to sinks.
+  final Map<String, Object?> appMetadata;
+
+  @override
+  ObserveHandle? activate(ObserveActivateInput input) {
+    final traceStartedAtMicros = DateTime.now().microsecondsSinceEpoch;
+    final trace = RequestTrace(
+      id: TraceId.fromTimestampMicros(traceStartedAtMicros),
+      startedAtMicros: traceStartedAtMicros,
+      routeId: input.routeId,
+      path: input.requestContext.path,
+      controllerType: input.controllerType,
+      method: input.method,
+    );
+    return _ActiveObserveHandle(
+      trace: trace,
+      phases: input.phases,
+      stepNames: input.stepNames,
+      stopwatch: Stopwatch()..start(),
+    );
+  }
+
+  @override
+  Future<void> flush(ExecutionContext executionContext) async {
+    final handle = executionContext.observe;
+    if (handle == null || sinks.isEmpty) {
+      return;
+    }
+    final sinkInput = ObserveSinkInput(
+      trace: handle.trace,
+      executionContext: executionContext,
+      appMetadata: appMetadata,
+    );
+    final futures = <Future<void>>[];
+    for (final sink in sinks) {
+      try {
+        futures.add(
+          sink.consume(sinkInput).catchError((Object error, StackTrace stack) {
+            _observeLogger.warning(
+              'Observe sink ${sink.runtimeType} failed while consuming trace ${sinkInput.trace.id.value}',
+              OptionalParameters(error: error, stackTrace: stack),
+            );
+          }),
+        );
+      } catch (error, stack) {
+        _observeLogger.warning(
+          'Observe sink ${sink.runtimeType} threw synchronously while consuming trace ${sinkInput.trace.id.value}',
+          OptionalParameters(error: error, stackTrace: stack),
+        );
+      }
+    }
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
+    }
+  }
+}
+
 /// Resolved per-route observe plan computed at startup.
 final class ResolvedObservePlan {
   /// Creates a [ResolvedObservePlan] with the given parameters.
@@ -230,6 +376,7 @@ final class ResolvedObservePlan {
     required this.phases,
     required this.stepNames,
     required this.userKeyExtractor,
+    this.tracer,
   });
 
   /// Disabled plan for quick checks.
@@ -241,7 +388,8 @@ final class ResolvedObservePlan {
       sampling = const ObserveSampling.always(),
       phases = const {},
       stepNames = const {},
-      userKeyExtractor = null;
+      userKeyExtractor = null,
+      tracer = null;
 
   /// Whether observation is enabled for the route.
   final bool enabled;
@@ -267,6 +415,9 @@ final class ResolvedObservePlan {
   /// Optional hook to produce a user key from the request.
   final String? Function(ObserveUserKeyInput input)? userKeyExtractor;
 
+  /// Optional custom tracer. When set, [activate] delegates to it.
+  final ObserveTracer? tracer;
+
   /// Attempts to create an [ObserveHandle] for a given request context.
   ObserveHandle? activate(RequestContext requestContext) {
     if (!enabled) {
@@ -281,6 +432,18 @@ final class ResolvedObservePlan {
     if (!sampling.shouldSample(input)) {
       return null;
     }
+    final activateInput = ObserveActivateInput(
+      requestContext: requestContext,
+      routeId: routeId,
+      controllerType: controllerType,
+      method: method,
+      phases: phases,
+      stepNames: stepNames,
+    );
+    if (tracer != null) {
+      return tracer!.activate(activateInput);
+    }
+    // Built-in default when no tracer is provided.
     final traceStartedAtMicros = DateTime.now().microsecondsSinceEpoch;
     final trace = RequestTrace(
       id: TraceId.fromTimestampMicros(traceStartedAtMicros),
@@ -300,8 +463,29 @@ final class ResolvedObservePlan {
 }
 
 /// Application-level configuration for observability.
+///
+/// To use the built-in tracing with sinks, pass [sinks] directly:
+/// ```dart
+/// app.observe(ObserveConfig(
+///   enabled: true,
+///   sinks: [LoggerObserveSink()],
+/// ));
+/// ```
+///
+/// To integrate a custom tracing backend (e.g., OpenTelemetry), provide
+/// a [tracer] instead of (or alongside) sinks:
+/// ```dart
+/// app.observe(ObserveConfig(
+///   enabled: true,
+///   tracer: OTelTracer(openTelemetry.tracer),
+/// ));
+/// ```
 final class ObserveConfig {
   /// Creates an [ObserveConfig] with the given parameters.
+  ///
+  /// When [tracer] is provided, it takes ownership of handle creation and
+  /// flushing. When omitted, a [DefaultObserveTracer] using [sinks] and
+  /// [appMetadata] is created automatically.
   const ObserveConfig({
     this.enabled = false,
     this.sampling = const ObserveSampling.always(),
@@ -312,6 +496,7 @@ final class ObserveConfig {
     this.userKeyExtractor,
     this.appMetadata = const {},
     this.sinks = const [],
+    this.tracer,
   });
 
   /// Disabled configuration for quick checks.
@@ -323,7 +508,9 @@ final class ObserveConfig {
   /// Sampling strategy used for all routes.
   final ObserveSampling sampling;
 
-  /// Registered sinks for emitting traces.
+  /// Registered sinks for emitting traces (used by [DefaultObserveTracer]).
+  ///
+  /// Ignored when a custom [tracer] is provided.
   final List<ObserveSink> sinks;
 
   /// Limit observation to the given controllers, if non-empty.
@@ -346,6 +533,19 @@ final class ObserveConfig {
   /// This can include values like environment, hostname, version, or any other
   /// static metadata required by APM integrations.
   final Map<String, Object?> appMetadata;
+
+  /// Optional custom tracer for full control over handle creation and flushing.
+  ///
+  /// When provided, [ResolvedObservePlan.activate] delegates to
+  /// [ObserveTracer.activate] and [flush] delegates to [ObserveTracer.flush].
+  /// This is the primary extension point for integrating backends like
+  /// OpenTelemetry.
+  final ObserveTracer? tracer;
+
+  /// The effective tracer — either the user-supplied one or
+  /// a [DefaultObserveTracer] built from [sinks]/[appMetadata].
+  ObserveTracer get _effectiveTracer =>
+      tracer ?? DefaultObserveTracer(sinks: sinks, appMetadata: appMetadata);
 
   /// Resolves a per-route plan at startup.
   ResolvedObservePlan resolveForRoute({
@@ -377,38 +577,17 @@ final class ObserveConfig {
       phases: phaseSet,
       stepNames: stepSet,
       userKeyExtractor: userKeyExtractor,
+      tracer: tracer,
     );
   }
 
-  /// Flushes the trace from the execution context to all registered sinks.
-  Future<void> flush(ExecutionContext executionContext) async {
-    final handle = executionContext.observe;
-    if (handle == null || sinks.isEmpty) {
-      return;
-    }
-    final sinkInput = ObserveSinkInput(
-      trace: handle.trace,
-      executionContext: executionContext,
-      appMetadata: appMetadata,
-    );
-    for (final sink in sinks) {
-      try {
-        unawaited(
-          sink.consume(sinkInput).catchError((Object error, StackTrace stack) {
-            _observeLogger.warning(
-              'Observe sink ${sink.runtimeType} failed while consuming trace ${sinkInput.trace.id.value}',
-              OptionalParameters(error: error, stackTrace: stack),
-            );
-          }),
-        );
-      } catch (error, stack) {
-        _observeLogger.warning(
-          'Observe sink ${sink.runtimeType} threw synchronously while consuming trace ${sinkInput.trace.id.value}',
-          OptionalParameters(error: error, stackTrace: stack),
-        );
-        // Never fail the response flow because of observability sink issues.
-      }
-    }
+  /// Flushes the trace from the execution context.
+  ///
+  /// When a custom [tracer] is provided, delegates entirely to
+  /// [ObserveTracer.flush]. Otherwise uses [DefaultObserveTracer] to
+  /// dispatch to [sinks].
+  Future<void> flush(ExecutionContext executionContext) {
+    return _effectiveTracer.flush(executionContext);
   }
 }
 
@@ -434,6 +613,13 @@ abstract class ObserveHandle {
 
 /// A handle specifically tied to a parent step
 abstract class ObserveStepHandle {
+
+  /// Allows adding W3C compliant attributes (e.g., 'http.status_code', 'http.method')
+  void setAttribute(String key, Object value);
+
+  /// Allows explicit error recording inside a span
+  void recordError(Object error, [StackTrace? stackTrace]);
+
   /// Observe a nested synchronous step with an optional phase.
   T step<T>(String name, T Function(ObserveStepHandle step) body);
 
@@ -645,5 +831,35 @@ final class _ObserveChildStepHandle implements ObserveStepHandle {
     Future<T> Function(ObserveStepHandle step) body,
   ) {
     return _observeHandle.stepAsync(name, body, parentIndex: _parentIndex);
+  }
+  
+  @override
+  void recordError(Object error, [StackTrace? stackTrace]) {
+    final index = _parentIndex;
+    if (index == null) {
+      return;
+    }
+    final steps = _observeHandle.trace.steps;
+    if (index < 0 || index >= steps.length) {
+      return;
+    }
+    final step = steps[index];
+    step
+      ..success = false
+      ..errorRef = error
+      ..errorStackTrace = stackTrace;
+  }
+
+  @override
+  void setAttribute(String key, Object value) {
+    final index = _parentIndex;
+    if (index == null) {
+      return;
+    }
+    final steps = _observeHandle.trace.steps;
+    if (index < 0 || index >= steps.length) {
+      return;
+    }
+    steps[index].attributes[key] = value;
   }
 }

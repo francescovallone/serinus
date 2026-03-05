@@ -52,6 +52,7 @@ class RouteExecutionContext {
     required Map<String, dynamic> params,
     ErrorHandler? errorHandler,
     bool rawBody = false,
+    ObserveConfig? observeConfig,
   }) async {
     ExecutionContext? executionContext;
     try {
@@ -308,6 +309,10 @@ class RouteExecutionContext {
           executionContext.response,
           viewEngine: viewEngine,
         );
+      }
+    } finally {
+      if (executionContext != null && observeConfig != null) {
+        await observeConfig.flush(executionContext);
       }
     }
   }

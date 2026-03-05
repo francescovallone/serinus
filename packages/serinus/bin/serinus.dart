@@ -129,6 +129,7 @@ void main(List<String> arguments) async {
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );
+  application.get('/', (context) async => 'Hello, Serinus!');
   application.enableShutdownHooks();
   application.observe(
     ObserveConfig(enabled: true, sinks: [LoggerObserveSink()]),
