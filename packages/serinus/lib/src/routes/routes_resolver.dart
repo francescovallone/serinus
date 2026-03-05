@@ -201,29 +201,6 @@ class RoutesResolver {
               executionContext.response,
             );
           }
-          if (executionContext.response.body != null) {
-            if (request.events.hasListener) {
-              request.emit(
-                RequestEvent.data,
-                EventData(
-                  data: executionContext.response.body,
-                  properties: executionContext.response
-                    ..addHeadersFrom(response.currentHeaders),
-                ),
-              );
-            }
-            return _container.applicationRef.reply(
-              response,
-              request,
-              _routeExecutionContext.processResult(
-                WrappedResponse(
-                  executionContext.response.body ?? exception.toJson(),
-                ),
-                executionContext,
-              ),
-              executionContext.response,
-            );
-          }
           if (executionContext.response.closed) {
             if (request.events.hasListener) {
               request.emit(
@@ -293,11 +270,12 @@ class RoutesResolver {
           );
         }
       }
+      final payload = executionContext.response.body ?? exception.toJson();
       if (request.events.hasListener) {
         request.emit(
           RequestEvent.data,
           EventData(
-            data: executionContext.response.body,
+            data: payload,
             properties: executionContext.response
               ..addHeadersFrom(response.currentHeaders),
           ),
@@ -307,7 +285,7 @@ class RoutesResolver {
         response,
         request,
         _routeExecutionContext.processResult(
-          WrappedResponse(executionContext.response.body ?? exception.toJson()),
+          WrappedResponse(payload),
           executionContext,
         ),
         executionContext.response,
