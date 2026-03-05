@@ -167,7 +167,8 @@ class RoutesResolver {
         );
       }
       for (final filter in _container.config.globalExceptionFilters) {
-        if (filter.catchTargets.contains(exception.runtimeType) || filter.catchTargets.isEmpty) {
+        if (filter.catchTargets.contains(exception.runtimeType) ||
+            filter.catchTargets.isEmpty) {
           if (observeHandle != null) {
             await observeHandle.stepAsync(
               'global.exception',

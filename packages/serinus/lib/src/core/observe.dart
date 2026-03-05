@@ -587,7 +587,7 @@ final class ObserveConfig {
   /// [ObserveTracer.flush]. Otherwise uses [DefaultObserveTracer] to
   /// dispatch to [sinks].
   Future<void> flush(ExecutionContext executionContext) async {
-    if(!enabled) {
+    if (!enabled) {
       return;
     }
     return _effectiveTracer.flush(executionContext);
