@@ -75,7 +75,7 @@ class RoutesResolver {
     );
     final routeObservePlan = _resolveObservePlanForRoute(route, request.method);
     try {
-      return switch(route) {
+      await switch(route) {
         FoundRoute<RouterEntry>(:final values, :final params) => _routeExecutionContext.describe(
             values.first.context,
             request: request,
@@ -87,6 +87,7 @@ class RoutesResolver {
         MethodNotAllowedRoute<RouterEntry>() => _methodNotAllowed(request, response),
         _ => _notFound(request, response),
        };
+      return;
     } on SerinusException catch (e) {
       await _handleException(
         e,
