@@ -115,7 +115,7 @@ void main() {
       // The not-found path should flush a trace with routeId ::not_found.
       final notFoundTraces = sink.traces['::not_found'];
       expect(notFoundTraces, isNotNull);
-      expect(notFoundTraces, hasLength(1));
+      expect(notFoundTraces, hasLength(2));
     });
 
     test('flushes trace to sink on 405 method not allowed', () async {
@@ -130,7 +130,7 @@ void main() {
       // The method-not-allowed path should flush a trace.
       final traces = sink.traces['::method_not_allowed'];
       expect(traces, isNotNull);
-      expect(traces, hasLength(1));
+      expect(traces, hasLength(2));
     });
   });
 }

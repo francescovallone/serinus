@@ -73,9 +73,7 @@ class RoutesResolver {
       request.path,
       HttpMethod.parse(request.method),
     );
-    final routeObservePlan = route is FoundRoute<RouterEntry>
-        ? route.values.first.context.observePlan
-        : const ResolvedObservePlan.disabled();
+    final routeObservePlan = _resolveObservePlanForRoute(route, request.method);
     try {
       if (route is FoundRoute) {
         await _routeExecutionContext.describe(
@@ -106,6 +104,30 @@ class RoutesResolver {
     } catch (e) {
       rethrow;
     }
+  }
+
+  ResolvedObservePlan _resolveObservePlanForRoute(
+    AtlasResult<RouterEntry> route,
+    String requestMethod,
+  ) {
+    if (route is FoundRoute<RouterEntry> && route.values.isNotEmpty) {
+      return route.values.first.context.observePlan;
+    }
+    if (route is NotFoundRoute<RouterEntry>) {
+      return _container.config.observeConfig.resolveForRoute(
+        routeId: '::not_found',
+        controllerType: Object,
+        method: HttpMethod.parse(requestMethod),
+      );
+    }
+    if (route is MethodNotAllowedRoute<RouterEntry>) {
+      return _container.config.observeConfig.resolveForRoute(
+        routeId: '::method_not_allowed',
+        controllerType: Object,
+        method: HttpMethod.parse(requestMethod),
+      );
+    }
+    return const ResolvedObservePlan.disabled();
   }
 
   /// The [sendExceptionResponse] method is used to send an exception response.
@@ -222,7 +244,15 @@ class RoutesResolver {
         }
       }
       for (final hook in _container.config.globalHooks.resHooks) {
-        await hook.onResponse(executionContext, WrappedResponse(exception));
+        if (observeHandle != null) {
+          await observeHandle.stepAsync(
+            'global.response',
+            (_) => hook.onResponse(executionContext, WrappedResponse(exception)),
+            phase: ObservePhase.response,
+          );
+        } else {
+          await hook.onResponse(executionContext, WrappedResponse(exception));
+        }
         if (executionContext.response.body != null) {
           if (request.events.hasListener) {
             request.emit(
@@ -300,6 +330,27 @@ class RoutesResolver {
     OutgoingMessage response,
   ) async {
     _logger.verbose('No route found for ${request.method} ${request.uri}');
+    return _handleMissingRoute(
+      request,
+      response,
+      routeId: '::not_found',
+      controllerType: Object,
+      exceptionFactory: (wrappedRequest) =>
+          _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??
+          NotFoundException(
+            'Route not found for ${request.method} ${request.uri}',
+            request.uri,
+          ),
+    );
+  }
+
+  Future<void> _handleMissingRoute(
+    IncomingMessage request,
+    OutgoingMessage response, {
+    required String routeId,
+    required Type controllerType,
+    required SerinusException Function(Request wrappedRequest) exceptionFactory,
+  }) async {
     final wrappedRequest = Request(request, {});
     final reqHooks = _container.config.globalHooks.reqHooks;
     final globalValues = _container.modulesContainer.globalValueProviders;
@@ -320,8 +371,8 @@ class RoutesResolver {
     );
     executionContext.attachHttpContext(requestContext);
     final resolvedPlan = _container.config.observeConfig.resolveForRoute(
-      routeId: '::not_found',
-      controllerType: Object,
+      routeId: routeId,
+      controllerType: controllerType,
       method: HttpMethod.parse(request.method),
     );
     final observeHandle = resolvedPlan.activate(requestContext);
@@ -381,11 +432,7 @@ class RoutesResolver {
           );
         }
       }
-      throw _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??
-          NotFoundException(
-            'Route not found for ${request.method} ${request.uri}',
-            request.uri,
-          );
+      throw exceptionFactory(wrappedRequest);
     } finally {
       await _container.config.observeConfig.flush(executionContext);
     }
@@ -396,93 +443,15 @@ class RoutesResolver {
     OutgoingMessage response,
   ) async {
     _logger.verbose('Method not allowed for ${request.method} ${request.uri}');
-    final wrappedRequest = Request(request, {});
-    final reqHooks = _container.config.globalHooks.reqHooks;
-    final globalValues = _container.modulesContainer.globalValueProviders;
-    final executionContext = ExecutionContext(
-      HostType.http,
-      _globalProviders,
-      globalValues,
-      _container.config.globalHooks.services,
-      HttpArgumentsHost(wrappedRequest),
-    );
-    final requestContext = await RequestContext.create<dynamic>(
-      request: wrappedRequest,
-      providers: _globalProviders,
-      values: globalValues,
-      hooksServices: _container.config.globalHooks.services,
-      modelProvider: _container.config.modelProvider,
-      rawBody: _container.applicationRef.rawBody,
-    );
-    executionContext.attachHttpContext(requestContext);
-    final resolvedPlan = _container.config.observeConfig.resolveForRoute(
+    return _handleMissingRoute(
+      request,
+      response,
       routeId: '::method_not_allowed',
       controllerType: Object,
-      method: HttpMethod.parse(request.method),
-    );
-    final observeHandle = resolvedPlan.activate(requestContext);
-    executionContext.observe = observeHandle;
-    requestContext.observe = observeHandle;
-    try {
-      for (final hook in reqHooks) {
-        if (observeHandle != null) {
-          await observeHandle.stepAsync(
-            'global.request',
-            (_) => hook.onRequest(executionContext),
-            phase: ObservePhase.requestHook,
-          );
-        } else {
-          await hook.onRequest(executionContext);
-        }
-        if (executionContext.response.body != null) {
-          if (request.events.hasListener) {
-            request.emit(
-              RequestEvent.data,
-              EventData(
-                data: executionContext.response.body,
-                properties: executionContext.response
-                  ..addHeadersFrom(response.currentHeaders),
-              ),
-            );
-          }
-          return _container.applicationRef.reply(
-            response,
-            request,
-            _routeExecutionContext.processResult(
-              WrappedResponse(executionContext.response.body),
-              executionContext,
-            ),
-            executionContext.response,
-          );
-        }
-        if (executionContext.response.closed) {
-          if (request.events.hasListener) {
-            request.emit(
-              RequestEvent.data,
-              EventData(
-                data: executionContext.response.body,
-                properties: executionContext.response
-                  ..addHeadersFrom(response.currentHeaders),
-              ),
-            );
-          }
-          return _container.applicationRef.reply(
-            response,
-            request,
-            _routeExecutionContext.processResult(
-              WrappedResponse(executionContext.response.body),
-              executionContext,
-            ),
-            executionContext.response,
-          );
-        }
-      }
-      throw MethodNotAllowedException(
+      exceptionFactory: (_) => MethodNotAllowedException(
         'Method not allowed for ${request.method} ${request.uri}',
         request.uri,
-      );
-    } finally {
-      await _container.config.observeConfig.flush(executionContext);
-    }
+      ),
+    );
   }
 }

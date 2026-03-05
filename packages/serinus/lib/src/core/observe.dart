@@ -722,16 +722,14 @@ class _ActiveObserveHandle implements ObserveHandle {
     if (trace.steps.isNotEmpty && trace.steps.last.name == 'TRUNCATED') {
       return;
     }
-    final startedAtMicros = trace.steps.isEmpty
-        ? _now()
-        : trace.steps.last.startedAtMicros;
+    final now = _now();
     trace.steps.add(
       TraceStep(
         name: 'TRUNCATED',
-        startedAtMicros: startedAtMicros,
+        startedAtMicros: now,
         phase: phase,
         parentIndex: parentIndex,
-      )..endedAtMicros = _now(),
+      )..endedAtMicros = now,
     );
   }
 
