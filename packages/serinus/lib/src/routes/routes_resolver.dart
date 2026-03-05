@@ -237,7 +237,12 @@ class RoutesResolver {
             return _container.applicationRef.reply(
               response,
               request,
-              WrappedResponse(null),
+              _routeExecutionContext.processResult(
+                WrappedResponse(
+                  executionContext.response.body ?? exception.toJson(),
+                ),
+                executionContext,
+              ),
               executionContext.response,
             );
           }
