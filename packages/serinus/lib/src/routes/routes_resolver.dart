@@ -201,49 +201,19 @@ class RoutesResolver {
             await filter.onException(executionContext, exception);
           }
           if (executionContext.response.body != null) {
-            if (request.events.hasListener) {
-              request.emit(
-                RequestEvent.data,
-                EventData(
-                  data: executionContext.response.body,
-                  properties: executionContext.response
-                    ..addHeadersFrom(response.currentHeaders),
-                ),
-              );
-            }
-            return _container.applicationRef.reply(
-              response,
+            await _emitAndReply(
               request,
-              _routeExecutionContext.processResult(
-                WrappedResponse(
-                  executionContext.response.body ?? exception.toJson(),
-                ),
-                executionContext,
-              ),
-              executionContext.response,
+              response,
+              executionContext,
+              executionContext.response.body ?? exception.toJson(),
             );
           }
           if (executionContext.response.closed) {
-            if (request.events.hasListener) {
-              request.emit(
-                RequestEvent.data,
-                EventData(
-                  data: executionContext.response.body,
-                  properties: executionContext.response
-                    ..addHeadersFrom(response.currentHeaders),
-                ),
-              );
-            }
-            return _container.applicationRef.reply(
-              response,
+            await _emitAndReply(
               request,
-              _routeExecutionContext.processResult(
-                WrappedResponse(
-                  executionContext.response.body ?? exception.toJson(),
-                ),
-                executionContext,
-              ),
-              executionContext.response,
+              response,
+              executionContext,
+              executionContext.response.body ?? exception.toJson(),
             );
           }
         }
@@ -260,71 +230,28 @@ class RoutesResolver {
           await hook.onResponse(executionContext, WrappedResponse(exception));
         }
         if (executionContext.response.body != null) {
-          if (request.events.hasListener) {
-            request.emit(
-              RequestEvent.data,
-              EventData(
-                data: executionContext.response.body,
-                properties: executionContext.response
-                  ..addHeadersFrom(response.currentHeaders),
-              ),
-            );
-          }
-          return _container.applicationRef.reply(
-            response,
+          await _emitAndReply(
             request,
-            _routeExecutionContext.processResult(
-              WrappedResponse(
-                executionContext.response.body ?? exception.toJson(),
-              ),
-              executionContext,
-            ),
-            executionContext.response,
+            response,
+            executionContext,
+            executionContext.response.body ?? exception.toJson(),
           );
         }
         if (executionContext.response.closed) {
-          if (request.events.hasListener) {
-            request.emit(
-              RequestEvent.data,
-              EventData(
-                data: executionContext.response.body,
-                properties: executionContext.response
-                  ..addHeadersFrom(response.currentHeaders),
-              ),
-            );
-          }
-          return _container.applicationRef.reply(
-            response,
+          await _emitAndReply(
             request,
-            _routeExecutionContext.processResult(
-              WrappedResponse(
-                executionContext.response.body ?? exception.toJson(),
-              ),
-              executionContext,
-            ),
-            executionContext.response,
+            response,
+            executionContext,
+            executionContext.response.body ?? exception.toJson(),
           );
         }
       }
       final payload = executionContext.response.body ?? exception.toJson();
-      if (request.events.hasListener) {
-        request.emit(
-          RequestEvent.data,
-          EventData(
-            data: payload,
-            properties: executionContext.response
-              ..addHeadersFrom(response.currentHeaders),
-          ),
-        );
-      }
-      return _container.applicationRef.reply(
-        response,
+      await _emitAndReply(
         request,
-        _routeExecutionContext.processResult(
-          WrappedResponse(payload),
-          executionContext,
-        ),
-        executionContext.response,
+        response,
+        executionContext,
+        payload,
       );
     } finally {
       await _container.config.observeConfig.flush(executionContext);
@@ -375,45 +302,19 @@ class RoutesResolver {
     for (final hook in reqHooks) {
       await hook.onRequest(executionContext);
       if (executionContext.response.body != null) {
-        if (request.events.hasListener) {
-          request.emit(
-            RequestEvent.data,
-            EventData(
-              data: executionContext.response.body,
-              properties: executionContext.response
-                ..addHeadersFrom(response.currentHeaders),
-            ),
-          );
-        }
-        return _container.applicationRef.reply(
-          response,
+        await _emitAndReply(
           request,
-          _routeExecutionContext.processResult(
-            WrappedResponse(executionContext.response.body),
-            executionContext,
-          ),
-          executionContext.response,
+          response,
+          executionContext,
+          executionContext.response.body,
         );
       }
       if (executionContext.response.closed) {
-        if (request.events.hasListener) {
-          request.emit(
-            RequestEvent.data,
-            EventData(
-              data: executionContext.response.body,
-              properties: executionContext.response
-                ..addHeadersFrom(response.currentHeaders),
-            ),
-          );
-        }
-        return _container.applicationRef.reply(
-          response,
+        await _emitAndReply(
           request,
-          _routeExecutionContext.processResult(
-            WrappedResponse(executionContext.response.body),
-            executionContext,
-          ),
-          executionContext.response,
+          response,
+          executionContext,
+          executionContext.response.body,
         );
       }
     }
@@ -432,6 +333,30 @@ class RoutesResolver {
         'Method not allowed for ${request.method} ${request.uri}',
         request.uri,
       ),
+    );
+  }
+  
+  Future<void> _emitAndReply(
+    IncomingMessage request,
+    OutgoingMessage response,
+    ExecutionContext executionContext,
+    Object? payload,
+  ) {
+    if (request.events.hasListener) {
+      request.emit(
+        RequestEvent.data,
+        EventData(
+          data: payload,
+          properties: executionContext.response
+            ..addHeadersFrom(response.currentHeaders),
+        ),
+      );
+    }
+    return _container.applicationRef.reply(
+      response,
+      request,
+      _routeExecutionContext.processResult(WrappedResponse(payload), executionContext),
+      executionContext.response,
     );
   }
 }
