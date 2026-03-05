@@ -193,7 +193,8 @@ void main() {
       executionContext.attachHttpContext(requestContext);
       executionContext.observe = plan.activate(requestContext);
 
-      config.flush(executionContext);
+      await config.flush(executionContext);
+      await Future<void>.delayed(Duration.zero);
 
       expect(sink.count, 1);
       expect(sink.last, isNotNull);

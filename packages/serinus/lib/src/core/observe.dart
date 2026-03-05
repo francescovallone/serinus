@@ -586,7 +586,10 @@ final class ObserveConfig {
   /// When a custom [tracer] is provided, delegates entirely to
   /// [ObserveTracer.flush]. Otherwise uses [DefaultObserveTracer] to
   /// dispatch to [sinks].
-  Future<void> flush(ExecutionContext executionContext) {
+  Future<void> flush(ExecutionContext executionContext) async {
+    if(!enabled) {
+      return;
+    }
     return _effectiveTracer.flush(executionContext);
   }
 }
@@ -763,10 +766,11 @@ class _ActiveObserveHandle implements ObserveHandle {
       final result = body(handle);
       step.endedAtMicros = _now();
       return result;
-    } catch (e) {
+    } catch (e, stackTrace) {
       step
         ..success = false
         ..errorRef = e
+        ..errorStackTrace = stackTrace
         ..endedAtMicros = _now();
       rethrow;
     }
@@ -803,10 +807,11 @@ class _ActiveObserveHandle implements ObserveHandle {
       final result = await body(handle);
       step.endedAtMicros = _now();
       return result;
-    } catch (e) {
+    } catch (e, stackTrace) {
       step
         ..success = false
         ..errorRef = e
+        ..errorStackTrace = stackTrace
         ..endedAtMicros = _now();
       rethrow;
     }

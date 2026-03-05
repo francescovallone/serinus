@@ -167,7 +167,7 @@ class RoutesResolver {
         );
       }
       for (final filter in _container.config.globalExceptionFilters) {
-        if (filter.catchTargets.contains(exception.runtimeType)) {
+        if (filter.catchTargets.contains(exception.runtimeType) || filter.catchTargets.isEmpty) {
           if (observeHandle != null) {
             await observeHandle.stepAsync(
               'global.exception',
@@ -176,6 +176,29 @@ class RoutesResolver {
             );
           } else {
             await filter.onException(executionContext, exception);
+          }
+          if (executionContext.response.body != null) {
+            if (request.events.hasListener) {
+              request.emit(
+                RequestEvent.data,
+                EventData(
+                  data: executionContext.response.body,
+                  properties: executionContext.response
+                    ..addHeadersFrom(response.currentHeaders),
+                ),
+              );
+            }
+            return _container.applicationRef.reply(
+              response,
+              request,
+              _routeExecutionContext.processResult(
+                WrappedResponse(
+                  executionContext.response.body ?? exception.toJson(),
+                ),
+                executionContext,
+              ),
+              executionContext.response,
+            );
           }
           if (executionContext.response.body != null) {
             if (request.events.hasListener) {
@@ -336,6 +359,27 @@ class RoutesResolver {
         } else {
           await hook.onRequest(executionContext);
         }
+        if (executionContext.response.body != null) {
+          if (request.events.hasListener) {
+            request.emit(
+              RequestEvent.data,
+              EventData(
+                data: executionContext.response.body,
+                properties: executionContext.response
+                  ..addHeadersFrom(response.currentHeaders),
+              ),
+            );
+          }
+          return _container.applicationRef.reply(
+            response,
+            request,
+            _routeExecutionContext.processResult(
+              WrappedResponse(executionContext.response.body),
+              executionContext,
+            ),
+            executionContext.response,
+          );
+        }
         if (executionContext.response.closed) {
           if (request.events.hasListener) {
             request.emit(
@@ -410,6 +454,27 @@ class RoutesResolver {
           );
         } else {
           await hook.onRequest(executionContext);
+        }
+        if (executionContext.response.body != null) {
+          if (request.events.hasListener) {
+            request.emit(
+              RequestEvent.data,
+              EventData(
+                data: executionContext.response.body,
+                properties: executionContext.response
+                  ..addHeadersFrom(response.currentHeaders),
+              ),
+            );
+          }
+          return _container.applicationRef.reply(
+            response,
+            request,
+            _routeExecutionContext.processResult(
+              WrappedResponse(executionContext.response.body),
+              executionContext,
+            ),
+            executionContext.response,
+          );
         }
         if (executionContext.response.closed) {
           if (request.events.hasListener) {
