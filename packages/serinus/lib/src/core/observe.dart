@@ -40,6 +40,9 @@ enum ObservePhase {
 
 /// Identifier for a trace.
 extension type TraceId(String value) {
+
+  static final _random = Random.secure();
+
   /// Generates a new [TraceId] using timestamp + secure random entropy.
   factory TraceId.newId() {
     return TraceId.fromTimestampMicros(DateTime.now().microsecondsSinceEpoch);
@@ -47,10 +50,9 @@ extension type TraceId(String value) {
 
   /// Generates a [TraceId] with the given timestamp and random entropy.
   factory TraceId.fromTimestampMicros(int timestampMicros) {
-    final random = Random.secure();
     final entropy =
-        '${random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}'
-        '${random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}';
+        '${_random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}'
+        '${_random.nextInt(1 << 32).toRadixString(16).padLeft(8, '0')}';
     return TraceId('tr-$timestampMicros-$entropy');
   }
 }

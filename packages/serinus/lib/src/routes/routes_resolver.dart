@@ -370,72 +370,52 @@ class RoutesResolver {
       rawBody: _container.applicationRef.rawBody,
     );
     executionContext.attachHttpContext(requestContext);
-    final resolvedPlan = _container.config.observeConfig.resolveForRoute(
-      routeId: routeId,
-      controllerType: controllerType,
-      method: HttpMethod.parse(request.method),
-    );
-    final observeHandle = resolvedPlan.activate(requestContext);
-    executionContext.observe = observeHandle;
-    requestContext.observe = observeHandle;
-    try {
-      for (final hook in reqHooks) {
-        if (observeHandle != null) {
-          await observeHandle.stepAsync(
-            'global.request',
-            (_) => hook.onRequest(executionContext),
-            phase: ObservePhase.requestHook,
-          );
-        } else {
-          await hook.onRequest(executionContext);
-        }
-        if (executionContext.response.body != null) {
-          if (request.events.hasListener) {
-            request.emit(
-              RequestEvent.data,
-              EventData(
-                data: executionContext.response.body,
-                properties: executionContext.response
-                  ..addHeadersFrom(response.currentHeaders),
-              ),
-            );
-          }
-          return _container.applicationRef.reply(
-            response,
-            request,
-            _routeExecutionContext.processResult(
-              WrappedResponse(executionContext.response.body),
-              executionContext,
+    for (final hook in reqHooks) {
+      await hook.onRequest(executionContext);
+      if (executionContext.response.body != null) {
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..addHeadersFrom(response.currentHeaders),
             ),
-            executionContext.response,
           );
         }
-        if (executionContext.response.closed) {
-          if (request.events.hasListener) {
-            request.emit(
-              RequestEvent.data,
-              EventData(
-                data: executionContext.response.body,
-                properties: executionContext.response
-                  ..addHeadersFrom(response.currentHeaders),
-              ),
-            );
-          }
-          return _container.applicationRef.reply(
-            response,
-            request,
-            _routeExecutionContext.processResult(
-              WrappedResponse(executionContext.response.body),
-              executionContext,
-            ),
-            executionContext.response,
-          );
-        }
+        return _container.applicationRef.reply(
+          response,
+          request,
+          _routeExecutionContext.processResult(
+            WrappedResponse(executionContext.response.body),
+            executionContext,
+          ),
+          executionContext.response,
+        );
       }
-      throw exceptionFactory(wrappedRequest);
-    } finally {
-      await _container.config.observeConfig.flush(executionContext);
+      if (executionContext.response.closed) {
+        if (request.events.hasListener) {
+          request.emit(
+            RequestEvent.data,
+            EventData(
+              data: executionContext.response.body,
+              properties: executionContext.response
+                ..addHeadersFrom(response.currentHeaders),
+            ),
+          );
+        }
+        return _container.applicationRef.reply(
+          response,
+          request,
+          _routeExecutionContext.processResult(
+            WrappedResponse(executionContext.response.body),
+            executionContext,
+          ),
+          executionContext.response,
+        );
+      }
     }
+    throw exceptionFactory(wrappedRequest);
   }
 
   Future<void> _methodNotAllowed(
