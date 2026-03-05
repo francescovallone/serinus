@@ -85,8 +85,9 @@ final class RoutesExplorer {
         controller.hooks,
         spec.route.hooks,
       ]);
+      final stableObserveRouteId = '${routeMethod.name}:$routePath';
       final observePlan = _container.config.observeConfig.resolveForRoute(
-        routeId: entry.key,
+        routeId: stableObserveRouteId,
         controllerType: controller.runtimeType,
         method: routeMethod,
       );

@@ -147,6 +147,7 @@ final class ObserveSamplingInput {
   /// Creates an [ObserveSamplingInput] with the given parameters.
   ObserveSamplingInput({
     required this.routeId,
+    this.stableRouteId,
     required this.controllerType,
     required this.method,
     this.userKey,
@@ -154,6 +155,12 @@ final class ObserveSamplingInput {
 
   /// The route identifier for the request.
   final String routeId;
+
+  /// A stable route identifier used for deterministic sampling.
+  ///
+  /// This should be derived from route metadata that does not change between
+  /// restarts (for example method + normalized route path).
+  final String? stableRouteId;
 
   /// The controller type handling the request.
   final Type controllerType;
@@ -205,7 +212,12 @@ final class ObserveSampling {
       hash = (hash + 1) & mask32;
     }
 
-    mix(input.routeId);
+    final stableRouteSeed = input.stableRouteId;
+    if (stableRouteSeed != null && stableRouteSeed.isNotEmpty) {
+      mix(stableRouteSeed);
+    } else {
+      mix('${input.controllerType}:${input.method.name}');
+    }
     mix(input.controllerType.toString());
     mix(input.method.name);
     mix(input.userKey ?? '');
@@ -427,6 +439,7 @@ final class ResolvedObservePlan {
     }
     final input = ObserveSamplingInput(
       routeId: routeId,
+      stableRouteId: routeId,
       controllerType: controllerType,
       method: method,
       userKey: userKeyExtractor?.call(ObserveUserKeyInput(requestContext)),
@@ -706,7 +719,7 @@ class _ActiveObserveHandle implements ObserveHandle {
   final Stopwatch _stopwatch;
 
   bool _shouldCapture(String name, ObservePhase? phase) {
-    if (phase != null && _phases.isNotEmpty && !_phases.contains(phase)) {
+    if (_phases.isNotEmpty && (phase == null || !_phases.contains(phase))) {
       return false;
     }
     if (_stepNames.isNotEmpty && !_stepNames.contains(name)) {
