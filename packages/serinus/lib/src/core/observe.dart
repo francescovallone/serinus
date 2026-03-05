@@ -457,22 +457,8 @@ final class ResolvedObservePlan {
     if (tracer != null) {
       return tracer!.activate(activateInput);
     }
-    // Built-in default when no tracer is provided.
-    final traceStartedAtMicros = DateTime.now().microsecondsSinceEpoch;
-    final trace = RequestTrace(
-      id: TraceId.fromTimestampMicros(traceStartedAtMicros),
-      startedAtMicros: traceStartedAtMicros,
-      routeId: routeId,
-      path: requestContext.path,
-      controllerType: controllerType,
-      method: method,
-    );
-    return _ActiveObserveHandle(
-      trace: trace,
-      phases: phases,
-      stepNames: stepNames,
-      stopwatch: Stopwatch()..start(),
-    );
+    // Built-in default when no custom tracer is provided.
+    return const DefaultObserveTracer().activate(activateInput);
   }
 }
 

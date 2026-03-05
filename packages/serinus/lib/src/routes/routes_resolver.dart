@@ -339,8 +339,6 @@ class RoutesResolver {
     return _handleMissingRoute(
       request,
       response,
-      routeId: '::not_found',
-      controllerType: Object,
       exceptionFactory: (wrappedRequest) =>
           _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??
           NotFoundException(
@@ -353,8 +351,6 @@ class RoutesResolver {
   Future<void> _handleMissingRoute(
     IncomingMessage request,
     OutgoingMessage response, {
-    required String routeId,
-    required Type controllerType,
     required SerinusException Function(Request wrappedRequest) exceptionFactory,
   }) async {
     final wrappedRequest = Request(request, {});
@@ -432,8 +428,6 @@ class RoutesResolver {
     return _handleMissingRoute(
       request,
       response,
-      routeId: '::method_not_allowed',
-      controllerType: Object,
       exceptionFactory: (_) => MethodNotAllowedException(
         'Method not allowed for ${request.method} ${request.uri}',
         request.uri,
