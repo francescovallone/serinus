@@ -146,7 +146,7 @@ final class ApplicationConfig {
     this.modelProvider,
     this.keepAliveIdleTimeout,
     ObserveConfig? observeConfig,
-  }) : observeConfig = observeConfig ?? const ObserveConfig.disabled() {
+  }) : observeConfig = observeConfig ?? ObserveConfig.disabled() {
     adapters.add(serverAdapter);
   }
 }

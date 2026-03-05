@@ -486,7 +486,7 @@ final class ObserveConfig {
   /// When [tracer] is provided, it takes ownership of handle creation and
   /// flushing. When omitted, a [DefaultObserveTracer] using [sinks] and
   /// [appMetadata] is created automatically.
-  const ObserveConfig({
+  ObserveConfig({
     this.enabled = false,
     this.sampling = const ObserveSampling.always(),
     this.controllers = const {},
@@ -500,7 +500,7 @@ final class ObserveConfig {
   });
 
   /// Disabled configuration for quick checks.
-  const ObserveConfig.disabled() : this(enabled: false);
+  ObserveConfig.disabled() : this(enabled: false);
 
   /// Master enable flag. When false, observability is entirely disabled.
   final bool enabled;
@@ -544,7 +544,7 @@ final class ObserveConfig {
 
   /// The effective tracer — either the user-supplied one or
   /// a [DefaultObserveTracer] built from [sinks]/[appMetadata].
-  ObserveTracer get _effectiveTracer =>
+  late final ObserveTracer _effectiveTracer =
       tracer ?? DefaultObserveTracer(sinks: sinks, appMetadata: appMetadata);
 
   /// Resolves a per-route plan at startup.

@@ -97,7 +97,7 @@ void main() {
         port: _testPort,
         logLevels: {LogLevel.none},
       );
-      app!.observe(const ObserveConfig(enabled: true));
+      app!.observe(ObserveConfig(enabled: true));
       app!.use(RequestHook((_) async {}));
       app!.use(BeforeHook((_) {}));
       app!.use(AfterHook((_, __) {}));
