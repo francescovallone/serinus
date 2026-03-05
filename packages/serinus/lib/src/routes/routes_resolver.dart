@@ -75,18 +75,22 @@ class RoutesResolver {
     );
     final routeObservePlan = _resolveObservePlanForRoute(route, request.method);
     try {
-      await switch(route) {
-        FoundRoute<RouterEntry>(:final values, :final params) => _routeExecutionContext.describe(
+      await switch (route) {
+        FoundRoute<RouterEntry>(:final values, :final params) =>
+          _routeExecutionContext.describe(
             values.first.context,
             request: request,
             response: response,
             params: params,
             observeConfig: _container.config.observeConfig,
-        ),
+          ),
         NotFoundRoute<RouterEntry>() => _notFound(request, response),
-        MethodNotAllowedRoute<RouterEntry>() => _methodNotAllowed(request, response),
+        MethodNotAllowedRoute<RouterEntry>() => _methodNotAllowed(
+          request,
+          response,
+        ),
         _ => _notFound(request, response),
-       };
+      };
       return;
     } on SerinusException catch (e) {
       await _handleException(
@@ -242,12 +246,7 @@ class RoutesResolver {
         }
       }
       final payload = executionContext.response.body ?? exception.toJson();
-      return _emitAndReply(
-        request,
-        response,
-        executionContext,
-        payload,
-      );
+      return _emitAndReply(request, response, executionContext, payload);
     } finally {
       await _container.config.observeConfig.flush(executionContext);
     }
@@ -330,7 +329,7 @@ class RoutesResolver {
       ),
     );
   }
-  
+
   Future<void> _emitAndReply(
     IncomingMessage request,
     OutgoingMessage response,
@@ -350,7 +349,10 @@ class RoutesResolver {
     return _container.applicationRef.reply(
       response,
       request,
-      _routeExecutionContext.processResult(WrappedResponse(payload), executionContext),
+      _routeExecutionContext.processResult(
+        WrappedResponse(payload),
+        executionContext,
+      ),
       executionContext.response,
     );
   }
