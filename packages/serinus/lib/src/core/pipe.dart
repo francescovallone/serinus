@@ -32,8 +32,8 @@ class BodySchemaValidationPipe extends Pipe {
     }
     try {
       final reqContext = context.switchToHttp();
-      final result = schema.parse(reqContext.body);
-      reqContext.body = result.value;
+      final result = schema.parse(argsHost.body);
+      reqContext.replaceRawBody(result.value);
     } on ValidationError catch (e) {
       throw onError?.call(e.key, e) ?? BadRequestException('$e');
     }
@@ -191,15 +191,39 @@ class ParseBoolPipe extends Pipe {
       return;
     }
     if (bindingType == PipeBindingType.params) {
-      final boolValue =
-          argsHost.params[key]?.toString().toLowerCase() == 'true';
+      final boolValue = _parseBool(argsHost.params[key]);
+      if (boolValue == null) {
+        throw onError?.call(key) ??
+            BadRequestException('Invalid parameter: $key');
+      }
       argsHost.params[key] = boolValue;
     }
     if (bindingType == PipeBindingType.query) {
-      final boolValue = argsHost.query[key]?.toString().toLowerCase() == 'true';
+      final boolValue = _parseBool(argsHost.query[key]);
+      if (boolValue == null) {
+        throw onError?.call(key) ??
+            BadRequestException('Invalid query parameter: $key');
+      }
       argsHost.query[key] = boolValue;
     }
   }
+}
+
+bool? _parseBool(Object? value) {
+  if (value is bool) {
+    return value;
+  }
+  if (value == null) {
+    return null;
+  }
+  final normalized = value.toString().trim().toLowerCase();
+  if (normalized == 'true') {
+    return true;
+  }
+  if (normalized == 'false') {
+    return false;
+  }
+  return null;
 }
 
 /// Represents a default value pipe.
