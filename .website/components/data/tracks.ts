@@ -36,7 +36,7 @@ export const roadmapTracks: RoadmapTrack[] = [
     label: "Serinus OpenAPI",
     color: "150 60% 45%",
     items: [
-      { id: "s1", title: "Improve generator robustness", status: "planned", githubIssueUrl: "https://github.com/francescovallone/serinus/issues/222" },
+      { id: "s1", title: "Improve library robustness", status: "done", githubIssueUrl: "https://github.com/francescovallone/serinus/issues/222" },
     ],
   },
   {

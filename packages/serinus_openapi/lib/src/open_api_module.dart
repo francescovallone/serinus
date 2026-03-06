@@ -96,6 +96,10 @@ class OpenApiModule extends Module {
     this.includePaths = const [],
   });
 
+  static Map<String, PathItemObjectV3> _defaultV3Paths() {
+    return {'/': PathItemObjectV3(operations: {})};
+  }
+
   /// Factory method to create an [OpenApiModule] for OpenAPI v2.
   factory OpenApiModule.v2(
     InfoObject info, {
@@ -149,7 +153,7 @@ class OpenApiModule extends Module {
   }) {
     final DocumentV3 document = DocumentV3(
       info: info,
-      paths: {},
+      paths: _defaultV3Paths(),
       components: components,
       externalDocs: externalDocs,
       tags: tags,

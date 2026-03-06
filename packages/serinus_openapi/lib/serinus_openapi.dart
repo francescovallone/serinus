@@ -1,5 +1,6 @@
 export 'package:openapi_types/openapi_types.dart';
 
+export 'src/annotations/annotations.dart';
 export 'src/api_route.dart';
 export 'src/open_api_module.dart';
 export 'src/render/open_api_render_factory.dart';

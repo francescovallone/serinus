@@ -8,19 +8,54 @@ paths:
     get:
       tags:
         - "AppController"
+      operationId: "handleHelloWorld"
       parameters:
         - name: "name"
           in: "query"
           required: false
           schema:
             type: "string"
+        - name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+            format: "int32"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MyObject"
       responses:
         200:
-          description: "Success response"
+          description: "Successful response"
           content:
-            text/plain:
+            application/json:
               schema:
-                type: "string"
+                oneOf:
+                  - $ref: "#/components/schemas/MyObject"
+                  - type: "array"
+                    items:
+                      $ref: "#/components/schemas/MyObject"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                  statusCode:
+                    type: "integer"
+                    format: "int32"
+                  uri:
+                    type: "string"
+                example:
+                  message: "Bad Request!"
+                  statusCode: 400
+                  uri: "No Uri"
   /post/<data>:
     post:
       tags:
@@ -29,52 +64,21 @@ paths:
         - name: "data"
           in: "path"
           required: true
-          schema: {}
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: "object"
-              properties:
-                name:
-                  type: "string"
+              $ref: "#/components/schemas/MyObject"
       responses:
         201:
           description: "Success response"
           content:
             application/json:
               schema:
-                type: "object"
-                properties:
-                  name:
-                    type: "string"
-  /a/:
-    get:
-      tags:
-        - "App2Controller"
-      parameters: []
-      responses:
-        200:
-          description: "Success response"
-          content:
-            text/plain:
-              schema:
-                type: "string"
-  /a/post:
-    post:
-      tags:
-        - "App2Controller"
-      parameters: []
-      requestBody:
-        required: true
-        content:
-          text/plain:
-            schema:
-              type: "string"
-      responses:
-        201:
-          description: "Success response"
+                $ref: "#/components/schemas/MyObject"
+        400:
+          description: "Name cannot be empty"
           content:
             application/json:
               schema:
@@ -82,3 +86,32 @@ paths:
                 properties:
                   message:
                     type: "string"
+                  statusCode:
+                    type: "integer"
+                    format: "int32"
+                  uri:
+                    type: "string"
+                example:
+                  message: "Name cannot be empty"
+                  statusCode: 400
+                  uri: "No Uri"
+  /a/post:
+    post:
+      tags:
+        - "App2Controller"
+      operationId: "createAPost"
+      parameters: []
+      responses:
+        201:
+          description: "Success response"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+components:
+  schemas:
+    MyObject:
+      type: "object"
+      properties:
+        name:
+          type: "string"

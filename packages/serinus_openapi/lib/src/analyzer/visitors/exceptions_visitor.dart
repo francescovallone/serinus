@@ -6,7 +6,9 @@ import 'package:serinus/serinus.dart';
 import '../analyzer.dart';
 import '../models.dart';
 
-final _exceptionsMap = {
+/// Public map of built-in Serinus exception class names to their
+/// default HTTP status code and default example JSON body.
+final builtInExceptionsMap = {
   'BadRequestException': (400, BadRequestException().toJson()),
   'UnauthorizedException': (401, UnauthorizedException().toJson()),
   'ForbiddenException': (403, ForbiddenException().toJson()),
@@ -68,44 +70,42 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     if (!_isSerinusExceptionType(staticType)) {
       return null;
     }
-    final name = staticType.getDisplayString();
-    if (_exceptionsMap.containsKey(name)) {
-      final (statusCode, example) = _exceptionsMap[name]!;
-      final message = _inferExceptionMessage(
-        expression,
-        staticType,
-        null,
-        null,
-      );
+    final name = staticType.element.displayName;
+    if (builtInExceptionsMap.containsKey(name)) {
+      final (statusCode, example) = builtInExceptionsMap[name]!;
+      final message =
+          _inferExceptionMessage(
+            expression,
+            staticType,
+            null,
+            null,
+          ) ??
+          example['message']?.toString();
       return ExceptionResponse(
         statusCode: statusCode,
         message: message,
         typeName: name,
-        example: {
-          'statusCode': statusCode,
-          'message': message ?? example['message'],
-        },
+        example: _buildBuiltInExceptionExample(example, statusCode, message),
       );
     }
     final superTypes = staticType.allSupertypes;
     for (final superType in superTypes) {
-      final superName = superType.getDisplayString();
-      if (_exceptionsMap.containsKey(superName)) {
-        final (statusCode, example) = _exceptionsMap[superName]!;
-        final message = _inferExceptionMessage(
-          expression,
-          staticType,
-          null,
-          null,
-        );
+      final superName = superType.element.displayName;
+      if (builtInExceptionsMap.containsKey(superName)) {
+        final (statusCode, example) = builtInExceptionsMap[superName]!;
+        final message =
+            _inferExceptionMessage(
+              expression,
+              staticType,
+              null,
+              null,
+            ) ??
+            example['message']?.toString();
         return ExceptionResponse(
           statusCode: statusCode,
           message: message,
           typeName: name,
-          example: {
-            'statusCode': statusCode,
-            'message': message ?? example['message'],
-          },
+          example: _buildBuiltInExceptionExample(example, statusCode, message),
         );
       }
     }
@@ -132,6 +132,18 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
       typeName: name,
       example: {'statusCode': statusCode, 'message': message},
     );
+  }
+
+  Map<String, dynamic> _buildBuiltInExceptionExample(
+    Map<String, dynamic> defaultExample,
+    int statusCode,
+    String? message,
+  ) {
+    return {
+      ...defaultExample,
+      'statusCode': statusCode,
+      if (message != null) 'message': message,
+    };
   }
 
   bool _isSerinusExceptionType(InterfaceType type) {
