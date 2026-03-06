@@ -149,30 +149,34 @@ class RoutesResolver {
     OutgoingMessage response, {
     Map<String, dynamic>? routeParams,
     ResolvedObservePlan observePlan = const ResolvedObservePlan.disabled(),
+    ExecutionContext? existingExecutionContext,
   }) async {
-    final wrappedRequest = Request(request, routeParams ?? {});
-    final providers = {
-      for (var provider in _container.modulesContainer.globalProviders)
-        provider.runtimeType: provider,
-    };
-    final values = _container.modulesContainer.globalValueProviders;
-    final executionContext = ExecutionContext(
-      HostType.http,
-      providers,
-      values,
-      _container.config.globalHooks.services,
-      HttpArgumentsHost(wrappedRequest),
-    );
-    final requestContext = await RequestContext.create<dynamic>(
-      request: wrappedRequest,
-      providers: providers,
-      values: values,
-      hooksServices: _container.config.globalHooks.services,
-      modelProvider: _container.config.modelProvider,
-      rawBody: _container.applicationRef.rawBody,
-    );
-    executionContext.attachHttpContext(requestContext);
-    final observeHandle = observePlan.activate(requestContext);
+    final executionContext =
+        existingExecutionContext ??
+        ExecutionContext(
+          HostType.http,
+          {
+            for (var provider in _container.modulesContainer.globalProviders)
+              provider.runtimeType: provider,
+          },
+          _container.modulesContainer.globalValueProviders,
+          _container.config.globalHooks.services,
+          HttpArgumentsHost(Request(request, routeParams ?? {})),
+        );
+    final requestContext =
+        existingExecutionContext?.switchToHttp() ??
+        await RequestContext.create<dynamic>(
+          request: Request(request, routeParams ?? {}),
+          providers: executionContext.providers,
+          values: executionContext.values,
+          hooksServices: executionContext.hooksServices,
+          modelProvider: _container.config.modelProvider,
+          rawBody: _container.applicationRef.rawBody,
+        );
+    if (existingExecutionContext == null) {
+      executionContext.attachHttpContext(requestContext);
+    }
+    final observeHandle = executionContext.observe ?? observePlan.activate(requestContext);
     executionContext.observe = observeHandle;
     requestContext.observe = observeHandle;
     try {
@@ -260,6 +264,11 @@ class RoutesResolver {
     return _handleMissingRoute(
       request,
       response,
+      observePlan: _container.config.observeConfig.resolveForRoute(
+        routeId: '::not_found',
+        controllerType: Object,
+        method: HttpMethod.parse(request.method),
+      ),
       exceptionFactory: (wrappedRequest) =>
           _container.applicationRef.notFoundHandler?.call(wrappedRequest) ??
           NotFoundException(
@@ -273,6 +282,7 @@ class RoutesResolver {
     IncomingMessage request,
     OutgoingMessage response, {
     required SerinusException Function(Request wrappedRequest) exceptionFactory,
+    ResolvedObservePlan observePlan = const ResolvedObservePlan.disabled(),
   }) async {
     final wrappedRequest = Request(request, {});
     final reqHooks = _container.config.globalHooks.reqHooks;
@@ -293,26 +303,50 @@ class RoutesResolver {
       rawBody: _container.applicationRef.rawBody,
     );
     executionContext.attachHttpContext(requestContext);
-    for (final hook in reqHooks) {
-      await hook.onRequest(executionContext);
-      if (executionContext.response.body != null) {
-        return _emitAndReply(
-          request,
-          response,
-          executionContext,
-          executionContext.response.body,
-        );
+    final observeHandle = observePlan.activate(requestContext);
+    executionContext.observe = observeHandle;
+    requestContext.observe = observeHandle;
+    var delegatedExceptionHandling = false;
+    try {
+      for (final hook in reqHooks) {
+        if (observeHandle != null) {
+          await observeHandle.stepAsync('request_hook', (_) async {
+            await hook.onRequest(executionContext);
+          });
+        } else {
+          await hook.onRequest(executionContext);
+        }
+        if (executionContext.response.body != null) {
+          return _emitAndReply(
+            request,
+            response,
+            executionContext,
+            executionContext.response.body,
+          );
+        }
+        if (executionContext.response.closed) {
+          return _emitAndReply(
+            request,
+            response,
+            executionContext,
+            executionContext.response.body,
+          );
+        }
       }
-      if (executionContext.response.closed) {
-        return _emitAndReply(
-          request,
-          response,
-          executionContext,
-          executionContext.response.body,
-        );
+      throw exceptionFactory(wrappedRequest);
+    } on SerinusException catch (e) {
+      delegatedExceptionHandling = true;
+      return _handleException(
+        e,
+        request,
+        response,
+        existingExecutionContext: executionContext,
+      );
+    } finally {
+      if (!delegatedExceptionHandling) {
+        await _container.config.observeConfig.flush(executionContext);
       }
     }
-    throw exceptionFactory(wrappedRequest);
   }
 
   Future<void> _methodNotAllowed(
@@ -323,6 +357,11 @@ class RoutesResolver {
     return _handleMissingRoute(
       request,
       response,
+      observePlan: _container.config.observeConfig.resolveForRoute(
+        routeId: '::method_not_allowed',
+        controllerType: Object,
+        method: HttpMethod.parse(request.method),
+      ),
       exceptionFactory: (_) => MethodNotAllowedException(
         'Method not allowed for ${request.method} ${request.uri}',
         request.uri,

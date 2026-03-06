@@ -62,6 +62,7 @@ void main() {
         logLevels: {LogLevel.none},
       );
       app.observe(ObserveConfig(enabled: true, sinks: [sink]));
+      app.use(RequestHook((_) async {}));
       await app.serve();
     });
 
@@ -116,6 +117,10 @@ void main() {
       final notFoundTraces = sink.traces['::not_found'];
       expect(notFoundTraces, isNotNull);
       expect(notFoundTraces, hasLength(1));
+      expect(
+        notFoundTraces!.single.steps.any((step) => step.name == 'request_hook'),
+        isTrue,
+      );
     });
 
     test('flushes trace to sink on 405 method not allowed', () async {
@@ -131,6 +136,10 @@ void main() {
       final traces = sink.traces['::method_not_allowed'];
       expect(traces, isNotNull);
       expect(traces, hasLength(1));
+      expect(
+        traces!.single.steps.any((step) => step.name == 'request_hook'),
+        isTrue,
+      );
     });
   });
 }
