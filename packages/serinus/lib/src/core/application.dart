@@ -110,7 +110,10 @@ abstract class Application {
         } catch (e) {
           // Log the error but continue with exit to ensure process terminates
           try {
-            logger.severe('Error during shutdown', OptionalParameters(error: e));
+            logger.severe(
+              'Error during shutdown',
+              OptionalParameters(error: e),
+            );
           } catch (_) {
             // If logging fails, silently continue
           }
@@ -144,6 +147,13 @@ abstract class Application {
         }
       }
     }
+  }
+
+  /// [observe] allows to set up application-wide observability using the provided [ObserveConfig].
+  /// This includes enabling tracing, metrics, and logging for all requests and operations within the application.
+  /// By configuring this method, developers can gain insights into the application's performance, identify bottlenecks, and monitor the health of the application in real-time.
+  void observe(ObserveConfig config) {
+    this.config.observeConfig = config;
   }
 
   /// The [shutdown] method is used to shutdown the application.
@@ -245,7 +255,6 @@ class MicroserviceApplication extends Application {
 
 /// The [SerinusApplication] class is used to create a new instance of the [Application] class.
 class SerinusApplication extends Application {
-
   @override
   final logger = Logger('SerinusApplication');
 

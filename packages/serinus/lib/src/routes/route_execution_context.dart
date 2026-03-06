@@ -52,6 +52,7 @@ class RouteExecutionContext {
     required Map<String, dynamic> params,
     ErrorHandler? errorHandler,
     bool rawBody = false,
+    ObserveConfig? observeConfig,
   }) async {
     ExecutionContext? executionContext;
     try {
@@ -78,10 +79,23 @@ class RouteExecutionContext {
         rawBody: rawBody,
       );
       executionContext.attachHttpContext(requestContext);
+      final observeHandle = context.observePlan.activate(requestContext);
+      executionContext.observe = observeHandle;
+      requestContext.observe = observeHandle;
+      observeHandle?.step<void>(
+        'route.${context.id}',
+        (_) {},
+        phase: ObservePhase.routing,
+      );
 
       for (int i = 0; i < context.reqHooks.length; i++) {
         final hook = context.reqHooks[i];
-        await hook.onRequest(executionContext);
+        await _observeAsync<void>(
+          executionContext,
+          name: 'requestHook.${hook.runtimeType}',
+          phase: ObservePhase.requestHook,
+          body: () => hook.onRequest(executionContext!),
+        );
         if (executionContext.response.body != null) {
           await _responseController.sendResponse(
             response,
@@ -113,7 +127,13 @@ class RouteExecutionContext {
       }
       if (context.pipes.isNotEmpty) {
         for (int i = 0; i < context.pipes.length; i++) {
-          await context.pipes[i].transform(executionContext);
+          final pipe = context.pipes[i];
+          await _observeAsync(
+            executionContext,
+            name: 'pipe.${pipe.runtimeType}',
+            phase: ObservePhase.pipe,
+            body: () => pipe.transform(executionContext!),
+          );
         }
       }
       final middlewares =
@@ -167,7 +187,12 @@ class RouteExecutionContext {
       }
       await _executeBeforeHandle(executionContext, context);
       final handler = spec.handler;
-      final handlerResult = await handler.call(requestContext);
+      final handlerResult = await _observeAsync(
+        executionContext,
+        name: 'handler.${context.id}',
+        phase: ObservePhase.handle,
+        body: () => handler.call(requestContext),
+      );
       final responseData = WrappedResponse(handlerResult);
       await _executeAfterHandle(executionContext, context, responseData);
       await _executeOnResponse(context, executionContext, responseData);
@@ -254,6 +279,7 @@ class RouteExecutionContext {
       executionContext.response.contentType ??= jsonContentType;
       final result = await _executeOnException(executionContext, context, e);
       if (result != null) {
+        await _executeOnResponse(context, executionContext, result);
         await _responseController.sendResponse(
           response,
           request,
@@ -284,6 +310,10 @@ class RouteExecutionContext {
           viewEngine: viewEngine,
         );
       }
+    } finally {
+      if (executionContext != null && observeConfig != null) {
+        await observeConfig.flush(executionContext);
+      }
     }
   }
 
@@ -296,7 +326,12 @@ class RouteExecutionContext {
       final filter = context.exceptionFilters.elementAt(i);
       if (filter.catchTargets.contains(exception.runtimeType) ||
           filter.catchTargets.isEmpty) {
-        await filter.onException(executionContext, exception);
+        await _observeAsync<void>(
+          executionContext,
+          name: 'exception.${filter.runtimeType}',
+          phase: ObservePhase.exception,
+          body: () => filter.onException(executionContext, exception),
+        );
         if (executionContext.response.body != null) {
           return WrappedResponse(executionContext.response.body);
         }
@@ -317,7 +352,13 @@ class RouteExecutionContext {
       return;
     }
     for (int i = 0; i < context.afterHooks.length; i++) {
-      await context.afterHooks[i].afterHandle(executionContext, response);
+      final hook = context.afterHooks[i];
+      await _observeAsync<void>(
+        executionContext,
+        name: 'afterHandle.${hook.runtimeType}',
+        phase: ObservePhase.afterHandle,
+        body: () => hook.afterHandle(executionContext, response),
+      );
     }
   }
 
@@ -329,7 +370,13 @@ class RouteExecutionContext {
       return;
     }
     for (int i = 0; i < context.beforeHooks.length; i++) {
-      await context.beforeHooks[i].beforeHandle(executionContext);
+      final hook = context.beforeHooks[i];
+      await _observeAsync<void>(
+        executionContext,
+        name: 'beforeHandle.${hook.runtimeType}',
+        phase: ObservePhase.beforeHandle,
+        body: () => hook.beforeHandle(executionContext),
+      );
     }
   }
 
@@ -384,7 +431,26 @@ class RouteExecutionContext {
       return;
     }
     for (int i = 0; i < context.resHooks.length; i++) {
-      await context.resHooks[i].onResponse(executionContext, responseData);
+      final hook = context.resHooks[i];
+      await _observeAsync<void>(
+        executionContext,
+        name: 'response.${hook.runtimeType}',
+        phase: ObservePhase.response,
+        body: () => hook.onResponse(executionContext, responseData),
+      );
     }
+  }
+
+  Future<T> _observeAsync<T>(
+    ExecutionContext executionContext, {
+    required String name,
+    required ObservePhase phase,
+    required Future<T> Function() body,
+  }) async {
+    final observe = executionContext.observe;
+    if (observe == null) {
+      return body();
+    }
+    return observe.stepAsync(name, (_) => body(), phase: phase);
   }
 }

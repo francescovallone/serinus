@@ -129,9 +129,11 @@ void main(List<String> arguments) async {
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );
-  application.provide(TestProvider());
-  application.get('/', (RequestContext context) async {
-    return context.use<TestProvider>().counter;
-  });
+  application.get('/', (context) async => 'Hello, Serinus!');
+  application.enableShutdownHooks();
+  application.observe(
+    ObserveConfig(enabled: true, sinks: [LoggerObserveSink()]),
+  );
+  // application.trace(ServerTimingTracer());
   await application.serve();
 }

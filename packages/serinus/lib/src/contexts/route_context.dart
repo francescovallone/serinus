@@ -41,6 +41,9 @@ class RouteContext<T extends RouteHandlerSpec> {
   /// The [moduleScope] is used to store the scope of the module.
   final ModuleScope moduleScope;
 
+  /// Pre-resolved observe plan for this route.
+  final ResolvedObservePlan observePlan;
+
   /// The [providers] property contains the providers of the module.
   late final Map<Type, Provider> providers = {
     for (var provider in moduleScope.unifiedProviders)
@@ -125,6 +128,7 @@ class RouteContext<T extends RouteHandlerSpec> {
     this.queryParameters = const {},
     this.hooksServices = const {},
     this.exceptionFilters = const {},
+    this.observePlan = const ResolvedObservePlan.disabled(),
   });
 
   /// Initializes the metadata for the route context.

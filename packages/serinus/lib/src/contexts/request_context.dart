@@ -194,6 +194,9 @@ class RequestContext<TBody> extends BaseContext {
   /// Response context for manipulating the outgoing response.
   late ResponseContext response;
 
+  /// Optional observe handle; null when observability is disabled or not sampled.
+  ObserveHandle? observe;
+
   /// Shortcut to access the response context.
   ResponseContext get res => response;
 

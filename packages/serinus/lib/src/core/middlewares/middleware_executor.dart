@@ -23,7 +23,16 @@ class MiddlewareExecutor {
     try {
       for (int i = 0; i < length; i++) {
         final middleware = middlewares.elementAt(i);
-        await middleware.use(context, delegate.call);
+        final observe = context.observe;
+        if (observe != null) {
+          await observe.stepAsync(
+            'middleware.${middleware.runtimeType}',
+            (_) => middleware.use(context, delegate.call),
+            phase: ObservePhase.middleware,
+          );
+        } else {
+          await middleware.use(context, delegate.call);
+        }
         if (delegate.completed) {
           if (delegate.response != null) {
             await onDataReceived(delegate.response!);
