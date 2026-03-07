@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
+import 'package:serinus/src/core/minimal/minimal_application.dart';
 import 'package:test/test.dart';
 
 class _TrackingAdapter
@@ -82,45 +83,63 @@ class TestModule extends Module {
   TestModule({super.imports = const [], super.providers = const []});
 }
 
+class TestProvider extends Provider {
+  TestProvider();
+}
+
+class InvalidEntrypointModule extends Module {
+  InvalidEntrypointModule()
+    : super(providers: [TestProvider()], exports: [TestProvider]);
+}
+
 void main() {
   group('$SerinusApplication', () {
     test(
-      'useAdapter should replace the primary adapter before initialization',
+      'constructor adapter should replace the primary adapter before initialization',
       () async {
         final defaultAdapter = _TrackingAdapter();
         final config = ApplicationConfig(serverAdapter: defaultAdapter);
-        await defaultAdapter.init(config);
+        final customAdapter = _TrackingAdapter(name: 'custom', port: 4000);
         final app = SerinusApplication(
           entrypoint: TestModule(),
           levels: {LogLevel.none},
           config: config,
+          adapter: customAdapter,
         );
-
-        final customAdapter = _TrackingAdapter(name: 'custom', port: 4000);
-
-        await app.useAdapter(customAdapter);
 
         expect(app.server, same(customAdapter));
         expect(config.serverAdapter, same(customAdapter));
         expect(config.adapters.get<HttpAdapter>('http'), same(customAdapter));
-        expect(defaultAdapter.closeCalls, 1);
-        expect(customAdapter.initialized, true);
+        expect(defaultAdapter.closeCalls, 0);
       },
     );
 
-    test('useAdapter should throw after initialization', () async {
+    test(
+      'config.serverAdapter should throw after application construction',
+      () {
+        final app = SerinusApplication(
+          entrypoint: TestModule(),
+          levels: {LogLevel.none},
+          config: ApplicationConfig(serverAdapter: _TrackingAdapter()),
+        );
+
+        expect(
+          () => app.config.serverAdapter = _TrackingAdapter(name: 'custom'),
+          throwsA(isA<StateError>()),
+        );
+      },
+    );
+
+    test('failed initialize should not mark the application as initialized', () async {
       final app = SerinusApplication(
-        entrypoint: TestModule(),
+        entrypoint: InvalidEntrypointModule(),
         levels: {LogLevel.none},
         config: ApplicationConfig(serverAdapter: _TrackingAdapter()),
       );
 
-      await app.initialize();
+      await expectLater(app.initialize(), throwsA(isA<InitializationError>()));
 
-      await expectLater(
-        app.useAdapter(_TrackingAdapter(name: 'custom')),
-        throwsA(isA<StateError>()),
-      );
+      expect(app.isInitialized, false);
     });
 
     test('close should close the active adapter once', () async {
@@ -160,7 +179,25 @@ void main() {
     });
 
     test(
-      'createMinimalApplication should use the provided adapter and support replacement',
+      'minimal application constructor should use the provided adapter',
+      () {
+        final defaultAdapter = _TrackingAdapter();
+        final customAdapter = _TrackingAdapter(name: 'custom');
+
+        final app = SerinusMinimalApplication(
+          config: ApplicationConfig(serverAdapter: defaultAdapter),
+          adapter: customAdapter,
+          levels: {LogLevel.none},
+        );
+
+        expect(app.server, same(customAdapter));
+        expect(app.config.serverAdapter, same(customAdapter));
+        expect(app.config.adapters.get<HttpAdapter>('http'), same(customAdapter));
+      },
+    );
+
+    test(
+      'createMinimalApplication should use the provided adapter',
       () async {
         final adapter = _TrackingAdapter(name: 'custom');
 
@@ -172,18 +209,9 @@ void main() {
         expect(app.server, same(adapter));
         expect(app.config.adapters.get<HttpAdapter>('http'), same(adapter));
 
-        final replacement = _TrackingAdapter(name: 'replacement', port: 4001);
-        await app.useAdapter(replacement);
-
-        expect(app.server, same(replacement));
-        expect(app.config.serverAdapter, same(replacement));
-        expect(app.config.adapters.get<HttpAdapter>('http'), same(replacement));
-        expect(adapter.closeCalls, 1);
-        expect(replacement.initialized, true);
-
         await app.close();
 
-        expect(replacement.closeCalls, 1);
+        expect(adapter.closeCalls, 1);
       },
     );
   });

@@ -32,6 +32,9 @@ class AdapterContainer {
 
   /// Replaces an existing adapter in the container.
   void replace(String key, Adapter adapter) {
+    if (!_adapters.containsKey(key)) {
+      throw StateError('Adapter with name $key does not exist.');
+    }
     _adapters[key] = adapter;
   }
 

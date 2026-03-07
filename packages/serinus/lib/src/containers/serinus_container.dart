@@ -26,6 +26,7 @@ class SerinusContainer {
   SerinusContainer(this.config, this.applicationRef) {
     modulesContainer = ModulesContainer(config);
     config.modulesContainer = modulesContainer;
+    config.attachToApplication();
     inspector = GraphInspector(SerializedGraph(), modulesContainer);
   }
 
