@@ -2,6 +2,7 @@
 import Ecosystem from './ecosystem.vue'
 import Hero from './hero.vue'
 import Features from './features.vue'
+import AISection from './ai_section.vue'
 import CommunitySection from './community_section.vue'
 </script>
 
@@ -11,6 +12,7 @@ import CommunitySection from './community_section.vue'
 			<slot name="start"></slot>
 		</Hero>
 		<Features />
+		<AISection />
 		<Ecosystem>
 			<template #openapi>
 				<slot name="openapi"></slot>

@@ -58,6 +58,28 @@ Future<void> bootstrap() async {
 
 To create a Serinus Application instance, we use the `serinus` global object to call the `createApplication` method. The `createApplication` method takes an `entrypoint` parameter that is an instance of a `Module` class. In this case, we are passing an instance of the `AppModule` class.
 
+## Solve your agent skill issues
+
+Serinus is designed to be used with agents and the skills that they use. You can get all the skills using the following commands.
+
+First of all let's activate globally the `skills` package.
+
+```bash
+dart pub global activate serinus_skills
+```
+
+Then we can get the skills with the following command.
+
+```bash
+skills get
+```
+
+If you need to get only Serinus skills then you can use the following command.
+
+```bash
+skills get serinus
+```
+
 ## Running the Application
 
 You can now navigate to the project folder and run the following command to start the server.

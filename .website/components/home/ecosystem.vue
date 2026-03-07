@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { plugins } from '../data/ecosystem.ts';
 import dropdown from '../dropdown.vue';
+import { scrollVariants } from '../actions/scroll_variants.ts';
 
 const currentPlugin = ref(plugins[0]);
 
@@ -19,12 +20,12 @@ const changePlugin = (selectedPlugin, event) => {
 <template>
 	<section class="py-32 bg-card/50 relative overflow-hidden grain">
       <div class="absolute top-20 right-10 text-[150px] font-display font-bold text-stroke opacity-5 select-none hidden lg:block">
-        03
+        04
       </div>
 
       <div class="container mx-auto px-6">
         <motion.div
-          variants={scrollVariants.fadeUp}
+          :variants="scrollVariants.fadeUp"
           initial="hidden"
           whileInView="visible"
           :inViewOptions="{ once: true, amount: 0.3 }"

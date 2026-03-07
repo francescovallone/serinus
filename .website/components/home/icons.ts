@@ -396,6 +396,42 @@ const CheckIcon = defineComponent({
 	])
 });
 
+const BrainIcon = defineComponent({
+	name: 'BrainIcon',
+	setup: () => () => h('svg', {
+		viewBox: '0 0 24 24',
+		fill: 'none',
+		stroke: 'currentColor',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
+		class: 'w-5 h-5'
+	}, [
+		h('path', { d: 'M12 18V5m3 8a4.17 4.17 0 0 1-3-4a4.17 4.17 0 0 1-3 4m8.598-6.5A3 3 0 1 0 12 5a3 3 0 1 0-5.598 1.5' }),
+		h('path', { d: 'M17.997 5.125a4 4 0 0 1 2.526 5.77' }),
+		h('path', { d: 'M18 18a4 4 0 0 0 2-7.464' }),
+		h('path', { d: 'M19.967 17.483A4 4 0 1 1 12 18a4 4 0 1 1-7.967-.517' }),
+		h('path', { d: 'M6 18a4 4 0 0 1-2-7.464' }),
+		h('path', { d: 'M6.003 5.125a4 4 0 0 0-2.526 5.77' })
+	])
+});
+
+const StarIcon = defineComponent({
+	name: 'StarIcon',
+	setup: () => () => h('svg', {
+		viewBox: '0 0 24 24',
+		fill: 'none',
+		stroke: 'currentColor',
+		'stroke-width': '2',
+		'stroke-linecap': 'round',
+		'stroke-linejoin': 'round',
+		class: 'w-5 h-5'
+	}, [
+		h('path', { d: 'M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22L7 14.14l-5-4.87l6.91-1L12 2z' }),
+		h('circle', { cx: '4', cy: '20', r: '2' })
+	])
+});
+
 export {
 	ShieldIcon,
 	LightningIcon,
@@ -423,5 +459,7 @@ export {
 	CheckIcon,
 	DiscordIcon,
 	ChevronRight,
-	HeartIcon
+	HeartIcon,
+	BrainIcon,
+	StarIcon
 }
