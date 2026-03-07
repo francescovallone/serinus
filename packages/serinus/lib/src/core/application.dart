@@ -28,7 +28,8 @@ abstract class Application {
     if (adapter.viewEngine == null && currentAdapter.viewEngine != null) {
       adapter.viewEngine = currentAdapter.viewEngine;
     }
-    if (adapter.notFoundHandler == null && currentAdapter.notFoundHandler != null) {
+    if (adapter.notFoundHandler == null &&
+        currentAdapter.notFoundHandler != null) {
       adapter.notFoundHandler = currentAdapter.notFoundHandler;
     }
     if (!adapter.rawBody && currentAdapter.rawBody) {

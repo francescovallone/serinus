@@ -130,17 +130,23 @@ void main() {
       },
     );
 
-    test('failed initialize should not mark the application as initialized', () async {
-      final app = SerinusApplication(
-        entrypoint: InvalidEntrypointModule(),
-        levels: {LogLevel.none},
-        config: ApplicationConfig(serverAdapter: _TrackingAdapter()),
-      );
+    test(
+      'failed initialize should not mark the application as initialized',
+      () async {
+        final app = SerinusApplication(
+          entrypoint: InvalidEntrypointModule(),
+          levels: {LogLevel.none},
+          config: ApplicationConfig(serverAdapter: _TrackingAdapter()),
+        );
 
-      await expectLater(app.initialize(), throwsA(isA<InitializationError>()));
+        await expectLater(
+          app.initialize(),
+          throwsA(isA<InitializationError>()),
+        );
 
-      expect(app.isInitialized, false);
-    });
+        expect(app.isInitialized, false);
+      },
+    );
 
     test('close should close the active adapter once', () async {
       final adapter = _TrackingAdapter();
@@ -178,41 +184,35 @@ void main() {
       expect(adapter.closeCalls, 1);
     });
 
-    test(
-      'minimal application constructor should use the provided adapter',
-      () {
-        final defaultAdapter = _TrackingAdapter();
-        final customAdapter = _TrackingAdapter(name: 'custom');
+    test('minimal application constructor should use the provided adapter', () {
+      final defaultAdapter = _TrackingAdapter();
+      final customAdapter = _TrackingAdapter(name: 'custom');
 
-        final app = SerinusMinimalApplication(
-          config: ApplicationConfig(serverAdapter: defaultAdapter),
-          adapter: customAdapter,
-          levels: {LogLevel.none},
-        );
+      final app = SerinusMinimalApplication(
+        config: ApplicationConfig(serverAdapter: defaultAdapter),
+        adapter: customAdapter,
+        levels: {LogLevel.none},
+      );
 
-        expect(app.server, same(customAdapter));
-        expect(app.config.serverAdapter, same(customAdapter));
-        expect(app.config.adapters.get<HttpAdapter>('http'), same(customAdapter));
-      },
-    );
+      expect(app.server, same(customAdapter));
+      expect(app.config.serverAdapter, same(customAdapter));
+      expect(app.config.adapters.get<HttpAdapter>('http'), same(customAdapter));
+    });
 
-    test(
-      'createMinimalApplication should use the provided adapter',
-      () async {
-        final adapter = _TrackingAdapter(name: 'custom');
+    test('createMinimalApplication should use the provided adapter', () async {
+      final adapter = _TrackingAdapter(name: 'custom');
 
-        final app = await serinus.createMinimalApplication(
-          logLevels: {LogLevel.none},
-          adapter: adapter,
-        );
+      final app = await serinus.createMinimalApplication(
+        logLevels: {LogLevel.none},
+        adapter: adapter,
+      );
 
-        expect(app.server, same(adapter));
-        expect(app.config.adapters.get<HttpAdapter>('http'), same(adapter));
+      expect(app.server, same(adapter));
+      expect(app.config.adapters.get<HttpAdapter>('http'), same(adapter));
 
-        await app.close();
+      await app.close();
 
-        expect(adapter.closeCalls, 1);
-      },
-    );
+      expect(adapter.closeCalls, 1);
+    });
   });
 }
