@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.5
+
+**Released on:** 07-03-2026
+
+### Features
+
+- Add skills references for real-time features, modules/controllers/routes, providers/DI, and request pipeline security features. These reference documents compile key points and example patterns from the Serinus documentation to provide a quick guide for developers implementing these features in their applications. The references cover WebSockets, SSE, module composition, controller routing, provider patterns, CORS, CSRF, rate limiting, and body size limits.
+
 ## 2.1.4
 
 **Released on:** 01-03-2026
