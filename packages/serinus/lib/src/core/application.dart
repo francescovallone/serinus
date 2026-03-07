@@ -70,6 +70,32 @@ abstract class Application {
 
   bool _isInitialized = false;
 
+  /// Whether the application has already been initialized.
+  bool get isInitialized => _isInitialized;
+
+  @protected
+  Future<void> replaceHttpAdapter(HttpAdapter adapter) async {
+    if (_isInitialized) {
+      throw StateError(
+        'The HTTP adapter can only be changed before the application is initialized.',
+      );
+    }
+    if (identical(config.serverAdapter, adapter)) {
+      return;
+    }
+    final currentAdapter = config.serverAdapter;
+    final currentViewEngine = currentAdapter.viewEngine;
+    if (currentAdapter.isOpen) {
+      await currentAdapter.close();
+    }
+    if (adapter.viewEngine == null && currentViewEngine != null) {
+      adapter.viewEngine = currentViewEngine;
+    }
+    config.serverAdapter = adapter;
+    _container.applicationRef = adapter;
+    await adapter.init(config);
+  }
+
   /// The [initialize] method initializes the application and instructs the container to initialize the modules and their dependencies.
   Future<void> initialize() async {
     try {
@@ -208,7 +234,6 @@ class MicroserviceApplication extends Application {
     for (final microservice in config.microservices) {
       await microservice.close();
     }
-    await config.serverAdapter.close();
     await shutdown();
   }
 
@@ -267,6 +292,11 @@ class SerinusApplication extends Application {
     _container.applicationRef.viewEngine = viewEngine;
   }
 
+  /// Replaces the primary HTTP adapter before the application is initialized.
+  Future<void> useAdapter(HttpAdapter adapter) {
+    return replaceHttpAdapter(adapter);
+  }
+
   /// The [versioning] setter is used to enable versioning.
   set versioning(VersioningOptions options) {
     _container.config.versioningOptions = options;
@@ -320,7 +350,6 @@ class SerinusApplication extends Application {
     for (final microservice in config.microservices) {
       await microservice.close();
     }
-    await config.serverAdapter.close();
     await shutdown();
   }
 

@@ -5,8 +5,10 @@ import '../adapters/adapters.dart';
 class AdapterContainer {
   final Map<String, Adapter> _adapters = {};
 
+  static const String primaryHttpAdapterKey = 'http';
+
   /// Adds an adapter to the container.
-  Iterable<Adapter> get values => _adapters.values;
+  Iterable<Adapter> get values => _adapters.values.toSet();
 
   /// Checks if the container is empty.
   bool get isEmpty => _adapters.isEmpty;
@@ -16,10 +18,20 @@ class AdapterContainer {
 
   /// Adds an adapter to the container.
   void add(Adapter adapter) {
-    if (_adapters.containsKey(adapter.name)) {
-      throw StateError('Adapter with name ${adapter.name} already exists.');
+    addAs(adapter.name, adapter);
+  }
+
+  /// Adds an adapter to the container using a custom lookup key.
+  void addAs(String key, Adapter adapter) {
+    if (_adapters.containsKey(key)) {
+      throw StateError('Adapter with name $key already exists.');
     }
-    _adapters[adapter.name] = adapter;
+    _adapters[key] = adapter;
+  }
+
+  /// Replaces an existing adapter in the container.
+  void replace(String key, Adapter adapter) {
+    _adapters[key] = adapter;
   }
 
   /// Retrieves an adapter by its name.

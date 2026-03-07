@@ -33,7 +33,7 @@ class SerinusContainer {
   bool get isInitialized => modulesContainer.isInitialized;
 
   /// The [applicationRef] is the reference to the application default http adapter.
-  final HttpAdapter applicationRef;
+  HttpAdapter applicationRef;
 
   /// The [emitHook] method is used to emit a hook to the modules container.
   /// It takes a generic type [T] that extends [Provider] and emits the hook

@@ -33,26 +33,30 @@ final class SerinusFactory {
     bool rawBody = false,
     NotFoundHandler? notFoundHandler,
     int bodySizeLimit = kDefaultMaxBodySize,
+    HttpAdapter? adapter,
   }) async {
     final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
     final serverHost = Platform.environment['HOST'] ?? host;
-    final server = SerinusHttpAdapter(
-      host: serverHost,
-      port: serverPort,
-      poweredByHeader: poweredByHeader,
-      securityContext: securityContext,
-      enableCompression: enableCompression,
-      rawBody: rawBody,
-      notFoundHandler: notFoundHandler,
-    );
+    final server =
+        adapter ??
+        SerinusHttpAdapter(
+          host: serverHost,
+          port: serverPort,
+          poweredByHeader: poweredByHeader,
+          securityContext: securityContext,
+          enableCompression: enableCompression,
+          rawBody: rawBody,
+          notFoundHandler: notFoundHandler,
+        );
     IncomingMessage.maxBodySize = bodySizeLimit;
-    await server.init();
+    final config = ApplicationConfig(
+      serverAdapter: server,
+      modelProvider: modelProvider,
+    );
+    await server.init(config);
     final app = SerinusApplication(
       entrypoint: entrypoint,
-      config: ApplicationConfig(
-        serverAdapter: server,
-        modelProvider: modelProvider,
-      ),
+      config: config,
       levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
       logger: logger,
     );
@@ -92,25 +96,29 @@ final class SerinusFactory {
     bool rawBody = false,
     NotFoundHandler? notFoundHandler,
     int bodySizeLimit = kDefaultMaxBodySize,
+    HttpAdapter? adapter,
   }) async {
     final serverPort = int.tryParse(Platform.environment['PORT'] ?? '') ?? port;
     final serverHost = Platform.environment['HOST'] ?? host;
-    final server = SerinusHttpAdapter(
-      host: serverHost,
-      port: serverPort,
-      poweredByHeader: poweredByHeader,
-      securityContext: securityContext,
-      enableCompression: enableCompression,
-      rawBody: rawBody,
-      notFoundHandler: notFoundHandler,
-    );
+    final server =
+        adapter ??
+        SerinusHttpAdapter(
+          host: serverHost,
+          port: serverPort,
+          poweredByHeader: poweredByHeader,
+          securityContext: securityContext,
+          enableCompression: enableCompression,
+          rawBody: rawBody,
+          notFoundHandler: notFoundHandler,
+        );
     IncomingMessage.maxBodySize = bodySizeLimit;
-    await server.init();
+    final config = ApplicationConfig(
+      serverAdapter: server,
+      modelProvider: modelProvider,
+    );
+    await server.init(config);
     final app = SerinusMinimalApplication(
-      config: ApplicationConfig(
-        serverAdapter: server,
-        modelProvider: modelProvider,
-      ),
+      config: config,
       levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
       logger: logger,
     );

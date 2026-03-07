@@ -112,7 +112,15 @@ final class ApplicationConfig {
   }
 
   /// The http adapter for the application
-  final HttpAdapter serverAdapter;
+  HttpAdapter _serverAdapter;
+
+  /// The active http adapter for the application.
+  HttpAdapter get serverAdapter => _serverAdapter;
+
+  set serverAdapter(HttpAdapter value) {
+    _serverAdapter = value;
+    adapters.replace(AdapterContainer.primaryHttpAdapterKey, value);
+  }
 
   /// The adapters used by the application
   ///
@@ -148,10 +156,10 @@ final class ApplicationConfig {
 
   /// The application config constructor
   ApplicationConfig({
-    required this.serverAdapter,
+    required HttpAdapter serverAdapter,
     this.modelProvider,
     this.keepAliveIdleTimeout,
-  }) {
-    adapters.add(serverAdapter);
+  }) : _serverAdapter = serverAdapter {
+    adapters.addAs(AdapterContainer.primaryHttpAdapterKey, _serverAdapter);
   }
 }
