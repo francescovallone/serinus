@@ -5,6 +5,7 @@ import '../adapters/adapters.dart';
 class AdapterContainer {
   final Map<String, Adapter> _adapters = {};
 
+  /// The key for the primary HTTP adapter in the container.
   static const String primaryHttpAdapterKey = 'http';
 
   /// Adds an adapter to the container.

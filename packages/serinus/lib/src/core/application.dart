@@ -74,6 +74,9 @@ abstract class Application {
   bool get isInitialized => _isInitialized;
 
   @protected
+  /// Replaces the primary HTTP adapter before the application is initialized.
+  ///
+  /// This method is used internally by the [useAdapter] method of the [SerinusApplication] class.
   Future<void> replaceHttpAdapter(HttpAdapter adapter) async {
     if (_isInitialized) {
       throw StateError(
@@ -136,7 +139,10 @@ abstract class Application {
         } catch (e) {
           // Log the error but continue with exit to ensure process terminates
           try {
-            logger.severe('Error during shutdown', OptionalParameters(error: e));
+            logger.severe(
+              'Error during shutdown',
+              OptionalParameters(error: e),
+            );
           } catch (_) {
             // If logging fails, silently continue
           }
@@ -270,7 +276,6 @@ class MicroserviceApplication extends Application {
 
 /// The [SerinusApplication] class is used to create a new instance of the [Application] class.
 class SerinusApplication extends Application {
-
   @override
   final logger = Logger('SerinusApplication');
 
