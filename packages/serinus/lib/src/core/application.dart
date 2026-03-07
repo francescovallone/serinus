@@ -17,6 +17,28 @@ import 'core.dart';
 
 /// The [Application] class is used to create an application.
 abstract class Application {
+  static ApplicationConfig _configureApplicationConfig(
+    ApplicationConfig config,
+    HttpAdapter? adapter,
+  ) {
+    if (adapter == null || identical(config.serverAdapter, adapter)) {
+      return config;
+    }
+    final currentAdapter = config.serverAdapter;
+    if (adapter.viewEngine == null && currentAdapter.viewEngine != null) {
+      adapter.viewEngine = currentAdapter.viewEngine;
+    }
+    if (adapter.notFoundHandler == null &&
+        currentAdapter.notFoundHandler != null) {
+      adapter.notFoundHandler = currentAdapter.notFoundHandler;
+    }
+    if (!adapter.rawBody && currentAdapter.rawBody) {
+      adapter.rawBody = currentAdapter.rawBody;
+    }
+    config.replaceServerAdapter(adapter);
+    return config;
+  }
+
   /// The [level] property contains the log level of the application.
   Set<LogLevel> get levels => Logger.logLevels;
 
@@ -53,12 +75,15 @@ abstract class Application {
 
   /// The [Application] constructor is used to create a new instance of the [Application] class.
   Application({
-    required this.entrypoint,
-    required this.config,
+    required Module entrypoint,
+    required ApplicationConfig config,
+    HttpAdapter? adapter,
     this.abortOnError = true,
     Set<LogLevel>? levels,
     LoggerService? logger,
-  }) : _container = SerinusContainer(config, config.serverAdapter) {
+  }) : entrypoint = entrypoint,
+       config = _configureApplicationConfig(config, adapter),
+       _container = SerinusContainer(config, config.serverAdapter) {
     _routesResolver = RoutesResolver(_container);
     if (levels != null) {
       Logger.setLogLevels(levels);
@@ -70,14 +95,17 @@ abstract class Application {
 
   bool _isInitialized = false;
 
+  /// Whether the application has already been initialized.
+  bool get isInitialized => _isInitialized;
+
   /// The [initialize] method initializes the application and instructs the container to initialize the modules and their dependencies.
   Future<void> initialize() async {
     try {
-      if (_isInitialized) {
+      if (isInitialized) {
         return;
       }
-      _isInitialized = true;
       await _container.init(entrypoint, _routesResolver);
+      _isInitialized = true;
     } catch (e) {
       if (abortOnError) {
         rethrow;
@@ -172,14 +200,13 @@ class MicroserviceApplication extends Application {
   MicroserviceApplication({
     required super.entrypoint,
     required super.config,
+    super.adapter,
     super.levels,
     super.logger,
   });
 
   @override
   String get url => 'microservice';
-
-  bool _isInizialized = false;
 
   @override
   Future<void> serve() async {
@@ -211,27 +238,12 @@ class MicroserviceApplication extends Application {
     for (final microservice in config.microservices) {
       await microservice.close();
     }
-    await config.serverAdapter.close();
     await shutdown();
   }
 
   @override
   Future<void> initialize() async {
-    try {
-      if (_isInizialized) {
-        return;
-      }
-      _isInizialized = true;
-      await _container.init(entrypoint, _routesResolver);
-    } catch (e) {
-      if (abortOnError) {
-        rethrow;
-      }
-      logger.severe(
-        'Error occurred while initializing application',
-        OptionalParameters(error: e, stackTrace: StackTrace.current),
-      );
-    }
+    return super.initialize();
   }
 
   @override
@@ -257,6 +269,7 @@ class SerinusApplication extends Application {
   SerinusApplication({
     required super.entrypoint,
     required super.config,
+    super.adapter,
     super.levels,
     super.logger,
   });
@@ -322,7 +335,6 @@ class SerinusApplication extends Application {
     for (final microservice in config.microservices) {
       await microservice.close();
     }
-    await config.serverAdapter.close();
     await shutdown();
   }
 
@@ -348,10 +360,9 @@ class SerinusApplication extends Application {
     for (final microservice in config.microservices) {
       await microservice.init(config);
     }
-    if (!_isInitialized) {
+    if (!isInitialized) {
       await initialize();
     }
-    _isInitialized = true;
   }
 
   @override
