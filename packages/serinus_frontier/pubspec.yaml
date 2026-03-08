@@ -17,7 +17,8 @@ environment:
 resolution: workspace
 
 dependencies:
-  serinus: ^2.0.0
+  serinus:
+    path: ../serinus
   frontier: ^1.0.0
 
 dev_dependencies:

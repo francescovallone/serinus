@@ -56,7 +56,10 @@ class AppModule extends Module {
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on(Route.get('/pass', metadata: [GuardMeta('Header')]), (context) async {
+    on(Route.get('/strategy'), (context) async {
+      return context.use<Strategy>('Header').name;
+    });
+    on(Route.get('/pass', guards: {AuthGuard('Header')}), (context) async {
       return 'pass';
     });
   }
@@ -73,7 +76,16 @@ void main() {
       await app.serve();
     });
 
-    test('[GuardMeta] should pass the request', () async {
+    test('FrontierModule exports strategies as value providers', () async {
+      final req = await HttpClient().getUrl(
+        Uri.parse('http://localhost:3000/strategy'),
+      );
+      final res = await req.close();
+      final result = await res.transform(utf8.decoder).first;
+      expect(result, 'Header');
+    });
+
+    test('[AuthGuard] should pass the request', () async {
       final req = await HttpClient().getUrl(
         Uri.parse('http://localhost:3000/pass'),
       );
@@ -83,7 +95,7 @@ void main() {
       expect(result, 'pass');
     });
 
-    test('[GuardMeta] should fail the request', () async {
+    test('[AuthGuard] should fail the request', () async {
       final req = await HttpClient().getUrl(
         Uri.parse('http://localhost:3000/pass'),
       );
@@ -92,7 +104,7 @@ void main() {
       final result = await res.transform(utf8.decoder).first;
       expect(
         result,
-        '{"message":"Not authorized!","statusCode":401,"uri":"No Uri"}',
+        '{"message":"Unauthorized!","statusCode":401,"uri":"No Uri"}',
       );
       expect(res.statusCode, 401);
     });

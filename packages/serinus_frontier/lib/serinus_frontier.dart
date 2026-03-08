@@ -3,59 +3,120 @@ import 'package:serinus/serinus.dart';
 
 export 'package:frontier/frontier.dart';
 
-/// The [FrontierModule] class is used to register strategies in the application.
-///
-/// It is the main class of the library. It is used to define and use strategies.
-class FrontierModule extends Module {
-  /// The [strategies] to be used.
-  final List<Strategy> strategies;
+const frontierResponseKey = 'frontier_response';
 
-  /// The [onError] function to be called when an error occurs.
-  final void Function([Exception? exception])? onError;
+/// Signature for authentication error callbacks.
+typedef FrontierOnError = void Function([Exception? exception]);
+
+/// The [FrontierModule] class registers Frontier strategies as value providers.
+class FrontierModule extends Module {
+  /// The [strategies] available to [AuthGuard] instances.
+  final List<Strategy> strategies;
 
   /// Create a new instance of [FrontierModule].
-  FrontierModule(this.strategies, {this.onError});
-
-  @override
-  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
-    config.globalHooks.addHook(FrontierHook(strategies, onError: onError));
-    return DynamicModule();
-  }
+  FrontierModule(List<Strategy> strategies)
+    : strategies = List<Strategy>.unmodifiable(strategies),
+      super(
+        providers: [
+          Provider.forValue<List<Strategy>>(
+            List<Strategy>.unmodifiable(strategies),
+          ),
+          ...strategies.map(
+            (strategy) => Provider.forValue<Strategy>(
+              strategy,
+              name: strategy.name,
+            ),
+          ),
+        ],
+        exports: [
+          List<Strategy>,
+          ...strategies.map((strategy) => Export.value<Strategy>(strategy.name)),
+        ],
+      );
 }
 
-/// The [FrontierHook] class is used to authenticate requests using strategies.
-class FrontierHook extends Hook with OnBeforeHandle {
-  /// The [strategies] to be used.
-  final List<Strategy> strategies;
+/// The [AuthGuard] class authenticates requests using Frontier strategies.
+class AuthGuard extends Guard {
+  /// The strategy name to authenticate with.
+  final String? strategy;
 
-  /// The [onError] function to be called when an error occurs.
-  final void Function([Exception? exception])? onError;
+  /// The callback to invoke when authentication fails.
+  final FrontierOnError? onError;
 
-  /// Create a new instance of [FrontierHook].
-  FrontierHook(this.strategies, {this.onError}) {
-    for (final strategy in strategies) {
-      service.use(strategy);
+  /// Create a new instance of [AuthGuard].
+  AuthGuard(this.strategy, {this.onError});
+
+  @override
+  Future<bool> canActivate(ExecutionContext context) async {
+    if (context.hostType != HostType.http) {
+      return true;
     }
+
+    final requestContext = context.switchToHttp();
+    final strategies = _resolveStrategies(requestContext);
+    final strategyName = strategy ?? strategies.first.name;
+    final selectedStrategy = _resolveStrategy(
+      requestContext,
+      strategies,
+      strategyName,
+    );
+    final service = Frontier()..use(selectedStrategy);
+    final value = await service.authenticate(
+      strategyName,
+      _buildStrategyRequest(requestContext),
+    );
+
+    if (value == null) {
+      onError?.call();
+      return false;
+    }
+
+    if (value is Exception) {
+      onError?.call(value);
+      return false;
+    }
+
+    requestContext[frontierResponseKey] = value;
+    return true;
   }
 
-  final _frontier = Frontier();
-
-  @override
-  Frontier get service => _frontier;
-
-  @override
-  Future<void> beforeHandle(ExecutionContext context) async {
-    if (context.hostType != HostType.http) {
-      return;
+  List<Strategy> _resolveStrategies(RequestContext requestContext) {
+    if (!requestContext.canUse<List<Strategy>>()) {
+      throw StateError(
+        'No Frontier strategies found in the request context. '
+        'Import FrontierModule in the current module before using AuthGuard.',
+      );
     }
-    final requestContext = context.switchToHttp();
-    final hasStrategy = requestContext.canStat('GuardMeta');
-    if (!hasStrategy) {
-      return;
+
+    final strategies = requestContext.use<List<Strategy>>();
+    if (strategies.isEmpty) {
+      throw StateError('No Frontier strategies have been registered.');
     }
+    return strategies;
+  }
+
+  Strategy _resolveStrategy(
+    RequestContext requestContext,
+    List<Strategy> strategies,
+    String strategyName,
+  ) {
+    if (requestContext.canUse<Strategy>(strategyName)) {
+      return requestContext.use<Strategy>(strategyName);
+    }
+
+    for (final strategy in strategies) {
+      if (strategy.name == strategyName) {
+        return strategy;
+      }
+    }
+
+    throw StateError('Frontier strategy "$strategyName" is not registered.');
+  }
+
+  StrategyRequest _buildStrategyRequest(RequestContext requestContext) {
     final stringHeaders = Map<String, String>.fromEntries(
       requestContext.headers.asFullMap().entries.map(
-        (e) => MapEntry(e.key, e.value.toString()),
+        (entry) => MapEntry(entry.key, entry.value.toString()),
       ),
     );
     final stringQuery = <String, String>{
@@ -68,42 +129,15 @@ class FrontierHook extends Hook with OnBeforeHandle {
     };
     final stringCookies = Map<String, String>.fromEntries(
       requestContext.request.session.all.entries.map(
-        (e) => MapEntry(e.key, e.value.join(',')),
+        (entry) => MapEntry(entry.key, entry.value.join(',')),
       ),
     );
-    final strategyRequest = StrategyRequest(
+
+    return StrategyRequest(
       headers: stringHeaders,
       body: requestContext.body,
       query: stringQuery,
       cookies: stringCookies,
     );
-    final strategyName = hasStrategy
-        ? requestContext.stat<String?>('GuardMeta')
-        : strategies.first.name;
-    final value = await service.authenticate(
-      strategyName ?? strategies.first.name,
-      strategyRequest,
-    );
-    if (value == null) {
-      if (onError != null) {
-        onError!.call();
-        return;
-      }
-      throw UnauthorizedException();
-    }
-    if (value is Exception) {
-      if (onError != null) {
-        onError!.call(value);
-        return;
-      }
-      throw UnauthorizedException('Unauthorized! - ${value.toString()}');
-    }
-    requestContext['frontier_response'] = value;
   }
-}
-
-/// The [GuardMeta] class is used to define the strategy to be used.
-class GuardMeta extends Metadata<String?> {
-  /// Create a new instance of [GuardMeta].
-  GuardMeta([String? strategy]) : super(name: 'GuardMeta', value: strategy);
 }

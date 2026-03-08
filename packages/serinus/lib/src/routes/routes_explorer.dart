@@ -98,14 +98,19 @@ final class RoutesExplorer {
         hooksServices: mergedContainer.services,
         hooksContainer: mergedContainer,
         pipes: [
+          ..._container.config.globalPipes,
           ...controller.pipes,
           ...spec.route.pipes,
-          ..._container.config.globalPipes,
         ],
         exceptionFilters: {
+          ..._container.config.globalExceptionFilters,
           ...controller.exceptionFilters,
           ...spec.route.exceptionFilters,
-          ..._container.config.globalExceptionFilters,
+        },
+        guards: {
+          ..._container.config.globalGuards,
+          ...controller.guards,
+          ...spec.route.guards,
         },
       );
       _router.registerRoute(context: context);

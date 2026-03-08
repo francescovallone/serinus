@@ -118,8 +118,11 @@ abstract class Controller {
 
   final Map<String, RestRouteHandlerSpec> _routes = {};
 
-  /// The list of pipes to be applied.
-  List<Pipe> pipes = [];
+  /// The list of pipes applied to the controller and its routes.
+  List<Pipe> get pipes => [];
+
+  /// The list of guards applied to the controller and its routes.
+  List<Guard> get guards => [];
 
   /// The [routes] property contains the routes of the controller.
   Map<String, RestRouteHandlerSpec> get routes => UnmodifiableMapView(_routes);

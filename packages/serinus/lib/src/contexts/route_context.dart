@@ -109,6 +109,9 @@ class RouteContext<T extends RouteHandlerSpec> {
     hooksContainer.resHooks,
   );
 
+  /// The [guards] is used to store the guards for the route.
+  final Set<Guard> guards;
+
   /// The [RouteContext] constructor initializes the route context with the provided parameters.
   RouteContext({
     required this.id,
@@ -125,6 +128,7 @@ class RouteContext<T extends RouteHandlerSpec> {
     this.queryParameters = const {},
     this.hooksServices = const {},
     this.exceptionFilters = const {},
+    this.guards = const {},
   });
 
   /// Initializes the metadata for the route context.

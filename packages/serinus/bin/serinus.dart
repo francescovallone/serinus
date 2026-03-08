@@ -63,6 +63,7 @@ class Test2Controller extends Controller {
 }
 
 class AppController extends Controller {
+
   AppController() : super('/') {
     on<Map<String, dynamic>, dynamic>(Route.get('/'), (
       RequestContext context,
@@ -110,6 +111,16 @@ class MyObject with JsonObject {
   }
 }
 
+class TestGuard extends Guard {
+
+  @override
+  Future<bool> canActivate(ExecutionContext context) async {
+    // Implement your guard logic here
+    return true; // Allow access
+  }
+
+}
+
 class MyModelProvider extends ModelProvider {
   @override
   Map<String, Function> get fromJsonModels => {
@@ -130,6 +141,7 @@ void main(List<String> arguments) async {
     modelProvider: MyModelProvider(),
   );
   application.provide(TestProvider());
+  application.use(TestGuard());
   application.get('/', (RequestContext context) async {
     return context.use<TestProvider>().counter;
   });

@@ -1,6 +1,6 @@
-![Serinus Banner](https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/github-header.png)
-
 # Serinus Frontier
+
+![Serinus Banner](https://raw.githubusercontent.com/francescovallone/serinus/main/packages/serinus/assets/github-header.png)
 
 Serinus Frontier is a plugin that allows you to use the Frontier library in your Serinus application.
 
@@ -18,15 +18,27 @@ You can see the example usage in the example directory.
 import 'package:serinus_frontier/serinus_frontier.dart';
 
 class AppModule extends Module {
+    AppModule()
+            : super(
+                    imports: [
+                        FrontierModule([
+                            MyStrategy(
+                                MyStrategyOptions(),
+                                (options, value, done) => done(value),
+                            )
+                        ])
+                    ],
+                );
 
-    AppModule() : super(
-        imports: [FrontierModule([
-            MyStrategy(
-                MyStrategyOptions(), 
-                (options, value, done) => done(value)
-            )
-        ])],
-    );
+}
 
+class AppController extends Controller {
+    AppController() : super('/') {
+        on(
+            Route.get('/', guards: {AuthGuard('MyStrategy')}),
+            (context) async => 'authenticated',
+        );
+    }
+}
 }
 ```
