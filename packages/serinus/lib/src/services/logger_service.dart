@@ -3,8 +3,26 @@ import 'package:logging/logging.dart' as logging;
 import '../enums/log_level.dart';
 import 'console_logger_service.dart';
 
+/// The [LogPayload] typedef is used to define the payload of the log message.
+typedef LogPayload = ({
+  int pid,
+  String prefix,
+  String level,
+  String context,
+  String message,
+  Object? error,
+  DateTime time,
+  Map<String, dynamic>? metadata,
+  bool jsonEncoded,
+});
+
 /// The [LoggerService] class is used as a blueprint for the loggers.
 abstract interface class LoggerService {
+
+  Future<void> init();
+
+  void close();
+
   /// Write a message at log level [LogLevel.info]. it is used to log info messages.
   void info(Object? message, [OptionalParameters? optionalParameters]);
 
@@ -139,6 +157,16 @@ class Logger implements LoggerService {
   /// The [overrideLogger] method is used to override the staticInstanceRef that the logger is keeping.
   static void overrideLogger(LoggerService logger) {
     Logger._staticInstanceRef = logger;
+  }
+  
+  @override
+  void close() {
+    localInstance.close();
+  }
+  
+  @override
+  Future<void> init() {
+    return localInstance.init();
   }
 }
 

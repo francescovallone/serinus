@@ -1,7 +1,8 @@
 import 'package:serinus/serinus.dart';
 
-void main() {
+Future<void> main() async {
   final loggerService = ConsoleLogger(levels: {LogLevel.verbose});
+  await loggerService.init();
   Logger.overrideLogger(loggerService);
   final Logger logger = Logger('Test');
   loggerService.setLogLevels({LogLevel.verbose});
@@ -24,4 +25,5 @@ void main() {
     ),
   );
   logger.verbose('Test');
+  loggerService.close();
 }
