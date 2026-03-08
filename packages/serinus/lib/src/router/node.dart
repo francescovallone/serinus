@@ -12,6 +12,9 @@ class AtlasNode<T> {
   /// Static children stored in a map for O(1) lookup.
   final Map<String, AtlasNode<T>> staticChildren = {};
 
+  /// Ordered names of parameters captured along the path to this node.
+  List<String> parameterNames = const [];
+
   /// Handlers for each HTTP method, indexed by method ordinal.
   final List<T?> handlers = List.filled(
     HttpMethod.values.length,
@@ -31,6 +34,30 @@ class AtlasNode<T> {
   /// Gets a child node by its key.
   AtlasNode<T>? getChild(String key) => staticChildren[key];
 
+  /// Matches a static child directly against a slice of [path].
+  AtlasNode<T>? matchStaticSlice(String path, int start, int end) {
+    for (final entry in staticChildren.entries) {
+      if (entry.value is DynamicSegment) {
+        continue;
+      }
+      final key = entry.key;
+      if (key.length != end - start) {
+        continue;
+      }
+      var matches = true;
+      for (var i = 0; i < key.length; i++) {
+        if (path.codeUnitAt(start + i) != key.codeUnitAt(i)) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
   /// Adds a child node and returns it.
   ///
   /// Special node types (param, wildcard, tail wildcard) are stored
@@ -38,6 +65,7 @@ class AtlasNode<T> {
   /// They are also stored in staticChildren for key-based lookups during
   /// route registration (to detect existing segments with the same key).
   AtlasNode<T> addChild(String key, AtlasNode<T> node) {
+    node.parameterNames = _buildParameterNames(node);
     switch (node) {
       case TailWildcardNode<T>():
         tailWildcardChild = node;
@@ -54,6 +82,19 @@ class AtlasNode<T> {
       default:
         staticChildren[key] = node;
         return node;
+    }
+  }
+
+  List<String> _buildParameterNames(AtlasNode<T> node) {
+    switch (node) {
+      case TailWildcardNode<T>():
+        return List<String>.of(parameterNames)..add(TailWildcardNode.key);
+      case WildcardNode<T>():
+        return List<String>.of(parameterNames)..add(WildcardNode.key);
+      case ParamNode<T>():
+        return List<String>.of(parameterNames)..add(node.name);
+      default:
+        return parameterNames;
     }
   }
 
@@ -134,6 +175,30 @@ class ParamNode<T> extends DynamicSegment<T> {
 
   /// Creates a new parametric node.
   ParamNode(this.name, {this.prefix, this.suffix, this.optional = false});
+
+  /// Matches a path slice and returns the captured value bounds.
+  ({int start, int end})? matchSliceBounds(String path, int start, int end) {
+    final prefix = this.prefix;
+    if (prefix != null && !path.startsWith(prefix, start)) {
+      return null;
+    }
+
+    final suffix = this.suffix;
+    if (suffix != null) {
+      final suffixStart = end - suffix.length;
+      if (suffixStart < start || !path.startsWith(suffix, suffixStart)) {
+        return null;
+      }
+    }
+
+    final valueStart = start + (prefix?.length ?? 0);
+    final valueEnd = suffix != null ? end - suffix.length : end;
+    if (valueStart >= valueEnd) {
+      return null;
+    }
+
+    return (start: valueStart, end: valueEnd);
+  }
 }
 
 /// Wildcard segment that matches any single path segment.

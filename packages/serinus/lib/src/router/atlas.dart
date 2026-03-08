@@ -1,8 +1,82 @@
+import 'dart:typed_data';
+
 import '../enums/http_method.dart';
 import 'node.dart';
 
-/// A record type representing a parameter name and its corresponding value.
-typedef ParamAndValue = ({String name, String? value});
+/// Lightweight stack storing start/end coordinates for captured parameters.
+final class ParamStack {
+  List<int> _coordinates;
+  int _length = 0;
+
+  /// Creates a new [ParamStack] with room for [initialCapacity] parameters.
+  ParamStack([int initialCapacity = 4])
+    : _coordinates = List<int>.filled(initialCapacity * 2, -1, growable: false);
+
+  ParamStack._(this._coordinates, this._length);
+
+  /// Creates an immutable snapshot of the current stack contents.
+  factory ParamStack.snapshot(ParamStack stack) {
+    final snapshot = Int32List(stack._length);
+    for (var i = 0; i < stack._length; i++) {
+      snapshot[i] = stack._coordinates[i];
+    }
+    return ParamStack._(snapshot, stack._length);
+  }
+
+  /// The number of parameters currently stored in the stack.
+  int get length => _length ~/ 2;
+
+  /// Saves the current stack length for later restoration.
+  int save() => _length;
+
+  /// Restores the stack to a previously saved length, effectively discarding any parameters added since then.
+  void restore(int value) {
+    _length = value;
+  }
+
+  /// Pushes a parameter with the given start and end coordinates onto the stack.
+  void push(int start, int end) {
+    _ensureCapacity(_length + 2);
+    _coordinates[_length] = start;
+    _coordinates[_length + 1] = end;
+    _length += 2;
+  }
+
+  /// Pushes a null parameter onto the stack, represented by start and end coordinates of -1.
+  void pushNull() => push(-1, -1);
+
+  /// Gets the start coordinate of the parameter at the given index.
+  int startAt(int index) => _coordinates[index * 2];
+
+  /// Gets the end coordinate of the parameter at the given index.
+  int endAt(int index) => _coordinates[index * 2 + 1];
+
+  void _ensureCapacity(int requiredLength) {
+    if (requiredLength <= _coordinates.length) {
+      return;
+    }
+    final expanded = List<int>.filled(requiredLength * 2, -1, growable: false);
+    for (var i = 0; i < _length; i++) {
+      expanded[i] = _coordinates[i];
+    }
+    _coordinates = expanded;
+  }
+}
+
+/// Resume point for iterative Atlas traversal.
+final class _Branch<T> {
+  final AtlasNode<T> node;
+  final int cursor;
+  final int paramStackLength;
+  final int phase;
+
+  const _Branch({
+    required this.node,
+    required this.cursor,
+    required this.paramStackLength,
+    required this.phase,
+  });
+}
 
 /// Result of a route lookup operation in the Atlas router.
 ///
@@ -12,26 +86,45 @@ abstract class AtlasResult<T> {
   /// The handler values associated with the matched route.
   final List<T> values;
 
-  /// Raw parameters extracted from the route path.
-  final List<ParamAndValue> _rawParams;
+  /// Original lookup path used to materialize parameter values lazily.
+  final String? _path;
+
+  /// Ordered parameter names captured by the matched route.
+  final List<String> _paramNames;
+
+  /// Start/end coordinates for captured parameter values.
+  final ParamStack _paramCoordinates;
 
   /// Cached computed parameters map.
   Map<String, dynamic>? _paramsCache;
 
   /// Creates a new [AtlasResult] instance.
-  AtlasResult({required this.values, required List<ParamAndValue> rawParams})
-    : _rawParams = rawParams;
+  AtlasResult({
+    required this.values,
+    String? path,
+    List<String> paramNames = const [],
+    ParamStack? paramCoordinates,
+  }) : _path = path,
+       _paramNames = paramNames,
+       _paramCoordinates = paramCoordinates ?? ParamStack(0);
 
   /// Parameters extracted from the route, lazily computed and cached.
   Map<String, dynamic> get params {
     if (_paramsCache != null) {
       return _paramsCache!;
     }
-    _paramsCache = <String, dynamic>{};
-    for (final (:name, :value) in _rawParams) {
-      _paramsCache![name] = value;
+    if (_paramNames.isEmpty || _path == null) {
+      return _paramsCache = <String, dynamic>{};
     }
-    return _paramsCache!;
+    final resolvedParams = <String, dynamic>{};
+    for (var i = 0; i < _paramNames.length; i++) {
+      final start = _paramCoordinates.startAt(i);
+      final end = _paramCoordinates.endAt(i);
+      resolvedParams[_paramNames[i]] = start < 0
+          ? null
+          : _path.substring(start, end);
+    }
+    return _paramsCache = resolvedParams;
   }
 
   /// Creates a "not found" result.
@@ -44,19 +137,24 @@ abstract class AtlasResult<T> {
 /// Result indicating a successful route match with associated handlers.
 final class FoundRoute<T> extends AtlasResult<T> {
   /// Creates a new [FoundRoute] instance.
-  FoundRoute({required super.values, required super.rawParams});
+  FoundRoute({
+    required super.values,
+    required super.path,
+    required super.paramNames,
+    required super.paramCoordinates,
+  });
 }
 
 /// Result indicating that no matching route was found.
 final class NotFoundRoute<T> extends AtlasResult<T> {
   /// Creates a new [NotFoundRoute] instance.
-  NotFoundRoute() : super(values: const [], rawParams: const []);
+  NotFoundRoute() : super(values: const []);
 }
 
 /// Result indicating that a route exists but no handler is available for the requested method.
 final class MethodNotAllowedRoute<T> extends AtlasResult<T> {
   /// Creates a new [MethodNotAllowedRoute] instance.
-  MethodNotAllowedRoute() : super(values: const [], rawParams: const []);
+  MethodNotAllowedRoute() : super(values: const []);
 }
 
 /// Atlas is a high-performance Generic HTTP Router implementation.
@@ -103,14 +201,20 @@ final class Atlas<T> {
   ///
   /// Returns `true` if the route was added successfully.
   bool add(HttpMethod method, String path, T handler) {
-    final segments = _parsePathSegments(path);
     var currentNode = _root;
     AtlasNode<T>? optionalParent;
     ParamNode<T>? optionalParamNode;
+    final pathEnd = _trimmedPathEnd(path);
+    var cursor = _isRootPath(path) ? pathEnd : (path.startsWith('/') ? 1 : 0);
     _handlersCache.clear();
-    for (var i = 0; i < segments.length; i++) {
-      final segment = segments[i];
-      if (segment == TailWildcardNode.key && i != segments.length - 1) {
+    while (cursor < pathEnd) {
+      final slashIndex = path.indexOf('/', cursor);
+      final segmentEnd = slashIndex == -1 || slashIndex > pathEnd
+          ? pathEnd
+          : slashIndex;
+      final segment = path.substring(cursor, segmentEnd);
+      final isLastSegment = segmentEnd >= pathEnd;
+      if (segment == TailWildcardNode.key && !isLastSegment) {
         // Tail wildcard must be the last segment
         throw ArgumentError(
           'Tail wildcard "**" must be the last segment in the path "$path".',
@@ -119,13 +223,14 @@ final class Atlas<T> {
       final parentBeforeInsert = currentNode;
       currentNode = _insertSegment(currentNode, segment);
 
-      final isLastSegment = i == segments.length - 1;
       if (isLastSegment &&
           currentNode is ParamNode<T> &&
           currentNode.optional) {
         optionalParent = parentBeforeInsert;
         optionalParamNode = currentNode;
       }
+
+      cursor = _advanceCursor(segmentEnd, pathEnd);
     }
 
     // When the last segment is optional we register the handler on the
@@ -186,20 +291,17 @@ final class Atlas<T> {
     if (_handlersCache.containsKey(cacheKey)) {
       return _handlersCache[cacheKey]!;
     }
-    final segments = _parsePathSegments(path);
-    final params = <ParamAndValue>[];
+    final params = ParamStack();
 
-    final matchResult = _matchPath(_root, segments, 0, params, method);
+    final matchedNode = _matchPath(path, params);
 
-    if (matchResult == null) {
+    if (matchedNode == null) {
       return AtlasResult.notFound();
     }
 
-    final (node, extractedParams) = matchResult;
-
     // Check for handler with specific method or 'all' method
-    final handler = node.handlers[method.index];
-    final allHandler = node.handlers[HttpMethod.all.index];
+    final handler = matchedNode.handlers[method.index];
+    final allHandler = matchedNode.handlers[HttpMethod.all.index];
 
     final handlers = <T>[];
     if (handler != null) {
@@ -211,19 +313,25 @@ final class Atlas<T> {
 
     if (handlers.isEmpty) {
       // Route exists but no handler for this method
-      if (_hasAnyHandler(node)) {
+      if (_hasAnyHandler(matchedNode)) {
         return AtlasResult.methodNotAllowed();
       }
       // This should not happen as _matchPath checks for handlers
       return AtlasResult.notFound();
     }
+    final result = FoundRoute(
+      values: handlers,
+      path: path,
+      paramNames: matchedNode.parameterNames,
+      paramCoordinates: ParamStack.snapshot(params),
+    );
+    if (matchedNode.parameterNames.isNotEmpty) {
+      return result;
+    }
     if (_handlersCache.length > 10000) {
       _handlersCache.remove(_handlersCache.keys.first);
     }
-    return _handlersCache[cacheKey] ??= FoundRoute(
-      values: handlers,
-      rawParams: extractedParams,
-    );
+    return _handlersCache[cacheKey] ??= result;
   }
 
   /// Checks if a node has any handler registered.
@@ -258,26 +366,18 @@ final class Atlas<T> {
         node.handlers[HttpMethod.all.index] != null;
   }
 
-  final _pathsCache = <String, List<String>>{};
+  bool _isRootPath(String path) {
+    return path.isEmpty || path.codeUnits.every((c) => c == 47);
+  }
 
-  /// Parses a path string into segments.
-  List<String> _parsePathSegments(String path) {
-    if (_pathsCache.containsKey(path)) {
-      return _pathsCache[path]!;
+  int _trimmedPathEnd(String path) =>
+      path.endsWith('/') ? path.length - 1 : path.length;
+
+  int _advanceCursor(int segmentEnd, int pathEnd) {
+    if (segmentEnd >= pathEnd) {
+      return pathEnd;
     }
-    if (_pathsCache.length > 10000) {
-      _pathsCache.remove(_pathsCache.keys.first);
-    }
-    if (path.isEmpty || path == '/') {
-      return const <String>[];
-    }
-    if (path.codeUnits.every((c) => c == 47)) {
-      return const <String>[];
-    }
-    final start = path.startsWith('/') ? 1 : 0;
-    final end = path.endsWith('/') ? path.length - 1 : path.length;
-    final segments = path.substring(start, end).split('/');
-    return _pathsCache[path] = segments;
+    return segmentEnd + 1;
   }
 
   /// Inserts a segment into the tree, creating appropriate node types.
@@ -360,8 +460,8 @@ final class Atlas<T> {
     );
   }
 
-  /// Recursively matches a path against the tree.
-  /// Returns the matched node and extracted parameters, or null if no match.
+  /// Iteratively matches a path against the tree.
+  /// Returns the matched node, or null if no match.
   ///
   /// Matching priority:
   /// 1. Static/literal matches (highest priority)
@@ -372,142 +472,203 @@ final class Atlas<T> {
   /// The algorithm backtracks when a partial match fails, trying lower priority
   /// alternatives to ensure the most specific route is found. A match is only
   /// considered successful if the final node has at least one handler.
-  (AtlasNode<T>, List<ParamAndValue>)? _matchPath(
-    AtlasNode<T> node,
-    List<String> segments,
-    int index,
-    List<ParamAndValue> params,
-    HttpMethod method,
-  ) {
-    // Base case: all segments consumed
-    if (index >= segments.length) {
-      final optionalParam = node.paramChild;
-      if (optionalParam != null &&
-          optionalParam.optional &&
-          _hasAnyHandler(optionalParam)) {
-        final newParams = List<ParamAndValue>.from(params)
-          ..add((name: optionalParam.name, value: null));
-        return (optionalParam, newParams);
-      }
+  AtlasNode<T>? _matchPath(String path, ParamStack params) {
+    final pathEnd = _trimmedPathEnd(path);
+    final branches = <_Branch<T>>[];
+    final initialCursor = _isRootPath(path)
+        ? pathEnd
+        : (path.startsWith('/') ? 1 : 0);
+    var current = _Branch<T>(
+      node: _root,
+      cursor: initialCursor,
+      paramStackLength: params.save(),
+      phase: 0,
+    );
 
-      // Only return this node if it has at least one handler
-      // This enables backtracking when a path matches structurally but has no handler
-      if (_hasAnyHandler(node)) {
-        return (node, params);
-      }
+    do {
+      params.restore(current.paramStackLength);
+      final node = current.node;
+      final cursor = current.cursor;
 
-      // Tail wildcard can also match an empty remaining path.
-      final tailWildcard = node.tailWildcardChild;
-      if (tailWildcard != null && _hasAnyHandler(tailWildcard)) {
-        final newParams = List<ParamAndValue>.from(params)
-          ..add((name: '**', value: ''));
-        return (tailWildcard, newParams);
-      }
-
-      return null;
-    }
-
-    final segment = segments[index];
-
-    final staticChild = node.getChild(segment);
-    if (staticChild != null) {
-      final result = _matchPath(
-        staticChild,
-        segments,
-        index + 1,
-        params,
-        method,
-      );
-      if (result != null) {
-        return result;
-      }
-    }
-
-    if (node.paramChild != null) {
-      final paramNode = node.paramChild!;
-      final paramValue = _extractParamValue(paramNode, segment);
-      if (paramValue != null) {
-        final newParams = List<ParamAndValue>.from(params)
-          ..add((name: paramNode.name, value: paramValue));
-        final result = _matchPath(
-          paramNode,
-          segments,
-          index + 1,
-          newParams,
-          method,
-        );
-        if (result != null) {
-          return result;
+      if (cursor >= pathEnd) {
+        final optionalParam = node.paramChild;
+        if (optionalParam != null &&
+            optionalParam.optional &&
+            _hasAnyHandler(optionalParam)) {
+          params.pushNull();
+          return optionalParam;
         }
-        // If parametric match path failed, continue to try wildcard alternatives
+
+        if (_hasAnyHandler(node)) {
+          return node;
+        }
+
+        final tailWildcard = node.tailWildcardChild;
+        if (tailWildcard != null && _hasAnyHandler(tailWildcard)) {
+          params.push(pathEnd, pathEnd);
+          return tailWildcard;
+        }
+
+        if (branches.isEmpty) {
+          return null;
+        }
+        current = branches.removeLast();
+        continue;
       }
 
-      if (paramNode.optional) {
-        final optionalParams = List<ParamAndValue>.from(params)
-          ..add((name: paramNode.name, value: null));
-        final optionalResult = _matchPath(
-          paramNode,
-          segments,
-          index,
-          optionalParams,
-          method,
+      final slashIndex = path.indexOf('/', cursor);
+      final segmentEnd = slashIndex == -1 || slashIndex > pathEnd
+          ? pathEnd
+          : slashIndex;
+
+      if (current.phase == 0) {
+        final staticChild = node.matchStaticSlice(path, cursor, segmentEnd);
+        if (staticChild != null) {
+          if (node.paramChild != null ||
+              node.wildcardChild != null ||
+              node.tailWildcardChild != null) {
+            branches.add(
+              _Branch<T>(
+                node: node,
+                cursor: cursor,
+                paramStackLength: current.paramStackLength,
+                phase: 1,
+              ),
+            );
+          }
+          current = _Branch<T>(
+            node: staticChild,
+            cursor: _advanceCursor(segmentEnd, pathEnd),
+            paramStackLength: params.save(),
+            phase: 0,
+          );
+          continue;
+        }
+        current = _Branch<T>(
+          node: node,
+          cursor: cursor,
+          paramStackLength: current.paramStackLength,
+          phase: 1,
         );
-        if (optionalResult != null) {
-          return optionalResult;
+        continue;
+      }
+
+      if (current.phase == 1) {
+        final paramNode = node.paramChild;
+        if (paramNode != null &&
+            _tryPushParamBounds(params, paramNode, path, cursor, segmentEnd)) {
+          branches.add(
+            _Branch<T>(
+              node: node,
+              cursor: cursor,
+              paramStackLength: current.paramStackLength,
+              phase: 2,
+            ),
+          );
+          current = _Branch<T>(
+            node: paramNode,
+            cursor: _advanceCursor(segmentEnd, pathEnd),
+            paramStackLength: params.save(),
+            phase: 0,
+          );
+          continue;
+        }
+        current = _Branch<T>(
+          node: node,
+          cursor: cursor,
+          paramStackLength: current.paramStackLength,
+          phase: 2,
+        );
+        continue;
+      }
+
+      if (current.phase == 2) {
+        final paramNode = node.paramChild;
+        if (paramNode != null && paramNode.optional) {
+          params.pushNull();
+          branches.add(
+            _Branch<T>(
+              node: node,
+              cursor: cursor,
+              paramStackLength: current.paramStackLength,
+              phase: 3,
+            ),
+          );
+          current = _Branch<T>(
+            node: paramNode,
+            cursor: cursor,
+            paramStackLength: params.save(),
+            phase: 0,
+          );
+          continue;
+        }
+        current = _Branch<T>(
+          node: node,
+          cursor: cursor,
+          paramStackLength: current.paramStackLength,
+          phase: 3,
+        );
+        continue;
+      }
+
+      if (current.phase == 3) {
+        final wildcardChild = node.wildcardChild;
+        if (wildcardChild != null) {
+          params.push(cursor, segmentEnd);
+          branches.add(
+            _Branch<T>(
+              node: node,
+              cursor: cursor,
+              paramStackLength: current.paramStackLength,
+              phase: 4,
+            ),
+          );
+          current = _Branch<T>(
+            node: wildcardChild,
+            cursor: _advanceCursor(segmentEnd, pathEnd),
+            paramStackLength: params.save(),
+            phase: 0,
+          );
+          continue;
+        }
+        current = _Branch<T>(
+          node: node,
+          cursor: cursor,
+          paramStackLength: current.paramStackLength,
+          phase: 4,
+        );
+        continue;
+      }
+
+      if (current.phase == 4) {
+        final tailWildcardChild = node.tailWildcardChild;
+        if (tailWildcardChild != null && _hasAnyHandler(tailWildcardChild)) {
+          params.push(cursor, pathEnd);
+          return tailWildcardChild;
         }
       }
-    }
 
-    if (node.wildcardChild != null) {
-      final newParams = List<ParamAndValue>.from(params)
-        ..add((name: '*', value: segment));
-      final result = _matchPath(
-        node.wildcardChild!,
-        segments,
-        index + 1,
-        newParams,
-        method,
-      );
-      if (result != null) {
-        return result;
+      if (branches.isEmpty) {
+        return null;
       }
-      // If wildcard match path failed, continue to try tail wildcard
-    }
-
-    if (node.tailWildcardChild != null) {
-      final remainingPath = segments.sublist(index).join('/');
-      final newParams = List<ParamAndValue>.from(params)
-        ..add((name: '**', value: remainingPath));
-      // Tail wildcard always consumes remaining segments, so check for handler
-      if (_hasAnyHandler(node.tailWildcardChild!)) {
-        return (node.tailWildcardChild!, newParams);
-      }
-    }
-
-    return null;
+      current = branches.removeLast();
+    } while (true);
   }
 
-  /// Extracts the parameter value from a segment, handling prefix/suffix.
-  String? _extractParamValue(ParamNode<T> param, String segment) {
-    final prefix = param.prefix;
-    final suffix = param.suffix;
-
-    if (prefix != null && !segment.startsWith(prefix)) {
-      return null;
-    }
-    if (suffix != null && !segment.endsWith(suffix)) {
-      return null;
-    }
-
-    final startIndex = prefix?.length ?? 0;
-    final endIndex = suffix != null
-        ? segment.length - suffix.length
-        : segment.length;
-
-    if (startIndex >= endIndex) {
-      return null;
+  /// Pushes parameter bounds for a segment, handling prefix and suffix.
+  bool _tryPushParamBounds(
+    ParamStack stack,
+    ParamNode<T> param,
+    String path,
+    int segmentStart,
+    int segmentEnd,
+  ) {
+    final bounds = param.matchSliceBounds(path, segmentStart, segmentEnd);
+    if (bounds == null) {
+      return false;
     }
 
-    return segment.substring(startIndex, endIndex);
+    stack.push(bounds.start, bounds.end);
+    return true;
   }
 }
