@@ -162,9 +162,9 @@ class Analyzer {
           }
           final annotated = _analyzeMethodAnnotations(method);
           _mergeRouteDescriptions(savedHandler, annotated);
-            final baseOperationId =
+          final baseOperationId =
               savedHandler.operationId ?? analyzed.operationId ?? methodName;
-            savedHandler.operationId = baseOperationId.startsWith('_')
+          savedHandler.operationId = baseOperationId.startsWith('_')
               ? baseOperationId.substring(1)
               : baseOperationId;
         }
@@ -903,6 +903,31 @@ class Analyzer {
       }
     }
 
+    final oneOfSchemas =
+        schemaObj.getField('oneOfSchemas')?.toListValue() ??
+        schemaObj.getField('schemas')?.toListValue();
+    if (oneOfSchemas != null) {
+      final schemas = <SchemaDescriptor>[];
+      for (final schemaEntry in oneOfSchemas) {
+        final parsedSchema = _parseBodySchemaFromDartObject(schemaEntry);
+        if (parsedSchema != null) {
+          schemas.add(parsedSchema);
+          continue;
+        }
+
+        final dartType = schemaEntry.toTypeValue();
+        if (dartType != null) {
+          final schema = schemaFromDartType(dartType);
+          if (schema != null) {
+            schemas.add(schema);
+          }
+        }
+      }
+      if (schemas.isNotEmpty) {
+        return SchemaDescriptor(type: OpenApiType.object(), oneOf: schemas);
+      }
+    }
+
     if (typeStr != null) {
       OpenApiType apiType;
       switch (typeStr) {
@@ -1194,15 +1219,15 @@ class Analyzer {
       properties: schema.properties?.map(
         (key, value) => MapEntry(key, _inlineSchemaDescriptor(value)),
       ),
-      items: schema.items == null ? null : _inlineSchemaDescriptor(schema.items!),
+      items: schema.items == null
+          ? null
+          : _inlineSchemaDescriptor(schema.items!),
       additionalProperties: schema.additionalProperties == null
           ? null
           : _inlineSchemaDescriptor(schema.additionalProperties!),
       nullable: schema.nullable,
       example: schema.example,
-      oneOf: schema.oneOf
-          ?.map(_inlineSchemaDescriptor)
-          .toList(growable: false),
+      oneOf: schema.oneOf?.map(_inlineSchemaDescriptor).toList(growable: false),
     );
   }
 
@@ -1901,8 +1926,8 @@ class Analyzer {
         if (a.ref != null && a.ref == b.ref) {
           final refDescriptor = SchemaDescriptor.ref(a.ref!);
           return (a.nullable || b.nullable)
-            ? refDescriptor.asNullable()
-            : refDescriptor;
+              ? refDescriptor.asNullable()
+              : refDescriptor;
         }
         return SchemaDescriptor(type: OpenApiType.object());
       }

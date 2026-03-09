@@ -161,6 +161,11 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           break;
         case OpenApiVersion.v3_1:
           final documentV31 = this.document as DocumentV31;
+          final generatedPaths = _paths.isNotEmpty
+              ? Map<String, PathItemObjectV31>.from(_paths)
+              : (documentV31.paths?.isNotEmpty ?? false
+                    ? documentV31.paths
+                    : {'/': PathItemObjectV31(operations: {})});
           final mergedComponents = ComponentsObjectV31(
             schemas: {
               ..._generatedComponentSchemas,
@@ -179,7 +184,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           document = DocumentV31(
             info: documentV31.info as InfoObjectV31,
             structure: PathsWebhooksComponentsV31(
-              paths: Map<String, PathItemObjectV31>.from(_paths),
+              paths: generatedPaths,
               webhooks: documentV31.webhooks,
               components: mergedComponents,
             ),

@@ -37,20 +37,12 @@ paths:
           description: "Bad Request"
           content:
             application/json:
+              example:
+                message: "Bad Request!"
+                statusCode: 400
+                uri: "No Uri"
               schema:
-                type: "object"
-                properties:
-                  message:
-                    type: "string"
-                  statusCode:
-                    type: "integer"
-                    format: "int32"
-                  uri:
-                    type: "string"
-                example:
-                  message: "Bad Request!"
-                  statusCode: 400
-                  uri: "No Uri"
+                $ref: "#/components/schemas/SerinusException"
   /post/{data}:
     post:
       tags:
@@ -78,20 +70,12 @@ paths:
           description: "Name cannot be empty"
           content:
             application/json:
+              example:
+                message: "Name cannot be empty"
+                statusCode: 400
+                uri: "No Uri"
               schema:
-                type: "object"
-                properties:
-                  message:
-                    type: "string"
-                  statusCode:
-                    type: "integer"
-                    format: "int32"
-                  uri:
-                    type: "string"
-                example:
-                  message: "Name cannot be empty"
-                  statusCode: 400
-                  uri: "No Uri"
+                $ref: "#/components/schemas/SerinusException"
   /a/post:
     post:
       tags:
@@ -118,24 +102,32 @@ paths:
           description: "Bad Request"
           content:
             application/json:
+              example:
+                message: "Bad Request!"
+                statusCode: 400
+                uri: "No Uri"
               schema:
-                type: "object"
-                properties:
-                  message:
-                    type: "string"
-                  statusCode:
-                    type: "integer"
-                    format: "int32"
-                  uri:
-                    type: "string"
-                example:
-                  message: "Bad Request!"
-                  statusCode: 400
-                  uri: "No Uri"
+                $ref: "#/components/schemas/SerinusException"
 components:
   schemas:
+    SerinusException:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+        statusCode:
+          type: "integer"
+          format: "int32"
+        uri:
+          type: "string"
+      required:
+        - "message"
+        - "statusCode"
+        - "uri"
     MyObject:
       type: "object"
       properties:
         name:
           type: "string"
+      required:
+        - "name"

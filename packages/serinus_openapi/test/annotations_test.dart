@@ -107,6 +107,25 @@ void main() {
       expect((oneOf[1] as Map)['type'], 'array');
       expect((oneOf[1] as Map)['maxItems'], 100);
     });
+
+    test('BodySchema.fromType maps generic lists to array items', () {
+      final schema = BodySchema.fromType(List<MyDto>);
+
+      final spec = schema.toOpenApiSpec();
+      expect(spec['type'], 'array');
+      expect((spec['items'] as Map)[r'$ref'], '#/components/schemas/MyDto');
+    });
+
+    test('BodySchema.fromType maps generic maps to additionalProperties', () {
+      final schema = BodySchema.fromType(Map<String, MyDto>);
+
+      final spec = schema.toOpenApiSpec();
+      expect(spec['type'], 'object');
+      expect(
+        (spec['additionalProperties'] as Map)[r'$ref'],
+        '#/components/schemas/MyDto',
+      );
+    });
   });
 
   group('Response / Responses annotations', () {

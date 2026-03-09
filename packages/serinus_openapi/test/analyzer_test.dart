@@ -24,6 +24,68 @@ enum HttpMethod { get, post, put, delete, patch, head, options, all }
 
 class RequestContext {}
 
+class Body {
+  final Type? type;
+  final BodySchema? schema;
+  final bool required;
+  final String contentType;
+
+  const Body(this.type, {this.required = true, this.contentType = 'application/json'})
+      : schema = null;
+
+  const Body.schema({required this.schema, this.required = true, this.contentType = 'application/json'})
+      : type = null;
+}
+
+class BodySchema {
+  final String? type;
+  final String? ref;
+  final Map<String, BodySchema>? properties;
+  final BodySchema? items;
+  final int? minItems;
+  final int? maxItems;
+  final Object? additionalProperties;
+  final List<Type>? oneOfTypes;
+  final List<BodySchema>? oneOfSchemas;
+  final bool useRefForCustomTypes;
+
+  const BodySchema({
+    this.type,
+    this.ref,
+    this.properties,
+    this.items,
+    this.minItems,
+    this.maxItems,
+    this.additionalProperties,
+    this.oneOfTypes,
+    this.oneOfSchemas,
+    this.useRefForCustomTypes = true,
+  });
+
+  const BodySchema.ref(this.ref)
+      : type = null,
+        properties = null,
+        items = null,
+        minItems = null,
+        maxItems = null,
+        additionalProperties = null,
+        oneOfTypes = null,
+        oneOfSchemas = null,
+        useRefForCustomTypes = true;
+
+  const BodySchema.oneOfSchemas(List<BodySchema> schemas)
+      : type = null,
+        ref = null,
+        properties = null,
+        items = null,
+        minItems = null,
+        maxItems = null,
+        additionalProperties = null,
+        oneOfTypes = null,
+        oneOfSchemas = schemas,
+        useRefForCustomTypes = true;
+}
+
 class Route {
   final String path;
   final HttpMethod method;
@@ -66,6 +128,25 @@ class AppController extends Controller {
 
   Future<String> handleHello(RequestContext context) async {
     return 'Hello';
+  }
+}
+
+class BodySchemaController extends Controller {
+  BodySchemaController() : super('/') {
+    on(Route.get('/union'), handleUnion);
+  }
+
+  @Body.schema(
+    schema: BodySchema.oneOfSchemas([
+      BodySchema.ref('#/components/schemas/UserDto'),
+      BodySchema(
+        type: 'array',
+        items: BodySchema.ref('#/components/schemas/UserDto'),
+      ),
+    ]),
+  )
+  Future<String> handleUnion(RequestContext context) async {
+    return 'ok';
   }
 }
 ''');
@@ -124,6 +205,29 @@ void main() {
         expect(registeredNames, isNot(contains('List')));
       },
     );
+
+    test('parses BodySchema.oneOfSchemas branches from constants', () async {
+      final analyzer = Analyzer(OpenApiVersion.v3_0);
+
+      final result = await analyzer.analyze();
+
+      final description = result['BodySchemaController']!.single;
+      final schema =
+          description.requestBody!.schema.toV3(use31: false) as SchemaObjectV3;
+
+      expect(schema.oneOf, hasLength(2));
+      expect(
+        (schema.oneOf!.first as ReferenceObject).ref,
+        '#/components/schemas/UserDto',
+      );
+
+      final arrayBranch = schema.oneOf![1] as SchemaObjectV3;
+      expect(arrayBranch.type?.type, 'array');
+      expect(
+        (arrayBranch.items as ReferenceObject).ref,
+        '#/components/schemas/UserDto',
+      );
+    });
   });
 
   group('OpenApiParseType enum', () {

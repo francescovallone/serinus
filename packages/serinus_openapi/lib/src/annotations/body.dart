@@ -149,6 +149,8 @@ class BodySchema {
     Type type, {
     bool useRefForCustomTypes = true,
   }) {
+    final typeName = type.toString();
+
     if (type == String) {
       return const BodySchema(type: 'string');
     }
@@ -174,8 +176,16 @@ class BodySchema {
       );
     }
 
+    final genericCollectionSchema = _schemaFromGenericTypeName(
+      typeName,
+      useRefForCustomTypes: useRefForCustomTypes,
+    );
+    if (genericCollectionSchema != null) {
+      return genericCollectionSchema;
+    }
+
     if (useRefForCustomTypes) {
-      return BodySchema.ref('#/components/schemas/$type');
+      return BodySchema.ref('#/components/schemas/$typeName');
     }
 
     return const BodySchema(type: 'object');
@@ -213,4 +223,133 @@ class BodySchema {
         'additionalProperties': additionalProperties!.toOpenApiSpec(),
     };
   }
+}
+
+BodySchema? _schemaFromGenericTypeName(
+  String typeName, {
+  required bool useRefForCustomTypes,
+}) {
+  if (!typeName.contains('<') || !typeName.endsWith('>')) {
+    return null;
+  }
+
+  if (typeName.startsWith('List<')) {
+    final arguments = _splitGenericArguments(typeName);
+    if (arguments.length != 1) {
+      throw ArgumentError(
+        'Unsupported generic collection type "$typeName". '
+        'Use Body.schema(...) for parameterized collections that cannot be inferred.',
+      );
+    }
+
+    return BodySchema(
+      type: 'array',
+      items: _schemaFromTypeName(
+        arguments.first,
+        useRefForCustomTypes: useRefForCustomTypes,
+      ),
+    );
+  }
+
+  if (typeName.startsWith('Map<')) {
+    final arguments = _splitGenericArguments(typeName);
+    if (arguments.length != 2 || arguments.first != 'String') {
+      throw ArgumentError(
+        'Unsupported generic collection type "$typeName". '
+        'Use Body.schema(...) for parameterized collections that cannot be inferred.',
+      );
+    }
+
+    return BodySchema(
+      type: 'object',
+      additionalProperties: _schemaFromTypeName(
+        arguments.last,
+        useRefForCustomTypes: useRefForCustomTypes,
+      ),
+    );
+  }
+
+  throw ArgumentError(
+    'Unsupported generic collection type "$typeName". '
+    'Use Body.schema(...) for parameterized collections that cannot be inferred.',
+  );
+}
+
+BodySchema _schemaFromTypeName(
+  String typeName, {
+  required bool useRefForCustomTypes,
+}) {
+  switch (typeName) {
+    case 'String':
+      return const BodySchema(type: 'string');
+    case 'int':
+      return const BodySchema(type: 'integer');
+    case 'double':
+    case 'num':
+      return const BodySchema(type: 'number');
+    case 'bool':
+      return const BodySchema(type: 'boolean');
+    case 'List':
+      return const BodySchema(
+        type: 'array',
+        items: BodySchema(type: 'object'),
+      );
+    case 'Map':
+      return const BodySchema(
+        type: 'object',
+        additionalProperties: BodySchema(type: 'object'),
+      );
+    default:
+      final genericSchema = _schemaFromGenericTypeName(
+        typeName,
+        useRefForCustomTypes: useRefForCustomTypes,
+      );
+      if (genericSchema != null) {
+        return genericSchema;
+      }
+
+      if (useRefForCustomTypes) {
+        return BodySchema.ref('#/components/schemas/$typeName');
+      }
+
+      return const BodySchema(type: 'object');
+  }
+}
+
+List<String> _splitGenericArguments(String typeName) {
+  final start = typeName.indexOf('<');
+  if (start == -1 || !typeName.endsWith('>')) {
+    return const [];
+  }
+
+  final content = typeName.substring(start + 1, typeName.length - 1);
+  final arguments = <String>[];
+  final buffer = StringBuffer();
+  var depth = 0;
+
+  for (final rune in content.runes) {
+    final character = String.fromCharCode(rune);
+    if (character == '<') {
+      depth++;
+      buffer.write(character);
+      continue;
+    }
+    if (character == '>') {
+      depth--;
+      buffer.write(character);
+      continue;
+    }
+    if (character == ',' && depth == 0) {
+      arguments.add(buffer.toString().trim());
+      buffer.clear();
+      continue;
+    }
+    buffer.write(character);
+  }
+
+  final tail = buffer.toString().trim();
+  if (tail.isNotEmpty) {
+    arguments.add(tail);
+  }
+  return arguments;
 }
