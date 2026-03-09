@@ -91,6 +91,22 @@ void main() {
       expect((oneOf[0] as Map)[r'$ref'], '#/components/schemas/MyDto');
       expect((oneOf[1] as Map)[r'$ref'], '#/components/schemas/OtherDto');
     });
+
+    test('BodySchema.oneOfSchemas preserves array bounds', () {
+      const schema = BodySchema.oneOfSchemas([
+        BodySchema.ref('#/components/schemas/MyDto'),
+        BodySchema(
+          type: 'array',
+          items: BodySchema.ref('#/components/schemas/MyDto'),
+          maxItems: 100,
+        ),
+      ]);
+
+      final spec = schema.toOpenApiSpec();
+      final oneOf = spec['oneOf'] as List<dynamic>;
+      expect((oneOf[1] as Map)['type'], 'array');
+      expect((oneOf[1] as Map)['maxItems'], 100);
+    });
   });
 
   group('Response / Responses annotations', () {

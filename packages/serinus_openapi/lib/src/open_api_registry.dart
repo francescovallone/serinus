@@ -246,7 +246,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
           sb.write('/${versioning.versionPrefix}${versioning.version}');
         }
         sb.write('/${controller.path}');
-        sb.write('/${routePath.join('/')}');
+        sb.write('/${routePath.map(_toOpenApiPathSegment).join('/')}');
         final fullPath = _normalizePath(sb.toString());
         if (!operations.containsKey(fullPath)) {
           operations[fullPath] = {};
@@ -1092,16 +1092,33 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
         final pathName = path.substring(1, path.length - 1);
         if (version == OpenApiVersion.v3_0 || version == OpenApiVersion.v3_1) {
           pathParameters.add(
-            ParameterObjectV3(name: pathName, in_: 'path', required: true),
+            ParameterObjectV3(
+              name: pathName,
+              in_: 'path',
+              required: true,
+              schema: SchemaObjectV3(type: OpenApiType.string()),
+            ),
           );
         } else if (version == OpenApiVersion.v2) {
           pathParameters.add(
-            ParameterObjectV2(name: pathName, in_: 'path', required: true),
+            ParameterObjectV2(
+              name: pathName,
+              in_: 'path',
+              required: true,
+              type: 'string',
+            ),
           );
         }
       }
     }
     return pathParameters;
+  }
+
+  String _toOpenApiPathSegment(String pathSegment) {
+    if (pathSegment.startsWith('<') && pathSegment.endsWith('>')) {
+      return '{${pathSegment.substring(1, pathSegment.length - 1)}}';
+    }
+    return pathSegment;
   }
 
   String _normalizePath(String path) {

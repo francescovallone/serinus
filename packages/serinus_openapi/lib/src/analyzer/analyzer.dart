@@ -162,14 +162,11 @@ class Analyzer {
           }
           final annotated = _analyzeMethodAnnotations(method);
           _mergeRouteDescriptions(savedHandler, annotated);
-          savedHandler.operationId =
-              (savedHandler.operationId ?? analyzed.operationId ?? methodName)
-                  .startsWith('_')
-              ? (savedHandler.operationId ?? analyzed.operationId ?? methodName)
-                    .substring(1)
-              : (savedHandler.operationId ??
-                    analyzed.operationId ??
-                    methodName);
+            final baseOperationId =
+              savedHandler.operationId ?? analyzed.operationId ?? methodName;
+            savedHandler.operationId = baseOperationId.startsWith('_')
+              ? baseOperationId.substring(1)
+              : baseOperationId;
         }
       }
       if (isController) {
@@ -834,6 +831,8 @@ class Analyzer {
       case 'bool':
         return SchemaDescriptor(type: OpenApiType.boolean());
       case 'array':
+        // If no element type can be inferred, default array items to string.
+        // Callers can provide explicit items metadata to override this fallback.
         return SchemaDescriptor(
           type: OpenApiType.array(),
           items: SchemaDescriptor(type: OpenApiType.string()),

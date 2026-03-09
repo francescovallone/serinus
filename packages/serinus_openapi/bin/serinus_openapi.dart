@@ -42,10 +42,7 @@ class PostRoute extends ApiRoute {
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on(
-      ApiRoute.v3(path: '/', queryParameters: {'name': String}),
-      _handleHelloWorld,
-    );
+    on(ApiRoute.v3(path: '/'), _handleHelloWorld);
     on(Route.post('/post/<data>'), (RequestContext<MyObject> context) async {
       final body = context.body;
       if (body.name.isEmpty) {
@@ -56,15 +53,21 @@ class AppController extends Controller {
   }
 
   @Headers({'X-Custom-Header': 'This is a custom header'})
-  @Body(MyObject)
   @Query([
     QueryParameter('name', 'string', required: false),
     QueryParameter('page', 'integer', required: false),
   ])
   @Responses({
-    200: Response.oneOf(
+    200: Response.schema(
       description: 'Successful response',
-      types: [MyObject, List<MyObject>],
+      schema: BodySchema.oneOfSchemas([
+        BodySchema.ref('#/components/schemas/MyObject'),
+        BodySchema(
+          type: 'array',
+          items: BodySchema.ref('#/components/schemas/MyObject'),
+          maxItems: 100,
+        ),
+      ]),
     ),
     400: Response(description: 'Bad Request', type: BadRequestException),
   })
@@ -80,8 +83,31 @@ class App2Controller extends Controller {
     on(HelloWorldRoute(), _handleHelloWorld);
   }
 
+  @Body(String)
+  @Responses({
+    201: Response.schema(
+      description: 'Success response',
+      schema: BodySchema(
+        type: 'object',
+        properties: {
+          'message': BodySchema(type: 'string'),
+        },
+      ),
+    ),
+    400: Response(description: 'Bad Request', type: BadRequestException),
+  })
   Future<Map<String, String>> _createAPost(RequestContext context) async {
-    final data = context.bodyAs<String>();
+    late final String data;
+    try {
+      data = context.bodyAs<String>();
+    } on BadRequestException {
+      rethrow;
+    } catch (_) {
+      throw BadRequestException('Expected a string request body');
+    }
+    if (data.isEmpty) {
+      throw BadRequestException('Request body cannot be empty');
+    }
     return {'message': 'Post $data'};
   }
 

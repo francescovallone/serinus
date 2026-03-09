@@ -73,11 +73,20 @@ class BodySchema {
   /// The item schema (used when [type] is `array`).
   final BodySchema? items;
 
+  /// The minimum number of items allowed when [type] is `array`.
+  final int? minItems;
+
+  /// The maximum number of items allowed when [type] is `array`.
+  final int? maxItems;
+
   /// Additional properties (used for map-like objects).
   final BodySchema? additionalProperties;
 
   /// The list of Dart types for a `oneOf` schema (set via [BodySchema.oneOf]).
   final List<Type>? oneOfTypes;
+
+  /// The list of concrete schemas for a `oneOf` schema.
+  final List<BodySchema>? oneOfSchemas;
 
   /// Whether to use `$ref` for custom types in a `oneOf` schema.
   final bool useRefForCustomTypes;
@@ -88,8 +97,11 @@ class BodySchema {
     this.ref,
     this.properties,
     this.items,
+    this.minItems,
+    this.maxItems,
     this.additionalProperties,
   }) : oneOfTypes = null,
+       oneOfSchemas = null,
        useRefForCustomTypes = true;
 
   /// Creates a `$ref` schema.
@@ -97,8 +109,11 @@ class BodySchema {
     : type = null,
       properties = null,
       items = null,
+      minItems = null,
+      maxItems = null,
       additionalProperties = null,
       oneOfTypes = null,
+      oneOfSchemas = null,
       useRefForCustomTypes = true;
 
   /// Creates a oneOf schema from a list of Dart types.
@@ -109,9 +124,25 @@ class BodySchema {
        ref = null,
        properties = null,
        items = null,
+       minItems = null,
+       maxItems = null,
        additionalProperties = null,
        oneOfTypes = types,
+       oneOfSchemas = null,
        useRefForCustomTypes = useRefForCustomTypes;
+
+  /// Creates a oneOf schema from a list of explicit schema branches.
+  const BodySchema.oneOfSchemas(List<BodySchema> schemas)
+    : type = null,
+      ref = null,
+      properties = null,
+      items = null,
+      minItems = null,
+      maxItems = null,
+      additionalProperties = null,
+      oneOfTypes = null,
+      oneOfSchemas = schemas,
+      useRefForCustomTypes = true;
 
   /// Creates a schema from a Dart type.
   factory BodySchema.fromType(
@@ -152,6 +183,11 @@ class BodySchema {
 
   /// Converts this schema to an OpenAPI compatible map.
   Map<String, dynamic> toOpenApiSpec() {
+    if (oneOfSchemas != null) {
+      return {
+        'oneOf': [for (final schema in oneOfSchemas!) schema.toOpenApiSpec()],
+      };
+    }
     if (oneOfTypes != null) {
       return {
         'oneOf': [
@@ -171,6 +207,8 @@ class BodySchema {
           (key, value) => MapEntry(key, value.toOpenApiSpec()),
         ),
       if (items != null) 'items': items!.toOpenApiSpec(),
+      if (minItems != null) 'minItems': minItems,
+      if (maxItems != null) 'maxItems': maxItems,
       if (additionalProperties != null)
         'additionalProperties': additionalProperties!.toOpenApiSpec(),
     };
