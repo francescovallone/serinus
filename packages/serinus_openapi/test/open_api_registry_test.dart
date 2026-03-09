@@ -59,13 +59,13 @@ void main() {
       expect(document.paths.containsKey('/post/{data}'), isTrue);
       expect(document.paths.containsKey('/post/<data>'), isFalse);
 
-      final operation = document.paths['/post/{data}']!.operations['post']!;
-      final parameter = operation.parameters!.single as ParameterObjectV3;
-      final parameterMap = parameter.toMap();
-      expect(parameterMap['name'], 'data');
-      expect(parameterMap['in'], 'path');
-      expect(parameterMap['required'], isTrue);
-      expect((parameterMap['schema'] as Map<String, dynamic>)['type'], 'string');
+      final operation = document.paths['/post/{data}']!.operations['post'];
+      final parameter = operation?.parameters?.single as ParameterObjectV3?;
+      final parameterMap = parameter?.toMap();
+      expect(parameterMap?['name'], 'data');
+      expect(parameterMap?['in'], 'path');
+      expect(parameterMap?['required'], isTrue);
+      expect((parameterMap?['schema'] as Map<String, dynamic>)['type'], 'string');
     });
   });
 }
