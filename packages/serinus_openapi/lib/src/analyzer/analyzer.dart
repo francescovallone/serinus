@@ -1206,29 +1206,73 @@ class Analyzer {
     return _inlineSchemaDescriptor(schema);
   }
 
-  SchemaDescriptor _inlineSchemaDescriptor(SchemaDescriptor schema) {
+  SchemaDescriptor _inlineSchemaDescriptor(
+    SchemaDescriptor schema, [
+    Set<String>? visitedRefs,
+  ]) {
+    final visited = visitedRefs ?? <String>{};
     if (schema.ref != null) {
+      final ref = schema.ref!;
+      if (visited.contains(ref)) {
+        return SchemaDescriptor(
+          type: OpenApiType.object(),
+          nullable: schema.nullable,
+          example: schema.example,
+        );
+      }
+
+      final resolved = _resolveReferencedSchemaDescriptor(ref);
+      if (resolved == null) {
+        return SchemaDescriptor(
+          type: OpenApiType.object(),
+          nullable: schema.nullable,
+          example: schema.example,
+        );
+      }
+
+      visited.add(ref);
+      final inlinedResolved = _inlineSchemaDescriptor(resolved, visited);
+      visited.remove(ref);
+
       return SchemaDescriptor(
-        type: OpenApiType.object(),
-        nullable: schema.nullable,
-        example: schema.example,
+        type: inlinedResolved.type,
+        properties: inlinedResolved.properties,
+        items: inlinedResolved.items,
+        additionalProperties: inlinedResolved.additionalProperties,
+        nullable: inlinedResolved.nullable || schema.nullable,
+        example: schema.example ?? inlinedResolved.example,
+        oneOf: inlinedResolved.oneOf,
       );
     }
+
     return SchemaDescriptor(
       type: schema.type,
       properties: schema.properties?.map(
-        (key, value) => MapEntry(key, _inlineSchemaDescriptor(value)),
+        (key, value) => MapEntry(key, _inlineSchemaDescriptor(value, visited)),
       ),
       items: schema.items == null
           ? null
-          : _inlineSchemaDescriptor(schema.items!),
+          : _inlineSchemaDescriptor(schema.items!, visited),
       additionalProperties: schema.additionalProperties == null
           ? null
-          : _inlineSchemaDescriptor(schema.additionalProperties!),
+          : _inlineSchemaDescriptor(schema.additionalProperties!, visited),
       nullable: schema.nullable,
       example: schema.example,
-      oneOf: schema.oneOf?.map(_inlineSchemaDescriptor).toList(growable: false),
+      oneOf: schema.oneOf
+          ?.map((branch) => _inlineSchemaDescriptor(branch, visited))
+          .toList(growable: false),
     );
+  }
+
+  SchemaDescriptor? _resolveReferencedSchemaDescriptor(String ref) {
+    final schemaName = ref.split('/').last;
+    for (final entry in modelTypeSchemas.entries) {
+      final modelName = entry.key.name ?? entry.key.displayName;
+      if (modelName == schemaName) {
+        return entry.value;
+      }
+    }
+    return null;
   }
 
   OpenApiObject _buildResponseObject(

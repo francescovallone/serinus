@@ -6,6 +6,8 @@ class MyDto {}
 
 class OtherDto {}
 
+class Paginated<T> {}
+
 /// Example custom annotation that overrides the generated operationId.
 ///
 /// This demonstrates how to build custom analyzer-driven annotations by
@@ -124,6 +126,20 @@ void main() {
       expect(
         (spec['additionalProperties'] as Map)[r'$ref'],
         '#/components/schemas/MyDto',
+      );
+    });
+
+    test('BodySchema.fromType falls back for unsupported generic wrappers', () {
+      final schema = BodySchema.fromType(Paginated<MyDto>);
+
+      final spec = schema.toOpenApiSpec();
+      expect(spec[r'$ref'], '#/components/schemas/Paginated<MyDto>');
+    });
+
+    test('BodySchema rejects conflicting ref and inline fields', () {
+      expect(
+        () => BodySchema(ref: '#/components/schemas/MyDto', type: 'object'),
+        throwsA(isA<AssertionError>()),
       );
     });
   });

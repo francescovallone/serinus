@@ -27,12 +27,10 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: "#/components/schemas/MyObject"
-                  - type: "array"
-                    maxItems: 100
-                    items:
-                      $ref: "#/components/schemas/MyObject"
+                type: "array"
+                maxItems: 100
+                items:
+                  $ref: "#/components/schemas/MyObject"
         400:
           description: "Bad Request"
           content:

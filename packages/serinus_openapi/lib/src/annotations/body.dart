@@ -100,7 +100,17 @@ class BodySchema {
     this.minItems,
     this.maxItems,
     this.additionalProperties,
-  }) : oneOfTypes = null,
+  }) : assert(
+         ref == null ||
+             (type == null &&
+                 properties == null &&
+                 items == null &&
+                 minItems == null &&
+                 maxItems == null &&
+                 additionalProperties == null),
+         'A ref schema cannot define inline schema fields.',
+       ),
+       oneOfTypes = null,
        oneOfSchemas = null,
        useRefForCustomTypes = true;
 
@@ -236,10 +246,7 @@ BodySchema? _schemaFromGenericTypeName(
   if (typeName.startsWith('List<')) {
     final arguments = _splitGenericArguments(typeName);
     if (arguments.length != 1) {
-      throw ArgumentError(
-        'Unsupported generic collection type "$typeName". '
-        'Use Body.schema(...) for parameterized collections that cannot be inferred.',
-      );
+      return null;
     }
 
     return BodySchema(
@@ -254,10 +261,7 @@ BodySchema? _schemaFromGenericTypeName(
   if (typeName.startsWith('Map<')) {
     final arguments = _splitGenericArguments(typeName);
     if (arguments.length != 2 || arguments.first != 'String') {
-      throw ArgumentError(
-        'Unsupported generic collection type "$typeName". '
-        'Use Body.schema(...) for parameterized collections that cannot be inferred.',
-      );
+      return null;
     }
 
     return BodySchema(
@@ -269,10 +273,7 @@ BodySchema? _schemaFromGenericTypeName(
     );
   }
 
-  throw ArgumentError(
-    'Unsupported generic collection type "$typeName". '
-    'Use Body.schema(...) for parameterized collections that cannot be inferred.',
-  );
+  return null;
 }
 
 BodySchema _schemaFromTypeName(

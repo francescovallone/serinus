@@ -29,12 +29,21 @@ class Body {
   final BodySchema? schema;
   final bool required;
   final String contentType;
+  final bool useRefForCustomTypes;
 
-  const Body(this.type, {this.required = true, this.contentType = 'application/json'})
-      : schema = null;
+  const Body(
+    this.type, {
+    this.required = true,
+    this.contentType = 'application/json',
+    this.useRefForCustomTypes = true,
+  }) : schema = null;
 
-  const Body.schema({required this.schema, this.required = true, this.contentType = 'application/json'})
-      : type = null;
+  const Body.schema({
+    required this.schema,
+    this.required = true,
+    this.contentType = 'application/json',
+  }) : type = Object,
+      useRefForCustomTypes = true;
 }
 
 class BodySchema {
@@ -57,10 +66,9 @@ class BodySchema {
     this.minItems,
     this.maxItems,
     this.additionalProperties,
-    this.oneOfTypes,
-    this.oneOfSchemas,
-    this.useRefForCustomTypes = true,
-  });
+  }) : oneOfTypes = null,
+       oneOfSchemas = null,
+       useRefForCustomTypes = true;
 
   const BodySchema.ref(this.ref)
       : type = null,
@@ -72,6 +80,20 @@ class BodySchema {
         oneOfTypes = null,
         oneOfSchemas = null,
         useRefForCustomTypes = true;
+
+  const BodySchema.oneOf(
+    List<Type> types, {
+    bool useRefForCustomTypes = true,
+  })  : type = null,
+        ref = null,
+        properties = null,
+        items = null,
+        minItems = null,
+        maxItems = null,
+        additionalProperties = null,
+        oneOfTypes = types,
+        oneOfSchemas = null,
+        useRefForCustomTypes = useRefForCustomTypes;
 
   const BodySchema.oneOfSchemas(List<BodySchema> schemas)
       : type = null,
@@ -119,7 +141,8 @@ class UserDto {
 ''');
 
       File(_join(libDir.path, 'app_controller.dart')).writeAsStringSync('''
-import 'stubs.dart';
+    import 'models.dart';
+    import 'stubs.dart';
 
 class AppController extends Controller {
   AppController() : super('/') {
@@ -146,6 +169,17 @@ class BodySchemaController extends Controller {
     ]),
   )
   Future<String> handleUnion(RequestContext context) async {
+    return 'ok';
+  }
+}
+
+class InlineBodyController extends Controller {
+  InlineBodyController() : super('/') {
+    on(Route.get('/inline'), handleInline);
+  }
+
+  @Body(UserDto, useRefForCustomTypes: false)
+  Future<String> handleInline(RequestContext context) async {
     return 'ok';
   }
 }
@@ -227,6 +261,20 @@ void main() {
         (arrayBranch.items as ReferenceObject).ref,
         '#/components/schemas/UserDto',
       );
+    });
+
+    test('inlines referenced schemas when ref emission is disabled', () async {
+      final analyzer = Analyzer(OpenApiVersion.v3_0);
+
+      final result = await analyzer.analyze();
+
+      final description = result['InlineBodyController']!.single;
+      final schema = description.requestBody!.schema;
+
+      expect(schema.ref, isNull);
+      expect(schema.type.type, 'object');
+      expect(schema.properties, contains('name'));
+      expect(schema.properties!['name']!.type.type, 'string');
     });
   });
 
