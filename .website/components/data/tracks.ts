@@ -26,9 +26,10 @@ export const roadmapTracks: RoadmapTrack[] = [
       { id: "c1", title: "Minimal Application", status: "in-progress", version: "v2.2" },
       { id: "c2", title: "Observability", status: "in-progress", version: "v2.2" },
       { id: "c3", title: "Injection Scopes", status: "planned", version: "v2.3" },
+      { id: "c4", title: "CSRF", status: "done", version: "v2.1.2" },
       { id: "c5", title: "Change the HttpAdapter at runtime", status: "in-progress", version: "v2.2" },
       { id: "c6", title: "Streaming responses", status: "in-progress", version: "v2.2" },
-      { id: "c4", title: "CSRF", status: "done", version: "v2.1.2" },
+      { id: "c7", title: "Guards", status: "in-progress", version: "v2.2" },
     ],
   },
   {
@@ -44,7 +45,7 @@ export const roadmapTracks: RoadmapTrack[] = [
     label: "Serinus Frontier",
     color: "220 70% 55%",
     items: [
-      { id: "f1", title: "Policies", status: "planned", version: "v1.1" },
+      { id: "f1", title: "Policies", status: "in-progress", version: "v2.0" },
     ],
   },
   {
@@ -52,7 +53,7 @@ export const roadmapTracks: RoadmapTrack[] = [
     label: "Serinus CLI",
     color: "280 60% 55%",
     items: [
-      { id: "cl1", title: "Client Generation", status: "planned" },
+      { id: "cl1", title: "Client Generation", status: "in-progress" },
     ],
   },
   {
