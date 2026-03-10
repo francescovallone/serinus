@@ -1,6 +1,8 @@
 import '../enums/http_method.dart';
 import 'node.dart';
 
+const _cacheCapacity = 10000;
+
 /// A record type representing a parameter name and its corresponding value.
 typedef ParamAndValue = ({String name, String? value});
 
@@ -103,7 +105,7 @@ final class Atlas<T> {
   ///
   /// Returns `true` if the route was added successfully.
   bool add(HttpMethod method, String path, T handler) {
-    final segments = _parsePathSegments(path);
+    final segments = _parseRoutePathSegments(path);
     var currentNode = _root;
     AtlasNode<T>? optionalParent;
     ParamNode<T>? optionalParamNode;
@@ -183,10 +185,11 @@ final class Atlas<T> {
   @pragma('vm:prefer-inline')
   AtlasResult<T> lookup(HttpMethod method, String path) {
     final cacheKey = (method.index, path);
-    if (_handlersCache.containsKey(cacheKey)) {
-      return _handlersCache[cacheKey]!;
+    final cachedResult = _handlersCache[cacheKey];
+    if (cachedResult != null) {
+      return cachedResult;
     }
-    final segments = _parsePathSegments(path);
+    final segments = _splitPathSegments(path);
     final params = <ParamAndValue>[];
 
     final matchResult = _matchPath(_root, segments, 0, params, method);
@@ -217,13 +220,12 @@ final class Atlas<T> {
       // This should not happen as _matchPath checks for handlers
       return AtlasResult.notFound();
     }
-    if (_handlersCache.length > 10000) {
-      _handlersCache.remove(_handlersCache.keys.first);
+    final result = FoundRoute(values: handlers, rawParams: extractedParams);
+    if (extractedParams.isNotEmpty) {
+      return result;
     }
-    return _handlersCache[cacheKey] ??= FoundRoute(
-      values: handlers,
-      rawParams: extractedParams,
-    );
+    _evictOldest(_handlersCache);
+    return _handlersCache[cacheKey] = result;
   }
 
   /// Checks if a node has any handler registered.
@@ -258,16 +260,21 @@ final class Atlas<T> {
         node.handlers[HttpMethod.all.index] != null;
   }
 
-  final _pathsCache = <String, List<String>>{};
+  final _routePathsCache = <String, List<String>>{};
 
-  /// Parses a path string into segments.
-  List<String> _parsePathSegments(String path) {
-    if (_pathsCache.containsKey(path)) {
-      return _pathsCache[path]!;
+  /// Parses a route definition path into segments and caches the result.
+  List<String> _parseRoutePathSegments(String path) {
+    final cachedSegments = _routePathsCache[path];
+    if (cachedSegments != null) {
+      return cachedSegments;
     }
-    if (_pathsCache.length > 10000) {
-      _pathsCache.remove(_pathsCache.keys.first);
-    }
+    final segments = _splitPathSegments(path);
+    _evictOldest(_routePathsCache);
+    return _routePathsCache[path] = segments;
+  }
+
+  /// Splits an incoming path into segments without caching request-specific paths.
+  List<String> _splitPathSegments(String path) {
     if (path.isEmpty || path == '/') {
       return const <String>[];
     }
@@ -276,8 +283,14 @@ final class Atlas<T> {
     }
     final start = path.startsWith('/') ? 1 : 0;
     final end = path.endsWith('/') ? path.length - 1 : path.length;
-    final segments = path.substring(start, end).split('/');
-    return _pathsCache[path] = segments;
+    return path.substring(start, end).split('/');
+  }
+
+  @pragma('vm:prefer-inline')
+  void _evictOldest<K, V>(Map<K, V> cache) {
+    if (cache.length >= _cacheCapacity) {
+      cache.remove(cache.keys.first);
+    }
   }
 
   /// Inserts a segment into the tree, creating appropriate node types.

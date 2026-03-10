@@ -111,11 +111,11 @@ export default defineConfig({
     ],
   },
   sitemap: {
-    hostname: 'https://serinus.app'
+    hostname: 'https://serinus.app',
   },
   lastUpdated: true,
   appearance: {
-    initialValue: undefined
+    initialValue: undefined,
   },
   ignoreDeadLinks: true,
   themeConfig: {
@@ -325,6 +325,7 @@ export default defineConfig({
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ],
   },
+  cleanUrls: true
   vite: {
     plugins: [
       Tailwind(),
