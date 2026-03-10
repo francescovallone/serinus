@@ -325,7 +325,7 @@ export default defineConfig({
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ],
   },
-  cleanUrls: true
+  cleanUrls: true,
   vite: {
     plugins: [
       Tailwind(),
