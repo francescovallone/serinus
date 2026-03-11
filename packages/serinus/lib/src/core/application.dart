@@ -149,6 +149,13 @@ abstract class Application {
     }
   }
 
+  /// [observe] allows to set up application-wide observability using the provided [ObserveConfig].
+  /// This includes enabling tracing, metrics, and logging for all requests and operations within the application.
+  /// By configuring this method, developers can gain insights into the application's performance, identify bottlenecks, and monitor the health of the application in real-time.
+  void observe(ObserveConfig config) {
+    this.config.observeConfig = config;
+  }
+
   /// The [shutdown] method is used to shutdown the application.
   @internal
   Future<void> shutdown();
