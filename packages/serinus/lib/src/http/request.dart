@@ -36,8 +36,11 @@ class Request {
   /// The path of the request.
   String get path => _original.path;
 
-  /// The uri of the request.
+  /// The uri of the request. It is the path of the request as received in the HTTP line.
   Uri get uri => _original.uri;
+
+  /// The requested uri of the request. It is the absolute and complete uri of the request.
+  Uri get requestedUri => _original.requestedUri;
 
   /// The method of the request.
   HttpMethod get method => HttpMethod.parse(_original.method);

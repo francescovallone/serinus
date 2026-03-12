@@ -42,10 +42,7 @@ class RouteContext<T extends RouteHandlerSpec> {
   final ModuleScope moduleScope;
 
   /// The [providers] property contains the providers of the module.
-  late final Map<Type, Provider> providers = {
-    for (var provider in moduleScope.unifiedProviders)
-      provider.runtimeType: provider,
-  };
+  Map<Type, Provider> providers = {};
 
   /// The [values] property contains the values from ValueProviders.
   late final Map<ValueToken, Object?> values = Map.unmodifiable(
@@ -125,7 +122,12 @@ class RouteContext<T extends RouteHandlerSpec> {
     this.queryParameters = const {},
     this.hooksServices = const {},
     this.exceptionFilters = const {},
-  });
+  }) {
+    providers = {
+      for (var provider in moduleScope.unifiedProviders)
+        provider.runtimeType: provider,
+    };
+  }
 
   /// Initializes the metadata for the route context.
   Future<Map<String, Metadata>> initMetadata(ExecutionContext context) async {

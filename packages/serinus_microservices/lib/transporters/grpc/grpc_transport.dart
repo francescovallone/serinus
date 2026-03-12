@@ -84,7 +84,7 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
 
   @override
   Future<void> init(ApplicationConfig config) async {
-    _messagesResolver = GrpcMessageResolver(
+    messagesResolver = GrpcMessageResolver(
       config,
       (services) {
         server = Server.create(
@@ -171,9 +171,4 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
         });
     return controller.stream;
   }
-
-  MessagesResolver? _messagesResolver;
-
-  @override
-  MessagesResolver? get messagesResolver => _messagesResolver;
 }
