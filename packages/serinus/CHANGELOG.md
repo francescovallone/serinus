@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.6
+
+**Released on:** 12-03-2026
+
+### Fixes
+
+- Reduce overhead of the request handling by using weak eTags and by using the request relative uri instead of the absolute uri.
+
 ## 2.1.5
 
 **Released on:** 07-03-2026

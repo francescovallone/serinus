@@ -29,7 +29,6 @@ class GrpcInvocationPayload<Q, R> {
 
 /// The [GrpcRouteContext] class is the gRPC route context.
 class GrpcServiceContext<T> {
-
   /// The [providers] property contains the providers available in the context.
   final Map<Type, Provider> providers;
 
@@ -51,9 +50,7 @@ class GrpcServiceContext<T> {
   /// Add metadata to the route context for use in hooks and filters.
   final List<Metadata> metadata;
 
-  /// The gRPC route spec containing the handler for this method.
-  final GrpcRouteSpec? routeSpec;
-
+  /// Creates a gRPC route context.
   const GrpcServiceContext({
     required this.providers,
     required this.hooks,
@@ -62,11 +59,12 @@ class GrpcServiceContext<T> {
     required this.values,
     required this.metadata,
     this.streaming = false,
-    this.routeSpec,
   });
 
   /// Initializes the metadata for the route context, resolving any contextualized metadata using the provided execution context.
-  Future<Map<String, Metadata<dynamic>>> initMetadata(ExecutionContext<RpcArgumentsHost> executionContext) async {
+  Future<Map<String, Metadata<dynamic>>> initMetadata(
+    ExecutionContext<RpcArgumentsHost> executionContext,
+  ) async {
     final Map<String, Metadata<dynamic>> resolvedMetadata = {};
     for (final meta in metadata) {
       if (meta is ContextualizedMetadata) {
@@ -87,6 +85,7 @@ class GrpcMessageResolver extends MessagesResolver {
   /// The [resolvedAlready] property is used to check if the routes have been resolved already.
   bool resolvedAlready = false;
 
+  /// Callback used to create a server correctly with all the services extracted from the module scopes at runtime.
   void Function(List<Service> service) onServicesExtracted;
 
   /// The [GrpcMessageResolver] constructor is used to create a new instance of the [MessagesResolver] class.
@@ -99,13 +98,15 @@ class GrpcMessageResolver extends MessagesResolver {
     }
     final extractedServices = <Service>[];
     for (final module in config.modulesContainer.scopes) {
-      for (final controllerEntry in module.controllers.whereType<GrpcServiceController>()) {
+      for (final controllerEntry
+          in module.controllers.whereType<GrpcServiceController>()) {
         final serviceName = controllerEntry.service.$name;
         extractedServices.add(controllerEntry.service);
         resolvedMessageRoutes[serviceName] = GrpcServiceContext(
           metadata: controllerEntry.metadata,
           providers: {
-            for (final providerEntry in module.unifiedProviders) providerEntry.runtimeType: providerEntry,
+            for (final providerEntry in module.unifiedProviders)
+              providerEntry.runtimeType: providerEntry,
           },
           hooks: controllerEntry.hooks.merge([
             config.globalHooks,
@@ -131,7 +132,9 @@ class GrpcMessageResolver extends MessagesResolver {
     MessagePacket packet,
     TransportAdapter<dynamic, TransportOptions> adapter,
   ) {
-    throw UnimplementedError('GrpcMessageResolver does not support handleMessage. Use handleRpcCall instead.');
+    throw UnimplementedError(
+      'GrpcMessageResolver does not support handleMessage. Use handleRpcCall instead.',
+    );
   }
 
   /// Handles an incoming gRPC call by setting up the Serinus context and invoking the appropriate service method.
@@ -188,7 +191,8 @@ class GrpcMessageResolver extends MessagesResolver {
       );
     } on RpcException catch (e) {
       for (final filter in routeContext.exceptionFilters) {
-        if (filter.catchTargets.contains(e.runtimeType) || filter.catchTargets.isEmpty) {
+        if (filter.catchTargets.contains(e.runtimeType) ||
+            filter.catchTargets.isEmpty) {
           final executionContext = ExecutionContext(
             HostType.rpc,
             routeContext.providers,
@@ -227,7 +231,7 @@ extension ServiceCallContext on ServiceCall {
     if (ctx == null) {
       throw StateError(
         'RpcContext is not available. Ensure SerinusGrpcInterceptor is registered '
-        'and you are passing the correct ServiceCall object.'
+        'and you are passing the correct ServiceCall object.',
       );
     }
     return ctx;

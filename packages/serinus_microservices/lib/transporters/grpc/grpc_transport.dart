@@ -7,7 +7,9 @@ import 'grpc_controller.dart';
 import 'grpc_message_handler.dart';
 
 /// The [grpcContexts] expando is used to store the gRPC context for each request. This allows us to access the gRPC context from anywhere in the code, as long as we have access to the request object. The gRPC context contains information about the request, such as the metadata and the service call.
-final Expando<RpcContext> grpcContexts = Expando<RpcContext>('SerinusRpcContext');
+final Expando<RpcContext> grpcContexts = Expando<RpcContext>(
+  'SerinusRpcContext',
+);
 
 /// The [SerinusInterceptor] class is the gRPC interceptor for Serinus.
 class SerinusInterceptor extends ServerInterceptor {
@@ -23,7 +25,8 @@ class SerinusInterceptor extends ServerInterceptor {
   SerinusInterceptor(this.transporter, this._config) {
     // Pre-calculate which providers belong to which service based on the Modules
     for (final module in _config.modulesContainer.scopes) {
-      for (final controller in module.controllers.whereType<GrpcServiceController>()) {
+      for (final controller
+          in module.controllers.whereType<GrpcServiceController>()) {
         _serviceProviders[controller.service.$name] = {
           for (final p in module.unifiedProviders) p.runtimeType: p,
         };
@@ -44,7 +47,6 @@ class SerinusInterceptor extends ServerInterceptor {
 
 /// The [GrpcOptions] class is the gRPC transport options.
 class GrpcOptions extends TransportOptions {
-
   /// The codec registry for gRPC.
   final CodecRegistry? codecRegistry;
 
@@ -84,17 +86,14 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
 
   @override
   Future<void> init(ApplicationConfig config) async {
-    messagesResolver = GrpcMessageResolver(
-      config,
-      (services) {
-        server = Server.create(
-          services: services,
-          codecRegistry: options.codecRegistry,
-          keepAliveOptions: options.keepAliveOptions,
-          serverInterceptors: [SerinusInterceptor(this, config)],
-        );
-      }
-    );
+    messagesResolver = GrpcMessageResolver(config, (services) {
+      server = Server.create(
+        services: services,
+        codecRegistry: options.codecRegistry,
+        keepAliveOptions: options.keepAliveOptions,
+        serverInterceptors: [SerinusInterceptor(this, config)],
+      );
+    });
   }
 
   @override
@@ -120,7 +119,12 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
   Stream<TransportEvent> get status => throw UnimplementedError();
 
   /// Handles a gRPC request.
-  Stream<R> handleRequest<O, R>(ServiceCall call, ServiceMethod<O, R> method, Stream<O> requests, ServerStreamingInvoker<O, R> invoker) {
+  Stream<R> handleRequest<O, R>(
+    ServiceCall call,
+    ServiceMethod<O, R> method,
+    Stream<O> requests,
+    ServerStreamingInvoker<O, R> invoker,
+  ) {
     final path = call.clientMetadata?[':path'] ?? 'unknown';
     final pathSegments = path.split('/');
     if (pathSegments.length < 3) {
@@ -131,7 +135,8 @@ class GrpcTransport extends TransportAdapter<Server, GrpcOptions> {
     final service = server?.lookupService(serviceName);
     final controller = StreamController<R>();
     final grpcResolver = messagesResolver as GrpcMessageResolver?;
-    grpcResolver?.handleRpcCall<O, R>(
+    grpcResolver
+        ?.handleRpcCall<O, R>(
           RequestPacket(
             pattern: '${service?.runtimeType}.$methodName',
             id: serviceName,

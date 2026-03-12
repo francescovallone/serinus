@@ -51,7 +51,9 @@ class TcpClient extends TransportClient<TcpClientOptions> {
       });
     } catch (e, _) {
       if (!_isRetrying) {
-        _logger.warning('Failed to connect to TCP server, retrying with exponential backoff...');
+        _logger.warning(
+          'Failed to connect to TCP server, retrying with exponential backoff...',
+        );
         await _retry();
       }
       return;
@@ -80,7 +82,9 @@ class TcpClient extends TransportClient<TcpClientOptions> {
       final delay = Duration(seconds: 2 ^ attempt);
       await Future.delayed(delay);
     }
-    _logger.severe('Failed to reconnect to TCP server after $maxAttempts attempts.');
+    _logger.severe(
+      'Failed to reconnect to TCP server after $maxAttempts attempts.',
+    );
     throw StateError('Could not connect to the TCP server');
   }
 

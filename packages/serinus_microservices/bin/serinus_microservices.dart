@@ -16,7 +16,8 @@ class TestModule extends Module {
 }
 
 class Test2Module extends Module {
-  Test2Module() : super(imports: [TestModule()], controllers: [Test2Controller()]);
+  Test2Module()
+    : super(imports: [TestModule()], controllers: [Test2Controller()]);
 }
 
 class Test2Controller extends Controller {
@@ -43,7 +44,11 @@ class AppController extends Controller with RpcController {
 }
 
 class AppModule extends Module {
-  AppModule() : super(imports: [Test2Module(), TestModule()], controllers: [AppController()]);
+  AppModule()
+    : super(
+        imports: [Test2Module(), TestModule()],
+        controllers: [AppController()],
+      );
 }
 
 void main(List<String> arguments) async {

@@ -1,6 +1,6 @@
 name: serinus_microservices
 description: Microservice transporters and clients for Serinus framework.
-version: 0.1.2
+version: 1.0.0
 repository: https://github.com/francescovallone/serinus
 homepage: https://serinus.app
 documentation: https://serinus.app/microservices/
