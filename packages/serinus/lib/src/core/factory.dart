@@ -90,6 +90,7 @@ final class SerinusFactory {
         print('Orchestrator: Worker $id registered.');
         
       } else if (message is ClusterMessage) {
+        print('Orchestrator: Received message from ${message.senderId} on topic "${message.topic}". Broadcasting to other workers...');
         // Broadcast to all workers EXCEPT the one who sent it
         for (final entry in workerPorts.entries) {
           if (entry.key != message.senderId) {

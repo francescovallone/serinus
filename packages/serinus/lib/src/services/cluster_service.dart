@@ -63,7 +63,9 @@ mixin Syncable<T> on Provider {
   @internal
   @mustCallSuper
   void initSync(ClusterService clusterService) {
-    if (_isInitialized) return;
+    if (_isInitialized) {
+      return;
+    }
     
     _clusterService = clusterService;
     _isInitialized = true;

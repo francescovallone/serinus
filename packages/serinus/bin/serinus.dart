@@ -48,10 +48,9 @@ class TestModule extends Module {
   TestModule()
     : super(
         providers: [
-          TestProvider(),
           Provider.forValue<String>('TestModuleValue'),
         ],
-        exports: [TestProvider, Export.value<String>()],
+        exports: [Export.value<String>()],
       );
 }
 
@@ -61,6 +60,7 @@ class Test2Module extends Module {
         imports: [],
         providers: [TestProvider()],
         controllers: [Test2Controller()],
+        exports: [TestProvider]
       );
 }
 
