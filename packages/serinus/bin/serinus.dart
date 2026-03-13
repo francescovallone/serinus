@@ -4,11 +4,23 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 
-class TestProvider extends Provider {
+class TestProvider extends Provider with Syncable<int> {
   int counter = 0;
 
   void increment() {
     counter++;
+    notifyListeners();
+  }
+  
+  @override
+  int dehydrate() {
+    return counter;
+  }
+  
+  @override
+  void hydrate(int state) {
+    print('Hydrating TestProvider with state: $state');
+    counter = state;
   }
 }
 
@@ -122,16 +134,12 @@ class MyModelProvider extends ModelProvider {
   };
 }
 
+Future<SerinusApplication> bootstrapApp() async {
+  return await serinus.createApplication(entrypoint: AppModule(), modelProvider: MyModelProvider());
+}
+
 void main(List<String> arguments) async {
-  final application = await serinus.createMinimalApplication(
-    host: InternetAddress.anyIPv4.address,
-    port: 3002,
-    logger: ConsoleLogger(prefix: 'Serinus New Logger'),
-    modelProvider: MyModelProvider(),
+  await serinus.cluster(
+    bootstrapApp
   );
-  application.provide(TestProvider());
-  application.get('/', (RequestContext context) async {
-    return context.use<TestProvider>().counter;
-  });
-  await application.serve();
 }

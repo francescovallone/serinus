@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import '../adapters/adapters.dart';
 import '../constants.dart';
@@ -6,6 +7,7 @@ import '../containers/models_provider.dart';
 import '../enums/log_level.dart';
 import '../http/http.dart';
 import '../microservices/microservices.dart';
+import '../services/cluster_service.dart';
 import '../services/logger_service.dart';
 import 'core.dart';
 import 'minimal/minimal_application.dart';
@@ -57,6 +59,67 @@ final class SerinusFactory {
       logger: logger,
     );
     return app;
+  }
+
+  Future<void> cluster(
+    Future<SerinusApplication> Function() bootstrap, {
+    int? workers,
+  }) async {
+    final int workerCount = workers ?? Platform.numberOfProcessors;
+    final orchestratorPort = ReceivePort();
+    
+    // Track workers by their ID to prevent echoes
+    final workerPorts = <String, SendPort>{};
+    
+    // 1. Spawn Workers
+    for (var i = 0; i < workerCount; i++) {
+      await Isolate.spawn(
+        _workerEntry,
+        _ClusterConfig(bootstrap, orchestratorPort.sendPort),
+      );
+    }
+
+    // 2. Orchestrator Loop (Main Isolate)
+    await for (final message in orchestratorPort) {
+      
+      if (message is List && message.length == 3 && message[0] == 'REGISTER') {
+        // Handle worker registration
+        final id = message[1] as String;
+        final port = message[2] as SendPort;
+        workerPorts[id] = port;
+        print('Orchestrator: Worker $id registered.');
+        
+      } else if (message is ClusterMessage) {
+        // Broadcast to all workers EXCEPT the one who sent it
+        for (final entry in workerPorts.entries) {
+          if (entry.key != message.senderId) {
+            entry.value.send(message);
+          }
+        }
+      }
+      
+    }
+  }
+
+  static void _workerEntry(_ClusterConfig config) async {
+    final app = await config.bootstrap();
+    
+    // A. Create ClusterService
+    final clusterService = ClusterService(config.orchestratorPort);
+    
+    // B. Auto-Wire Syncable Providers
+    // ignore: invalid_use_of_visible_for_testing_member
+    final container = app.container.modulesContainer;
+    
+    for (final scope in container.scopes) {
+      for (final provider in scope.providers) {
+        if (provider is Syncable) {
+          provider.initSync(clusterService);
+        }
+      }
+    }
+
+    await app.serve();
   }
 
   /// The [createMicroservice] method is used to create a new instance of the [MicroserviceApplication] class.
@@ -120,3 +183,9 @@ final class SerinusFactory {
 
 /// The [serinus] instance is used to create a new instance of the [SerinusFactory] class.
 const serinus = SerinusFactory();
+
+class _ClusterConfig {
+  final Future<SerinusApplication> Function() bootstrap;
+  final SendPort orchestratorPort;
+  const _ClusterConfig(this.bootstrap, this.orchestratorPort);
+}
