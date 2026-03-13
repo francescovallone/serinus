@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:isolate';
 
 import '../adapters/adapters.dart';
 import '../constants.dart';
@@ -7,7 +6,6 @@ import '../containers/models_provider.dart';
 import '../enums/log_level.dart';
 import '../http/http.dart';
 import '../microservices/microservices.dart';
-import '../services/cluster_service.dart';
 import '../services/logger_service.dart';
 import 'core.dart';
 import 'minimal/minimal_application.dart';
@@ -61,66 +59,46 @@ final class SerinusFactory {
     return app;
   }
 
-  Future<void> cluster(
-    Future<SerinusApplication> Function() bootstrap, {
-    int? workers,
+  /// The [cluster] method is used to create a new instance of the [ClusterApplication] class, which allows for running multiple worker isolates in a cluster. It takes an [entrypoint] module, a [host] string, a [port] integer, a set of [logLevels], a [logger] service, a [poweredByHeader] string, a [securityContext], a [modelProvider], and an optional number of [workers]. It returns a [Future] of [ClusterApplication].
+  Future<ClusterApplication> cluster({
+    required Module entrypoint,
+    String host = 'localhost',
+    int port = 3000,
+    Set<LogLevel>? logLevels,
+    LoggerService? logger,
+    String poweredByHeader = 'Powered by Serinus',
+    SecurityContext? securityContext,
+    ModelProvider? modelProvider,
+    bool enableCompression = true,
+    bool rawBody = false,
+    NotFoundHandler? notFoundHandler,
+    int bodySizeLimit = kDefaultMaxBodySize,
+    int? workers
   }) async {
-    final int workerCount = workers ?? Platform.numberOfProcessors;
-    final orchestratorPort = ReceivePort();
-    
-    // Track workers by their ID to prevent echoes
-    final workerPorts = <String, SendPort>{};
-    
-    // 1. Spawn Workers
-    for (var i = 0; i < workerCount; i++) {
-      await Isolate.spawn(
-        _workerEntry,
-        _ClusterConfig(bootstrap, orchestratorPort.sendPort),
-      );
-    }
-
-    // 2. Orchestrator Loop (Main Isolate)
-    await for (final message in orchestratorPort) {
-      
-      if (message is List && message.length == 3 && message[0] == 'REGISTER') {
-        // Handle worker registration
-        final id = message[1] as String;
-        final port = message[2] as SendPort;
-        workerPorts[id] = port;
-        print('Orchestrator: Worker $id registered.');
-        
-      } else if (message is ClusterMessage) {
-        print('Orchestrator: Received message from ${message.senderId} on topic "${message.topic}". Broadcasting to other workers...');
-        // Broadcast to all workers EXCEPT the one who sent it
-        for (final entry in workerPorts.entries) {
-          if (entry.key != message.senderId) {
-            entry.value.send(message);
-          }
-        }
-      }
-      
-    }
-  }
-
-  static void _workerEntry(_ClusterConfig config) async {
-    final app = await config.bootstrap();
-    
-    // A. Create ClusterService
-    final clusterService = ClusterService(config.orchestratorPort);
-    
-    // B. Auto-Wire Syncable Providers
-    // ignore: invalid_use_of_visible_for_testing_member
-    final container = app.container.modulesContainer;
-    
-    for (final scope in container.scopes) {
-      for (final provider in scope.providers) {
-        if (provider is Syncable) {
-          provider.initSync(clusterService);
-        }
-      }
-    }
-
-    await app.serve();
+    final workerCount = workers ?? Platform.numberOfProcessors;
+    return ClusterApplication(
+      entrypoint: entrypoint,
+      config: ApplicationConfig(
+        modelProvider: modelProvider,
+        serverAdapter: NoopAdapter(),
+      ),
+      workersCount: workerCount,
+      levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
+      logger: logger,
+      workerConfig: WorkerConfig(
+        host: host,
+        port: port,
+        poweredByHeader: poweredByHeader,
+        securityContext: securityContext,
+        modelProvider: modelProvider,
+        enableCompression: enableCompression,
+        rawBody: rawBody,
+        notFoundHandler: notFoundHandler,
+        bodySizeLimit: bodySizeLimit,
+        logLevels: logLevels,
+        logger: logger,
+      )
+    );
   }
 
   /// The [createMicroservice] method is used to create a new instance of the [MicroserviceApplication] class.
@@ -184,9 +162,3 @@ final class SerinusFactory {
 
 /// The [serinus] instance is used to create a new instance of the [SerinusFactory] class.
 const serinus = SerinusFactory();
-
-class _ClusterConfig {
-  final Future<SerinusApplication> Function() bootstrap;
-  final SendPort orchestratorPort;
-  const _ClusterConfig(this.bootstrap, this.orchestratorPort);
-}

@@ -139,7 +139,6 @@ Future<SerinusApplication> bootstrapApp() async {
 }
 
 void main(List<String> arguments) async {
-  await serinus.cluster(
-    bootstrapApp
-  );
+  final app = await serinus.cluster(entrypoint: AppModule(), modelProvider: MyModelProvider(), workers: 8, host: InternetAddress.anyIPv4.address);
+  await app.serve();
 }
