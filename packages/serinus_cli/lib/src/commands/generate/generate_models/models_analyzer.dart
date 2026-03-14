@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:path/path.dart' as p;
 import 'package:serinus_cli/src/utils/config.dart';
 
 class ModelsAnalyzer {
@@ -10,8 +11,10 @@ class ModelsAnalyzer {
     List<File> files,
     ModelsConfig? config,
     List<SerializeKeyword> serializeKeywords,
-    List<DeserializeKeyword> deserializeKeywords,
-  ) async {
+    List<DeserializeKeyword> deserializeKeywords, {
+    bool externalFiles = false,
+    Map<String, String> externalImportsByFile = const {},
+  }) async {
     final collection = AnalysisContextCollection(
       includedPaths: files.map((file) => file.path).toList(),
       resourceProvider: PhysicalResourceProvider.INSTANCE,
@@ -87,12 +90,14 @@ class ModelsAnalyzer {
             }
           }
           final path = file.split(Platform.pathSeparator);
-          final libIndex = path.indexOf('lib');
-          path.removeRange(0, libIndex + 1);
+          final filename = externalFiles
+              ? externalImportsByFile[p.normalize(file)] ??
+                  _libRelativePath(path)
+              : _libRelativePath(path);
           if ((hasToJson || hasFromJson) && name != null) {
             models.add(
               Model(
-                filename: path.join('/'),
+                filename: filename,
                 name: name,
                 hasFromJson: hasFromJson,
                 hasToJson: hasToJson,
@@ -106,6 +111,14 @@ class ModelsAnalyzer {
       }
     }
     return models;
+  }
+
+  String _libRelativePath(List<String> pathSegments) {
+    final libIndex = pathSegments.lastIndexOf('lib');
+    if (libIndex == -1 || libIndex + 1 >= pathSegments.length) {
+      return pathSegments.last;
+    }
+    return pathSegments.sublist(libIndex + 1).join('/');
   }
 }
 
