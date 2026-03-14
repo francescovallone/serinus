@@ -85,7 +85,8 @@ class RunCommand extends Command<int> {
     });
     // Also handle SIGTERM where available
     if (!Platform.isWindows) {
-      _sigtermSubscription = ProcessSignal.sigterm.watch().listen((event) async {
+      _sigtermSubscription =
+          ProcessSignal.sigterm.watch().listen((event) async {
         try {
           await _killProcess(process);
           await signalSubscription?.cancel();

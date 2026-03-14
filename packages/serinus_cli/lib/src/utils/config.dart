@@ -103,7 +103,8 @@ class ModelsConfig {
           ((yaml['serialize_keywords'] as YamlList?)?.value ?? [])
               .map((e) => SerializeKeyword.fromYaml((e as YamlMap).value))
               .toList(),
-      extraPaths: List<String>.from((yaml['extra_paths'] as YamlList?)?.value ?? []),
+      extraPaths:
+          List<String>.from((yaml['extra_paths'] as YamlList?)?.value ?? []),
     );
   }
 }

@@ -359,7 +359,8 @@ class GenerateModelsCommand extends Command<int> {
         if (rawDependencyPath is! String) {
           continue;
         }
-        final dependencyPath = _resolveInputPath(projectRoot, rawDependencyPath);
+        final dependencyPath =
+            _resolveInputPath(projectRoot, rawDependencyPath);
 
         int score;
         if (dependencyPath == absoluteExtraPath) {
