@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.2
+
+- feat(#230): add `extra_paths` configuration option to the `models` command to specify additional directories that should be included in the model generation process.
+
 ## 2.1.1
 
 - fix: module generation now works correctly

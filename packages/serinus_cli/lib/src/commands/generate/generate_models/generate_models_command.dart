@@ -7,8 +7,10 @@ import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as p;
 import 'package:serinus_cli/src/commands/generate/generate_models/models_analyzer.dart';
 import 'package:serinus_cli/src/utils/config.dart';
+import 'package:yaml/yaml.dart';
 
 /// {@template generate_command}
 ///
@@ -63,11 +65,6 @@ class GenerateModelsCommand extends Command<int> {
       process.stderr.transform(utf8.decoder).listen(
             _logger.err,
           );
-      process.stdout.transform(utf8.decoder).listen(
-            (data) => _logger.info(
-              data.replaceAll('\n', ''),
-            ),
-          );
       await process.exitCode;
       modelProgress.complete('🐤 Models generated successfully!');
     } else {
@@ -102,19 +99,82 @@ class GenerateModelsCommand extends Command<int> {
       ..add(const DeserializeKeyword(keyword: 'fromJson'));
     final serializeKeywords = (modelsConfig?.serializeKeywords ?? [])
       ..add(const SerializeKeyword(keyword: 'toJson'));
-    final files = await _recursiveGetFiles(
+    final externalFiles = <File>[];
+    final extraPaths = modelsConfig?.extraPaths ?? [];
+    final dependencyMap = <String, String>{};
+    if (modelsConfig?.extraPaths != null &&
+        modelsConfig!.extraPaths.isNotEmpty) {
+      _logger?.info(
+        '🐤 Extra paths specified in configuration: ${modelsConfig.extraPaths.join(', ')}',
+      );
+      _logger?.warn(
+        'Remember to add the packages from the external paths to your pubspec.yaml dependencies if you want them to be correctly included in the model provider.',
+      );
+      for (final extraPath in extraPaths) {
+        _logger?.info(
+          '🐤 Checking for dependencies matching extra path: $extraPath',
+        );
+        final packageName = _findDependencyPackageName(extraPath, config, path);
+        if (packageName != null) {
+          _logger?.info(
+            '🐤 Found dependency for extra path: $extraPath ($packageName)',
+          );
+          dependencyMap[extraPath] = packageName;
+        } else {
+          _logger?.warn(
+            'No dependency found for extra path: $extraPath. Please add it to your pubspec.yaml to ensure it is included in the model provider.',
+          );
+        }
+      }
+    }
+    final analyzer = ModelsAnalyzer();
+    final models = <Model>[];
+    final externalImportsByFile = <String, String>{};
+    for (final extraPath in extraPaths) {
+      final extraRootPath = p.normalize(
+        p.absolute('$path${Platform.pathSeparator}$extraPath'),
+      );
+      final extraFiles = await _recursiveGetFiles(
+        Directory(extraRootPath),
+        modelsConfig,
+        serializeKeywords,
+        deserializeKeywords,
+      );
+      externalFiles.addAll(extraFiles);
+
+      final packageName = dependencyMap[extraPath];
+      if (packageName == null) {
+        continue;
+      }
+
+      for (final file in extraFiles) {
+        externalImportsByFile[p.normalize(file.path)] =
+            _toPackageImport(file.path, packageName);
+      }
+    }
+    final extraModels = await analyzer.analyze(
+      externalFiles,
+      modelsConfig,
+      serializeKeywords,
+      deserializeKeywords,
+      externalFiles: true,
+      externalImportsByFile: externalImportsByFile,
+    );
+    final mainFiles = await _recursiveGetFiles(
       Directory('$path${Platform.pathSeparator}lib'),
       modelsConfig,
       serializeKeywords,
       deserializeKeywords,
     );
-    final analyzer = ModelsAnalyzer();
-    final models = await analyzer.analyze(
-      files,
+    final mainModels = await analyzer.analyze(
+      mainFiles,
       modelsConfig,
       serializeKeywords,
       deserializeKeywords,
     );
+    models
+      ..addAll(extraModels)
+      ..addAll(mainModels);
     final modelProviderContent = await _getContent(models, name);
     modelProvider.writeAsStringSync(modelProviderContent);
     if (models.isEmpty) {
@@ -199,7 +259,10 @@ class GenerateModelsCommand extends Command<int> {
     final library = Library((b) {
       b.directives.addAll([
         Directive.import('package:serinus/serinus.dart'),
-        for (final model in models.map((e) => e.filename).toSet())
+        for (final model in models
+            .map((e) => e.filename)
+            .where((e) => p.isRelative(e) || e.startsWith('package:'))
+            .toSet())
           Directive.import(model)
       ]);
       b.body.add(
@@ -263,4 +326,114 @@ class GenerateModelsCommand extends Command<int> {
           .toString(),
     );
   }
+
+  String? _findDependencyPackageName(
+    String extraPath,
+    Config config,
+    String projectRoot,
+  ) {
+    final absoluteExtraPath = p.normalize(
+      p.absolute('$projectRoot${Platform.pathSeparator}$extraPath'),
+    );
+
+    _DependencyMatch? bestMatch;
+
+    void considerDependencies(Map<String, dynamic> dependencies) {
+      for (final entry in dependencies.entries) {
+        final value = entry.value;
+        if (value is! Map || value['path'] == null) {
+          continue;
+        }
+
+        final dependencyPath = p.normalize(
+          p.absolute('$projectRoot${Platform.pathSeparator}${value['path']}'),
+        );
+
+        int score;
+        if (dependencyPath == absoluteExtraPath) {
+          score = 3;
+        } else if (p.isWithin(dependencyPath, absoluteExtraPath)) {
+          score = 2;
+        } else if (p.isWithin(absoluteExtraPath, dependencyPath)) {
+          score = 1;
+        } else {
+          continue;
+        }
+
+        final candidate = _DependencyMatch(
+          packageName: entry.key,
+          dependencyPath: dependencyPath,
+          score: score,
+        );
+
+        if (bestMatch == null ||
+            candidate.score > bestMatch!.score ||
+            (candidate.score == bestMatch!.score &&
+                candidate.dependencyPath.length >
+                    bestMatch!.dependencyPath.length)) {
+          bestMatch = candidate;
+        }
+      }
+    }
+
+    considerDependencies(config.dependencies);
+    considerDependencies(config.devDependencies);
+
+    if (bestMatch != null) {
+      return _resolvePackageName(bestMatch!);
+    }
+
+    return null;
+  }
+
+  String _resolvePackageName(_DependencyMatch match) {
+    final pubspec = File(
+      '${match.dependencyPath}${Platform.pathSeparator}pubspec.yaml',
+    );
+    if (pubspec.existsSync()) {
+      try {
+        final parsed = loadYaml(pubspec.readAsStringSync());
+        if (parsed is YamlMap && parsed['name'] is String) {
+          return parsed['name'] as String;
+        }
+      } catch (_) {
+        // Fall back to heuristics below when pubspec parsing fails.
+      }
+    }
+
+    final dependencyDir = Directory(match.dependencyPath);
+    if (dependencyDir.existsSync()) {
+      final dartFiles = dependencyDir
+          .listSync()
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.dart'))
+          .toList();
+      if (dartFiles.length == 1) {
+        return p.basenameWithoutExtension(dartFiles.first.path);
+      }
+    }
+
+    return match.packageName;
+  }
+
+  String _toPackageImport(String filePath, String packageName) {
+    final segments = p.split(p.normalize(filePath));
+    final libIndex = segments.indexOf('lib');
+    final relative = libIndex == -1
+        ? p.basename(filePath)
+        : p.posix.joinAll(segments.sublist(libIndex + 1));
+    return 'package:$packageName/$relative';
+  }
+}
+
+class _DependencyMatch {
+  const _DependencyMatch({
+    required this.packageName,
+    required this.dependencyPath,
+    required this.score,
+  });
+
+  final String packageName;
+  final String dependencyPath;
+  final int score;
 }
