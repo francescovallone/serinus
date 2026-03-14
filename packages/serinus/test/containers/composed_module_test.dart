@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
@@ -10,6 +12,33 @@ import '../mocks/module_mock.dart';
 class _MockAdapter extends Mock implements HttpAdapter {
   @override
   String get name => 'http';
+}
+
+class _MockIncomingMessage extends Mock implements IncomingMessage {}
+
+class _MockHttpHeaders extends Mock implements HttpHeaders {}
+
+Request _buildRequest() {
+  final incoming = _MockIncomingMessage();
+  when(() => incoming.queryParameters).thenReturn({});
+  when(() => incoming.headers).thenReturn(SerinusHeaders(_MockHttpHeaders()));
+  when(() => incoming.contentType).thenReturn(ContentType.json);
+  when(() => incoming.method).thenReturn('GET');
+  when(() => incoming.path).thenReturn('/composed');
+  when(() => incoming.uri).thenReturn(Uri.parse('http://localhost/composed'));
+  when(() => incoming.id).thenReturn('req-composed');
+  when(() => incoming.host).thenReturn('localhost');
+  when(() => incoming.hostname).thenReturn('localhost');
+  when(() => incoming.port).thenReturn(3000);
+  when(() => incoming.cookies).thenReturn(const []);
+  when(() => incoming.segments).thenReturn(const []);
+  when(() => incoming.clientInfo).thenReturn(null);
+  when(() => incoming.contentLength).thenReturn(0);
+  when(() => incoming.isWebSocket).thenReturn(false);
+  when(() => incoming.webSocketKey).thenReturn('');
+  when(() => incoming.body()).thenReturn('');
+  when(() => incoming.json()).thenReturn(null);
+  return Request(incoming);
 }
 
 // Define a provider type that will be produced by a composed provider
@@ -363,5 +392,38 @@ void main() {
         );
       },
     );
+  });
+
+  group('ComposedProvider in RequestContext', () {
+    test('composed providers are available in RequestContext', () async {
+      final composedA = Module.composed<Module>(
+        (CompositionContext ctx) async => ProducedModuleA(),
+        inject: const [],
+      );
+      final parent = ParentModule([composedA]);
+
+      final container = ModulesContainer(
+        ApplicationConfig(serverAdapter: _MockAdapter()),
+      );
+      await container.registerModules(parent);
+      await container.finalize(parent);
+
+      final scope = container.getScopeByProvider(ProducedProvider);
+      final providers = <Type, Provider>{
+        for (final provider in scope.unifiedProviders)
+          provider.runtimeType: provider,
+      };
+
+      final context = RequestContext<dynamic>.withBody(
+        _buildRequest(),
+        null,
+        providers,
+        scope.unifiedValues,
+        const <Type, Object>{},
+      );
+
+      expect(context.canUse<ProducedProvider>(), isTrue);
+      expect(context.use<ProducedProvider>().hello(), equals('produced'));
+    });
   });
 }
