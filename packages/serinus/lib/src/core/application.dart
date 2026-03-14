@@ -77,6 +77,7 @@ abstract class Application {
         return;
       }
       _isInitialized = true;
+      await logger.init();
       await _container.init(entrypoint, _routesResolver);
     } catch (e) {
       if (abortOnError) {
@@ -213,6 +214,7 @@ class MicroserviceApplication extends Application {
     }
     await config.serverAdapter.close();
     await shutdown();
+    logger.close();
   }
 
   @override
@@ -324,6 +326,7 @@ class SerinusApplication extends Application {
     }
     await config.serverAdapter.close();
     await shutdown();
+    logger.close();
   }
 
   /// The [connectMicroservice] method is used to connect a microservice to the application.
