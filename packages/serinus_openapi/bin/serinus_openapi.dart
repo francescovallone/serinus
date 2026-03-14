@@ -42,10 +42,7 @@ class PostRoute extends ApiRoute {
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on(
-      ApiRoute.v3(path: '/', queryParameters: {'name': String}),
-      _handleHelloWorld,
-    );
+    on(ApiRoute.v3(path: '/'), _handleHelloWorld);
     on(Route.post('/post/<data>'), (RequestContext<MyObject> context) async {
       final body = context.body;
       if (body.name.isEmpty) {
@@ -55,6 +52,25 @@ class AppController extends Controller {
     });
   }
 
+  @Headers({'X-Custom-Header': 'This is a custom header'})
+  @Query([
+    QueryParameter('name', 'string', required: false),
+    QueryParameter('page', 'integer', required: false),
+  ])
+  @Responses({
+    200: Response.schema(
+      description: 'Successful response',
+      schema: BodySchema.oneOfSchemas([
+        BodySchema.ref('#/components/schemas/MyObject'),
+        BodySchema(
+          type: 'array',
+          items: BodySchema.ref('#/components/schemas/MyObject'),
+          maxItems: 100,
+        ),
+      ]),
+    ),
+    400: Response(description: 'Bad Request', type: BadRequestException),
+  })
   Future<List<MyObject>> _handleHelloWorld(RequestContext context) async {
     return [MyObject('Alice'), MyObject('Bob')];
   }
@@ -63,11 +79,36 @@ class AppController extends Controller {
 /// Another controller to demonstrate multiple controllers
 class App2Controller extends Controller {
   App2Controller() : super('/a') {
+    on(PostRoute(path: '/post'), _createAPost);
     on(HelloWorldRoute(), _handleHelloWorld);
-    on(PostRoute(path: '/post'), (RequestContext context) async {
-      final data = context.bodyAs<String>();
-      return {'message': 'Post $data'};
-    });
+  }
+
+  @Body(String)
+  @Responses({
+    201: Response.schema(
+      description: 'Success response',
+      schema: BodySchema(
+        type: 'object',
+        properties: {
+          'message': BodySchema(type: 'string'),
+        },
+      ),
+    ),
+    400: Response(description: 'Bad Request', type: BadRequestException),
+  })
+  Future<Map<String, String>> _createAPost(RequestContext context) async {
+    late final String data;
+    try {
+      data = context.bodyAs<String>();
+    } on BadRequestException {
+      rethrow;
+    } catch (_) {
+      throw BadRequestException('Expected a string request body');
+    }
+    if (data.isEmpty) {
+      throw BadRequestException('Request body cannot be empty');
+    }
+    return {'message': 'Post $data'};
   }
 
   Future<String> _handleHelloWorld(RequestContext context) async {
@@ -87,6 +128,8 @@ class AppModule extends Module {
               version: '1.0.0',
               description: 'This is my API',
             ),
+            options: ScalarUIOptions(),
+            analyze: true,
           ),
         ],
       );

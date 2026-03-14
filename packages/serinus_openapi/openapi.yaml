@@ -8,20 +8,40 @@ paths:
     get:
       tags:
         - "AppController"
+      operationId: "handleHelloWorld"
       parameters:
         - name: "name"
           in: "query"
           required: false
           schema:
             type: "string"
+        - name: "page"
+          in: "query"
+          required: false
+          schema:
+            type: "integer"
+            format: "int32"
       responses:
         200:
-          description: "Success response"
+          description: "Successful response"
           content:
-            text/plain:
+            application/json:
               schema:
-                type: "string"
-  /post/<data>:
+                type: "array"
+                maxItems: 100
+                items:
+                  $ref: "#/components/schemas/MyObject"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              example:
+                message: "Bad Request!"
+                statusCode: 400
+                uri: "No Uri"
+              schema:
+                $ref: "#/components/schemas/SerinusException"
+  /post/{data}:
     post:
       tags:
         - "AppController"
@@ -29,47 +49,41 @@ paths:
         - name: "data"
           in: "path"
           required: true
-          schema: {}
+          schema:
+            type: "string"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: "object"
-              properties:
-                name:
-                  type: "string"
+              $ref: "#/components/schemas/MyObject"
       responses:
         201:
           description: "Success response"
           content:
             application/json:
               schema:
-                type: "object"
-                properties:
-                  name:
-                    type: "string"
-  /a/:
-    get:
-      tags:
-        - "App2Controller"
-      parameters: []
-      responses:
-        200:
-          description: "Success response"
+                $ref: "#/components/schemas/MyObject"
+        400:
+          description: "Name cannot be empty"
           content:
-            text/plain:
+            application/json:
+              example:
+                message: "Name cannot be empty"
+                statusCode: 400
+                uri: "No Uri"
               schema:
-                type: "string"
+                $ref: "#/components/schemas/SerinusException"
   /a/post:
     post:
       tags:
         - "App2Controller"
+      operationId: "createAPost"
       parameters: []
       requestBody:
         required: true
         content:
-          text/plain:
+          application/json:
             schema:
               type: "string"
       responses:
@@ -82,3 +96,36 @@ paths:
                 properties:
                   message:
                     type: "string"
+        400:
+          description: "Bad Request"
+          content:
+            application/json:
+              example:
+                message: "Bad Request!"
+                statusCode: 400
+                uri: "No Uri"
+              schema:
+                $ref: "#/components/schemas/SerinusException"
+components:
+  schemas:
+    SerinusException:
+      type: "object"
+      properties:
+        message:
+          type: "string"
+        statusCode:
+          type: "integer"
+          format: "int32"
+        uri:
+          type: "string"
+      required:
+        - "message"
+        - "statusCode"
+        - "uri"
+    MyObject:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+      required:
+        - "name"
