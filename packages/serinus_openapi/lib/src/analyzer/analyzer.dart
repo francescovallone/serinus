@@ -187,6 +187,7 @@ class Analyzer {
       return;
     }
     final modelTypes = <InterfaceType>{};
+    // ignore: deprecated_member_use
     for (final member in declaration.members) {
       if (member is MethodDeclaration && member.isGetter) {
         final name = member.name.lexeme;
@@ -268,6 +269,7 @@ class Analyzer {
     final properties = <String, SchemaDescriptor>{};
     for (final field in element.fields) {
       if (field.isStatic ||
+          // ignore: deprecated_member_use
           field.isSynthetic ||
           field.displayName.startsWith('_')) {
         continue;
@@ -2118,6 +2120,7 @@ class Analyzer {
     final properties = <String, SchemaDescriptor>{};
     for (final field in element.fields) {
       if (field.isStatic ||
+          // ignore: deprecated_member_use
           field.isSynthetic ||
           field.displayName.startsWith('_')) {
         continue;

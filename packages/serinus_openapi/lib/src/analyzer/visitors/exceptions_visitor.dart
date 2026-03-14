@@ -465,6 +465,7 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     if (classDeclaration == null) {
       return null;
     }
+    // ignore: deprecated_member_use
     final constructors = classDeclaration.members
         .whereType<ConstructorDeclaration>()
         .toList();

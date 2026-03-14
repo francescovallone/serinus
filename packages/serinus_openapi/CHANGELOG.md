@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- feat: add support for annotations on method handlers in controllers, allowing for more flexible OpenAPI documentation and generation.
+
 ## 1.1.0
 
 - feat: add a complete test suite for `serinus_openapi` (annotations, analyzer, routes, schema descriptors, renderers, and module factories).
