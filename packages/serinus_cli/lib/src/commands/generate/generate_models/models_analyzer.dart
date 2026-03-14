@@ -114,7 +114,7 @@ class ModelsAnalyzer {
   }
 
   String _libRelativePath(List<String> pathSegments) {
-    final libIndex = pathSegments.indexOf('lib');
+    final libIndex = pathSegments.lastIndexOf('lib');
     if (libIndex == -1 || libIndex + 1 >= pathSegments.length) {
       return pathSegments.last;
     }

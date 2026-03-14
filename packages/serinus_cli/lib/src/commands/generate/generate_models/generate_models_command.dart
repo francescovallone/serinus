@@ -131,11 +131,16 @@ class GenerateModelsCommand extends Command<int> {
     final models = <Model>[];
     final externalImportsByFile = <String, String>{};
     for (final extraPath in extraPaths) {
-      final extraRootPath = p.normalize(
-        p.absolute('$path${Platform.pathSeparator}$extraPath'),
-      );
+      final extraRootPath = _resolveInputPath(path, extraPath);
+      final extraDir = Directory(extraRootPath);
+      if (!extraDir.existsSync()) {
+        _logger?.warn(
+          'Extra path does not exist: $extraRootPath. Skipping...',
+        );
+        continue;
+      }
       final extraFiles = await _recursiveGetFiles(
-        Directory(extraRootPath),
+        extraDir,
         modelsConfig,
         serializeKeywords,
         deserializeKeywords,
@@ -188,6 +193,13 @@ class GenerateModelsCommand extends Command<int> {
           ?.complete('🐤 Model provider generated successfully!');
     }
     return models;
+  }
+
+  String _resolveInputPath(String projectRoot, String inputPath) {
+    if (p.isAbsolute(inputPath)) {
+      return p.normalize(inputPath);
+    }
+    return p.normalize(p.absolute(p.join(projectRoot, inputPath)));
   }
 
   Future<List<File>> _recursiveGetFiles(
@@ -332,9 +344,7 @@ class GenerateModelsCommand extends Command<int> {
     Config config,
     String projectRoot,
   ) {
-    final absoluteExtraPath = p.normalize(
-      p.absolute('$projectRoot${Platform.pathSeparator}$extraPath'),
-    );
+    final absoluteExtraPath = _resolveInputPath(projectRoot, extraPath);
 
     _DependencyMatch? bestMatch;
 
@@ -345,9 +355,11 @@ class GenerateModelsCommand extends Command<int> {
           continue;
         }
 
-        final dependencyPath = p.normalize(
-          p.absolute('$projectRoot${Platform.pathSeparator}${value['path']}'),
-        );
+        final rawDependencyPath = value['path'];
+        if (rawDependencyPath is! String) {
+          continue;
+        }
+        final dependencyPath = _resolveInputPath(projectRoot, rawDependencyPath);
 
         int score;
         if (dependencyPath == absoluteExtraPath) {
