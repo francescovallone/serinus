@@ -430,7 +430,7 @@ class GenerateModelsCommand extends Command<int> {
 
   String _toPackageImport(String filePath, String packageName) {
     final segments = p.split(p.normalize(filePath));
-    final libIndex = segments.indexOf('lib');
+    final libIndex = segments.lastIndexOf('lib');
     final relative = libIndex == -1
         ? p.basename(filePath)
         : p.posix.joinAll(segments.sublist(libIndex + 1));
