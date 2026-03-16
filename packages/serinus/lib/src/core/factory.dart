@@ -59,6 +59,48 @@ final class SerinusFactory {
     return app;
   }
 
+  /// The [cluster] method is used to create a new instance of the [ClusterApplication] class, which allows for running multiple worker isolates in a cluster. It takes an [entrypoint] module, a [host] string, a [port] integer, a set of [logLevels], a [logger] service, a [poweredByHeader] string, a [securityContext], a [modelProvider], and an optional number of [workers]. It returns a [Future] of [ClusterApplication].
+  Future<ClusterApplication> cluster({
+    required Module entrypoint,
+    String host = 'localhost',
+    int port = 3000,
+    Set<LogLevel>? logLevels,
+    LoggerService? logger,
+    String poweredByHeader = 'Powered by Serinus',
+    SecurityContext? securityContext,
+    ModelProvider? modelProvider,
+    bool enableCompression = true,
+    bool rawBody = false,
+    NotFoundHandler? notFoundHandler,
+    int bodySizeLimit = kDefaultMaxBodySize,
+    int? workers
+  }) async {
+    final workerCount = workers ?? Platform.numberOfProcessors;
+    return ClusterApplication(
+      entrypoint: entrypoint,
+      config: ApplicationConfig(
+        modelProvider: modelProvider,
+        serverAdapter: NoopAdapter(),
+      ),
+      workersCount: workerCount,
+      levels: logLevels ?? (kDebugMode ? {LogLevel.verbose} : {LogLevel.info}),
+      logger: logger,
+      workerConfig: WorkerConfig(
+        host: host,
+        port: port,
+        poweredByHeader: poweredByHeader,
+        securityContext: securityContext,
+        modelProvider: modelProvider,
+        enableCompression: enableCompression,
+        rawBody: rawBody,
+        notFoundHandler: notFoundHandler,
+        bodySizeLimit: bodySizeLimit,
+        logLevels: logLevels,
+        logger: logger,
+      )
+    );
+  }
+
   /// The [createMicroservice] method is used to create a new instance of the [MicroserviceApplication] class.
   Future<MicroserviceApplication> createMicroservice({
     required Module entrypoint,
