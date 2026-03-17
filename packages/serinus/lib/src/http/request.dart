@@ -128,7 +128,12 @@ class Request {
   }
 
   /// The body of the request.
-  Object? body;
+  Object? get body => _body;
+  set body(Object? value) {
+    _body = value;
+  }
+
+  Object? _body;
 
   bool _bodyParsed = false;
 

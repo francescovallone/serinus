@@ -20,7 +20,7 @@ class RequestContext<TBody> extends BaseContext {
   /// Creates a [RequestContext] from an already parsed body.
   RequestContext.withBody(
     Request httpRequest,
-    TBody? body,
+    Object? body,
     Map<Type, Provider> providers,
     Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices, {
@@ -30,22 +30,26 @@ class RequestContext<TBody> extends BaseContext {
   }) : request = httpRequest,
        _bodyType = explicitType ?? _typeOf<TBody>(),
        _body = body,
+       _bodyConverted = true,
+       _lastSeenRawBody = _staleBodySentinel,
        shouldValidateMultipart = shouldValidateMultipart,
        super(providers, values, hooksServices) {
     if (_converter?.modelProvider == null) {
       _converter = _BodyConverter(modelProvider);
     }
-    this.body = _converter?.convert(_bodyType, body);
+    this.body = body;
   }
 
   RequestContext._(
     this.request,
     this._bodyType,
     _BodyConverter? converter,
-    TBody? body,
+    Object? body,
     Map<Type, Provider> providers,
     Map<ValueToken, Object?> values,
     Map<Type, Object> hooksServices,
+    this._bodyConverted,
+    this._lastSeenRawBody,
     bool shouldValidateMultipart,
   ) : _body = body,
       shouldValidateMultipart = shouldValidateMultipart,
@@ -55,7 +59,7 @@ class RequestContext<TBody> extends BaseContext {
 
   static _BodyConverter? _converter;
 
-  /// Creates a [RequestContext] instance reading and converting the request body to [TBody].
+  /// Creates a [RequestContext] instance reading and retaining the raw request body.
   static Future<RequestContext<TBody>> create<TBody>({
     required Request request,
     required Map<Type, Provider> providers,
@@ -80,6 +84,8 @@ class RequestContext<TBody> extends BaseContext {
         providers,
         values,
         hooksServices,
+        false,
+        _staleBodySentinel,
         shouldValidateMultipart,
       );
     }
@@ -92,20 +98,22 @@ class RequestContext<TBody> extends BaseContext {
     } else {
       raw = null;
     }
-    if (explicitType != null) {
-      final converted = _converter?.convert(targetType, raw) as TBody;
-      request.body = converted;
-    } else {
-      request.body = raw;
-    }
+    request.body = raw;
+    final targetTypeName = targetType.toString();
+    final isDynamicLikeTarget =
+        targetTypeName == 'dynamic' ||
+        targetTypeName == 'Object' ||
+        targetTypeName == 'Object?';
     return RequestContext._(
       request,
       targetType,
       _converter,
-      request.body as TBody,
+      request.body,
       providers,
       values,
       hooksServices,
+      isDynamicLikeTarget,
+      isDynamicLikeTarget ? request.body : _staleBodySentinel,
       shouldValidateMultipart,
     );
   }
@@ -118,7 +126,18 @@ class RequestContext<TBody> extends BaseContext {
   /// Indicates whether multipart requests should be validated before accessing the body.
   final bool shouldValidateMultipart;
 
-  TBody? _body;
+  /// Unique sentinel that signals the converted body is stale and
+  /// needs reconversion. Using a private object guarantees it can
+  /// never collide with a real body value.
+  static final Object _staleBodySentinel = Object();
+
+  Object? _body;
+
+  bool _bodyConverted;
+
+  /// The last raw body reference that was converted. Compared via
+  /// [identical] to detect external mutations to [request.body].
+  Object? _lastSeenRawBody;
 
   /// Returns the request path.
   String get path => request.path;
@@ -132,8 +151,28 @@ class RequestContext<TBody> extends BaseContext {
   /// Returns the query parameters.
   Map<String, dynamic> get query => request.query;
 
+  /// Returns the unconverted, raw payload (e.g., Map<String, dynamic>).
+  /// Use this inside Pipes for validation before the body is transformed into a DTO.
+  Object? get rawBody => request.body;
+
   /// Returns the strongly typed body.
+  ///
+  /// Before conversion is finalized, this returns the current raw payload.
+  /// Use [rawBody] when you explicitly need raw values in pipes.
   TBody get body {
+    if (!_bodyConverted &&
+        shouldValidateMultipart &&
+        request.contentType.isMultipart) {
+      throw StateError(
+        'The route has been marked with shouldValidateMultipart, use validateMultipartPart<T> before.',
+      );
+    }
+    if (!_bodyConverted) {
+      return request.body as dynamic;
+    }
+    if (!identical(_lastSeenRawBody, request.body)) {
+      _applyConversion(request.body);
+    }
     if (_body == null) {
       if (shouldValidateMultipart && request.contentType.isMultipart) {
         throw StateError(
@@ -152,36 +191,63 @@ class RequestContext<TBody> extends BaseContext {
       return bodyAs<T>();
     }
     final formData = await request.parseBody(rawBody: false, onPart: onPart);
-    final converted = _converter?.convert(_bodyType, formData) as T;
-    body = converted;
-    request.body = converted;
-    return converted;
+    return _applyConversion(formData) as T;
   }
 
   /// Replaces the body value ensuring it conforms to [TBody].
   set body(Object? value) {
-    _body = _converter?.convert(_bodyType, value) as TBody;
-    request.body = _body;
+    _applyConversion(value);
   }
 
-  /// Casts the current body to a different type.
+  /// Replaces the body value without forcing conversion to [TBody].
+  void replaceRawBody(Object? value) {
+    _body = value;
+    request.body = value;
+    _bodyConverted = false;
+    _lastSeenRawBody = _staleBodySentinel;
+  }
+
+  /// Converts the current raw body to the declared [TBody] type.
+  void convertBodyToDeclaredType() {
+    if (_bodyConverted) {
+      return;
+    }
+    if (shouldValidateMultipart && request.contentType.isMultipart) {
+      return;
+    }
+    _applyConversion(request.body);
+  }
+
+  /// Centralised conversion helper. Converts [rawValue] to [_bodyType],
+  /// stores the result locally, mirrors it on [request.body], and records
+  /// the reference so that future [identical] checks pass.
+  Object? _applyConversion(Object? rawValue) {
+    final converted = _converter?.convert(_bodyType, rawValue);
+    _body = converted;
+    request.body = converted;
+    _bodyConverted = true;
+    _lastSeenRawBody = converted;
+    return converted;
+  }
+
+  /// Casts the current body to a different type safely, operating on the raw [_body].
   T bodyAs<T>({bool override = false}) {
-    if (body is T && !override) {
-      return body as T;
+    if (_body is T && !override) {
+      return _body as T;
     }
-    return _converter?.convert(_typeOf<T>(), body) as T;
+    return _converter?.convert(_typeOf<T>(), _body) as T;
   }
 
-  /// Casts the current body to a list of a different type.
+  /// Casts the current body to a list of a different type safely, operating on the raw [_body].
   List<T> bodyAsList<T>({bool override = false}) {
-    if (body is List<T> && !override) {
-      return List<T>.from(body as List);
+    if (_body is List<T> && !override) {
+      return List<T>.from(_body as List);
     }
-    if (body is! List) {
+    if (_body is! List) {
       throw BadRequestException('The element is not of the expected type');
     }
     return List<T>.from(
-      (body as List).map((e) => _converter?.convert(_typeOf<T>(), e) as T),
+      (_body as List).map((e) => _converter?.convert(_typeOf<T>(), e) as T),
     );
   }
 
