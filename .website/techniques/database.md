@@ -105,3 +105,59 @@ class UserController extends Controller {
   }
 }
 ```
+
+## Multiple Databases
+
+Serinus also supports using multiple databases in the same application. You can create multiple `LoxiaModule` instances with different configurations and import them into your main module. Each `LoxiaModule` will manage its own set of entities and repositories, allowing you to easily work with multiple databases in a single application.
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class AppModule extends Module {
+  AppModule()
+    : super(
+        imports: [
+          LoxiaModule.inMemory(entities: [User.entity]),
+          LoxiaModule.features(entities: [User]),
+          LoxiaModule.inMemory(entities: [Product.entity], name: 'products'),
+          LoxiaModule.features(entities: [Product], name: 'products'),
+        ],
+        controllers: [UserController(), ProductController()],
+      );
+}
+
+class ProductController extends Controller {
+  ProductController() : super('/products') {
+    on(Route.get('/'), (context) async {
+      final repo = context.use<ProductRepository>('products');
+      final products = await repo.paginate(
+        page: context.query['page'] != null
+            ? int.tryParse(context.query['page']!) ?? 1
+            : 1,
+        pageSize: context.query['pageSize'] != null
+            ? int.tryParse(context.query['pageSize']!) ?? 10
+            : 10,
+      );
+      return {
+        'products': products.items,
+        'total': products.total,
+        'page': products.page,
+        'pageSize': products.pageSize,
+      };
+    });
+    on(Route.post('/'), (RequestContext<Map<String, dynamic>> context) async {
+      final repo = context.use<ProductRepository>('products');
+      final data = context.body;
+      if (data['name'] == null) {
+        throw BadRequestException('Missing name');
+      }
+      final column = await repo.insert(ProductInsertDto(name: data['name']));
+      return column;
+    });
+  }
+}
+```
+
+In this example, we have two `LoxiaModule` instances, one for managing `User` entities and another for managing `Product` entities. Each module is configured with its own set of entities and repositories, allowing you to easily work with both databases in your application.
+
+To access the repositories from the different modules, you can specify the `name` when using the `context.use` method, as shown in the `ProductController` example above. This allows you to easily switch between different databases and manage your data effectively.
