@@ -265,6 +265,7 @@ export default defineConfig({
             items: [
               { text: 'Testing', link: 'testing' },
               { text: 'Minimal Application', link: 'minimal_application' },
+              { text: 'Health Checks', link: 'health_checks' },
               // { text: 'Liquify', link: 'liquify' },
             ]
           },
