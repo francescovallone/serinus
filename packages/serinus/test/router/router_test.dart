@@ -87,8 +87,8 @@ void main() async {
         router.registerRoute(context: routeContext);
         final result = router.lookup('/test', HttpMethod.get);
         expect(result, isA<FoundRoute>());
-        final found = result as FoundRoute<RouterEntry>;
-        expect(found.values.first.context.path, equals('/test'));
+        final found = result as FoundRoute<RouteContext>;
+        expect(found.values.first.path, equals('/test'));
         expect(found.params, isEmpty);
       },
     );
@@ -124,9 +124,9 @@ void main() async {
         router.registerRoute(context: routeContext);
         final result = router.lookup('/posts/123/comments', HttpMethod.get);
         expect(result, isA<FoundRoute>());
-        final found = result as FoundRoute<RouterEntry>;
+        final found = result as FoundRoute<RouteContext>;
         expect(
-          found.values.first.context.path,
+          found.values.first.path,
           equals('/posts/:postId/comments'),
         );
         expect(found.params['postId'], equals('123'));

@@ -5,6 +5,7 @@ import '../contexts/contexts.dart';
 import '../core/core.dart';
 import '../enums/enums.dart';
 import '../exceptions/exceptions.dart';
+import '../extensions/string_extensions.dart';
 import '../http/http.dart';
 import '../router/atlas.dart';
 import '../router/router.dart';
@@ -50,10 +51,33 @@ class RoutesResolver {
       for (var provider in _container.modulesContainer.globalProviders)
         provider.runtimeType: provider,
     };
-    final mappedControllers = <Controller, ControllerSpec>{
-      for (final entry in _container.modulesContainer.controllers)
-        entry.controller: ControllerSpec(entry.controller.path, entry.module),
-    };
+    Map<Controller, ControllerSpec> mappedControllers = {};
+    final routerModule = _container.modulesContainer.scopes.where((scope) => scope.module.runtimeType == RouterModule).firstOrNull;
+    final moduleMounts = routerModule?.module is RouterModule ? (routerModule!.module as RouterModule).mounts : <ModuleMount>[];
+    if (moduleMounts.isNotEmpty) {
+      for (final mount in moduleMounts) {
+        for (final record in _container.modulesContainer.controllers) {
+          if (record.module.runtimeType == mount.module) {
+            mappedControllers[record.controller] = ControllerSpec(
+              '${_modulePrefix(mount, record.controller.path)}',
+              record.module,
+            );
+          } else {
+            mappedControllers[record.controller] = ControllerSpec(
+              record.controller.path,
+              record.module,
+            );
+          }
+        }
+      }
+    } else {
+      for (final record in _container.modulesContainer.controllers) {
+        mappedControllers[record.controller] = ControllerSpec(
+          record.controller.path,
+          record.module,
+        );
+      }
+    }
     for (var controller in mappedControllers.entries) {
       _logger.info('${controller.key.runtimeType} {${controller.value.path}}');
       _explorer.explore(
@@ -63,6 +87,31 @@ class RoutesResolver {
         controller.key.metadata.whereType<IgnoreVersion>().firstOrNull != null,
       );
     }
+  }
+
+
+  String _modulePrefix(ModuleMount mount, String path) {
+    if (mount.children.isNotEmpty) {
+      for (final child in mount.children) {
+        path = _modulePrefix(child, path);
+      }
+    }
+    if (mount.path == '/') {
+      return path;
+    }
+    return normalizePath('${mount.path}/$path');
+  }
+
+  /// The [normalizePath] method is used to normalize the path.
+  ///
+  /// It removes the trailing slash and adds a leading slash if it is missing.
+  /// It also removes multiple slashes.
+  String normalizePath(String path) {
+    path = path.addLeadingSlash().stripEndSlash();
+    if (path.contains(RegExp('([/]{2,})'))) {
+      path = path.replaceAll(RegExp('([/]{2,})'), '/');
+    }
+    return path;
   }
 
   /// The [handle] method handles the incoming request and finds the appropriate route.
@@ -76,7 +125,7 @@ class RoutesResolver {
     try {
       if (route is FoundRoute) {
         await _routeExecutionContext.describe(
-          route.values.first.context,
+          route.values.first,
           request: request,
           response: response,
           params: route.params,
