@@ -7,10 +7,10 @@ import llmstxt from 'vitepress-plugin-llms'
 
 // https://vitepress.dev/reference/site-config
 
-const description = "Serinus is a framework written in Dart for building efficient and scalable server-side applications."
+const description = "Stop settling for messy backend scripts. Serinus brings enterprise-grade modularity and Dependency Injection to Dart. Clean code, from UI to database."
 export default defineConfig({
   title: "Serinus",
-  titleTemplate: ':title - Serinus | The Flutter modular Backend Framework',
+  titleTemplate: ':title - Serinus | The backend Flutter deserves',
   description,
   head: [
     [
@@ -74,7 +74,7 @@ export default defineConfig({
         'meta',
         {
             property: 'og:title',
-            content: 'Serinus'
+            content: 'Serinus - The backend Flutter deserves'
         }
     ],
     [

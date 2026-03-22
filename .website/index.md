@@ -1,5 +1,5 @@
 ---
-title: Serinus - The modular Backend for your Flutter apps
+title: Serinus - The backend Flutter deserves
 titleTemplate: false
 layout: page
 sidebar: false
@@ -7,16 +7,16 @@ sidebar: false
 head:
   - - meta
     - property: 'og:title'
-      content: Serinus - The modular Backend for your Flutter apps
+      content: Serinus - The backend Flutter deserves
   - - meta
     - name: 'description'
-      content: Serinus is an open-source framework for building efficient and scalable backend applications powered by Dart.
+      content: Stop settling for messy backend scripts. Serinus brings enterprise-grade modularity and Dependency Injection to Dart. Clean code, from UI to database.
   - - meta
     - property: 'og:description'
-      content: Serinus is an open-source framework for building efficient and scalable backend applications powered by Dart.
+      content: Stop settling for messy backend scripts. Serinus brings enterprise-grade modularity and Dependency Injection to Dart. Clean code, from UI to database.
   - - meta
     - property: 'og:image'
-      content: https://serinus.app/serinus.webp
+      content: https://serinus.app/cover.jpg
   - - meta
     - property: 'twitter:card'
       content: 'https://serinus.app/cover.jpg'
