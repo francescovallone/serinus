@@ -27,6 +27,7 @@ head:
 
 <script setup>
   import Home from './components/home/home.vue';
+  import CodeComparison from './components/code-comparison.vue'
 </script>
 
 <Home>
@@ -78,6 +79,11 @@ class AppController extends Controller {
 
   </template>
   <template #database>
+<CodeComparison>
+  <template #leftHeader>
+    Loxia
+  </template>
+  <template #leftCode>
 
 ```dart
 import 'package:serinus/serinus.dart';
@@ -100,11 +106,69 @@ class AppModule extends Module {
   AppModule() : super(
     imports: [
       LoxiaModule.inMemory(entities: [User.entity]),
+      LoxiaModule.features(entities: [User]),
     ],
     controllers: [UserController()],
   );
 }
 ```
+  </template>
+  <template #leftFooter>
+    Loxia is a powerful ORM for Dart that provides a simple and intuitive API for working with databases. It supports multiple database engines and allows you to define your data models using annotations.
+  </template>
+  <template #rightHeader>
+    Drift
+  </template>
+  <template #rightCode>
+
+```dart
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+import 'package:serinus/serinus.dart';
+import 'package:serinus_drift/serinus_drift.dart';
+
+class Users extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+}
+
+@DriftDatabase(tables: [Users])
+class AppDatabase extends _$AppDatabase {
+  AppDatabase(super.e);
+
+  @override
+  int get schemaVersion => 1;
+}
+
+@DriftAccessor(tables: [Users])
+class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
+  UsersDao(super.db);
+
+  Future<List<User>> getAllUsers() => select(users).get();
+  Future<int> insertUser(UsersCompanion user) => into(users).insert(user);
+}
+
+class AppModule extends Module {
+  AppModule() : super(
+    imports: [
+      DriftModule(AppDatabase(NativeDatabase.memory())),
+      DriftModule.forFeature<AppDatabase>(
+        daos: (database) => [
+          UsersDao(database)
+        ], 
+      ),
+    ],
+    controllers: [
+      UserController()
+    ]
+  );
+}
+```
+  </template>
+  <template #rightFooter>
+    Drift is the most popular ORM for Dart, it provides a powerful and flexible API for working with databases. It supports multiple database engines and allows you to define your data models using Dart code.
+  </template>
+</CodeComparison>
 
   </template>
   <template #configuration>
