@@ -5,7 +5,14 @@ Future<void> main() async {
   await loggerService.init();
   Logger.overrideLogger(loggerService);
   final Logger logger = Logger('Test');
-  loggerService.setLogLevels({LogLevel.verbose});
+  loggerService.setLogLevels({
+    LogLevel.verbose,
+    LogLevel.debug,
+    LogLevel.info,
+    LogLevel.warning,
+    LogLevel.severe,
+    LogLevel.shout,
+  });
   logger.info('Test');
   logger.debug('Test');
   logger.warning('Test');
@@ -25,5 +32,6 @@ Future<void> main() async {
     ),
   );
   logger.verbose('Test');
+  await Future<void>.delayed(const Duration(milliseconds: 100));
   loggerService.close();
 }

@@ -11,16 +11,19 @@ typedef LogPayload = ({
   String context,
   String message,
   Object? error,
+  String? stackTrace,
   DateTime time,
   Map<String, dynamic>? metadata,
+  bool timestampEnabled,
   bool jsonEncoded,
 });
 
 /// The [LoggerService] class is used as a blueprint for the loggers.
 abstract interface class LoggerService {
-
+  /// The [init] method is used to initialize the logger.
   Future<void> init();
 
+  /// The [close] method is used to close the logger and release any resources used by the logger.
   void close();
 
   /// Write a message at log level [LogLevel.info]. it is used to log info messages.
@@ -158,12 +161,12 @@ class Logger implements LoggerService {
   static void overrideLogger(LoggerService logger) {
     Logger._staticInstanceRef = logger;
   }
-  
+
   @override
   void close() {
     localInstance.close();
   }
-  
+
   @override
   Future<void> init() {
     return localInstance.init();

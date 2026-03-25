@@ -27,21 +27,22 @@ void main() {
 
     test('basic implementation of the $ConsoleLogger', () async {
       final TestProcess process = await TestProcess.start('dart', [
+        'run',
         'test/basic_console_logger_test.dart',
       ]);
-      await expectLater(process.stdout, emits(contains('[Test] Test')));
-      await expectLater(process.stdout, emits(contains('[Test] Test')));
-      await expectLater(process.stdout, emits(contains('[Test] Test')));
-      await expectLater(process.stdout, emits(contains('[Test] Test')));
+      await expectLater(process.stdout, emitsThrough(contains('[Test] Test')));
+      await expectLater(process.stdout, emitsThrough(contains('[Test] Test')));
+      await expectLater(process.stdout, emitsThrough(contains('[Test] Test')));
+      await expectLater(process.stdout, emitsThrough(contains('[Test] Test')));
       await expectLater(
         process.stdout,
-        emits(contains('[Test] Test - Exception: Exception')),
+        emitsThrough(contains('[Test] Test - Exception: Exception')),
       );
       await expectLater(
         process.stdout,
-        emits(contains('[Test] Test - 400 Bad Request!')),
+        emitsThrough(contains('[Test] Test - {message: Bad Request!')),
       );
-      await expectLater(process.stdout, emits(contains('[Test] Test')));
+      await expectLater(process.stdout, emitsThrough(contains('[Test] Test')));
       await process.shouldExit(0);
     });
   });

@@ -12,7 +12,6 @@ import 'logger_service.dart';
 
 /// The [ConsoleLogger] class is used to log messages to the console.
 class ConsoleLogger implements LoggerService {
-
   late SendPort _sendPort;
 
   late ReceivePort _receivePort;
@@ -55,7 +54,6 @@ class ConsoleLogger implements LoggerService {
     this.timestamp = false,
     Set<LogLevel>? levels,
   }) {
-    
     // if (levels != null) {
     //   Logger.setLogLevels(levels);
     // }
@@ -100,7 +98,8 @@ class ConsoleLogger implements LoggerService {
     if (!_isInitialized) {
       return;
     }
-    _sendPort.send(log);
+    final serializedPayload = _toSendable(log);
+    _sendPort.send(serializedPayload);
     // final formattedPid = _formatPid(log.pid, prefix);
     // final logLevel = _formatLogLevel(log.level);
     // final formattedTime = json
@@ -121,6 +120,54 @@ class ConsoleLogger implements LoggerService {
     //       })
     //     : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message}';
     // channel.writeln(formattedMessage);
+  }
+
+  Map<String, dynamic> _toSendable(LogPayload log) {
+    return {
+      'pid': log.pid,
+      'prefix': log.prefix,
+      'level': log.level,
+      'context': log.context,
+      'message': log.message,
+      'error': _serializeError(log.error),
+      'stackTrace': log.stackTrace,
+      'time': log.time.toIso8601String(),
+      'metadata': _toSendableValue(log.metadata),
+      'timestampEnabled': log.timestampEnabled,
+      'jsonEncoded': log.jsonEncoded,
+    };
+  }
+
+  Object? _serializeError(Object? error) {
+    if (error == null) {
+      return null;
+    }
+    if (error is SerinusException) {
+      return error.toJson();
+    }
+    return error.toString();
+  }
+
+  Object? _toSendableValue(Object? value) {
+    if (value == null || value is bool || value is num || value is String) {
+      return value;
+    }
+    if (value is DateTime) {
+      return value.toIso8601String();
+    }
+    if (value is SerinusException) {
+      return value.toJson();
+    }
+    if (value is Iterable) {
+      return value.map(_toSendableValue).toList(growable: false);
+    }
+    if (value is Map) {
+      return {
+        for (final entry in value.entries)
+          entry.key.toString(): _toSendableValue(entry.value),
+      };
+    }
+    return value.toString();
   }
 
   // String _formatErrorMessage(String message, Object? error) {
@@ -171,6 +218,8 @@ class ConsoleLogger implements LoggerService {
       time: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
+      timestampEnabled: true,
+      stackTrace: optionalParameters?.stackTrace.toString(),
     ));
   }
 
@@ -189,6 +238,8 @@ class ConsoleLogger implements LoggerService {
       time: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
+      timestampEnabled: true,
+      stackTrace: optionalParameters?.stackTrace.toString(),
     ));
   }
 
@@ -212,6 +263,8 @@ class ConsoleLogger implements LoggerService {
       time: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
+      timestampEnabled: true,
+      stackTrace: optionalParameters?.stackTrace.toString(),
     ));
   }
 
@@ -230,6 +283,8 @@ class ConsoleLogger implements LoggerService {
       time: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
+      timestampEnabled: true,
+      stackTrace: optionalParameters?.stackTrace.toString(),
     ));
   }
 
@@ -248,6 +303,8 @@ class ConsoleLogger implements LoggerService {
       time: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
+      timestampEnabled: true,
+      stackTrace: optionalParameters?.stackTrace.toString(),
     ));
   }
 
@@ -266,6 +323,8 @@ class ConsoleLogger implements LoggerService {
       time: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
+      timestampEnabled: true,
+      stackTrace: optionalParameters?.stackTrace.toString(),
     ));
   }
 }
@@ -282,7 +341,6 @@ final class AugmentedMessage {
   const AugmentedMessage(this.message, this.params);
 }
 
-
 void _logProcessor(SendPort setupPort) {
   final commandPort = ReceivePort();
   setupPort.send(commandPort.sendPort);
@@ -292,23 +350,22 @@ void _logProcessor(SendPort setupPort) {
   }
 
   String _formatLogLevel(String level, bool json) {
-    return json
-        ? level.toUpperCase()
-        : level.toUpperCase().padRight(7);
+    return json ? level.toUpperCase() : level.toUpperCase().padRight(7);
   }
-  
-  int _lastSecond = -1;
+
+  int _lastEpochSecond = -1;
 
   String _cachedTimeStr = '';
 
   String _getEfficientTimestamp(DateTime time) {
     // If we are in the same second as the last log, return the cached string.
     // This removes 99.9% of DateFormat calls under load.
-    if (time.second == _lastSecond && _cachedTimeStr.isNotEmpty) {
+    final epochSecond = time.millisecondsSinceEpoch ~/ 1000;
+    if (epochSecond == _lastEpochSecond && _cachedTimeStr.isNotEmpty) {
       return _cachedTimeStr;
     }
 
-    _lastSecond = time.second;
+    _lastEpochSecond = epochSecond;
     _cachedTimeStr = DateFormat('dd/MM/yyyy HH:mm:ss').format(time);
     return _cachedTimeStr;
   }
@@ -317,25 +374,48 @@ void _logProcessor(SendPort setupPort) {
   final buffer = StringBuffer();
 
   commandPort.listen((message) {
-    if (message is LogPayload) {
+    if (message is Map<String, dynamic>) {
+      final rawTime = message['time'];
+      final time = rawTime is String
+          ? DateTime.tryParse(rawTime) ?? DateTime.now()
+          : DateTime.now();
       buffer.clear();
-      if (message.jsonEncoded) {
-        final error = message.error;
-        buffer.write(jsonEncode({
-          'level': _formatLogLevel(message.level, true),
-          'pid': _formatPid(message.pid, message.prefix, true),
-          'context': message.context,
-          'prefix': message.prefix,
-          'message': message.message,
-          'time': message.time.toIso8601String(),
-          if (error != null) 'error': error is SerinusException ? error.toJson() : error.toString(),
-          if (message.metadata != null) 'metadata': message.metadata,
-        }));
+      final isJsonEncoded = message['jsonEncoded'] == true;
+      if (isJsonEncoded) {
+        final error = message['error'];
+        buffer.write(
+          jsonEncode({
+            'level': _formatLogLevel(message['level'] as String, true),
+            'pid': _formatPid(
+              message['pid'] as int,
+              message['prefix'] as String,
+              true,
+            ),
+            'context': message['context'] as String,
+            'prefix': message['prefix'] as String,
+            'message': message['message'] as String,
+            'time': time.toIso8601String(),
+            if (error != null) 'error': error,
+            if (message['metadata'] != null) 'metadata': message['metadata'],
+          }),
+        );
       } else {
-        final formattedPid = _formatPid(message.pid, message.prefix, false);
-        final logLevel = _formatLogLevel(message.level, false);
-        final formattedTime = _getEfficientTimestamp(message.time);
-        buffer.write('$formattedPid$formattedTime\t$logLevel [${message.context}] ${message.message}');
+        final formattedPid = _formatPid(
+          message['pid'] as int,
+          message['prefix'] as String,
+          false,
+        );
+        final logLevel = _formatLogLevel(message['level'] as String, false);
+        final formattedTime = _getEfficientTimestamp(time);
+        final serializedError = message['error'];
+        final serializedMetadata = message['metadata'] == null
+            ? null
+            : jsonEncode(message['metadata']);
+        buffer.write(
+          '$formattedPid$formattedTime\t$logLevel [${message['context'] as String}] ${message['message'] as String}'
+          '${serializedError != null ? ' - $serializedError' : ''}'
+          '${serializedMetadata != null ? ' - metadata: $serializedMetadata' : ''}',
+        );
       }
       sink.writeln(buffer.toString());
     }

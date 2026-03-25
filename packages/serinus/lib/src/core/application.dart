@@ -224,6 +224,7 @@ class MicroserviceApplication extends Application {
         return;
       }
       _isInizialized = true;
+      await logger.init();
       await _container.init(entrypoint, _routesResolver);
     } catch (e) {
       if (abortOnError) {
