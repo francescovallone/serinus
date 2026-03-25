@@ -58,7 +58,7 @@ void main() {
           ),
         );
         final container = SerinusContainer(config, _MockAdapter());
-        final explorer = RoutesResolver(container);
+        final explorer = RoutesResolver(container, router);
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockControllerWithDynamicPath()]),
         );
@@ -126,7 +126,7 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesResolver(container);
+        final explorer = RoutesResolver(container, router);
         explorer.resolve();
         final result = router.lookup('/v1', HttpMethod.get);
         expect(result, isA<FoundRoute<RouteContext>>());
@@ -150,7 +150,7 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesResolver(container);
+        final explorer = RoutesResolver(container, router);
         explorer.resolve();
         final result = router.lookup('/api', HttpMethod.get);
         expect(result, isA<FoundRoute<RouteContext>>());
@@ -238,7 +238,7 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesResolver(container);
+        final explorer = RoutesResolver(container, router);
         explorer.resolve();
         final result = router.lookup('/api/v1', HttpMethod.get);
         expect(result, isA<FoundRoute<RouteContext>>());

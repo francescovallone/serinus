@@ -31,7 +31,7 @@ class RoutesResolver {
   late final Map<Type, Provider> _globalProviders;
 
   /// Constructor for the [RoutesResolver] class.
-  RoutesResolver(this._container) {
+  RoutesResolver(this._container, [Router? router]) {
     _routeExecutionContext = RouteExecutionContext(
       RouteResponseController(_container.applicationRef),
       modelProvider: _container.config.modelProvider,
@@ -39,7 +39,7 @@ class RoutesResolver {
     );
     _explorer = RoutesExplorer(
       _container,
-      Router(_container.config.versioningOptions),
+      router ?? Router(_container.config.versioningOptions),
     );
   }
 
