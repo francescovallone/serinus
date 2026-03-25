@@ -112,6 +112,12 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
     String clientId,
   ) async {
     final result = router?.lookup(HttpMethod.all, request.path);
+    if (result == null || result.values.isEmpty) {
+      response.status(HttpStatus.notFound);
+      response.send();
+      return;
+    }
+
     final socket = await response.detachSocket();
     final channel = StreamChannel<List<int>>(socket, socket);
     final sink = utf8.encoder.startChunkedConversion(channel.sink);
@@ -129,13 +135,6 @@ abstract class WsAdapter extends Adapter<Map<String, WebSocket>> {
       channel.sink as Socket,
       serverSide: true,
     );
-    if (result == null || result.values.isEmpty) {
-      await webSocket.close(
-        normalClosure,
-        'No gateway found for the path: ${request.uri}',
-      );
-      return;
-    }
     final gatewayScope = List<GatewayScope>.from(result.values).first;
     bindClientConnection(
       clientId: clientId,
