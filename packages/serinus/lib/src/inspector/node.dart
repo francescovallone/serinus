@@ -37,7 +37,11 @@ class ClassNode extends Node {
   /// Converts the [ClassNode] to a JSON object.
   @override
   Map<String, dynamic> toJson() {
-    return {...super.toJson(), 'parent': parent, 'metadata': metadata.toJson()};
+    return {
+      ...super.toJson(),
+      'parent': parent.name,
+      'metadata': metadata.toJson(),
+    };
   }
 }
 
@@ -96,6 +100,8 @@ class ModuleMetadataNode {
       'internal': internal,
       'global': global,
       'dynamic': isDynamic,
+      'composed': composed,
+      'initTime': initTime,
     };
   }
 }

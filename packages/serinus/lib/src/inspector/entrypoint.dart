@@ -33,6 +33,15 @@ class Entrypoint {
 
 /// The type of the entry point.
 enum EntrypointType {
+  /// Controller entry point.
+  controller,
+
+  /// Route entry point.
+  route,
+
+  /// WebSocket gateway entry point.
+  websocketGateway,
+
   /// HTTP entry point.
   http,
 
@@ -46,22 +55,22 @@ enum EntrypointType {
 /// Represents the metadata for an entry point.
 class EntrypointMetadata {
   /// The unique key of the entry point.
-  final String key;
+  final String? key;
 
   /// The path of the entry point.
-  final String path;
+  final String? path;
 
   /// The request method of the entry point.
-  final String requestMethod;
+  final String? requestMethod;
 
   /// The versions of the entry point.
   final List<int> versions;
 
   /// Creates a new instance of [EntrypointMetadata].
   EntrypointMetadata({
-    required this.key,
-    required this.path,
-    required this.requestMethod,
+    this.key,
+    this.path,
+    this.requestMethod,
     this.versions = const [],
   });
 

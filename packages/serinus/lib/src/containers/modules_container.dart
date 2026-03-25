@@ -583,7 +583,7 @@ final class ModulesContainer {
   ) async {
     final providerType =
         _providerRegistry.getCustomToken(provider) ?? provider.runtimeType;
-    final providerToken = InjectionToken.fromProvider(provider);
+    final providerToken = InjectionToken.fromType(providerType);
 
     await _providerRegistry.initIfUnregistered(provider);
     _providerRegistry.register(provider, currentScope, asType: providerType);

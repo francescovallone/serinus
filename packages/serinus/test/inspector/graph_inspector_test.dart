@@ -57,6 +57,29 @@ class TestMiddleware extends Middleware {
   }
 }
 
+abstract class BaseService extends Provider {
+  String get value;
+}
+
+class BaseServiceImpl extends BaseService {
+  @override
+  String get value => 'impl';
+}
+
+class UsesCustomProviders extends Provider {
+  final BaseService baseService;
+  final String endpoint;
+
+  UsesCustomProviders(this.baseService, this.endpoint);
+}
+
+class TestWsGateway extends WebSocketGateway {
+  TestWsGateway() : super(path: '/ws');
+
+  @override
+  Future<void> onMessage(data, WebSocketContext context) async {}
+}
+
 void main() {
   group('GraphInspector', () {
     test(
@@ -206,6 +229,113 @@ void main() {
         await container.modulesContainer.registerModules(moduleB);
         inspector.inspectModules();
         expect(graph, isNotNull);
+      },
+    );
+
+    test(
+      'should include ClassProvider and ValueProvider nodes and edges',
+      () async {
+        final module = TestModule(
+          providers: [
+            Provider.forClass<BaseService>(useClass: BaseServiceImpl()),
+            Provider.forValue<String>('https://api.example.com'),
+            Provider.composed(
+              (CompositionContext ctx) async => UsesCustomProviders(
+                ctx.use<BaseService>(),
+                ctx.use<String>(),
+              ),
+              inject: [BaseService, String],
+            ),
+          ],
+        );
+
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
+        final container = SerinusContainer(config, _MockAdapter());
+        final inspector = container.inspector;
+
+        await container.modulesContainer.registerModules(module);
+        await container.modulesContainer.finalize(module);
+        inspector.inspectModules();
+
+        final baseServiceNode =
+            inspector.graph.nodes[InjectionToken.fromType(BaseService)];
+        final valueNode = inspector
+            .graph
+            .nodes[InjectionToken.fromValueToken(ValueToken.of<String>())];
+
+        expect(baseServiceNode, isNotNull);
+        expect(valueNode, isNotNull);
+        expect(
+          (baseServiceNode as ClassNode).metadata.subTypes,
+          contains('classProvider'),
+        );
+        expect(
+          (valueNode as ClassNode).metadata.subTypes,
+          contains('valueProvider'),
+        );
+
+        final consumerToken = InjectionToken.fromType(UsesCustomProviders);
+        final classEdge = inspector.graph.edges.values.where(
+          (edge) =>
+              edge.source == consumerToken &&
+              edge.target.name.contains('BaseService'),
+        );
+        final valueEdge = inspector.graph.edges.values.where(
+          (edge) =>
+              edge.source == consumerToken &&
+              (edge.target ==
+                      InjectionToken.fromValueToken(ValueToken.of<String>()) ||
+                  edge.target == InjectionToken.fromType(String)),
+        );
+        expect(classEdge, isNotEmpty);
+        expect(valueEdge, isNotEmpty);
+      },
+    );
+
+    test(
+      'should include controller, route and websocket gateway entrypoints',
+      () async {
+        final module = TestModule(
+          controllers: [MockController('/test')],
+          providers: [TestWsGateway()],
+        );
+
+        final config = ApplicationConfig(
+          serverAdapter: SerinusHttpAdapter(
+            host: 'localhost',
+            port: 3000,
+            poweredByHeader: 'Powered by Serinus',
+          ),
+        );
+        final container = SerinusContainer(config, _MockAdapter());
+        final inspector = container.inspector;
+
+        await container.modulesContainer.registerModules(module);
+        inspector.inspectModules();
+
+        final entrypoints = inspector.graph.entrypoints.values.toList();
+        expect(
+          entrypoints.where(
+            (entrypoint) => entrypoint.type.name == 'controller',
+          ),
+          isNotEmpty,
+        );
+        expect(
+          entrypoints.where((entrypoint) => entrypoint.type.name == 'route'),
+          isNotEmpty,
+        );
+        expect(
+          entrypoints.where(
+            (entrypoint) => entrypoint.type.name == 'websocketGateway',
+          ),
+          isNotEmpty,
+        );
       },
     );
   });

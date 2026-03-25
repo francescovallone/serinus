@@ -26,8 +26,8 @@ class Edge {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'source': source,
-      'target': target,
+      'source': source.name,
+      'target': target.name,
       'metadata': metadata.toJson(),
     };
   }
@@ -54,8 +54,8 @@ abstract class EdgeMetadata {
   /// Converts the [EdgeMetadata] to a JSON object.
   Map<String, dynamic> toJson() {
     return {
-      'sourceModuleName': sourceModuleName,
-      'targetModuleName': targetModuleName,
+      'sourceModuleName': sourceModuleName.name,
+      'targetModuleName': targetModuleName.name,
       'type': type,
     };
   }
@@ -84,6 +84,17 @@ class ClassToClassEdgeMetadata extends EdgeMetadata {
     this.key,
     this.internal,
   }) : super(type: 'class_to_class');
+
+  @override
+  Map<String, dynamic> toJson() {
+    return {
+      ...super.toJson(),
+      'sourceClassName': sourceClassName.name,
+      'targetClassName': targetClassName.name,
+      if (key != null) 'key': key,
+      if (internal != null) 'internal': internal,
+    };
+  }
 }
 
 /// A [ModuleToModuleEdgeMetadata] is a class that represents the metadata of a module to module edge in the inspector.

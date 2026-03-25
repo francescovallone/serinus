@@ -60,42 +60,62 @@ class GraphInspector extends Provider {
       );
       graph.insertEdge(edge);
     }
-    for (final provider in module.unifiedProviders) {
-      if (_internal.contains(provider.runtimeType)) {
-        continue;
-      }
-      final providerToken = InjectionToken.fromType(provider.runtimeType);
-      final instanceWrapper = module.instanceMetadata[providerToken];
-      if (instanceWrapper?.dependencies.isNotEmpty ?? false) {
-        for (final dependency in instanceWrapper!.dependencies.indexed) {
-          final edge = Edge(
-            id: '${providerToken.name}-${dependency.$2.name}',
-            source: providerToken,
-            target: dependency.$2.name,
-            metadata: ClassToClassEdgeMetadata(
-              sourceClassName: providerToken,
-              targetClassName: dependency.$2.name,
-              sourceModuleName: module.token,
-              targetModuleName: dependency.$2.host,
-              key: dependency.$1,
-            ),
-          );
-          graph.insertEdge(edge);
-        }
+    final providerInstances = module.instanceMetadata.values.where(
+      (instance) =>
+          instance.metadata.type == InjectableType.provider &&
+          instance.dependencies.isNotEmpty,
+    );
+
+    for (final providerInstance in providerInstances) {
+      for (final dependency in providerInstance.dependencies.indexed) {
+        final edge = Edge(
+          id: '${providerInstance.host.name}-${providerInstance.name.name}-${dependency.$2.name.name}',
+          source: providerInstance.name,
+          target: dependency.$2.name,
+          metadata: ClassToClassEdgeMetadata(
+            sourceClassName: providerInstance.name,
+            targetClassName: dependency.$2.name,
+            sourceModuleName: providerInstance.host,
+            targetModuleName: dependency.$2.host,
+            key: dependency.$1,
+          ),
+        );
+        graph.insertEdge(edge);
       }
     }
   }
 
   void _inspectModule(ModuleScope module) {
-    for (final provider in module.providers) {
-      final providerToken = InjectionToken.fromType(provider.runtimeType);
+    final providerRuntimeTypeTokens = {
+      for (final provider in module.providers)
+        InjectionToken.fromType(provider.runtimeType),
+    };
+
+    for (final providerInstance in module.instanceMetadata.values.where(
+      (instance) => instance.metadata.type == InjectableType.provider,
+    )) {
+      final providerToken = providerInstance.name;
+      final isValueProvider = providerToken.name.startsWith('ValueToken(');
+      final isClassProvider =
+          !isValueProvider &&
+          !providerRuntimeTypeTokens.contains(providerToken);
+
       final providerNode = ClassNode(
         id: providerToken,
         label: providerToken.name,
         parent: module.token,
-        metadata:
-            module.instanceMetadata[providerToken]?.metadata ??
-            _container.globalInstances[providerToken]!.metadata,
+        metadata: ClassMetadataNode(
+          type: providerInstance.metadata.type,
+          sourceModuleName: providerInstance.metadata.sourceModuleName,
+          initTime: providerInstance.metadata.initTime,
+          composed: providerInstance.metadata.composed,
+          exported: providerInstance.metadata.exported,
+          internal: providerInstance.metadata.internal,
+          subTypes: [
+            if (isValueProvider) 'valueProvider',
+            if (isClassProvider) 'classProvider',
+          ],
+        ),
       );
       graph.insertNode(providerNode);
     }
@@ -120,12 +140,20 @@ class GraphInspector extends Provider {
         metadata: module.instanceMetadata[controllerToken]!.metadata,
       );
       graph.insertNode(controllerNode);
+      graph.insertEntrypoint(
+        Entrypoint(
+          type: EntrypointType.controller,
+          id: 'controller-${controllerToken.name}',
+          className: controllerToken.name,
+          metadata: EntrypointMetadata(path: controller.path),
+        ),
+      );
       for (final hook in controller.hooks.hooks) {
         graph.insertNode(_prepareHook(hook, controllerToken, module));
       }
       for (final routeEntry in controller.routes.entries) {
         final entrypoint = Entrypoint(
-          type: EntrypointType.http,
+          type: EntrypointType.route,
           id: routeEntry.key,
           className: controllerToken.name,
           metadata: EntrypointMetadata(
@@ -141,6 +169,22 @@ class GraphInspector extends Provider {
           );
         }
       }
+    }
+
+    for (final gateway
+        in module.unifiedProviders.whereType<WebSocketGateway>()) {
+      final gatewayToken = InjectionToken.fromType(gateway.runtimeType);
+      graph.insertEntrypoint(
+        Entrypoint(
+          type: EntrypointType.websocketGateway,
+          id: 'ws-${module.token.name}-${gatewayToken.name}',
+          className: gatewayToken.name,
+          metadata: EntrypointMetadata(
+            path: gateway.path ?? '/',
+            requestMethod: 'ws',
+          ),
+        ),
+      );
     }
   }
 
