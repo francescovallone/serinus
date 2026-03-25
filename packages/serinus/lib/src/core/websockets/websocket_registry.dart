@@ -37,7 +37,8 @@ class WebsocketRegistry extends Provider
         final gatewayScope = _config.modulesContainer.getScopeByProvider(
           gateway.runtimeType,
         );
-        final gatewayPath = mounts[gatewayScope.module.runtimeType] ?? gateway.path ?? '/';
+        final gatewayPath =
+            mounts[gatewayScope.module.runtimeType] ?? gateway.path ?? '/';
         final result = router.lookup(HttpMethod.all, gatewayPath);
         if (result.values.isNotEmpty) {
           throw InitializationError(
@@ -98,7 +99,8 @@ class WebsocketRegistry extends Provider
         final gatewayScope = _config.modulesContainer.getScopeByProvider(
           gateway.runtimeType,
         );
-        final gatewayPath = mounts[gatewayScope.module.runtimeType] ?? gateway.path ?? '/';
+        final gatewayPath =
+            mounts[gatewayScope.module.runtimeType] ?? gateway.path ?? '/';
         final result = router.lookup(HttpMethod.all, gatewayPath);
         if (result.values.isNotEmpty) {
           throw InitializationError(

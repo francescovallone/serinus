@@ -3,7 +3,7 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
 import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
-import 'package:serinus/src/routes/routes_explorer.dart';
+import 'package:serinus/src/routes/routes_resolver.dart';
 import 'package:test/test.dart';
 
 import '../mocks/controller_mock.dart';
@@ -56,9 +56,9 @@ void main() {
       await container.modulesContainer.registerModules(module);
 
       final router = Router(localConfig.versioningOptions);
-      final explorer = RoutesExplorer(container, router);
+      final explorer = RoutesResolver(container);
 
-      explorer.resolveRoutes();
+      explorer.resolve();
 
       final token = InjectionToken.fromModule(module);
       final result = router.lookup('/', HttpMethod.get);
@@ -214,9 +214,9 @@ void main() {
         await container.modulesContainer.registerModules(module);
 
         final router = Router(localConfig.versioningOptions);
-        final explorer = RoutesExplorer(container, router);
+        final explorer = RoutesResolver(container);
 
-        expect(() => explorer.resolveRoutes(), returnsNormally);
+        expect(() => explorer.resolve(), returnsNormally);
 
         final result = router.lookup('/', HttpMethod.get);
         expect(result, isA<FoundRoute>());

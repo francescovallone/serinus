@@ -1,6 +1,4 @@
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/errors/initialization_error.dart';
-import 'package:serinus/src/router/router.dart';
 import 'package:test/test.dart';
 
 class _RootModule extends Module {}

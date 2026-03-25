@@ -56,7 +56,6 @@ class RoutesResolver {
     if (moduleMounts.isNotEmpty) {
       for (final record in _container.modulesContainer.controllers) {
         final mount = moduleMounts[record.module.runtimeType];
-        print('${record.controller.runtimeType} in ${record.module.runtimeType} - ${mount}');
         if (mount != null) {
           mappedControllers[record.controller] = ControllerSpec(
             '${_modulePrefix(mount, record.controller.path)}',
@@ -87,7 +86,6 @@ class RoutesResolver {
       );
     }
   }
-
 
   String _modulePrefix(String mountPath, String path) {
     return normalizePath('${mountPath}/$path');

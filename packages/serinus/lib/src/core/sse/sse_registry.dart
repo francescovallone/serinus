@@ -30,10 +30,11 @@ class SseRegistry extends Provider
       final currentModuleScope = _config.modulesContainer.getScope(
         InjectionToken.fromModule(record.module),
       );
-      
+
       for (final spec in controller.sseRoutes.entries) {
         final route = spec.value.route;
-        final gatewayPath = mounts[currentModuleScope.module.runtimeType] ?? route.path;
+        final gatewayPath =
+            mounts[currentModuleScope.module.runtimeType] ?? route.path;
         final result = router.lookup(route.method, gatewayPath);
         if (result.values.isNotEmpty) {
           throw InitializationError(

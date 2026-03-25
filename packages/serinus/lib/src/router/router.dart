@@ -36,11 +36,7 @@ final class Router {
         );
       }
     }
-    _routeTree.add(
-      context.method,
-      path.stripEndSlash(),
-      context,
-    );
+    _routeTree.add(context.method, path.stripEndSlash(), context);
   }
 
   /// The [lookup] method is used to get the route by path and method.
@@ -56,7 +52,6 @@ final class Router {
 
 /// The [ModuleMount] class is used to define the module mounts for the [RouterModule].
 final class ModuleMount {
-
   /// The [path] property is the path of the module mount.
   final String path;
 
@@ -72,12 +67,10 @@ final class ModuleMount {
     required this.module,
     this.children = const [],
   });
-
 }
 
 /// The [RouterModule] class is a module
 class RouterModule extends Module {
-
   /// The [mounts] property is the list of module mounts that will be registered in the router.
   final List<ModuleMount> mounts;
 
@@ -109,5 +102,4 @@ class RouterModule extends Module {
       _registerModulePath(child, '$path${child.path}');
     }
   }
-
 }

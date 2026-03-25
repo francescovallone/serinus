@@ -40,9 +40,7 @@ class TestModule extends Module {
           Provider.forValue<String>('TestModuleValue'),
         ],
         exports: [TestProvider, Export.value<String>()],
-        controllers: [
-          TestController(),
-        ]
+        controllers: [TestController()],
       );
 }
 
