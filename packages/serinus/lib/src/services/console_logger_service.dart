@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:intl/intl.dart';
+import 'package:logging/logging.dart' as logging;
 import 'package:meta/meta.dart';
 
 import '../enums/log_level.dart';
@@ -15,6 +16,10 @@ class ConsoleLogger implements LoggerService {
   late SendPort _sendPort;
 
   late ReceivePort _receivePort;
+
+  late ReceivePort _outputPort;
+
+  late StreamSubscription<dynamic> _outputSubscription;
 
   late Isolate _isolate;
 
@@ -54,43 +59,72 @@ class ConsoleLogger implements LoggerService {
     this.timestamp = false,
     Set<LogLevel>? levels,
   }) {
-    // if (levels != null) {
-    //   Logger.setLogLevels(levels);
-    // }
-    // if (logging.Logger.attachedLoggers.isNotEmpty) {
-    //   return;
-    // }
-    // logging.Logger.root.level = getLowestLevel(Logger.logLevels);
-    // logging.Logger.root.onRecord.listen((logging.LogRecord rec) {
-    //   final hasError =
-    //       rec.object is AugmentedMessage &&
-    //       (rec.object as AugmentedMessage).params?.error != null;
-    //   if (hasError) {
-    //     printErrors(rec, prefix);
-    //   } else {
-    //     printMessages(rec, prefix);
-    //   }
-    // });
+    if (levels != null) {
+      Logger.setLogLevels(levels);
+    }
+    if (logging.Logger.attachedLoggers.isNotEmpty) {
+      return;
+    }
+    logging.Logger.root.level = _getLowestLevel(Logger.logLevels);
+    logging.Logger.root.onRecord.listen((logging.LogRecord rec) {
+      final hasError =
+          rec.object is AugmentedMessage &&
+          (rec.object as AugmentedMessage).params?.error != null;
+      if (hasError) {
+        _printErrors(rec);
+      } else {
+        _printRecord(rec);
+      }
+    });
   }
 
   bool _isInitialized = false;
+
+  Completer<void>? _shutdownCompleter;
 
   Future<void> init() async {
     if (_isInitialized) {
       return;
     }
     _receivePort = ReceivePort();
-    _isolate = await Isolate.spawn(_logProcessor, _receivePort.sendPort);
+    _outputPort = ReceivePort();
+    _isolate = await Isolate.spawn(_logProcessor, {
+      'setupPort': _receivePort.sendPort,
+      'outputPort': _outputPort.sendPort,
+    });
     _sendPort = await _receivePort.first as SendPort;
+    _outputSubscription = _outputPort.listen((message) {
+      if (message is String) {
+        _writeLine(message);
+        return;
+      }
+      if (message is Map<String, dynamic> && message['type'] == 'shutdownAck') {
+        _shutdownCompleter?.complete();
+      }
+    });
     _isInitialized = true;
   }
 
-  void close() {
+  @override
+  Future<void> close() async {
     if (!_isInitialized) {
       return;
     }
+
+    _shutdownCompleter = Completer<void>();
+    _sendPort.send(const {'command': 'shutdown'});
+
+    await _shutdownCompleter!.future.timeout(
+      const Duration(seconds: 2),
+      onTimeout: () {},
+    );
+
+    _shutdownCompleter = null;
+    await _outputSubscription.cancel();
     _isolate.kill(priority: Isolate.immediate);
     _receivePort.close();
+    _outputPort.close();
+    _isInitialized = false;
   }
 
   /// Prints messages.
@@ -100,26 +134,36 @@ class ConsoleLogger implements LoggerService {
     }
     final serializedPayload = _toSendable(log);
     _sendPort.send(serializedPayload);
-    // final formattedPid = _formatPid(log.pid, prefix);
-    // final logLevel = _formatLogLevel(log.level);
-    // final formattedTime = json
-    //     ? record.time.toIso8601String()
-    //     : _getEfficientTimestamp(record.time);
-    // final message = record.object as AugmentedMessage;
-    // final loggerName = message.params?.context ?? record.loggerName;
-    // final formattedMessage = json
-    //     ? jsonEncode({
-    //         'prefix': prefix,
-    //         'pid': formattedPid,
-    //         'context': loggerName,
-    //         'level': logLevel,
-    //         'message': message.message,
-    //         'time': formattedTime,
-    //         if (message.params?.metadata != null)
-    //           'metadata': message.params?.metadata,
-    //       })
-    //     : '$formattedPid$formattedTime\t$logLevel [$loggerName] ${message.message}';
-    // channel.writeln(formattedMessage);
+  }
+
+  void _printRecord(logging.LogRecord record) {
+    final message = record.object;
+    if (message is! AugmentedMessage) {
+      return;
+    }
+    final params = message.params;
+    printMessages((
+      pid: pid,
+      prefix: prefix,
+      level: record.level.name,
+      context: params?.context ?? record.loggerName,
+      message: message.message.toString(),
+      error: params?.error,
+      stackTrace: params?.stackTrace,
+      timestamp: record.time,
+      metadata: params?.metadata,
+      timestampEnabled: timestamp,
+      jsonEncoded: json,
+    ));
+  }
+
+  void _printErrors(logging.LogRecord record) {
+    _printRecord(record);
+  }
+
+  void _writeLine(String line) {
+    stdout.nonBlocking.writeln(line);
+    _channel.writeln(line);
   }
 
   Map<String, dynamic> _toSendable(LogPayload log) {
@@ -130,8 +174,8 @@ class ConsoleLogger implements LoggerService {
       'context': log.context,
       'message': log.message,
       'error': _serializeError(log.error),
-      'stackTrace': log.stackTrace,
-      'time': log.time.toIso8601String(),
+      'stackTrace': _toSendableValue(log.stackTrace),
+      'timestamp': log.timestamp?.toIso8601String(),
       'metadata': _toSendableValue(log.metadata),
       'timestampEnabled': log.timestampEnabled,
       'jsonEncoded': log.jsonEncoded,
@@ -215,11 +259,11 @@ class ConsoleLogger implements LoggerService {
       context: optionalParameters?.context ?? '',
       message: message.toString(),
       error: optionalParameters?.error,
-      time: DateTime.now(),
+      timestamp: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
-      timestampEnabled: true,
-      stackTrace: optionalParameters?.stackTrace.toString(),
+      timestampEnabled: timestamp,
+      stackTrace: optionalParameters?.stackTrace,
     ));
   }
 
@@ -235,11 +279,11 @@ class ConsoleLogger implements LoggerService {
       context: optionalParameters?.context ?? '',
       message: message.toString(),
       error: optionalParameters?.error,
-      time: DateTime.now(),
+      timestamp: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
-      timestampEnabled: true,
-      stackTrace: optionalParameters?.stackTrace.toString(),
+      timestampEnabled: timestamp,
+      stackTrace: optionalParameters?.stackTrace,
     ));
   }
 
@@ -260,11 +304,11 @@ class ConsoleLogger implements LoggerService {
       context: optionalParameters?.context ?? '',
       message: message.toString(),
       error: optionalParameters?.error,
-      time: DateTime.now(),
+      timestamp: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
-      timestampEnabled: true,
-      stackTrace: optionalParameters?.stackTrace.toString(),
+      timestampEnabled: timestamp,
+      stackTrace: optionalParameters?.stackTrace,
     ));
   }
 
@@ -280,11 +324,11 @@ class ConsoleLogger implements LoggerService {
       context: optionalParameters?.context ?? '',
       message: message.toString(),
       error: optionalParameters?.error,
-      time: DateTime.now(),
+      timestamp: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
-      timestampEnabled: true,
-      stackTrace: optionalParameters?.stackTrace.toString(),
+      timestampEnabled: timestamp,
+      stackTrace: optionalParameters?.stackTrace,
     ));
   }
 
@@ -300,11 +344,11 @@ class ConsoleLogger implements LoggerService {
       context: optionalParameters?.context ?? '',
       message: message.toString(),
       error: optionalParameters?.error,
-      time: DateTime.now(),
+      timestamp: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
-      timestampEnabled: true,
-      stackTrace: optionalParameters?.stackTrace.toString(),
+      timestampEnabled: timestamp,
+      stackTrace: optionalParameters?.stackTrace,
     ));
   }
 
@@ -320,12 +364,39 @@ class ConsoleLogger implements LoggerService {
       context: optionalParameters?.context ?? '',
       message: message.toString(),
       error: optionalParameters?.error,
-      time: DateTime.now(),
+      timestamp: DateTime.now(),
       metadata: optionalParameters?.metadata,
       jsonEncoded: json,
-      timestampEnabled: true,
-      stackTrace: optionalParameters?.stackTrace.toString(),
+      timestampEnabled: timestamp,
+      stackTrace: optionalParameters?.stackTrace,
     ));
+  }
+}
+
+logging.Level _getLowestLevel(Set<LogLevel> levels) {
+  if (levels.isEmpty || levels.contains(LogLevel.none)) {
+    return logging.Level.OFF;
+  }
+
+  final lowest = levels.reduce(
+    (current, next) => next.compareTo(current) < 0 ? next : current,
+  );
+
+  switch (lowest) {
+    case LogLevel.verbose:
+      return logging.Level.FINEST;
+    case LogLevel.debug:
+      return logging.Level.FINE;
+    case LogLevel.info:
+      return logging.Level.INFO;
+    case LogLevel.warning:
+      return logging.Level.WARNING;
+    case LogLevel.severe:
+      return logging.Level.SEVERE;
+    case LogLevel.shout:
+      return logging.Level.SHOUT;
+    case LogLevel.none:
+      return logging.Level.OFF;
   }
 }
 
@@ -341,7 +412,9 @@ final class AugmentedMessage {
   const AugmentedMessage(this.message, this.params);
 }
 
-void _logProcessor(SendPort setupPort) {
+void _logProcessor(Map<String, SendPort> ports) {
+  final setupPort = ports['setupPort']!;
+  final outputPort = ports['outputPort']!;
   final commandPort = ReceivePort();
   setupPort.send(commandPort.sendPort);
 
@@ -354,12 +427,9 @@ void _logProcessor(SendPort setupPort) {
   }
 
   int _lastEpochSecond = -1;
-
   String _cachedTimeStr = '';
 
   String _getEfficientTimestamp(DateTime time) {
-    // If we are in the same second as the last log, return the cached string.
-    // This removes 99.9% of DateFormat calls under load.
     final epochSecond = time.millisecondsSinceEpoch ~/ 1000;
     if (epochSecond == _lastEpochSecond && _cachedTimeStr.isNotEmpty) {
       return _cachedTimeStr;
@@ -370,54 +440,71 @@ void _logProcessor(SendPort setupPort) {
     return _cachedTimeStr;
   }
 
-  final sink = stdout.nonBlocking;
   final buffer = StringBuffer();
 
   commandPort.listen((message) {
-    if (message is Map<String, dynamic>) {
-      final rawTime = message['time'];
-      final time = rawTime is String
-          ? DateTime.tryParse(rawTime) ?? DateTime.now()
-          : DateTime.now();
-      buffer.clear();
-      final isJsonEncoded = message['jsonEncoded'] == true;
-      if (isJsonEncoded) {
-        final error = message['error'];
-        buffer.write(
-          jsonEncode({
-            'level': _formatLogLevel(message['level'] as String, true),
-            'pid': _formatPid(
-              message['pid'] as int,
-              message['prefix'] as String,
-              true,
-            ),
-            'context': message['context'] as String,
-            'prefix': message['prefix'] as String,
-            'message': message['message'] as String,
-            'time': time.toIso8601String(),
-            if (error != null) 'error': error,
-            if (message['metadata'] != null) 'metadata': message['metadata'],
-          }),
-        );
-      } else {
-        final formattedPid = _formatPid(
-          message['pid'] as int,
-          message['prefix'] as String,
-          false,
-        );
-        final logLevel = _formatLogLevel(message['level'] as String, false);
-        final formattedTime = _getEfficientTimestamp(time);
-        final serializedError = message['error'];
-        final serializedMetadata = message['metadata'] == null
-            ? null
-            : jsonEncode(message['metadata']);
-        buffer.write(
-          '$formattedPid$formattedTime\t$logLevel [${message['context'] as String}] ${message['message'] as String}'
-          '${serializedError != null ? ' - $serializedError' : ''}'
-          '${serializedMetadata != null ? ' - metadata: $serializedMetadata' : ''}',
-        );
-      }
-      sink.writeln(buffer.toString());
+    if (message is Map<String, dynamic> && message['command'] == 'shutdown') {
+      outputPort.send({'type': 'shutdownAck'});
+      commandPort.close();
+      return;
     }
+
+    if (message is! Map<String, dynamic>) {
+      return;
+    }
+
+    final rawTime = message['timestamp'];
+    final time = rawTime is String
+        ? DateTime.tryParse(rawTime) ?? DateTime.now()
+        : DateTime.now();
+
+    buffer.clear();
+    final isJsonEncoded = message['jsonEncoded'] == true;
+    final isTimestampEnabled = message['timestampEnabled'] == true;
+
+    if (isJsonEncoded) {
+      final error = message['error'];
+      final stackTrace = message['stackTrace'];
+      buffer.write(
+        jsonEncode({
+          'level': _formatLogLevel(message['level'] as String, true),
+          'pid': _formatPid(
+            message['pid'] as int,
+            message['prefix'] as String,
+            true,
+          ),
+          'context': message['context'] as String,
+          'prefix': message['prefix'] as String,
+          'message': message['message'] as String,
+          'time': time.toIso8601String(),
+          if (error != null) 'error': error,
+          if (stackTrace != null) 'stackTrace': stackTrace,
+          if (message['metadata'] != null) 'metadata': message['metadata'],
+        }),
+      );
+    } else {
+      final formattedPid = _formatPid(
+        message['pid'] as int,
+        message['prefix'] as String,
+        false,
+      );
+      final logLevel = _formatLogLevel(message['level'] as String, false);
+      final formattedTime = isTimestampEnabled
+          ? _getEfficientTimestamp(time)
+          : '';
+      final serializedError = message['error'];
+      final serializedStackTrace = message['stackTrace'];
+      final serializedMetadata = message['metadata'] == null
+          ? null
+          : jsonEncode(message['metadata']);
+      buffer.write(
+        '$formattedPid$formattedTime\t$logLevel [${message['context'] as String}] ${message['message'] as String}'
+        '${serializedError != null ? ' - $serializedError' : ''}'
+        '${serializedStackTrace != null ? ' - stackTrace: $serializedStackTrace' : ''}'
+        '${serializedMetadata != null ? ' - metadata: $serializedMetadata' : ''}',
+      );
+    }
+
+    outputPort.send(buffer.toString());
   });
 }

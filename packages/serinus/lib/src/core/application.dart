@@ -185,6 +185,7 @@ class MicroserviceApplication extends Application {
   @override
   Future<void> serve() async {
     try {
+      await logger.init();
       logger.info(
         'Starting microservice on ${config.microservices.first.runtimeType} adapter',
       );
@@ -214,27 +215,16 @@ class MicroserviceApplication extends Application {
     }
     await config.serverAdapter.close();
     await shutdown();
-    logger.close();
+    await logger.close();
   }
 
   @override
   Future<void> initialize() async {
-    try {
-      if (_isInizialized) {
-        return;
-      }
-      _isInizialized = true;
-      await logger.init();
-      await _container.init(entrypoint, _routesResolver);
-    } catch (e) {
-      if (abortOnError) {
-        rethrow;
-      }
-      logger.severe(
-        'Error occurred while initializing application',
-        OptionalParameters(error: e, stackTrace: StackTrace.current),
-      );
+    if (_isInizialized) {
+      return;
     }
+    _isInizialized = true;
+    await super.initialize();
   }
 
   @override
@@ -290,6 +280,7 @@ class SerinusApplication extends Application {
   @override
   Future<void> serve() async {
     try {
+      await logger.init();
       if (config.microservices.isNotEmpty) {
         logger.info('Starting microservices');
         for (final microservice in config.microservices) {
@@ -327,7 +318,7 @@ class SerinusApplication extends Application {
     }
     await config.serverAdapter.close();
     await shutdown();
-    logger.close();
+    await logger.close();
   }
 
   /// The [connectMicroservice] method is used to connect a microservice to the application.
