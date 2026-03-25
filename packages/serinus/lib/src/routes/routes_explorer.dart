@@ -22,32 +22,6 @@ final class RoutesExplorer {
   /// The [RoutesExplorer] constructor is used to create a new instance of the [RoutesExplorer] class.
   const RoutesExplorer(this._container, this._router);
 
-  /// The [resolveRoutes] method is used to resolve the routes of the application.
-  ///
-  /// It resolves the routes of the controllers and registers them in the router.
-  void resolveRoutes() {
-    final Logger logger = Logger('RoutesResolver');
-    Map<Controller, ControllerSpec> controllers = {
-      for (final record in _container.modulesContainer.controllers)
-        record.controller: ControllerSpec(
-          record.controller.path,
-          record.module,
-        ),
-    };
-    for (var controller in controllers.entries) {
-      logger.info('${controller.key.runtimeType} {${controller.value.path}}');
-      final versioningOptions = _container.config.versioningOptions;
-      final globalVersioningEnabled =
-          _container.config.versioningOptions?.type == VersioningType.uri;
-      explore(
-        controller,
-        versioningOptions,
-        globalVersioningEnabled,
-        controller.key.metadata.whereType<IgnoreVersion>().firstOrNull != null,
-      );
-    }
-  }
-
   /// The [explore] method is used to explore the routes of the controller.
   ///
   /// It registers the routes in the router.
@@ -131,7 +105,7 @@ final class RoutesExplorer {
   /// If no route is found, returns a [NotFoundRoute].
   /// If no method matches, returns a [MethodNotAllowedRoute].
   /// Otherwise, returns the matched route in a [FoundRoute].
-  AtlasResult<RouterEntry> getRoute(String path, HttpMethod method) {
+  AtlasResult<RouteContext> getRoute(String path, HttpMethod method) {
     return _router.lookup(path, method);
   }
 }
