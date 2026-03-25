@@ -21,10 +21,6 @@ ApplicationConfig _config() {
 
 void main() {
   group('$RouterModule', () {
-    setUp(() {
-      RouterModule.modulePaths = {};
-    });
-
     test(
       'registerAsync returns DynamicModule and registers mounted module paths',
       () async {
@@ -36,8 +32,8 @@ void main() {
         final registered = await module.registerAsync(_config());
 
         expect(registered, isA<DynamicModule>());
-        expect(RouterModule.modulePaths[_RootModule], equals('/api'));
-        expect(RouterModule.modulePaths[_UsersModule], equals('/v1'));
+        expect(module.modulePaths[_RootModule], equals('/api'));
+        expect(module.modulePaths[_UsersModule], equals('/v1'));
       },
     );
 
@@ -61,13 +57,10 @@ void main() {
 
         await module.registerAsync(_config());
 
-        expect(RouterModule.modulePaths[_RootModule], equals('/api'));
-        expect(RouterModule.modulePaths[_UsersModule], equals('/api/users'));
-        expect(RouterModule.modulePaths[_PostsModule], equals('/api/posts'));
-        expect(
-          RouterModule.modulePaths[_DuplicateModule],
-          equals('/api/posts/:id'),
-        );
+        expect(module.modulePaths[_RootModule], equals('/api'));
+        expect(module.modulePaths[_UsersModule], equals('/api/users'));
+        expect(module.modulePaths[_PostsModule], equals('/api/posts'));
+        expect(module.modulePaths[_DuplicateModule], equals('/api/posts/:id'));
       },
     );
 

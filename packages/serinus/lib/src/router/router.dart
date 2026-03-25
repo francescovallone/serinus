@@ -74,11 +74,17 @@ class RouterModule extends Module {
   /// The [mounts] property is the list of module mounts that will be registered in the router.
   final List<ModuleMount> mounts;
 
+  /// The [modulePaths] property is a map that contains the registered module types and their corresponding paths.
+  final Map<Type, String> modulePaths = {};
+
   /// The [RouterModule] constructor is used to create a new instance of the [RouterModule] class.
   RouterModule(this.mounts);
 
-  /// The [modulePaths] static property is a map that contains the registered module types and their corresponding paths.
-  static Map<Type, String> modulePaths = {};
+  /// The [normalizeMountPath] method is used to normalize the module mount paths by adding a leading slash, removing the trailing slash, and replacing multiple slashes with a single slash.
+  String normalizeMountPath(String path) {
+    path = path.addLeadingSlash().stripEndSlash();
+    return path.replaceAll(RegExp('([/]{2,})'), '/');
+  }
 
   @override
   Future<DynamicModule> registerAsync(ApplicationConfig config) async {
@@ -89,17 +95,18 @@ class RouterModule extends Module {
   }
 
   void _registerModulePath(ModuleMount mount, String path) {
+    final normalizedPath = normalizeMountPath(path);
     if (modulePaths.containsKey(mount.module)) {
       throw InitializationError(
         'Module ${mount.module.toString()} is already registered with path ${modulePaths[mount.module]}.',
       );
     }
-    modulePaths[mount.module] = path;
+    modulePaths[mount.module] = normalizedPath;
     if (mount.children.isEmpty) {
       return;
     }
     for (final child in mount.children) {
-      _registerModulePath(child, '$path${child.path}');
+      _registerModulePath(child, '$normalizedPath/${child.path}');
     }
   }
 }

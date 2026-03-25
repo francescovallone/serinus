@@ -52,7 +52,13 @@ class RoutesResolver {
         provider.runtimeType: provider,
     };
     Map<Controller, ControllerSpec> mappedControllers = {};
-    final moduleMounts = RouterModule.modulePaths;
+    final routerModule =
+        _container.modulesContainer.scopes
+                .where((scope) => scope.module is RouterModule)
+                .firstOrNull
+                ?.module
+            as RouterModule?;
+    final moduleMounts = <Type, String>{...?routerModule?.modulePaths};
     if (moduleMounts.isNotEmpty) {
       for (final record in _container.modulesContainer.controllers) {
         final mount = moduleMounts[record.module.runtimeType];

@@ -16,6 +16,13 @@ class SseRegistry extends Provider
   /// Creates a new instance of [SseRegistry].
   SseRegistry(this._config);
 
+  String _joinPath(String prefix, String path) {
+    final normalized = '$prefix/$path'.replaceAll(RegExp(r'/+'), '/');
+    return normalized == '/'
+        ? normalized
+        : normalized.replaceFirst(RegExp(r'/$'), '');
+  }
+
   @override
   Future<void> onApplicationBootstrap() async {
     final sseAdapter = _config.adapters.get<SseAdapter>('sse');
@@ -24,7 +31,13 @@ class SseRegistry extends Provider
     final controllers = _config.modulesContainer.controllers.where(
       (r) => r.controller is SseController,
     );
-    final mounts = RouterModule.modulePaths;
+    final routerModule =
+        _config.modulesContainer.scopes
+                .where((scope) => scope.module is RouterModule)
+                .firstOrNull
+                ?.module
+            as RouterModule?;
+    final mounts = <Type, String>{...?routerModule?.modulePaths};
     for (final record in controllers) {
       final controller = record.controller as SseController;
       final currentModuleScope = _config.modulesContainer.getScope(
@@ -33,8 +46,10 @@ class SseRegistry extends Provider
 
       for (final spec in controller.sseRoutes.entries) {
         final route = spec.value.route;
-        final gatewayPath =
-            mounts[currentModuleScope.module.runtimeType] ?? route.path;
+        final mountPath = mounts[currentModuleScope.module.runtimeType];
+        final gatewayPath = mountPath == null
+            ? route.path
+            : _joinPath(mountPath, route.path);
         final result = router.lookup(route.method, gatewayPath);
         if (result.values.isNotEmpty) {
           throw InitializationError(
