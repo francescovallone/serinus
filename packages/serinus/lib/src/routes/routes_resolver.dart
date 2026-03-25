@@ -52,22 +52,21 @@ class RoutesResolver {
         provider.runtimeType: provider,
     };
     Map<Controller, ControllerSpec> mappedControllers = {};
-    final routerModule = _container.modulesContainer.scopes.where((scope) => scope.module.runtimeType == RouterModule).firstOrNull;
-    final moduleMounts = routerModule?.module is RouterModule ? (routerModule!.module as RouterModule).mounts : <ModuleMount>[];
+    final moduleMounts = RouterModule.modulePaths;
     if (moduleMounts.isNotEmpty) {
-      for (final mount in moduleMounts) {
-        for (final record in _container.modulesContainer.controllers) {
-          if (record.module.runtimeType == mount.module) {
-            mappedControllers[record.controller] = ControllerSpec(
-              '${_modulePrefix(mount, record.controller.path)}',
-              record.module,
-            );
-          } else {
-            mappedControllers[record.controller] = ControllerSpec(
-              record.controller.path,
-              record.module,
-            );
-          }
+      for (final record in _container.modulesContainer.controllers) {
+        final mount = moduleMounts[record.module.runtimeType];
+        print('${record.controller.runtimeType} in ${record.module.runtimeType} - ${mount}');
+        if (mount != null) {
+          mappedControllers[record.controller] = ControllerSpec(
+            '${_modulePrefix(mount, record.controller.path)}',
+            record.module,
+          );
+        } else {
+          mappedControllers[record.controller] = ControllerSpec(
+            record.controller.path,
+            record.module,
+          );
         }
       }
     } else {
@@ -90,16 +89,8 @@ class RoutesResolver {
   }
 
 
-  String _modulePrefix(ModuleMount mount, String path) {
-    if (mount.children.isNotEmpty) {
-      for (final child in mount.children) {
-        path = _modulePrefix(child, path);
-      }
-    }
-    if (mount.path == '/') {
-      return path;
-    }
-    return normalizePath('${mount.path}/$path');
+  String _modulePrefix(String mountPath, String path) {
+    return normalizePath('${mountPath}/$path');
   }
 
   /// The [normalizePath] method is used to normalize the path.

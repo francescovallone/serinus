@@ -6,6 +6,7 @@ import '../../enums/http_method.dart';
 import '../../errors/initialization_error.dart';
 import '../../mixins/mixins.dart';
 import '../../router/atlas.dart';
+import '../../router/router.dart';
 import '../../services/logger_service.dart';
 import '../../utils/wrapped_response.dart';
 import '../core.dart';
@@ -29,25 +30,27 @@ class WebsocketRegistry extends Provider
     await wsAdapter.init(_config);
     final gateways = _config.modulesContainer.getAll<WebSocketGateway>();
     final mainPort = wsAdapter.httpAdapter.port;
+    final mounts = RouterModule.modulePaths;
     for (final gateway in gateways) {
       if (gateway.port == null || gateway.port == mainPort) {
         final router = wsAdapter.router ?? Atlas();
         final gatewayScope = _config.modulesContainer.getScopeByProvider(
           gateway.runtimeType,
         );
-        final result = router.lookup(HttpMethod.all, gateway.path ?? '/');
+        final gatewayPath = mounts[gatewayScope.module.runtimeType] ?? gateway.path ?? '/';
+        final result = router.lookup(HttpMethod.all, gatewayPath);
         if (result.values.isNotEmpty) {
           throw InitializationError(
-            'WebSocket Gateway with path "${gateway.path ?? '/'}" already exists. '
+            'WebSocket Gateway with path "${gatewayPath}" already exists. '
             'Please use a different path or port for the gateway.',
           );
         }
         _logger.info(
-          'Mapped {${gateway.path ?? '/'}, ${gateway.port ?? mainPort}} WebSocket Gateway',
+          'Mapped {${gatewayPath}, ${gateway.port ?? mainPort}} WebSocket Gateway',
         );
         router.add(
           HttpMethod.all,
-          gateway.path ?? '/',
+          gatewayPath,
           GatewayScope(
             gateway,
             {
@@ -95,20 +98,21 @@ class WebsocketRegistry extends Provider
         final gatewayScope = _config.modulesContainer.getScopeByProvider(
           gateway.runtimeType,
         );
-        final result = router.lookup(HttpMethod.all, gateway.path ?? '/');
+        final gatewayPath = mounts[gatewayScope.module.runtimeType] ?? gateway.path ?? '/';
+        final result = router.lookup(HttpMethod.all, gatewayPath);
         if (result.values.isNotEmpty) {
           throw InitializationError(
-            'WebSocket Gateway with path "${gateway.path ?? '/'}" already exists. '
+            'WebSocket Gateway with path "${gatewayPath}" already exists. '
             'Please use a different path or port for the gateway.',
           );
         }
         _logger.info(
-          'Mapped {${gateway.path ?? '/'}, ${gateway.port ?? mainPort}} WebSocket Gateway',
+          'Mapped {${gatewayPath}, ${gateway.port ?? mainPort}} WebSocket Gateway',
         );
         // Register the gateway with the custom adapter's router
         router.add(
           HttpMethod.all,
-          gateway.path ?? '/',
+          gatewayPath,
           GatewayScope(
             gateway,
             {

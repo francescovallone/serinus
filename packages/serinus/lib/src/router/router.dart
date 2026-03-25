@@ -54,14 +54,19 @@ final class Router {
   }
 }
 
+/// The [ModuleMount] class is used to define the module mounts for the [RouterModule].
 final class ModuleMount {
 
+  /// The [path] property is the path of the module mount.
   final String path;
 
+  /// The [module] property is the module that will be mounted on the specified path.
   final Type module;
 
+  /// The [children] property is the list of child module mounts that will be mounted under the current module mount.
   final List<ModuleMount> children;
 
+  /// The [ModuleMount] constructor is used to create a new instance of the [ModuleMount] class.
   const ModuleMount({
     required this.path,
     required this.module,
@@ -70,14 +75,39 @@ final class ModuleMount {
 
 }
 
+/// The [RouterModule] class is a module
 class RouterModule extends Module {
 
+  /// The [mounts] property is the list of module mounts that will be registered in the router.
   final List<ModuleMount> mounts;
 
-  RouterModule(this.mounts): super(
-    providers: [],
-    controllers: [],
-    imports: [],
-  );
+  /// The [RouterModule] constructor is used to create a new instance of the [RouterModule] class.
+  RouterModule(this.mounts);
+
+  /// The [modulePaths] static property is a map that contains the registered module types and their corresponding paths.
+  static Map<Type, String> modulePaths = {};
+
+  @override
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
+    for (final mount in mounts) {
+      _registerModulePath(mount, mount.path);
+    }
+    return DynamicModule();
+  }
+
+  void _registerModulePath(ModuleMount mount, String path) {
+    if (modulePaths.containsKey(mount.module)) {
+      throw InitializationError(
+        'Module ${mount.module.toString()} is already registered with path ${modulePaths[mount.module]}.',
+      );
+    }
+    modulePaths[mount.module] = path;
+    if (mount.children.isEmpty) {
+      return;
+    }
+    for (final child in mount.children) {
+      _registerModulePath(child, '$path${child.path}');
+    }
+  }
 
 }

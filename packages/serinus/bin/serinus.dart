@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:serinus/serinus.dart';
-import 'package:serinus/src/router/router.dart';
 
 class TestProvider extends Provider {
   int counter = 0;
@@ -101,18 +100,7 @@ class AppController extends Controller {
 class AppModule extends Module {
   AppModule()
     : super(
-        imports: [Test2Module(), TestModule(), RouterModule([
-          ModuleMount(
-            module: Test2Module,
-            path: '/api',
-            children: [
-              ModuleMount(
-                module: TestModule,
-                path: '/test',
-              )
-            ]
-          )
-        ])],
+        imports: [Test2Module(), TestModule()],
         providers: [Provider.forValue('AppModuleValue', name: 'appValue')],
         controllers: [AppController()],
         exports: [],
