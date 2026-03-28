@@ -18,6 +18,29 @@ class HeaderResult {
   HeaderResult({required this.authenticated});
 }
 
+class HeaderFrontierStrategy extends FrontierStrategy<Map<String, String>, bool?> {
+  HeaderFrontierStrategy(this.headerStrategy);
+
+  final HeaderStrategy headerStrategy;
+
+  @override
+  String get name => headerStrategy.name;
+
+  @override
+  Strategy get strategy => headerStrategy;
+
+  @override
+  Future<Map<String, String>?> validate(
+    RequestContext context,
+    bool? payload,
+  ) async {
+    if (payload == true) {
+      return {'id': 'user-1'};
+    }
+    return null;
+  }
+}
+
 class HeaderStrategy extends Strategy<HeaderOptions> {
   HeaderStrategy(super.options, super.callback);
 
@@ -49,18 +72,30 @@ final strategy = HeaderStrategy(
   },
 );
 
+final frontierStrategy = HeaderFrontierStrategy(strategy);
+
 class AppModule extends Module {
-  AppModule(FrontierModule module)
-    : super(controllers: [AppController()], imports: [module]);
+  AppModule()
+    : super(
+        controllers: [AppController()],
+        imports: [FrontierModule(defaultStrategy: 'Header')],
+        providers: [
+          Provider.forValue<FrontierStrategy>(frontierStrategy, name: 'Header'),
+        ],
+      );
 }
 
 class AppController extends Controller {
   AppController() : super('/') {
     on(Route.get('/strategy'), (context) async {
-      return context.use<Strategy>('Header').name;
+      return context.use<FrontierConfig>().defaultStrategy;
     });
     on(Route.get('/pass', guards: {AuthGuard('Header')}), (context) async {
       return 'pass';
+    });
+    on(Route.get('/default-pass', guards: {AuthGuard()}), (context) async {
+      final user = context.user<Map<String, String>>();
+      return user['id'];
     });
   }
 }
@@ -68,15 +103,14 @@ class AppController extends Controller {
 void main() {
   group('$FrontierModule', () {
     setUpAll(() async {
-      final module = FrontierModule([strategy]);
       final app = await serinus.createApplication(
-        entrypoint: AppModule(module),
+        entrypoint: AppModule(),
         logLevels: {LogLevel.none},
       );
       await app.serve();
     });
 
-    test('FrontierModule exports strategies as value providers', () async {
+    test('FrontierModule exports default strategy config', () async {
       final req = await HttpClient().getUrl(
         Uri.parse('http://localhost:3000/strategy'),
       );
@@ -93,6 +127,16 @@ void main() {
       final res = await req.close();
       final result = await res.transform(utf8.decoder).first;
       expect(result, 'pass');
+    });
+
+    test('[AuthGuard] should use the default strategy when omitted', () async {
+      final req = await HttpClient().getUrl(
+        Uri.parse('http://localhost:3000/default-pass'),
+      );
+      req.headers.add('Authorization', 'Bearer token');
+      final res = await req.close();
+      final result = await res.transform(utf8.decoder).first;
+      expect(result, 'user-1');
     });
 
     test('[AuthGuard] should fail the request', () async {

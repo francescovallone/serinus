@@ -39,20 +39,50 @@ class HeaderStrategy extends Strategy<HeaderOptions> {
   }
 }
 
+class HeaderFrontierStrategy extends FrontierStrategy<Map<String, String>, bool?> {
+  HeaderFrontierStrategy(this.headerStrategy);
+
+  final HeaderStrategy headerStrategy;
+
+  @override
+  String get name => headerStrategy.name;
+
+  @override
+  Strategy get strategy => headerStrategy;
+
+  @override
+  Future<Map<String, String>?> validate(
+    RequestContext context,
+    bool? payload,
+  ) async {
+    if (payload == true) {
+      return {'id': 'demo-user'};
+    }
+    return null;
+  }
+}
+
+final headerFrontierStrategy = HeaderFrontierStrategy(
+  HeaderStrategy(
+    HeaderOptions(key: 'Authorization', value: 'hello'),
+    (options, result, done) async {
+      done(result);
+    },
+  ),
+);
+
 class AppModule extends Module {
   AppModule()
       : super(
           imports: [
-            FrontierModule(
-              [
-                HeaderStrategy(
-                    HeaderOptions(key: 'Authorization', value: 'hello'),
-                    (options, result, done) async {
-                  done(result);
-                })
-              ],
-            )
+            FrontierModule(defaultStrategy: 'Header'),
           ],
           controllers: [AppController()],
+          providers: [
+            Provider.forValue<FrontierStrategy>(
+              headerFrontierStrategy,
+              name: 'Header',
+            ),
+          ],
         );
 }
