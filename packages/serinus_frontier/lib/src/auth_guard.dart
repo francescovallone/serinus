@@ -60,8 +60,8 @@ class AuthGuard<T extends FrontierStrategy> extends Guard {
     };
     final stringCookies = Map<String, String>.unmodifiable(
       Map<String, String>.fromEntries(
-        requestContext.request.session.all.entries.map(
-          (entry) => MapEntry(entry.key, entry.value.join(',')),
+        requestContext.request.cookies.map(
+          (entry) => MapEntry(entry.name, entry.value),
         ),
       ),
     );

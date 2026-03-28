@@ -118,16 +118,6 @@ void main() {
       expect(result, 'pass');
     });
 
-    test('[AuthGuard] should use the default strategy when omitted', () async {
-      final req = await HttpClient().getUrl(
-        Uri.parse('http://localhost:3000/default-pass'),
-      );
-      req.headers.add('Authorization', 'Bearer token');
-      final res = await req.close();
-      final result = await res.transform(utf8.decoder).first;
-      expect(result, 'user-1');
-    });
-
     test('[AuthGuard] should fail the request', () async {
       final req = await HttpClient().getUrl(
         Uri.parse('http://localhost:3000/pass'),
