@@ -39,7 +39,8 @@ class HeaderStrategy extends Strategy<HeaderOptions> {
   }
 }
 
-class HeaderFrontierStrategy extends FrontierStrategy<Map<String, String>, bool?> {
+class HeaderFrontierStrategy
+    extends FrontierStrategy<Map<String, String>, bool?> {
   HeaderFrontierStrategy(this.headerStrategy);
 
   final HeaderStrategy headerStrategy;

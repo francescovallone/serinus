@@ -1,8 +1,5 @@
-
 import 'package:serinus/serinus.dart';
 import 'package:serinus_frontier/serinus_frontier.dart';
-import 'package:serinus_frontier/src/frontier_module.dart';
-import 'package:serinus_frontier/src/frontier_strategy.dart';
 
 /// The [AuthGuard] class authenticates requests using Frontier strategies.
 class AuthGuard extends Guard {
@@ -28,15 +25,19 @@ class AuthGuard extends Guard {
         throw StateError(
           'AuthGuard was used without a strategy name, but no default was found. '
           'Either pass a strategy name like AuthGuard("jwt"), or import '
-          'FrontierModule(defaultStrategy: "jwt") in your module.'
+          'FrontierModule(defaultStrategy: "jwt") in your module.',
         );
       }
     }
     if (!requestContext.canUse<FrontierStrategy>(targetStrategy)) {
-      throw StateError('Strategy "$targetStrategy" is not registered as a Provider.');
+      throw StateError(
+        'Strategy "$targetStrategy" is not registered as a Provider.',
+      );
     }
 
-    final frontierStrategy = requestContext.use<FrontierStrategy>(targetStrategy);
+    final frontierStrategy = requestContext.use<FrontierStrategy>(
+      targetStrategy,
+    );
     final service = Frontier()..use(frontierStrategy.strategy);
     final frontierResult = await service.authenticate(
       frontierStrategy.strategy.name,
@@ -46,9 +47,12 @@ class AuthGuard extends Guard {
       return false;
     }
     try {
-      final user = await frontierStrategy.validate(requestContext, frontierResult);
-      
-      if (user == null) return false; 
+      final user = await frontierStrategy.validate(
+        requestContext,
+        frontierResult,
+      );
+
+      if (user == null) return false;
 
       requestContext['user'] = user;
       return true;
@@ -58,7 +62,9 @@ class AuthGuard extends Guard {
   }
 
   StrategyRequest _buildStrategyRequest(RequestContext requestContext) {
-    final stringHeaders = Map<String, String>.unmodifiable(requestContext.headers.asFullMap());
+    final stringHeaders = Map<String, String>.unmodifiable(
+      requestContext.headers.asFullMap(),
+    );
     final stringQuery = <String, String>{
       for (final entry in requestContext.query.entries)
         entry.key: switch (entry.value) {
@@ -84,15 +90,14 @@ class AuthGuard extends Guard {
   }
 }
 
-
 extension FrontierUser on RequestContext {
-
   T user<T>() {
     final user = this['user'];
     if (user == null) {
-      throw StateError('No user found in request context. Make sure to use AuthGuard and that the strategy returns a valid user.');
+      throw StateError(
+        'No user found in request context. Make sure to use AuthGuard and that the strategy returns a valid user.',
+      );
     }
     return this['user'] as T;
   }
-
 }

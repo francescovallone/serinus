@@ -1,4 +1,3 @@
-// Base Policy interface
 import 'package:serinus/serinus.dart';
 import 'package:serinus_frontier/src/auth_guard.dart';
 

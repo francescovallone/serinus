@@ -4,11 +4,10 @@ typedef FrontierDeserializer<T> = T Function(Object? value);
 
 /// Holds the configuration for the Frontier module
 class FrontierConfig {
-
   final String? defaultStrategy;
 
   final FrontierDeserializer? deserializer;
-  
+
   // You can add other global settings here later, like:
   // final bool session;
   // final String property; // e.g., 'user' vs 'account'
@@ -19,13 +18,12 @@ class FrontierConfig {
 // packages/serinus_frontier/lib/src/frontier_module.dart
 /// The FrontierModule configures defaults for authentication within Serinus.
 class FrontierModule extends Module {
-  
   final String? defaultStrategy;
 
   final FrontierDeserializer? deserializer;
 
   /// Configures the FrontierModule with global defaults.
-  /// 
+  ///
   /// Example: `FrontierModule.register(defaultStrategy: 'jwt')`
   FrontierModule({this.defaultStrategy, this.deserializer});
 
@@ -35,13 +33,13 @@ class FrontierModule extends Module {
     return DynamicModule(
       providers: [
         Provider.forValue<FrontierConfig>(
-          FrontierConfig(defaultStrategy: defaultStrategy, deserializer: deserializer),
+          FrontierConfig(
+            defaultStrategy: defaultStrategy,
+            deserializer: deserializer,
+          ),
         ),
       ],
-      exports: [
-        Export.value<FrontierConfig>()
-      ],
+      exports: [Export.value<FrontierConfig>()],
     );
   }
-  
 }

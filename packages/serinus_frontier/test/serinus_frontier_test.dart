@@ -18,7 +18,8 @@ class HeaderResult {
   HeaderResult({required this.authenticated});
 }
 
-class HeaderFrontierStrategy extends FrontierStrategy<Map<String, String>, bool?> {
+class HeaderFrontierStrategy
+    extends FrontierStrategy<Map<String, String>, bool?> {
   HeaderFrontierStrategy(this.headerStrategy);
 
   final HeaderStrategy headerStrategy;
