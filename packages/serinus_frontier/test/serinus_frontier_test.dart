@@ -25,9 +25,6 @@ class HeaderFrontierStrategy
   final HeaderStrategy headerStrategy;
 
   @override
-  String get name => headerStrategy.name;
-
-  @override
   Strategy get strategy => headerStrategy;
 
   @override
@@ -80,21 +77,24 @@ class AppModule extends Module {
     : super(
         controllers: [AppController()],
         imports: [FrontierModule()],
-        providers: [
-          frontierStrategy,
-        ],
+        providers: [frontierStrategy],
       );
 }
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on(Route.get('/pass', guards: {AuthGuard<HeaderFrontierStrategy>()}), (context) async {
+    on(Route.get('/pass', guards: {AuthGuard<HeaderFrontierStrategy>()}), (
+      context,
+    ) async {
       return 'pass';
     });
-    on(Route.get('/default-pass', guards: {AuthGuard<HeaderFrontierStrategy>()}), (context) async {
-      final user = context.user<Map<String, String>>();
-      return user['id'];
-    });
+    on(
+      Route.get('/default-pass', guards: {AuthGuard<HeaderFrontierStrategy>()}),
+      (context) async {
+        final user = context.user<Map<String, String>>();
+        return user['id'];
+      },
+    );
   }
 }
 

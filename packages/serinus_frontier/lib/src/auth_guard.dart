@@ -3,7 +3,6 @@ import 'package:serinus_frontier/serinus_frontier.dart';
 
 /// The [AuthGuard] class authenticates requests using Frontier strategies.
 class AuthGuard<T extends FrontierStrategy> extends Guard {
-
   /// Create a new instance of [AuthGuard].
   AuthGuard();
 
@@ -15,9 +14,7 @@ class AuthGuard<T extends FrontierStrategy> extends Guard {
 
     final requestContext = context.switchToHttp();
     if (!requestContext.canUse<T>()) {
-      throw StateError(
-        'Strategy "$T" is not registered as a Provider.',
-      );
+      throw StateError('Strategy "$T" is not registered as a Provider.');
     }
 
     final frontierStrategy = requestContext.use<T>();

@@ -7,7 +7,7 @@ Serinus Frontier is a plugin that allows you to use the Frontier library in your
 ## Installation
 
 ```bash
-dart pub add serinus_frontier
+dart pub add frontier serinus_frontier
 ```
 
 ## Usage
@@ -20,9 +20,16 @@ import 'package:serinus_frontier/serinus_frontier.dart';
 class AppModule extends Module {
     AppModule()
             : super(
-                    imports: [
-                        Provider.value<FrontierStrategy>()
-                    ],
+                    providers: [
+                        HeaderFrontierStrategy(
+                            HeaderStrategy(
+                                HeaderOptions(key: 'Authorization', value: 'Bearer token'),
+                                (options, result, done) async {
+                                    done(result);
+                                },
+                            )
+                        )
+                    ]
                 );
 
 }
@@ -30,7 +37,7 @@ class AppModule extends Module {
 class AppController extends Controller {
     AppController() : super('/') {
         on(
-            Route.get('/', guards: {AuthGuard('MyStrategy')}),
+            Route.get('/', guards: {AuthGuard<HeaderFrontierStrategy>()}),
             (context) async => 'authenticated',
         );
     }

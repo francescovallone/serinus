@@ -15,7 +15,6 @@ class FrontierConfig {
 
 /// The FrontierModule configures defaults for authentication within Serinus.
 class FrontierModule extends Module {
-
   final FrontierDeserializer? deserializer;
 
   /// Configures the FrontierModule with global defaults.
@@ -28,9 +27,7 @@ class FrontierModule extends Module {
     return DynamicModule(
       providers: [
         Provider.forValue<FrontierConfig>(
-          FrontierConfig(
-            deserializer: deserializer,
-          ),
+          FrontierConfig(deserializer: deserializer),
         ),
       ],
       exports: [Export.value<FrontierConfig>()],

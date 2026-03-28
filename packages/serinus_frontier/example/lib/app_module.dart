@@ -79,8 +79,6 @@ class AppModule extends Module {
             FrontierModule(),
           ],
           controllers: [AppController()],
-          providers: [
-            headerFrontierStrategy
-          ],
+          providers: [headerFrontierStrategy],
         );
 }
