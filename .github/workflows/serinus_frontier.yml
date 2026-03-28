@@ -1,10 +1,20 @@
 name: Serinus Frontier Tests
 
 on:
-  push:
   pull_request:
+    paths:
+      - ".github/workflows/serinus_frontier.yml"
+      - "packages/serinus_frontier/lib/**"
+      - "packages/serinus_frontier/test/**"
+      - "packages/serinus_frontier/pubspec.yaml"
+  push:
     branches:
       - main
+    paths:
+      - ".github/workflows/serinus_frontier.yml"
+      - "packages/serinus_frontier/lib/**"
+      - "packages/serinus_frontier/test/**"
+      - "packages/serinus_frontier/pubspec.yaml"
 
 jobs:
   build:    
@@ -22,19 +32,13 @@ jobs:
       - name: 📦 Install Dependencies
         run: dart pub get
 
-      # - name: 🕵️ Analyze
-      #   run: dart analyze --fatal-infos --fatal-warnings .
+      - name: 🕵️ Analyze
+        run: dart analyze --fatal-infos --fatal-warnings .
 
       - name: 🧪 Run Tests
         run: |
           dart pub global activate coverage
           dart test --coverage=coverage && dart pub global run coverage:format_coverage --lcov --in=coverage --out=coverage/lcov.info --packages=.dart_tool/package_config.json --report-on=${{inputs.report_on}}
-      
-      - name: 📊 Check Code Coverage
-        uses: VeryGoodOpenSource/very_good_coverage@v2
-        with:
-          path: ./packages/serinus_frontier/coverage/lcov.info
-          min_coverage: 0
       
       # - name: Upload coverage reports to Codecov
       #   uses: codecov/codecov-action@v4

@@ -111,11 +111,6 @@ class RouteExecutionContext {
           await context.initMetadata(executionContext),
         );
       }
-      if (context.pipes.isNotEmpty) {
-        for (int i = 0; i < context.pipes.length; i++) {
-          await context.pipes[i].transform(executionContext);
-        }
-      }
       final middlewares =
           context.compiledMiddlewares; // Instant O(1) cache read
       final activeMiddlewares = <Middleware>[];
@@ -163,6 +158,19 @@ class RouteExecutionContext {
         );
         if (response.isClosed) {
           return;
+        }
+      }
+      if (context.guards.isNotEmpty) {
+        for (int i = 0; i < context.guards.length; i++) {
+          final guardResult = await context.guards[i].canActivate(executionContext);
+          if (!guardResult) {
+            throw UnauthorizedException();
+          }
+        }
+      }
+      if (context.pipes.isNotEmpty) {
+        for (int i = 0; i < context.pipes.length; i++) {
+          await context.pipes[i].transform(executionContext);
         }
       }
       await _executeBeforeHandle(executionContext, context);

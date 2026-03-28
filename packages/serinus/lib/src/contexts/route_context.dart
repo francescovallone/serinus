@@ -106,6 +106,9 @@ class RouteContext<T extends RouteHandlerSpec> {
     hooksContainer.resHooks,
   );
 
+  /// The [guards] is used to store the guards for the route.
+  final List<Guard> guards;
+
   /// The [RouteContext] constructor initializes the route context with the provided parameters.
   RouteContext({
     required this.id,
@@ -122,6 +125,7 @@ class RouteContext<T extends RouteHandlerSpec> {
     this.queryParameters = const {},
     this.hooksServices = const {},
     this.exceptionFilters = const {},
+    this.guards = const [],
   }) {
     providers = {
       for (var provider in moduleScope.unifiedProviders)

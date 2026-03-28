@@ -1,3 +1,4 @@
+import '../containers/models_provider.dart';
 import '../core/core.dart';
 import '../core/middlewares/middleware_module.dart';
 import '../core/middlewares/middleware_registry.dart';
@@ -19,4 +20,14 @@ class InternalCoreModule extends Module {
         exports: [MiddlewareRegistry, GraphInspector],
         isGlobal: true,
       );
+  
+  Future<DynamicModule> registerAsync(ApplicationConfig config) async {
+    final providers = <Provider>[];
+    final exports = <Export>[];
+    if (config.modelProvider != null) {
+      providers.add(Provider.forValue<ModelProvider>(config.modelProvider!));
+      exports.add(Export.value<ModelProvider>());
+    }
+    return DynamicModule(providers: providers, exports: exports);
+  }
 }

@@ -12,9 +12,7 @@ import '../global_prefix.dart';
 import '../microservices/transports/transports.dart';
 import '../services/tracers_service.dart';
 import '../versioning.dart';
-import 'exception_filter.dart';
-import 'pipe.dart' as s;
-import 'tracer.dart';
+import 'core.dart';
 
 /// The configuration for the application
 /// This is used to configure the application
@@ -126,7 +124,7 @@ final class ApplicationConfig {
 
   /// The [PipesContainer] for the application
   /// This is used to store the pipes used by the application
-  final List<s.Pipe> globalPipes = [];
+  final List<Pipe> globalPipes = [];
 
   /// The [ModulesContainer] for the application
   /// This is used to store the modules used by the application
@@ -140,6 +138,9 @@ final class ApplicationConfig {
 
   /// The set of exception filters to be applied globally
   final Set<ExceptionFilter> globalExceptionFilters = {};
+
+  /// The set of guards to be applied globally
+  final Set<Guard> globalGuards = {};
 
   /// Register a tracer to the application
   void registerTracer(Tracer tracer) {

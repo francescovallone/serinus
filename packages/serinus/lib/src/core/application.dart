@@ -386,6 +386,12 @@ class SerinusApplication extends Application {
           'Global ExceptionFilter ${processable.runtimeType} added to application',
         );
         break;
+      case Guard():
+        _container.config.globalGuards.add(processable);
+        logger.verbose(
+          'Global Guard ${processable.runtimeType} added to application',
+        );
+        break;
       case Middleware():
       default:
         throw ArgumentError(

@@ -1,10 +1,9 @@
 import 'package:serinus/serinus.dart';
-
-import 'app_routes.dart';
+import 'package:serinus_frontier/serinus_frontier.dart';
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on(HelloWorldRoute(), _handleEcho);
+    on(Route.get('/', guards: {AuthGuard()}), _handleEcho);
   }
 
   Future<String> _handleEcho(RequestContext context) async {
