@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.1.7
+
+**Released on:** 14-03-2026
+
+### Fixes
+
+- Fix a bug that prevented composed providers to be correctly registered in the route context. This bug caused the composed providers to not be available in the route context, which could lead to issues with dependency injection and route handling. This fix ensures that composed providers are correctly registered and available in the route context, allowing for proper dependency injection and route handling when using composed providers in Serinus applications. (#233)[https://github.com/francescovallone/serinus/issues/233]
+
+## 2.1.6
+
+**Released on:** 12-03-2026
+
+### Fixes
+
+- Reduce overhead of the request handling by using weak eTags and by using the request relative uri instead of the absolute uri.
+
 ## 2.1.5
 
 **Released on:** 07-03-2026

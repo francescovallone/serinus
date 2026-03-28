@@ -36,6 +36,9 @@ abstract class IncomingMessage {
   /// The uri of the request.
   Uri get uri;
 
+  /// The requested uri of the request. It is the absolute and complete uri of the request.
+  Uri get requestedUri;
+
   /// The method of the request.
   String get method;
 
@@ -163,10 +166,13 @@ class InternalRequest extends IncomingMessage {
   String get id => _id ??= 'req-${original.hashCode ^ ++_idCounter}';
 
   // Cache the parsed URI to avoid repeated Uri.parse work on hot paths.
-  late final Uri _uri = original.requestedUri;
+  late final Uri _uri = original.uri;
 
   @override
   String get path => _uri.path;
+
+  @override
+  Uri get requestedUri => original.requestedUri;
 
   @override
   Uri get uri => _uri;

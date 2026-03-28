@@ -75,8 +75,8 @@ class SerinusContainer {
       await modulesContainer.registerModules(entrypoint);
       modulesContainer.addEntrypointToInternalCoreModule(internalCoreModule);
     }
-    routesResolver?.resolve();
     await modulesContainer.finalize(entrypoint);
+    routesResolver?.resolve();
     inspector.inspectModules(modulesContainer.scopes);
     await emitHook<OnApplicationBootstrap>();
   }

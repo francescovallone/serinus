@@ -75,7 +75,11 @@ class GrpcClient extends TransportClient<GrpcClientOptions> {
   }
 
   @override
-  Future<ResponsePacket?> send({required String pattern, required String id, Uint8List? payload}) {
+  Future<ResponsePacket?> send({
+    required String pattern,
+    required String id,
+    Uint8List? payload,
+  }) {
     throw UnimplementedError('send is not implemented for GrpcClient.');
   }
 }

@@ -82,11 +82,13 @@ class ModelsConfig {
   final List<String> extensions;
   final List<DeserializeKeyword> deserializeKeywords;
   final List<SerializeKeyword> serializeKeywords;
+  final List<String> extraPaths;
 
   const ModelsConfig({
     required this.extensions,
     required this.deserializeKeywords,
     required this.serializeKeywords,
+    this.extraPaths = const [],
   });
 
   factory ModelsConfig.fromYaml(Map<dynamic, dynamic> yaml) {
@@ -101,6 +103,8 @@ class ModelsConfig {
           ((yaml['serialize_keywords'] as YamlList?)?.value ?? [])
               .map((e) => SerializeKeyword.fromYaml((e as YamlMap).value))
               .toList(),
+      extraPaths:
+          List<String>.from((yaml['extra_paths'] as YamlList?)?.value ?? []),
     );
   }
 }

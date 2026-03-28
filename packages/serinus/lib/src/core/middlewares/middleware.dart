@@ -94,7 +94,7 @@ class _ShelfMiddleware extends Middleware {
     }
     return shelf.Request(
       argsHost.request.method.toString(),
-      argsHost.request.uri,
+      argsHost.request.requestedUri,
       body: argsHost.request.body.toString(),
       headers: Map<String, Object>.from(argsHost.request.headers.values),
       context: {'shelf.io.connection_info': argsHost.request.clientInfo!},

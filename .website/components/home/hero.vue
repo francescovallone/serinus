@@ -49,12 +49,14 @@ import CliSequence from './cli_sequence.vue';
                         :inViewOptions="{ once: true }"
                     >
                         <div class="text-5xl md:text-7xl lg:text-8xl font-display font-bold leading-[0.9] tracking-tight mb-4">
+                            <span class="text-foreground">The </span>
                             <span class="text-primary">Backend</span>
                             <br />
-                            <span class="text-foreground">for Dart.</span>
+                            <span class="text-[#4FD1C5]">Flutter</span>
+                            <span class="text-foreground"> deserves.</span>
                         </div>
                         <div class="text-2xl md:text-3xl font-serif italic text-muted-foreground mt-6">
-                            Opinionated to just the right degree.
+                            Beautiful UIs demand brilliant APIs.
                         </div>
                     </motion.div>
                     <motion.div 
@@ -64,8 +66,7 @@ import CliSequence from './cli_sequence.vue';
                         :transition="{ duration: 0.5, delay: 0.3 }"
                         :inViewOptions="{ once: true }"
                     >
-                        The opinionated Dart backend framework designed to work seamlessly with Flutter and Dart applications.
-                        Skip the learning curve & build server-side apps with the language you already know.
+                       Stop settling for messy backend scripts. Serinus brings enterprise-grade modularity and Dependency Injection to Dart. Clean code, from UI to database.
                     </motion.div>
                     <motion.div 
                         class="flex md:flex-row flex-col flex-wrap gap-4 mb-12"

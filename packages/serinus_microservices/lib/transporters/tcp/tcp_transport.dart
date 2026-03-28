@@ -10,7 +10,9 @@ class TcpOptions extends TransportOptions {
   final TcpSocket socket;
 
   /// Creates TCP transport options.
-  TcpOptions({required int port, TcpSocket? socket}) : socket = socket ?? JsonSocket(), super(port);
+  TcpOptions({required int port, TcpSocket? socket})
+    : socket = socket ?? JsonSocket(),
+      super(port);
 }
 
 /// TCP event class.
@@ -100,7 +102,11 @@ class TcpTransport extends TransportAdapter<TcpSocket, TcpOptions> {
       );
     }
     final res = await routes(context);
-    return ResponsePacket(pattern: context.message.pattern, id: context.message.id, payload: res.payload);
+    return ResponsePacket(
+      pattern: context.message.pattern,
+      id: context.message.id,
+      payload: res.payload,
+    );
   }
 
   @override
@@ -114,7 +120,8 @@ abstract class TcpSocket {
   /// The underlying server socket.
   ServerSocket? server;
 
-  StreamController<TcpEvents> get _controller => StreamController<TcpEvents>.broadcast();
+  StreamController<TcpEvents> get _controller =>
+      StreamController<TcpEvents>.broadcast();
 
   /// Stream of TCP events.
   Stream<TcpEvents> get status => _controller.stream;
@@ -129,7 +136,9 @@ abstract class TcpSocket {
   }
 
   /// Listens for incoming connections and data.
-  Future<void> listen(Future<ResponsePacket?> Function(MessagePacket data) onData);
+  Future<void> listen(
+    Future<ResponsePacket?> Function(MessagePacket data) onData,
+  );
 
   /// Closes all active connections.
   Future<void> close() async {
@@ -145,7 +154,9 @@ abstract class TcpSocket {
 /// A TCP socket implementation that encodes and decodes messages as JSON.
 class JsonSocket extends TcpSocket {
   @override
-  Future<void> listen(Future<ResponsePacket?> Function(MessagePacket data) onData) async {
+  Future<void> listen(
+    Future<ResponsePacket?> Function(MessagePacket data) onData,
+  ) async {
     await for (final socket in server!) {
       final clientId = '${socket.remoteAddress.address}:${socket.remotePort}';
       _connections[clientId] = socket;
@@ -171,7 +182,9 @@ class JsonSocket extends TcpSocket {
                 ),
               );
             }
-            final packet = MessagePacket.fromJson(json.decode(message) as Map<String, dynamic>);
+            final packet = MessagePacket.fromJson(
+              json.decode(message) as Map<String, dynamic>,
+            );
             final response = await onData(packet);
             if (response != null) {
               socket.write(json.encode(response.toJson()));

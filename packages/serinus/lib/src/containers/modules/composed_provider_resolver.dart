@@ -467,7 +467,7 @@ class ComposedProviderResolver {
             sourceModuleName: providerScope?.token ?? token,
           ),
           name: InjectionToken.fromType(e),
-          host: token,
+          host: providerScope?.token ?? token,
         );
       }).toList(),
       metadata: ClassMetadataNode(

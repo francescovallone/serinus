@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import '../extensions/string_extensions.dart';
 import '../mixins/mixins.dart';
@@ -40,7 +39,7 @@ class SerinusException with JsonObject implements HttpException {
   @override
   Map<String, dynamic> toJson() {
     return {
-      'message': Uint8List.fromList(message.codeUnits).tryParse() ?? message,
+      'message': message.codeUnits.tryParse() ?? message,
       'statusCode': statusCode,
       'uri': uri != null ? uri!.path : 'No Uri',
     };

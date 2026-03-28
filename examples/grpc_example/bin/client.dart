@@ -22,6 +22,17 @@ Future<void> main() async {
       ]),
     );
    print('Greeting: ${response.message}');
+   final bidiResponse = stub.bidiHello(
+     Stream.fromIterable([
+       HelloRequest()..name = 'Alice',
+       HelloRequest()..name = 'Bob',
+     ]),
+   );
+   await for (final reply in bidiResponse) {
+     print('Bidi Greeting: ${reply.message}');
+    }
+    final unaryResponse = await stub.sayHello(HelloRequest()..name = 'Charlie');
+    print('Unary Greeting: ${unaryResponse.message}');
   } catch (e) {
     print('Caught error: $e');
   }

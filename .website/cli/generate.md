@@ -33,6 +33,8 @@ serinus:
         static_method: true
     serialize_keywords:
       - keyword: "toBody"
+    extra_paths:
+      - "../other_models"
 ```
 
 In this configuration, you can specify the following options:
@@ -42,5 +44,10 @@ In this configuration, you can specify the following options:
 | `extensions` | A list of file extensions to be considered when generating models. |
 | `deserialize_keywords` | A list of keywords to be used when deserializing JSON objects to Dart objects. |
 | `serialize_keywords` | A list of keywords to be used when serializing Dart objects to JSON objects. |
+| `extra_paths` | A list of paths to additional directories containing model files. |
 
 The `deserialize_keywords` and `serialize_keywords` options are used to specify the keywords that will be used to identify the methods that will be used for deserialization and serialization respectively. The `keyword` field is used to specify the keyword that will be used to identify the method, while the `static_method` field is used to specify whether the method is a static method or not.
+
+::: info
+`extra_paths` entries may be relative to project root or absolute paths. If a path does not exist, it will be skipped with a warning.
+:::

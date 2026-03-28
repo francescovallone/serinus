@@ -1,55 +1,34 @@
 import 'package:grpc/grpc.dart';
 import 'package:serinus/serinus.dart';
 import 'grpc_controller.dart';
+import 'grpc_transport.dart';
 
-/// The [GrpcPayload] class is the gRPC payload.
-sealed class GrpcPayload<T, R> {
+/// Wraps all gRPC invocation data needed by [GrpcMessageResolver.handleMessage]
+/// to set up the Serinus context and invoke the service method.
+class GrpcInvocationPayload<Q, R> {
   /// The gRPC service call.
   final ServiceCall call;
 
-  /// The future request.
-  final T futureRequest;
+  /// The original requests stream from the gRPC server.
+  final Stream<Q> requests;
 
-  /// Creates a gRPC payload.
-  GrpcPayload(this.call, this.futureRequest);
+  /// The service method descriptor.
+  final ServiceMethod<Q, R> method;
 
-  /// Gets the request.
-  T getRequest();
-}
+  /// The invoker that calls the actual service method.
+  final ServerStreamingInvoker<Q, R> invoker;
 
-/// The [GrpcPayloadUnitary] class is the gRPC unary payload.
-class GrpcPayloadUnitary<O> extends GrpcPayload<Future<O>, O> {
-  /// Creates a gRPC unary payload.
-  GrpcPayloadUnitary(ServiceCall call, Future<O> futureRequest) : super(call, futureRequest);
-
-  O? _request;
-
-  @override
-  Future<O> getRequest() async {
-    if (_request != null) {
-      return _request!;
-    }
-    _request = await futureRequest;
-    return _request!;
-  }
-}
-
-/// The [GrpcPayloadStream] class is the gRPC stream payload.
-class GrpcPayloadStream<O> extends GrpcPayload<Stream<O>, O> {
-  /// Creates a gRPC stream payload.
-  GrpcPayloadStream(ServiceCall call, Stream<O> futureRequest) : super(call, futureRequest);
-
-  @override
-  Stream<O> getRequest() async* {
-    yield* futureRequest;
-  }
+  /// Creates a gRPC invocation payload.
+  GrpcInvocationPayload({
+    required this.call,
+    required this.requests,
+    required this.method,
+    required this.invoker,
+  });
 }
 
 /// The [GrpcRouteContext] class is the gRPC route context.
-sealed class GrpcRouteContext<T> {
-  /// The [handler] property contains the handler function.
-  final T handler;
-
+class GrpcServiceContext<T> {
   /// The [providers] property contains the providers available in the context.
   final Map<Type, Provider> providers;
 
@@ -68,143 +47,105 @@ sealed class GrpcRouteContext<T> {
   /// Indicates whether the handler is streaming.
   final bool streaming;
 
-  const GrpcRouteContext({
-    required this.handler,
+  /// Add metadata to the route context for use in hooks and filters.
+  final List<Metadata> metadata;
+
+  /// Creates a gRPC route context.
+  const GrpcServiceContext({
     required this.providers,
     required this.hooks,
     required this.exceptionFilters,
     required this.pipes,
     required this.values,
+    required this.metadata,
     this.streaming = false,
   });
-}
 
-/// The [GrpcRouteContextHandler] class is the gRPC route context for unary handlers.
-class GrpcRouteContextHandler extends GrpcRouteContext<GrpcUnaryHandler> {
-  /// Creates a gRPC route context handler.
-  const GrpcRouteContextHandler({
-    required super.handler,
-    required super.providers,
-    required super.hooks,
-    required super.exceptionFilters,
-    required super.pipes,
-    required super.values,
-  }) : super(streaming: false);
-}
-
-/// The [GrpcRouteContextStreamHandler] class is the gRPC route context for streaming handlers.
-class GrpcRouteContextStreamHandler extends GrpcRouteContext<GrpcStreamHandler> {
-  /// Creates a gRPC route context stream handler.
-  const GrpcRouteContextStreamHandler({
-    required super.handler,
-    required super.providers,
-    required super.hooks,
-    required super.exceptionFilters,
-    required super.pipes,
-    required super.values,
-  }) : super(streaming: true);
+  /// Initializes the metadata for the route context, resolving any contextualized metadata using the provided execution context.
+  Future<Map<String, Metadata<dynamic>>> initMetadata(
+    ExecutionContext<RpcArgumentsHost> executionContext,
+  ) async {
+    final Map<String, Metadata<dynamic>> resolvedMetadata = {};
+    for (final meta in metadata) {
+      if (meta is ContextualizedMetadata) {
+        resolvedMetadata[meta.name] = await meta.resolve(executionContext);
+      } else {
+        resolvedMetadata[meta.name] = meta;
+      }
+    }
+    return resolvedMetadata;
+  }
 }
 
 /// The [GrpcMessageResolver] class is the gRPC implementation of the [MessagesResolver] class.
 class GrpcMessageResolver extends MessagesResolver {
   /// The [resolvedMessageRoutes] property contains the resolved message routes of the application.
-  final Map<String, GrpcRouteContext> resolvedMessageRoutes = {};
-
-  /// The [services] property contains the list of gRPC services registered in the server.
-  final List<Service> services;
+  final Map<String, GrpcServiceContext> resolvedMessageRoutes = {};
 
   /// The [resolvedAlready] property is used to check if the routes have been resolved already.
   bool resolvedAlready = false;
 
+  /// Callback used to create a server correctly with all the services extracted from the module scopes at runtime.
+  void Function(List<Service> service) onServicesExtracted;
+
   /// The [GrpcMessageResolver] constructor is used to create a new instance of the [MessagesResolver] class.
-  GrpcMessageResolver(super.config, this.services);
+  GrpcMessageResolver(super.config, this.onServicesExtracted);
 
   @override
   void resolve() {
     if (resolvedAlready) {
       return;
     }
+    final extractedServices = <Service>[];
     for (final module in config.modulesContainer.scopes) {
-      for (final controllerEntry in module.controllers.whereType<GrpcController>()) {
-        for (final entry in controllerEntry.grpcRoutes.entries) {
-          if (resolvedMessageRoutes.containsKey(entry.value.route.path)) {
-            throw StateError(
-              'A message route with pattern "${entry.value.route.path}" is already registered in the application.',
-            );
-          }
-          final service = entry.value.route.path.split('.').first;
-          final serviceNames = services.map((e) => e.runtimeType.toString());
-          if (!serviceNames.contains(service)) {
-            throw StateError(
-              'Service "$service" for gRPC route "${entry.value.route.path}" is not registered in the gRPC server.',
-            );
-          }
-          switch (entry.value) {
-            case GrpcRouteHandlerSpec():
-              resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextHandler(
-                handler: entry.value.handler,
-                providers: {
-                  for (final providerEntry in module.unifiedProviders) providerEntry.runtimeType: providerEntry,
-                },
-                hooks: entry.value.route.hooks.merge([
-                  controllerEntry.hooks,
-                  config.globalHooks,
-                ]),
-                pipes: {
-                  ...entry.value.route.pipes,
-                  ...controllerEntry.pipes,
-                  ...config.globalPipes,
-                },
-                exceptionFilters: {
-                  ...entry.value.route.exceptionFilters,
-                  ...controllerEntry.exceptionFilters,
-                  ...config.globalExceptionFilters,
-                },
-                values: module.unifiedValues,
-              );
-              break;
-            case GrpcStreamRouteHandlerSpec():
-              resolvedMessageRoutes[entry.value.route.path] = GrpcRouteContextStreamHandler(
-                handler: entry.value.handler,
-                providers: {
-                  for (final providerEntry in module.unifiedProviders) providerEntry.runtimeType: providerEntry,
-                },
-                hooks: entry.value.route.hooks.merge([
-                  controllerEntry.hooks,
-                  config.globalHooks,
-                ]),
-                pipes: {
-                  ...entry.value.route.pipes,
-                  ...controllerEntry.pipes,
-                  ...config.globalPipes,
-                },
-                exceptionFilters: {
-                  ...entry.value.route.exceptionFilters,
-                  ...controllerEntry.exceptionFilters,
-                  ...config.globalExceptionFilters,
-                },
-                values: module.unifiedValues,
-              );
-              break;
-            default:
-              throw StateError(
-                'Unknown gRPC route handler type for route "${entry.value.route.path}".',
-              );
-          }
-        }
+      for (final controllerEntry
+          in module.controllers.whereType<GrpcServiceController>()) {
+        final serviceName = controllerEntry.service.$name;
+        extractedServices.add(controllerEntry.service);
+        resolvedMessageRoutes[serviceName] = GrpcServiceContext(
+          metadata: controllerEntry.metadata,
+          providers: {
+            for (final providerEntry in module.unifiedProviders)
+              providerEntry.runtimeType: providerEntry,
+          },
+          hooks: controllerEntry.hooks.merge([
+            config.globalHooks,
+          ]),
+          pipes: {
+            ...controllerEntry.pipes,
+            ...config.globalPipes,
+          },
+          exceptionFilters: {
+            ...controllerEntry.exceptionFilters,
+            ...config.globalExceptionFilters,
+          },
+          values: module.unifiedValues,
+        );
       }
     }
+    onServicesExtracted(extractedServices);
+    resolvedAlready = true;
   }
 
   @override
   Future<ResponsePacket?> handleMessage(
     MessagePacket packet,
+    TransportAdapter<dynamic, TransportOptions> adapter,
+  ) {
+    throw UnimplementedError(
+      'GrpcMessageResolver does not support handleMessage. Use handleRpcCall instead.',
+    );
+  }
+
+  /// Handles an incoming gRPC call by setting up the Serinus context and invoking the appropriate service method.
+  Future<ResponsePacket?> handleRpcCall<O, R>(
+    MessagePacket packet,
     TransportAdapter adapter,
   ) async {
-    final routeContext = resolvedMessageRoutes[packet.pattern];
+    final routeContext = resolvedMessageRoutes[packet.id];
     if (routeContext == null) {
       throw GrpcError.notFound(
-        'No message route found for pattern "${packet.pattern}"',
+        'No message route found for service "${packet.id}"',
       );
     }
     try {
@@ -212,39 +153,51 @@ class GrpcMessageResolver extends MessagesResolver {
         HostType.rpc,
         routeContext.providers,
         routeContext.values,
-        {
-          for (final hook in routeContext.hooks.reqHooks) hook.runtimeType: hook,
-        },
+        routeContext.hooks.services,
         RpcArgumentsHost(packet),
       );
+      for (final hook in routeContext.hooks.reqHooks) {
+        await hook.onRequest(executionContext);
+      }
+      if (routeContext.metadata.isNotEmpty) {
+        executionContext.metadata.addAll(
+          await routeContext.initMetadata(executionContext),
+        );
+      }
       for (final pipe in routeContext.pipes) {
         await pipe.transform(executionContext);
       }
-      final grpcPayload = packet.payload as GrpcPayload;
-      final call = grpcPayload.call;
-      final request = await grpcPayload.getRequest();
-      final result = await routeContext.handler(
-        call,
-        request,
-        executionContext.switchToRpc(),
-      );
-      if (packet.id != null) {
-        return ResponsePacket(
-          pattern: packet.pattern,
-          id: packet.id,
-          payload: result,
-        );
+      for (final beforeHook in routeContext.hooks.beforeHooks) {
+        await beforeHook.beforeHandle(executionContext);
       }
+
+      final payload = packet.payload as GrpcInvocationPayload<O, R>;
+      final rpcContext = executionContext.switchToRpc();
+      grpcContexts[payload.call] = rpcContext;
+
+      // Invoke the service method via the gRPC invoker.
+      // The invoker calls the actual service method, which can access
+      // providers and other context via `call.context`.
+      final resultStream = payload.invoker(
+        payload.call,
+        payload.method,
+        payload.requests,
+      );
+
+      return ResponsePacket(
+        pattern: packet.pattern,
+        id: packet.id,
+        payload: resultStream,
+      );
     } on RpcException catch (e) {
       for (final filter in routeContext.exceptionFilters) {
-        if (filter.catchTargets.contains(e.runtimeType) || filter.catchTargets.isEmpty) {
+        if (filter.catchTargets.contains(e.runtimeType) ||
+            filter.catchTargets.isEmpty) {
           final executionContext = ExecutionContext(
             HostType.rpc,
             routeContext.providers,
             routeContext.values,
-            {
-              for (final hook in routeContext.hooks.reqHooks) hook.runtimeType: hook,
-            },
+            routeContext.hooks.services,
             RpcArgumentsHost(packet),
           );
           await filter.onException(executionContext, e);
@@ -267,5 +220,20 @@ class GrpcMessageResolver extends MessagesResolver {
     TransportAdapter<dynamic, TransportOptions> adapter,
   ) {
     throw UnimplementedError();
+  }
+}
+
+/// The [GrpcUnaryHandler] typedef is the gRPC unary handler function.
+extension ServiceCallContext on ServiceCall {
+  /// Retrieves the Serinus RpcContext associated with this gRPC call.
+  RpcContext get context {
+    final ctx = grpcContexts[this];
+    if (ctx == null) {
+      throw StateError(
+        'RpcContext is not available. Ensure SerinusGrpcInterceptor is registered '
+        'and you are passing the correct ServiceCall object.',
+      );
+    }
+    return ctx;
   }
 }

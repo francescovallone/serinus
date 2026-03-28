@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0
+
+- Stablilized API and released the first stable version of the microservices package.
+
 ## 0.1.1
 
 - chore: update dependencies.

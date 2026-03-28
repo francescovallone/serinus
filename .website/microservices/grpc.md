@@ -80,15 +80,9 @@ class GreeterService extends GreeterServiceBase {
 }
 ```
 
-::: info
-Right now the methods implementation won't affect the result of the gRPC calls done through Serinus, since the actual handling of the calls will be done by the controllers. However, it's a good practice to implement the methods in case you want to use the service outside of Serinus.
-
-Also we are working on a feature that will also call the service methods from the controllers, so stay tuned for that!
-:::
-
 ### Configure the gRPC transport
 
-To instantiate a gRPC microservice application, you can use the `GrpcTransport` transport layer from the `serinus_microservices` package. You will need to provide the list of gRPC services to the `GrpcOptions`.
+To instantiate a gRPC microservice application, you can use the `GrpcTransport` transport layer from the `serinus_microservices` package.
 
 ```dart
 final microservice = await serinus.createMicroservice(
@@ -97,15 +91,28 @@ final microservice = await serinus.createMicroservice(
     GrpcOptions(
       port: 50051,
       host: InternetAddress.loopbackIPv4,
-      services: [
-        GreeterService(),
-      ],
     ),
   ),
 );
 ```
 
-As you can see we are passing the concrete implementation of the `GreeterService` to the `services` option of the `GrpcOptions` instead of the generated `GreeterServiceBase` abstract class.
+We also need to register the `GreeterService` in the `AppModule` so that it can be injected into the gRPC controller:
+
+```dart
+class GreeterController extends GrpcServiceController {
+  GreeterController(): super(service: GreeterService());
+}
+
+class AppModule extends Module {
+  
+  AppModule(): super(
+    controllers: [GreeterController()],
+  );
+
+}
+```
+
+And that's it! From this moment on the gRPC service will take care of handling incoming gRPC requests and routing them to the appropriate controller methods based on the service and method names defined in the proto file. Also since you have tapped into the full power of the Serinus framework, you can use all the features of Serinus in your gRPC controllers, such as dependency injection, hooks, filters and more.
 
 ## Options
 
@@ -119,112 +126,3 @@ The `GrpcOptions` class allows you to configure various settings for the gRPC tr
 | codecRegistry | An optional codec registry for custom serialization and deserialization of messages. |
 | keepAliveOptions | Options for configuring keep-alive behavior for the gRPC server. |
 | security | An optional security configuration for the gRPC server, such as TLS settings. |
-
-## gRPC Controller
-
-Since Controllers in Serinus are transport-agnostic, to create a gRPC controller you need to augment your own controller with the `GrpcController` mixin from the `serinus_microservices` package.
-
-```dart
-import 'package:serinus_microservices/serinus_microservices.dart';
-
-class MyGrpcController extends Controller with GrpcController {
-  
-  MyGrpcController() : super('/my_grpc_controller') {
-    grpc<HelloRequest, HelloReply>(
-      GrpcRoute(GreeterService, 'SayHello'),
-      (call, request, context) async {
-        final reply = HelloReply()..message = context.use<GreeterProvider>().getGreeting(request.name);
-        return reply;
-      }
-    );
-  }
-
-}
-```
-
-As you can see to define a gRPC route you need to use the `grpc` method provided by the `GrpcController` mixin. This method takes a `GrpcRoute` object that specifies the service and method names, and a handler function that will be called when the route is invoked.
-
-The GrpcRoute constructor takes two parameters:
-
-- The gRPC service class (the concrete implementation, **not** the abstract class).
-- The name of the gRPC method as defined in the proto file.
-
-The reason behind the need to specify the concrete implementation of the service is that Serinus uses it as the key to identify the service and route the incoming requests to the correct controller.
-
-> [!IMPORTANT]
-> Make sure to use the concrete implementation of the gRPC service when defining the `GrpcRoute`, otherwise Serinus won't be able to route the requests correctly and you will get an error at runtime.
-
-In this example, we defined a unary gRPC method `SayHello` in the `GreeterService`. The handler function takes three parameters: the `ServiceCall` object, the request message, and the `GrpcRouteContext` object.
-
-## gRPC Streaming
-
-Serinus also supports gRPC streaming methods.
-
-### Define a streaming gRPC method
-
-Let's define a server streaming method in our `Greeter` service:
-
-```proto
-// The greeting service definition.
-service Greeter {
-  // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
-  rpc LotsOfHellos (stream HelloRequest) returns (stream HelloReply) {}
-}
-
-// The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
-}
-
-// The response message containing the greetings
-message HelloReply {
-  string message = 1;
-}
-```
-
-As before, you need to regenerate the gRPC code after modifying the proto file.
-
-```console
-protoc --dart_out=grpc:lib/generated -Iprotos protos/greeter.proto
-```
-
-### Implement the streaming method
-
-Now we need to define the method in the concrete implementation of the `GreeterService`:
-
-```dart
-class GreeterService extends GreeterServiceBase {
-  @override
-  Stream<HelloReply> lotsOfHellos(ServiceCall call, Stream<HelloRequest> requestStream) async* {
-    await for (final request in requestStream) {
-      final reply = HelloReply()..message = 'Hello, ${request.name}!';
-      yield reply;
-    }
-  }
-
-  @override
-  Future<HelloReply> sayHello(ServiceCall call, HelloRequest request) async {
-    final reply = HelloReply()..message = 'Hello, ${request.name}!';
-    return reply;
-  }
-}
-```
-
-### Define the streaming route
-
-And now we can define the streaming route in our gRPC controller using the `grpcStream` method provided by the `GrpcController` mixin.
-
-```dart
-grpcStream<HelloRequest, HelloReply>(
-  GrpcRoute(GreeterService, 'StreamHellos'),
-  (call, requestStream, context) async* {
-    await for (final request in requestStream) {
-      final reply = HelloReply()..message = context.use<GreeterProvider>().getGreeting(request.name);
-      yield reply;
-    }
-  }
-);
-```
-
-And that's it! You have successfully created a gRPC microservice with Serinus that supports both unary and streaming methods.
