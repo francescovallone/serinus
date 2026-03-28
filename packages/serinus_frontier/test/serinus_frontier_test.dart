@@ -79,22 +79,19 @@ class AppModule extends Module {
   AppModule()
     : super(
         controllers: [AppController()],
-        imports: [FrontierModule(defaultStrategy: 'Header')],
+        imports: [FrontierModule()],
         providers: [
-          Provider.forValue<FrontierStrategy>(frontierStrategy, name: 'Header'),
+          frontierStrategy,
         ],
       );
 }
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on(Route.get('/strategy'), (context) async {
-      return context.use<FrontierConfig>().defaultStrategy;
-    });
-    on(Route.get('/pass', guards: {AuthGuard('Header')}), (context) async {
+    on(Route.get('/pass', guards: {AuthGuard<HeaderFrontierStrategy>()}), (context) async {
       return 'pass';
     });
-    on(Route.get('/default-pass', guards: {AuthGuard()}), (context) async {
+    on(Route.get('/default-pass', guards: {AuthGuard<HeaderFrontierStrategy>()}), (context) async {
       final user = context.user<Map<String, String>>();
       return user['id'];
     });
@@ -109,15 +106,6 @@ void main() {
         logLevels: {LogLevel.none},
       );
       await app.serve();
-    });
-
-    test('FrontierModule exports default strategy config', () async {
-      final req = await HttpClient().getUrl(
-        Uri.parse('http://localhost:3000/strategy'),
-      );
-      final res = await req.close();
-      final result = await res.transform(utf8.decoder).first;
-      expect(result, 'Header');
     });
 
     test('[AuthGuard] should pass the request', () async {

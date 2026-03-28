@@ -119,10 +119,10 @@ abstract class Controller {
   final Map<String, RestRouteHandlerSpec> _routes = {};
 
   /// The list of pipes applied to the controller and its routes.
-  List<Pipe> get pipes => [];
+  List<Pipe> get pipes => const [];
 
   /// The list of guards applied to the controller and its routes.
-  List<Guard> get guards => [];
+  List<Guard> get guards => const [];
 
   /// The [routes] property contains the routes of the controller.
   Map<String, RestRouteHandlerSpec> get routes => UnmodifiableMapView(_routes);
@@ -136,10 +136,10 @@ abstract class Controller {
   final HooksContainer hooks = HooksContainer();
 
   /// The [exceptionFilters] property contains the exception filters of the controller.
-  Set<ExceptionFilter> get exceptionFilters => {};
+  Set<ExceptionFilter> get exceptionFilters => const {};
 
   /// The [metadata] property contains the metadata of the controller.
-  List<Metadata> get metadata => [];
+  List<Metadata> get metadata => const [];
 
   /// The [on] method is used to register a route.
   ///

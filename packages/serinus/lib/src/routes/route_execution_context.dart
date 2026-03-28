@@ -162,7 +162,7 @@ class RouteExecutionContext {
       }
       if (context.guards.isNotEmpty) {
         for (int i = 0; i < context.guards.length; i++) {
-          final guardResult = await context.guards.elementAt(i).canActivate(executionContext);
+          final guardResult = await context.guards[i].canActivate(executionContext);
           if (!guardResult) {
             throw UnauthorizedException();
           }

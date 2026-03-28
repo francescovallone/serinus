@@ -15,6 +15,13 @@ class PolicyGuard<T> extends Guard {
   Future<bool> canActivate(ExecutionContext context) async {
     if (context.hostType != HostType.http) return true;
     final requestContext = context.switchToHttp();
+    final rawUser = requestContext['user'];
+    if (rawUser == null) {
+      throw StateError(
+        'PolicyGuard requires AuthGuard to run first. '
+        'Ensure AuthGuard is registered before PolicyGuard in the guards list.',
+      );
+    }
     final user = requestContext.user<T>();
     return await policy.handle(requestContext, user);
   }

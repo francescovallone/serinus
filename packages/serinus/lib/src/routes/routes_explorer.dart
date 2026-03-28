@@ -103,15 +103,15 @@ final class RoutesExplorer {
           ...spec.route.pipes,
         ],
         exceptionFilters: {
-          ..._container.config.globalExceptionFilters,
-          ...controller.exceptionFilters,
           ...spec.route.exceptionFilters,
+          ...controller.exceptionFilters,
+          ..._container.config.globalExceptionFilters,
         },
-        guards: {
+        guards: [
           ..._container.config.globalGuards,
           ...controller.guards,
           ...spec.route.guards,
-        },
+        ],
       );
       _router.registerRoute(context: context);
       logger.info('Mapped {$routePath, $routeMethod} route');

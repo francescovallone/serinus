@@ -2,9 +2,6 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus_frontier/serinus_frontier.dart';
 
 abstract class FrontierStrategy<T, P> extends Provider {
-  /// The name of the strategy, used for identification.
-  String get name;
-
   /// The actual strategy implementation that will be used for authentication.
   Strategy get strategy;
 

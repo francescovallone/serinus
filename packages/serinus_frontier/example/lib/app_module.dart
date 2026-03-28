@@ -76,14 +76,11 @@ class AppModule extends Module {
   AppModule()
       : super(
           imports: [
-            FrontierModule(defaultStrategy: 'Header'),
+            FrontierModule(),
           ],
           controllers: [AppController()],
           providers: [
-            Provider.forValue<FrontierStrategy>(
-              headerFrontierStrategy,
-              name: 'Header',
-            ),
+            headerFrontierStrategy
           ],
         );
 }

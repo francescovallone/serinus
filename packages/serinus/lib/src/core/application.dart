@@ -391,6 +391,7 @@ class SerinusApplication extends Application {
         logger.verbose(
           'Global Guard ${processable.runtimeType} added to application',
         );
+        break;
       case Middleware():
       default:
         throw ArgumentError(

@@ -2,12 +2,10 @@ import 'package:serinus/serinus.dart';
 import 'package:serinus_frontier/serinus_frontier.dart';
 
 /// The [AuthGuard] class authenticates requests using Frontier strategies.
-class AuthGuard extends Guard {
-  /// The strategy name to authenticate with.
-  final String? strategyName;
+class AuthGuard<T extends FrontierStrategy> extends Guard {
 
   /// Create a new instance of [AuthGuard].
-  AuthGuard([this.strategyName]);
+  AuthGuard();
 
   @override
   Future<bool> canActivate(ExecutionContext context) async {
@@ -16,33 +14,23 @@ class AuthGuard extends Guard {
     }
 
     final requestContext = context.switchToHttp();
-    String? targetStrategy = strategyName;
-    if (targetStrategy == null) {
-      if (requestContext.canUse<FrontierConfig>()) {
-        final config = requestContext.use<FrontierConfig>();
-        targetStrategy = config.defaultStrategy;
-      } else {
-        throw StateError(
-          'AuthGuard was used without a strategy name, but no default was found. '
-          'Either pass a strategy name like AuthGuard("jwt"), or import '
-          'FrontierModule(defaultStrategy: "jwt") in your module.',
-        );
-      }
-    }
-    if (!requestContext.canUse<FrontierStrategy>(targetStrategy)) {
+    if (!requestContext.canUse<T>()) {
       throw StateError(
-        'Strategy "$targetStrategy" is not registered as a Provider.',
+        'Strategy "$T" is not registered as a Provider.',
       );
     }
 
-    final frontierStrategy = requestContext.use<FrontierStrategy>(
-      targetStrategy,
-    );
+    final frontierStrategy = requestContext.use<T>();
     final service = Frontier()..use(frontierStrategy.strategy);
-    final frontierResult = await service.authenticate(
-      frontierStrategy.strategy.name,
-      _buildStrategyRequest(requestContext),
-    );
+    final Object? frontierResult;
+    try {
+      frontierResult = await service.authenticate(
+        frontierStrategy.strategy.name,
+        _buildStrategyRequest(requestContext),
+      );
+    } catch (e) {
+      return false;
+    }
     if (frontierResult == null || frontierResult is Exception) {
       return false;
     }

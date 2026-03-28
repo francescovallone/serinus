@@ -1,4 +1,5 @@
 import 'package:serinus/serinus.dart';
+import 'package:serinus_frontier/serinus_frontier.dart';
 
 class AppController extends Controller {
   AppController() : super('/') {

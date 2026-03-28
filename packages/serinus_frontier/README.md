@@ -21,12 +21,7 @@ class AppModule extends Module {
     AppModule()
             : super(
                     imports: [
-                        FrontierModule([
-                            MyStrategy(
-                                MyStrategyOptions(),
-                                (options, value, done) => done(value),
-                            )
-                        ])
+                        Provider.value<FrontierStrategy>()
                     ],
                 );
 
@@ -39,6 +34,5 @@ class AppController extends Controller {
             (context) async => 'authenticated',
         );
     }
-}
 }
 ```
