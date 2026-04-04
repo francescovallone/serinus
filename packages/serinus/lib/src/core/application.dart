@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:meta/meta.dart';
 
@@ -11,6 +13,7 @@ import '../global_prefix.dart';
 import '../microservices/microservices.dart';
 import '../mixins/mixins.dart';
 import '../routes/routes_resolver.dart';
+import '../services/cluster_service.dart';
 import '../services/logger_service.dart';
 import '../versioning.dart';
 import 'core.dart';
@@ -401,4 +404,384 @@ class SerinusApplication extends Application {
   //     'Tracer ${tracer.name}(${tracer.runtimeType}) added to application',
   //   );
   // }
+}
+
+/// Manages the lifecycle of a Serinus Cluster.
+class ClusterApplication extends Application {
+  Map<String, Isolate> _workers = {};
+  Map<String, SendPort> _workerPorts = {};
+  ReceivePort? _orchestratorPort;
+  final Map<String, ReceivePort> _workerErrorsPort = {};
+  final Map<String, ReceivePort> _workerExitPort = {};
+  /// Configuration for worker isolates, passed during their initialization to ensure consistent setup across the cluster.
+  final WorkerConfig workerConfig;
+  /// The number of worker isolates to spawn in the cluster, typically set to the number of CPU cores for optimal performance.
+  final int workersCount;
+  final Completer<void> _shuttedDown = Completer();
+  final Map<String, Completer<void>> _workerRegistrations = {};
+  final Map<String, int> _workerRestartAttempts = {};
+  final Set<String> _restartingWorkers = {};
+  bool _serveIssued = false;
+  bool _registered = false;
+  bool _isClosing = false;
+  static const int _maxRestartAttempts = 5;
+  static const Duration _baseRestartDelay = Duration(milliseconds: 250);
+  /// Logger for the ClusterApplication, used to log cluster lifecycle events and errors.
+  final orchestratorLogger = Logger('Orchestrator');
+
+  /// The [ClusterApplication] constructor is used to create a new instance of the [ClusterApplication] class.
+  ClusterApplication({
+    required super.entrypoint, 
+    required super.config, 
+    required this.workersCount,
+    required this.workerConfig,
+    super.levels,
+    super.logger,
+  });
+
+  /// Gracefully shuts down all workers and closes the cluster.
+  @override
+  Future<void> close() async {
+    _isClosing = true;
+    logger.info('Initiating graceful shutdown of cluster...');
+
+    // 1. Send shutdown signal to all workers so they can close resources
+    for (final port in _workerPorts.values) {
+      port.send('SHUTDOWN');
+    }
+
+    // 2. Wait a brief moment for the HTTP adapters to finish closing
+    await Future.delayed(const Duration(seconds: 2));
+
+    // 3. Force kill isolates to clean up memory
+    for (final isolate in _workers.values) {
+      isolate.kill(priority: Isolate.immediate);
+    }
+    for (final errorPort in _workerErrorsPort.values) {
+      errorPort.close();
+    }
+    for (final exitPort in _workerExitPort.values) {
+      exitPort.close();
+    }
+    _workerErrorsPort.clear();
+    _workerExitPort.clear();
+    _orchestratorPort?.close();
+    if (!_shuttedDown.isCompleted) {
+      _shuttedDown.complete();
+    }
+    logger.info('Cluster shutdown complete.');
+  }
+
+  Duration _restartDelay(int attempt) {
+    // Exponential backoff capped to avoid very long pauses.
+    final multiplier = 1 << (attempt - 1).clamp(0, 5);
+    final delay = _baseRestartDelay * multiplier;
+    return delay > const Duration(seconds: 8)
+        ? const Duration(seconds: 8)
+        : delay;
+  }
+
+  Future<void> _spawnWorker(String workerId) async {
+    _workerErrorsPort[workerId]?.close();
+    _workerExitPort[workerId]?.close();
+
+    final errorPort = ReceivePort();
+    final exitPort = ReceivePort();
+    _workerErrorsPort[workerId] = errorPort;
+    _workerExitPort[workerId] = exitPort;
+
+    errorPort.listen((dynamic error) {
+      orchestratorLogger.severe(
+        'Worker isolate error ($workerId)',
+        OptionalParameters(error: error),
+      );
+      unawaited(_handleWorkerFailure(workerId));
+    });
+
+    exitPort.listen((_) {
+      orchestratorLogger.warning('Worker isolate exited ($workerId).');
+      unawaited(_handleWorkerFailure(workerId));
+    });
+
+    final isolate = await Isolate.spawn(
+      _workerEntry,
+      _ClusterConfig(
+        _bootstrapClusterApp(
+          entrypoint: entrypoint,
+          workerConfig: workerConfig,
+        ),
+        _orchestratorPort!.sendPort,
+        workerId,
+      ),
+      onError: errorPort.sendPort,
+      onExit: exitPort.sendPort,
+    );
+    _workers[workerId] = isolate;
+  }
+
+  Future<void> _handleWorkerFailure(String workerId) async {
+    if (_isClosing || !_registered || _shuttedDown.isCompleted) {
+      return;
+    }
+    if (_restartingWorkers.contains(workerId)) {
+      return;
+    }
+
+    _restartingWorkers.add(workerId);
+    try {
+      _workerPorts.remove(workerId);
+      _workers.remove(workerId);
+
+      final nextAttempt = (_workerRestartAttempts[workerId] ?? 0) + 1;
+      _workerRestartAttempts[workerId] = nextAttempt;
+
+      if (nextAttempt > _maxRestartAttempts) {
+        orchestratorLogger.severe(
+          'Worker $workerId exceeded restart attempts ($_maxRestartAttempts). Shutting down cluster.',
+        );
+        await close();
+        return;
+      }
+
+      final delay = _restartDelay(nextAttempt);
+      orchestratorLogger.warning(
+        'Restarting worker $workerId in ${delay.inMilliseconds}ms (attempt $nextAttempt/$_maxRestartAttempts).',
+      );
+      await Future.delayed(delay);
+
+      if (_isClosing || _shuttedDown.isCompleted) {
+        return;
+      }
+
+      _workerRegistrations[workerId] = Completer<void>();
+      await _spawnWorker(workerId);
+    } finally {
+      _restartingWorkers.remove(workerId);
+    }
+  }
+
+  Future<void> _waitForWorkerRegistrations({
+    Duration timeout = const Duration(seconds: 15),
+  }) async {
+    final pending = _workerRegistrations.values
+        .where((completer) => !completer.isCompleted)
+        .map((completer) => completer.future)
+        .toList();
+
+    if (pending.isEmpty) {
+      return;
+    }
+
+    await Future.wait(pending).timeout(timeout, onTimeout: () {
+      final missing = _workerRegistrations.entries
+          .where((entry) => !entry.value.isCompleted)
+          .map((entry) => entry.key)
+          .toList();
+      orchestratorLogger.warning(
+        'Timeout waiting for worker registration. Missing: ${missing.join(', ')}',
+      );
+      return [];
+    });
+  }
+  
+  static Future<SerinusApplication> Function() _bootstrapClusterApp({
+    required Module entrypoint,
+    required WorkerConfig workerConfig,
+  }) {
+    return () => serinus.createApplication(
+      entrypoint: entrypoint,
+      host: workerConfig.host,
+      port: workerConfig.port,
+      logLevels: workerConfig.logLevels,
+      logger: workerConfig.logger,
+      poweredByHeader: workerConfig.poweredByHeader,
+      securityContext: workerConfig.securityContext,
+      modelProvider: workerConfig.modelProvider,
+      enableCompression: workerConfig.enableCompression,
+      rawBody: workerConfig.rawBody,
+      notFoundHandler: workerConfig.notFoundHandler,
+      bodySizeLimit: workerConfig.bodySizeLimit,
+    );
+  }
+
+  static Future<void> _workerEntry(_ClusterConfig config) async {
+    // 1. Override the default ConsoleLogger before anything else!
+    Logger.overrideLogger(WorkerLogger(config.orchestratorPort, config.workerId));
+
+    // 2. Bootstrap application
+    final app = await config.bootstrap();
+    
+    // 3. Setup Cluster Service with the assigned Worker ID
+    final clusterService = ClusterService(config.orchestratorPort, config.workerId);
+    
+    // 4. Handle control signals from orchestrator.
+    clusterService.onControlMessage.listen((msg) async {
+      try {
+        if (msg == 'SHUTDOWN') {
+          await app.close();
+        }
+        if (msg == 'SERVE') {
+          await app.serve();
+        }
+      } catch (e, stackTrace) {
+        Logger('Worker').severe(
+          'Error handling control message "$msg"',
+          OptionalParameters(error: e, stackTrace: stackTrace),
+        );
+      }
+    });
+
+    // 5. Wire up Syncable providers
+    // ignore: invalid_use_of_visible_for_testing_member
+    final container = app.container.modulesContainer;
+    for (final scope in container.scopes) {
+      for (final provider in scope.providers) {
+        if (provider is Syncable) {
+          provider.initSync(clusterService);
+        }
+      }
+    }
+  }
+
+  @override
+  Future<void> register() async {
+    if (_registered) {
+      return;
+    }
+    _registered = true;
+
+    _orchestratorPort = ReceivePort();
+
+    for (var i = 1; i <= workersCount; i++) {
+      final workerId = 'Worker-$i';
+      _workerRegistrations[workerId] = Completer<void>();
+      _workerRestartAttempts[workerId] = 0;
+      await _spawnWorker(workerId);
+    }
+
+    // Process Orchestrator Messages in the background
+    _orchestratorPort?.listen((message) {
+      if (message is List) {
+        if (message[0] == 'REGISTER') {
+          final id = message[1] as String;
+          final port = message[2] as SendPort;
+          _workerPorts[id] = port;
+          _workerRestartAttempts[id] = 0;
+          _workerRegistrations[id]?.complete();
+          orchestratorLogger.info('Registered $id');
+
+          // If orchestrator already issued serve, start late-registered workers too.
+          if (_serveIssued) {
+            port.send('SERVE');
+          }
+        } else if (message[0] == 'LOG') {
+          // Reconstruct and pipe the worker's log through the Orchestrator's ConsoleLogger
+          final workerId = message[1] as String;
+          final levelName = message[2] as String;
+          final msg = message[3] as String?;
+          final ctx = message[4] as String?;
+          final err = message[5] as String?;
+          final st = message[6] as String?;
+
+          final level = LogLevel.values.firstWhere((e) => e.name == levelName, orElse: () => LogLevel.info);
+          
+          final params = OptionalParameters(
+            error: err,
+            stackTrace: st == null ? null : StackTrace.fromString(st),
+          );
+          params.context = '${ctx ?? 'App'} [$workerId]'; // e.g. [Application] [Worker-1]
+
+          final logger = Logger(ctx ?? 'Cluster');
+          switch (level) {
+            case LogLevel.info: logger.info(msg, params); break;
+            case LogLevel.severe: logger.severe(msg, params); break;
+            case LogLevel.warning: logger.warning(msg, params); break;
+            case LogLevel.debug: logger.debug(msg, params); break;
+            case LogLevel.verbose: logger.verbose(msg, params); break;
+            case LogLevel.shout: logger.shout(msg, params); break;
+            case LogLevel.none:
+              // No logging
+              break;
+          }
+        } else if (message[0] == 'SHUTDOWN') {
+          orchestratorLogger.info('Received shutdown signal. Terminating workers...');
+          for (final isolate in _workers.values) {
+            isolate.kill(priority: Isolate.immediate);
+          }
+          _orchestratorPort?.close();
+          if (!_shuttedDown.isCompleted) {
+            _shuttedDown.complete();
+          }
+        }
+      } else if (message is ClusterMessage) {
+        // Broadcast sync messages
+        for (final entry in _workerPorts.entries) {
+          if (entry.key != message.senderId) {
+            entry.value.send(message);
+          }
+        }
+      }
+    });
+  }
+  
+  @override
+  Future<void> serve() async {
+    await register();
+    await _waitForWorkerRegistrations();
+
+    // In a cluster setup, the workers will handle serving. The Orchestrator just manages them.
+    _serveIssued = true;
+    for (final port in _workerPorts.values) {
+      port.send('SERVE');
+    }
+    logger.info('Cluster is up with $workersCount workers. Orchestrator is now managing worker lifecycle.');
+    logger.info('Workers are listening on $url');
+    return _shuttedDown.future; // Keep the Orchestrator alive until shutdown
+  }
+  
+  @override
+  Future<void> shutdown() async {
+     logger.info('Shutting down cluster application');
+     await close();
+  }
+  
+  @override
+  String get url => '${workerConfig.host}:${workerConfig.port}';
+}
+
+/// A Logger implementation that serializes logs and sends them to the Orchestrator.
+class WorkerLogger implements LoggerService {
+  /// The [WorkerLogger] constructor is used to create a new instance of the [WorkerLogger] class.
+  final SendPort orchestratorPort;
+  /// Unique identifier for the worker isolate, used to tag log messages.
+  final String workerId;
+
+  /// Creates a WorkerLogger that sends log messages to the Orchestrator via the provided SendPort.
+  WorkerLogger(this.orchestratorPort, this.workerId);
+
+  void _log(LogLevel level, Object? message, OptionalParameters? params) {
+    orchestratorPort.send([
+      'LOG',
+      workerId,
+      level.name,
+      message?.toString(),
+      params?.context,
+      params?.error?.toString(),
+      params?.stackTrace?.toString(),
+    ]);
+  }
+
+  @override void info(Object? message, [OptionalParameters? p]) => _log(LogLevel.info, message, p);
+  @override void verbose(Object? message, [OptionalParameters? p]) => _log(LogLevel.verbose, message, p);
+  @override void shout(Object? message, [OptionalParameters? p]) => _log(LogLevel.shout, message, p);
+  @override void warning(Object? message, [OptionalParameters? p]) => _log(LogLevel.warning, message, p);
+  @override void debug(Object? message, [OptionalParameters? p]) => _log(LogLevel.debug, message, p);
+  @override void severe(Object? message, [OptionalParameters? p]) => _log(LogLevel.severe, message, p);
+}
+
+class _ClusterConfig {
+  final Future<SerinusApplication> Function() bootstrap;
+  final SendPort orchestratorPort;
+  final String workerId;
+  const _ClusterConfig(this.bootstrap, this.orchestratorPort, this.workerId);
 }
