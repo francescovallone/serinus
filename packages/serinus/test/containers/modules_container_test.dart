@@ -1,9 +1,10 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
+import 'package:serinus/src/contexts/route_context.dart';
 import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
-import 'package:serinus/src/routes/routes_explorer.dart';
+import 'package:serinus/src/routes/routes_resolver.dart';
 import 'package:test/test.dart';
 
 import '../mocks/controller_mock.dart';
@@ -56,14 +57,14 @@ void main() {
       await container.modulesContainer.registerModules(module);
 
       final router = Router(localConfig.versioningOptions);
-      final explorer = RoutesExplorer(container, router);
+      final explorer = RoutesResolver(container, router);
 
-      explorer.resolveRoutes();
+      explorer.resolve();
 
       final token = InjectionToken.fromModule(module);
       final result = router.lookup('/', HttpMethod.get);
       expect(result, isA<FoundRoute>());
-      final routeContext = (result as FoundRoute).values.first.context;
+      final routeContext = (result as FoundRoute<RouteContext>).values.first;
       expect(routeContext.moduleToken, equals(token));
       expect(routeContext.moduleScope.token, equals(token));
     });
@@ -214,9 +215,9 @@ void main() {
         await container.modulesContainer.registerModules(module);
 
         final router = Router(localConfig.versioningOptions);
-        final explorer = RoutesExplorer(container, router);
+        final explorer = RoutesResolver(container, router);
 
-        expect(() => explorer.resolveRoutes(), returnsNormally);
+        expect(() => explorer.resolve(), returnsNormally);
 
         final result = router.lookup('/', HttpMethod.get);
         expect(result, isA<FoundRoute>());

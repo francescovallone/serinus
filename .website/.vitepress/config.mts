@@ -266,6 +266,7 @@ export default defineConfig({
               { text: 'Testing', link: 'testing' },
               { text: 'Minimal Application', link: 'minimal_application' },
               { text: 'Health Checks', link: 'health_checks' },
+              { text: 'Router Module', link: 'router_module' },
               // { text: 'Liquify', link: 'liquify' },
             ]
           },

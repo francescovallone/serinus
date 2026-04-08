@@ -1,9 +1,11 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
+import 'package:serinus/src/contexts/route_context.dart';
 import 'package:serinus/src/router/atlas.dart';
 import 'package:serinus/src/router/router.dart';
 import 'package:serinus/src/routes/routes_explorer.dart';
+import 'package:serinus/src/routes/routes_resolver.dart';
 import 'package:test/test.dart';
 
 import '../mocks/controller_mock.dart';
@@ -28,7 +30,6 @@ void main() {
     test(
       'when the application startup, then the controller can be walked through to register all the routes',
       () async {
-        final router = Router();
         final config = ApplicationConfig(
           serverAdapter: SerinusHttpAdapter(
             host: 'localhost',
@@ -37,11 +38,11 @@ void main() {
           ),
         );
         final container = SerinusContainer(config, _MockAdapter());
-        final explorer = RoutesExplorer(container, router);
+        final explorer = RoutesResolver(container);
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        explorer.resolveRoutes();
+        explorer.resolve();
       },
     );
 
@@ -57,13 +58,13 @@ void main() {
           ),
         );
         final container = SerinusContainer(config, _MockAdapter());
-        final explorer = RoutesExplorer(container, router);
+        final explorer = RoutesResolver(container, router);
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockControllerWithDynamicPath()]),
         );
-        explorer.resolveRoutes();
+        explorer.resolve();
         final result = router.lookup('/42', HttpMethod.get);
-        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect(result, isA<FoundRoute<RouteContext>>());
         expect(result.params['id'], '42');
       },
     );
@@ -125,14 +126,11 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesExplorer(container, router);
-        explorer.resolveRoutes();
+        final explorer = RoutesResolver(container, router);
+        explorer.resolve();
         final result = router.lookup('/v1', HttpMethod.get);
-        expect(result, isA<FoundRoute<RouterEntry>>());
-        expect(
-          (result as FoundRoute<RouterEntry>).values.first.context.path,
-          '/v1/',
-        );
+        expect(result, isA<FoundRoute<RouteContext>>());
+        expect((result as FoundRoute<RouteContext>).values.first.path, '/v1/');
       },
     );
 
@@ -152,14 +150,11 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesExplorer(container, router);
-        explorer.resolveRoutes();
+        final explorer = RoutesResolver(container, router);
+        explorer.resolve();
         final result = router.lookup('/api', HttpMethod.get);
-        expect(result, isA<FoundRoute<RouterEntry>>());
-        expect(
-          (result as FoundRoute<RouterEntry>).values.first.context.path,
-          '/api/',
-        );
+        expect(result, isA<FoundRoute<RouteContext>>());
+        expect((result as FoundRoute<RouteContext>).values.first.path, '/api/');
       },
     );
 
@@ -243,12 +238,12 @@ void main() {
         await container.modulesContainer.registerModules(
           SimpleMockModule(controllers: [MockController()]),
         );
-        final explorer = RoutesExplorer(container, router);
-        explorer.resolveRoutes();
+        final explorer = RoutesResolver(container, router);
+        explorer.resolve();
         final result = router.lookup('/api/v1', HttpMethod.get);
-        expect(result, isA<FoundRoute<RouterEntry>>());
+        expect(result, isA<FoundRoute<RouteContext>>());
         expect(
-          (result as FoundRoute<RouterEntry>).values.first.context.path,
+          (result as FoundRoute<RouteContext>).values.first.path,
           '/api/v1/',
         );
       },

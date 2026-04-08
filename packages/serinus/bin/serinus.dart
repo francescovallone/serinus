@@ -40,7 +40,18 @@ class TestModule extends Module {
           Provider.forValue<String>('TestModuleValue'),
         ],
         exports: [TestProvider, Export.value<String>()],
+        controllers: [TestController()],
       );
+}
+
+class TestController extends Controller {
+  TestController() : super('/test') {
+    on(Route.get('/'), (RequestContext context) async {
+      final provider = context.use<TestProvider>();
+      provider.increment();
+      return 'Counter: ${provider.counter}';
+    });
+  }
 }
 
 class Test2Module extends Module {
@@ -123,15 +134,12 @@ class MyModelProvider extends ModelProvider {
 }
 
 void main(List<String> arguments) async {
-  final application = await serinus.createMinimalApplication(
+  final application = await serinus.createApplication(
+    entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );
-  application.provide(TestProvider());
-  application.get('/', (RequestContext context) async {
-    return context.use<TestProvider>().counter;
-  });
   await application.serve();
 }

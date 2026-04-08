@@ -1,8 +1,7 @@
 import 'package:mocktail/mocktail.dart';
 import 'package:serinus/serinus.dart';
 import 'package:serinus/src/containers/serinus_container.dart';
-import 'package:serinus/src/router/router.dart';
-import 'package:serinus/src/routes/routes_explorer.dart';
+import 'package:serinus/src/routes/routes_resolver.dart';
 import 'package:test/test.dart';
 
 class _MockAdapter extends Mock implements SerinusHttpAdapter {
@@ -161,9 +160,8 @@ void main() {
 
       await container.modulesContainer.registerModules(module);
 
-      final router = Router(localConfig.versioningOptions);
-      final explorer = RoutesExplorer(container, router);
-      explorer.resolveRoutes();
+      final explorer = RoutesResolver(container);
+      explorer.resolve();
 
       final scope = container.modulesContainer.getScope(
         InjectionToken.fromModule(module),
