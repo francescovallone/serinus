@@ -40,7 +40,6 @@ class RouteExecutionContext {
   });
 
   /// The [describe] method is used to describe the route execution context.
-  /// It returns a [HandlerFunction] that can be used to handle the request and response.
   /// It takes a [RouteContext] and optional parameters such as [errorHandler], [notFoundHandler], and [rawBody].
   /// The [errorHandler] is used to handle errors that occur during the request processing.
   /// The [rawBody] parameter indicates whether the body should be treated as raw binary data
@@ -78,7 +77,6 @@ class RouteExecutionContext {
         rawBody: rawBody,
       );
       executionContext.attachHttpContext(requestContext);
-
       for (int i = 0; i < context.reqHooks.length; i++) {
         final hook = context.reqHooks[i];
         await hook.onRequest(executionContext);
@@ -167,7 +165,13 @@ class RouteExecutionContext {
       }
       await _executeBeforeHandle(executionContext, context);
       final handler = spec.handler;
-      final handlerResult = await handler.call(requestContext);
+      final handlerResult = switch (handler) {
+        ReqResHandler reqResHandler => await reqResHandler.call(requestContext),
+        StreamHandler streamHandler => streamHandler.call(requestContext),
+        _ => throw StateError(
+          'Unsupported REST handler type: ${handler.runtimeType}',
+        ),
+      };
       final responseData = WrappedResponse(handlerResult);
       await _executeAfterHandle(executionContext, context, responseData);
       await _executeOnResponse(context, executionContext, responseData);
@@ -343,36 +347,58 @@ class RouteExecutionContext {
     if (data == null) {
       return result;
     }
+    if (data is Stream) {
+      result.data = data.map((event) => _convertResult(event).data);
+      return result;
+    }
 
     Object? responseData;
 
-    // Prefer to produce bytes for JSON-able and model objects here, so downstream
-    // sending code doesn't re-encode and we avoid double-encoding.
-    if (data is Uint8List || data is List<int> || data is File) {
-      context.response.contentType ??= ContentType.binary;
-    } else if (data is Map || data is Iterable) {
-      responseData = sharedJsonUtf8Encoder.convert(data);
-      result.isEncoded = true;
-      context.response.contentType ??= jsonContentType;
-    } else if (data is String) {
-      responseData = data;
-      context.response.contentType ??= ContentType.text;
-    } else if (data is num || data is bool) {
+    try {
+      final conversion = _convertResult(data);
+      context.response.contentType ??= conversion.contentType;
+      result.isEncoded = conversion.isEncoded;
+      responseData = conversion.data;
+    } catch (e) {
+      // If conversion fails, fallback to string representation
+      context.response.contentType ??= textContentType;
       responseData = data.toString();
-      context.response.contentType ??= ContentType.text;
-    } else {
-      final modelKey = data.runtimeType.toString();
-      final models = modelProvider?.toJsonModels;
-      if (models != null && models.containsKey(modelKey)) {
-        final modelObj = modelProvider?.to(data);
-        responseData = sharedJsonUtf8Encoder.convert(modelObj);
-        result.isEncoded = true;
-        context.response.contentType ??= jsonContentType;
-      }
     }
 
     result.data = responseData ?? data;
     return result;
+  }
+
+  ({
+    ContentType contentType,
+    bool isEncoded,
+    Object? data,
+  }) _convertResult(Object? data) {
+    if (data == null) {
+      return (contentType: textContentType, isEncoded: false, data: '');
+    }
+    if (data is Uint8List || data is List<int> || data is File) {
+      return (contentType: binaryContentType, isEncoded: false, data: data);
+    }
+    if (data is String) {
+      return (contentType: textContentType, isEncoded: false, data: data);
+    }
+    if (data is num || data is bool) {
+      return (contentType: textContentType, isEncoded: false, data: data.toString());
+    }
+    final modelKey = data.runtimeType.toString();
+    final models = modelProvider?.toJsonModels;
+    if (models != null && models.containsKey(modelKey)) {
+      final modelObj = modelProvider?.to(data);
+      final jsonData = sharedJsonUtf8Encoder.convert(modelObj);
+      return (contentType: jsonContentType, isEncoded: true, data: jsonData);
+    }
+    if (data is Map || data is Iterable) {
+      final jsonData = sharedJsonUtf8Encoder.convert(data);
+      return (contentType: jsonContentType, isEncoded: true, data: jsonData);
+    }
+    // Fallback to string representation
+    return (contentType: textContentType, isEncoded: false, data: data.toString());
   }
 
   Future<void> _executeOnResponse(

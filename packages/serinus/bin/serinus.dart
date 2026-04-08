@@ -81,6 +81,12 @@ class AppController extends Controller {
       final id = context.paramAs<int?>('id');
       return {'message': 'Data for id: $id'};
     });
+    onStream(Route.get('/stream'), (RequestContext context) async* {
+      for (int i = 0; i < 5; i++) {
+        yield 'Stream message $i';
+        await Future.delayed(Duration(seconds: 1));
+      }
+    });
   }
 }
 
@@ -89,7 +95,7 @@ class AppModule extends Module {
     : super(
         imports: [Test2Module(), TestModule()],
         providers: [Provider.forValue('AppModuleValue', name: 'appValue')],
-        controllers: [AppController()],
+        controllers: [AppController(), UserController()],
         exports: [],
       );
 }
@@ -122,16 +128,31 @@ class MyModelProvider extends ModelProvider {
   };
 }
 
+class UserController extends Controller {
+  UserController(): super('/users') {
+    onStream(Route.get('/stream'), streamUsers);
+  }
+
+  Stream<MyObject> streamUsers(RequestContext context) async* {
+    final users = [
+      MyObject('Alice', 30),
+      MyObject('Bob', 25),
+      MyObject('Charlie', 35),
+    ];
+    for (final user in users) {
+      yield user;
+      await Future.delayed(Duration(seconds: 1));
+    }
+  }
+}
+
 void main(List<String> arguments) async {
-  final application = await serinus.createMinimalApplication(
+  final application = await serinus.createApplication(
+    entrypoint: AppModule(),
     host: InternetAddress.anyIPv4.address,
     port: 3002,
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );
-  application.provide(TestProvider());
-  application.get('/', (RequestContext context) async {
-    return context.use<TestProvider>().counter;
-  });
   await application.serve();
 }

@@ -77,5 +77,43 @@ void main() async {
         expect(() => controller.onStatic(route, () => 'ok!'), throwsStateError);
       },
     );
+
+    test(
+      'when a stream route is added to a controller, then it should use a StreamHandler in RestRouteHandlerSpec',
+      () {
+        final controller = TestController();
+        final route = GetRoute(path: '/stream');
+
+        controller.onStream<String, dynamic>(
+          route,
+          (_) => Stream<String>.fromIterable(['a', 'b']),
+        );
+
+        final spec = controller.get(controller.routes.keys.first);
+        expect(spec, isNotNull);
+        expect(spec, isA<RestRouteHandlerSpec>());
+        expect(spec!.handler, isA<StreamHandler>());
+      },
+    );
+
+    test(
+      'when RestRouteHandlerSpec is created, then it should support both ReqResHandler and StreamHandler',
+      () {
+        final reqResSpec = RestRouteHandlerSpec<Future<String>, dynamic>(
+          GetRoute(path: '/req-res'),
+          ReqResHandler<String, dynamic>((_) async => 'ok'),
+        );
+        final streamSpec = RestRouteHandlerSpec<Stream<String>, dynamic>(
+          GetRoute(path: '/stream'),
+          StreamHandler<String, dynamic>(
+            (_) => Stream<String>.value('ok'),
+          ),
+          streaming: true,
+        );
+
+        expect(reqResSpec.handler, isA<ReqResHandler>());
+        expect(streamSpec.handler, isA<StreamHandler>());
+      },
+    );
   });
 }

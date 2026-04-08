@@ -26,6 +26,15 @@ abstract class OutgoingMessage<T, THeaders> {
   /// The [write] method is used to write data to the response without closing it.
   void write(String data);
 
+  /// The [add] method is used to add data to the response without closing it.
+  void add(List<int> data);
+
+  /// The [flush] method is used to flush the response.
+  Future<void> flush();
+
+  /// The [toggleBuffering] method is used to enable or disable buffering of the response.
+  void toggleBuffering(bool enable);
+
   /// The [cookies] property is used to get the cookies of the response.
   List<Cookie> get cookies;
 
@@ -78,6 +87,11 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
   }
 
   @override
+  void toggleBuffering(bool enable) {
+    original.bufferOutput = enable;
+  }
+
+  @override
   void send([List<int> data = const []]) {
     original.add(data);
     original.close();
@@ -87,6 +101,16 @@ class InternalResponse extends OutgoingMessage<HttpResponse, HttpHeaders> {
   @override
   void write(String data) {
     original.write(data);
+  }
+
+  @override
+  void add(List<int> data) {
+    original.add(data);
+  }
+  
+  @override
+  Future<void> flush() {
+    return original.flush();
   }
 
   @override

@@ -106,6 +106,9 @@ class RouteContext<T extends RouteHandlerSpec> {
     hooksContainer.resHooks,
   );
 
+  /// The [streaming] property determines if the route is streaming or not.
+  final bool streaming;
+
   /// The [RouteContext] constructor initializes the route context with the provided parameters.
   RouteContext({
     required this.id,
@@ -117,6 +120,7 @@ class RouteContext<T extends RouteHandlerSpec> {
     required this.spec,
     required this.moduleScope,
     required this.hooksContainer,
+    this.streaming = false,
     this.isStatic = false,
     this.pipes = const [],
     this.queryParameters = const {},
