@@ -41,6 +41,12 @@ class SseScope {
   /// The [compiledMiddlewares] property contains the compiled middlewares for the SSE Route.
   final List<CompiledMiddleware>? compiledMiddlewares;
 
+  /// The [guards] property contains the guards of the SSE Route.
+  final List<Guard> guards;
+
+  /// The [pipes] property contains the pipes of the SSE Route.
+  final List<Pipe> pipes;
+
   /// The [SseScope] constructor is used to create a new instance of the [SseScope] class.
   const SseScope(
     this.sseRouteSpec,
@@ -49,6 +55,8 @@ class SseScope {
     this.hooks,
     this.metadata,
     this.compiledMiddlewares,
+    this.pipes,
+    this.guards,
   );
 
   @override
@@ -203,6 +211,17 @@ class SseAdapter extends Adapter<StreamQueue<SseConnection>> {
       if (response.isClosed) {
         return;
       }
+    }
+    for (int i = 0; i < currentScope.guards.length; i++) {
+      final guard = currentScope.guards.elementAt(i);
+      final canActivate = await guard.canActivate(executionContext);
+      if (!canActivate) {
+        throw UnauthorizedException();
+      }
+    }
+    for (int i = 0; i < currentScope.pipes.length; i++) {
+      final pipe = currentScope.pipes.elementAt(i);
+      await pipe.transform(executionContext);
     }
     for (final hook in currentScope.hooks.beforeHooks) {
       await hook.beforeHandle(executionContext);

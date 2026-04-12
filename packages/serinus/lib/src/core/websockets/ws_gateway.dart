@@ -82,4 +82,8 @@ abstract class WebSocketGateway extends Provider {
   /// The [pipes] of the WebSocketGateway.
   /// This is a list of pipes that will be used to transform the data received from the client
   final Set<Pipe> pipes = {};
+
+  /// The [guards] of the WebSocketGateway.
+  /// This is a list of guards that will be used to protect the WebSocketGateway
+  final Set<Guard> guards = {};
 }

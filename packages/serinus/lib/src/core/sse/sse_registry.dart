@@ -55,6 +55,16 @@ class SseRegistry extends Provider
             hooks,
             [...spec.value.route.metadata, ...controller.metadata],
             currentModuleScope.getRouteMiddlewares(spec.key),
+            [
+              ..._config.globalPipes,
+              ...controller.pipes,
+              ...spec.value.route.pipes,
+            ],
+            [
+              ..._config.globalGuards,
+              ...controller.guards,
+              ...spec.value.route.guards,
+            ],
           ),
         );
         _logger.info('Mapped {${route.path}} Server-Sent Event Route');

@@ -78,7 +78,6 @@ class RouteExecutionContext {
         rawBody: rawBody,
       );
       executionContext.attachHttpContext(requestContext);
-
       for (int i = 0; i < context.reqHooks.length; i++) {
         final hook = context.reqHooks[i];
         await hook.onRequest(executionContext);
