@@ -3,8 +3,37 @@ import 'package:logging/logging.dart' as logging;
 import '../enums/log_level.dart';
 import 'console_logger_service.dart';
 
+/// The [LogPayload] typedef is used to define the payload of the log message.
+typedef LogPayload = ({
+  int pid,
+  String prefix,
+  String level,
+  String context,
+  String message,
+  Object? error,
+  Object? stackTrace,
+  DateTime? timestamp,
+  Map<String, dynamic>? metadata,
+  bool timestampEnabled,
+  bool jsonEncoded,
+});
+
 /// The [LoggerService] class is used as a blueprint for the loggers.
 abstract interface class LoggerService {
+  /// Initializes the logger backend and any async resources before logging.
+  ///
+  /// Call this once during startup and await completion before the first
+  /// logging call so background workers and transports are ready.
+  ///
+  /// Throws when the underlying logger backend cannot be initialized.
+  Future<void> init();
+
+  /// Flushes pending logs and releases logger resources.
+  ///
+  /// Call this during shutdown and await completion to guarantee queued
+  /// messages are drained before the process exits.
+  Future<void> close();
+
   /// Write a message at log level [LogLevel.info]. it is used to log info messages.
   void info(Object? message, [OptionalParameters? optionalParameters]);
 
@@ -47,13 +76,11 @@ class Logger implements LoggerService {
   /// The [context] of the logger.
   final String context;
 
-  LoggerService? _localInstanceRef;
+  static LoggerService? _localInstanceRef;
 
   /// Define a getter to get the local instance of the logger.
   LoggerService get localInstance {
     if (Logger._staticInstanceRef == defaultLogger) {
-      return _registerLocalInstanceRef();
-    } else if (Logger._staticInstanceRef is Logger) {
       return _registerLocalInstanceRef();
     }
     return Logger._staticInstanceRef;
@@ -139,6 +166,16 @@ class Logger implements LoggerService {
   /// The [overrideLogger] method is used to override the staticInstanceRef that the logger is keeping.
   static void overrideLogger(LoggerService logger) {
     Logger._staticInstanceRef = logger;
+  }
+
+  @override
+  Future<void> close() {
+    return localInstance.close();
+  }
+
+  @override
+  Future<void> init() {
+    return localInstance.init();
   }
 }
 

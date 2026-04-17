@@ -63,10 +63,16 @@ class Test2Controller extends Controller {
 }
 
 class AppController extends Controller {
+  final logger = Logger('test');
+
   AppController() : super('/') {
     on<Map<String, dynamic>, dynamic>(Route.get('/'), (
       RequestContext context,
     ) async {
+      logger.severe(
+        'Hello, Serinus!',
+        OptionalParameters(error: BadRequestException()),
+      );
       return {
         'message': 'Hello, Serinus!',
         'time': DateTime.now().toIso8601String(),
@@ -131,6 +137,11 @@ void main(List<String> arguments) async {
   );
   application.provide(TestProvider());
   application.get('/', (RequestContext context) async {
+    final logger = Logger('test');
+    logger.severe(
+      'Hello, Serinus!',
+      OptionalParameters(error: BadRequestException()),
+    );
     return context.use<TestProvider>().counter;
   });
   await application.serve();
