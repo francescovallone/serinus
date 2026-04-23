@@ -4,11 +4,23 @@ import 'dart:io';
 
 import 'package:serinus/serinus.dart';
 
-class TestProvider extends Provider {
+class TestProvider extends Provider with Syncable<int> {
   int counter = 0;
 
   void increment() {
     counter++;
+    notifyListeners();
+  }
+  
+  @override
+  int dehydrate() {
+    return counter;
+  }
+  
+  @override
+  void hydrate(int state) {
+    print('Hydrating TestProvider with state: $state');
+    counter = state;
   }
 }
 
@@ -36,10 +48,9 @@ class TestModule extends Module {
   TestModule()
     : super(
         providers: [
-          TestProvider(),
           Provider.forValue<String>('TestModuleValue'),
         ],
-        exports: [TestProvider, Export.value<String>()],
+        exports: [Export.value<String>()],
       );
 }
 
@@ -49,6 +60,7 @@ class Test2Module extends Module {
         imports: [],
         providers: [TestProvider()],
         controllers: [Test2Controller()],
+        exports: [TestProvider]
       );
 }
 
@@ -122,16 +134,11 @@ class MyModelProvider extends ModelProvider {
   };
 }
 
+Future<SerinusApplication> bootstrapApp() async {
+  return await serinus.createApplication(entrypoint: AppModule(), modelProvider: MyModelProvider());
+}
+
 void main(List<String> arguments) async {
-  final application = await serinus.createMinimalApplication(
-    host: InternetAddress.anyIPv4.address,
-    port: 3002,
-    logger: ConsoleLogger(prefix: 'Serinus New Logger'),
-    modelProvider: MyModelProvider(),
-  );
-  application.provide(TestProvider());
-  application.get('/', (RequestContext context) async {
-    return context.use<TestProvider>().counter;
-  });
-  await application.serve();
+  final app = await serinus.cluster(entrypoint: AppModule(), modelProvider: MyModelProvider(), workers: 8, host: InternetAddress.anyIPv4.address);
+  await app.serve();
 }

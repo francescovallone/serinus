@@ -8,8 +8,11 @@ import '../containers/hooks_container.dart';
 import '../containers/models_provider.dart';
 import '../containers/modules_container.dart';
 import '../engines/view_engine.dart';
+import '../enums/enums.dart';
 import '../global_prefix.dart';
+import '../http/internal_request.dart';
 import '../microservices/transports/transports.dart';
+import '../services/logger_service.dart';
 import '../services/tracers_service.dart';
 import '../versioning.dart';
 import 'exception_filter.dart';
@@ -154,4 +157,46 @@ final class ApplicationConfig {
   }) {
     adapters.add(serverAdapter);
   }
+}
+
+/// The configuration for a worker isolate in a clustered application. This class is used to configure the worker's HTTP server settings, logging options, and other relevant configurations that are necessary for the worker to function properly within the cluster. It allows for customization of the worker's behavior while still adhering to the overall configuration of the main application.
+class WorkerConfig {
+  /// The host to be used by the worker's HTTP server. Default is 'localhost'.
+  final String host;
+  /// The port to be used by the worker's HTTP server. Default is 3000.
+  final int port;
+  /// The header to be sent with the response. Default is 'Powered by Serinus'.
+  final String poweredByHeader;
+  /// The security context for the worker's HTTP server if any. If not provided, the worker will be created as a normal HTTP server. If provided, the worker will be created as a secure HTTPS server.
+  final SecurityContext? securityContext;
+  /// The model provider for the worker, which can be used to define how models are serialized and deserialized when communicating between workers in the cluster. This allows for consistent data handling across different worker isolates, ensuring that complex objects can be properly transmitted and reconstructed when sent between workers.
+  final ModelProvider? modelProvider;
+  /// If true, the worker's HTTP server will use compression for responses. This can help reduce the size of the response payloads and improve performance, especially for larger responses. Default is true.
+  final bool enableCompression;
+  /// If true, the worker's HTTP server will provide the raw request body as a stream. This can be useful for handling large request bodies or for processing the request body in a custom way. Default is false.
+  final bool rawBody;
+  /// The error handler for the worker, which can be used to handle errors that occur during the execution of the worker. This allows for custom error handling logic to be implemented for each worker in the cluster, providing flexibility in how errors are managed and responded to within the worker's context.
+  final NotFoundHandler? notFoundHandler;
+  /// The limit for the size of the request body that the worker's HTTP server will accept. This is used to prevent excessively large request bodies from being processed, which can help protect against certain types of attacks and improve the stability of the worker. Default is kDefaultMaxBodySize (which is typically set to a reasonable default value).
+  final int bodySizeLimit;
+  /// The set of log levels that the worker will use for logging. This allows for customization of the logging behavior for each worker in the cluster, enabling different log levels to be used for different workers based on their specific needs and roles within the application.
+  final Set<LogLevel>? logLevels;
+  /// The logger service to be used by the worker for logging. This allows for a consistent logging mechanism to be used across all workers in the cluster, and also allows for customization of the logging behavior for each worker if needed.
+  final LoggerService? logger;
+
+  /// The constructor for the [WorkerConfig] class initializes the worker configuration with the specified settings for the HTTP server, logging options, and other relevant configurations. This allows for easy creation of worker configurations that can be used when bootstrapping worker isolates in a clustered application, ensuring that each worker is properly configured to function within the cluster while still adhering to the overall configuration of the main application.
+  WorkerConfig({
+    this.host = 'localhost',
+    this.port = 3000,
+    this.logLevels,
+    this.logger,
+    this.poweredByHeader = 'Powered by Serinus',
+    this.securityContext,
+    this.modelProvider,
+    this.enableCompression = true,
+    this.rawBody = false,
+    this.notFoundHandler,
+    this.bodySizeLimit = kDefaultMaxBodySize,
+  });
+
 }
