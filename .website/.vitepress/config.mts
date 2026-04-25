@@ -14,12 +14,12 @@ export default defineConfig({
   description,
   head: [
     [
-        'link',
-        {
-          rel: 'icon',
-          type: 'image/x-icon',
-          href: '/serinus-logo.ico'
-        }
+      'link',
+      {
+        rel: 'icon',
+        type: 'image/x-icon',
+        href: '/serinus-logo.ico'
+      }
     ],
     [
       'link',
@@ -29,68 +29,75 @@ export default defineConfig({
       }
     ],
     [
-        'meta',
-        {
-            name: 'viewport',
-            content: 'width=device-width,initial-scale=1,user-scalable=no'
-        }
+      'meta',
+      {
+        name: 'viewport',
+        content: 'width=device-width,initial-scale=1,user-scalable=no'
+      }
     ],
     [
-        'meta',
-        {
-            property: 'og:image',
-            content: 'https://serinus.app/cover.jpg'
-        }
+      'meta',
+      {
+        property: 'og:image',
+        content: 'https://serinus.app/cover.jpg'
+      }
     ],
     [
-        'meta',
-        {
-            property: 'og:image:width',
-            content: '1600'
-        }
+      'meta',
+      {
+        property: 'og:image:width',
+        content: '1600'
+      }
     ],
     [
-        'meta',
-        {
-            property: 'og:image:height',
-            content: '900'
-        }
+      'meta',
+      {
+        property: 'og:image:height',
+        content: '900'
+      }
     ],
     [
-        'meta',
-        {
-            property: 'twitter:card',
-            content: 'summary_large_image'
-        }
+      'meta',
+      {
+        property: 'twitter:card',
+        content: 'summary_large_image'
+      }
     ],
     [
-        'meta',
-        {
-            property: 'twitter:image',
-            content: 'https://serinus.app/cover.jpg'
-        }
+      'meta',
+      {
+        property: 'twitter:image',
+        content: 'https://serinus.app/cover.jpg'
+      }
     ],
     [
-        'meta',
-        {
-            property: 'og:title',
-            content: 'Serinus - The backend Flutter deserves'
-        }
+      'meta',
+      {
+        property: 'og:title',
+        content: 'Serinus - The backend Flutter deserves'
+      }
     ],
     [
-        'meta',
-        {
-            property: 'og:description',
-            content: description
-        }
+      'meta',
+      {
+        property: 'og:description',
+        content: description
+      }
     ],
     [
-        'meta',
-        {
-            property: 'keywords',
-            content: 'serinus, dart serinus, serinus framework, serinus dart framework, serinus backend, serinus backend framework, dart backend framework, dart backend, flutter backend, flutter backend framework'
-        }
+      'meta',
+      {
+        property: 'keywords',
+        content: 'serinus, dart serinus, serinus framework, serinus dart framework, serinus backend, serinus backend framework, dart backend framework, dart backend, flutter backend, flutter backend framework'
+      }
     ],
+    [
+      'link',
+      {
+        rel: 'canonical',
+        href: 'https://serinus.app'
+      }
+    ]
   ],
   markdown: {
     image: {
@@ -190,7 +197,7 @@ export default defineConfig({
               { text: 'Global Prefix', link: 'global_prefix' },
               { text: 'Session', link: 'session' },
               { text: 'Serve static files', link: 'serve_static' },
-              { text: 'Server-Sent Events', link: 'sse'},
+              { text: 'Server-Sent Events', link: 'sse' },
             ]
           },
           {
@@ -245,7 +252,7 @@ export default defineConfig({
               { text: 'Create', link: 'create' },
               { text: 'Generate', link: 'generate' },
               { text: 'Run', link: 'run' },
-              { text: 'Deploy', link: 'deploy' },
+              { text: 'Deploy', link: 'deploy' },
               { text: 'Agents', link: 'agents' },
             ]
           },
@@ -322,7 +329,7 @@ export default defineConfig({
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/francescovallone/serinus' },
-      { icon: 'twitter', link: 'https://twitter.com/avesboxx'},
+      { icon: 'twitter', link: 'https://twitter.com/avesboxx' },
       { icon: 'discord', link: 'https://discord.gg/zydgnJ3ksJ' }
     ],
   },
