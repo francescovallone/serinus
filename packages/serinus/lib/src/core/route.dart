@@ -19,6 +19,7 @@ class Route {
     required this.method,
     this.metadata = const [],
     this.pipes = const {},
+    this.guards = const {},
     this.exceptionFilters = const {},
   }) {
     if (method == HttpMethod.all && path.contains('<')) {
@@ -38,12 +39,16 @@ class Route {
   /// Set of pipes to be applied to this route.
   final Set<Pipe> pipes;
 
+  /// Set of guards to be applied to this route.
+  final Set<Guard> guards;
+
   /// The [Route.get] factory constructor is used to create a new instance of the [Route] class with the GET method.
   factory Route.get(
     String path, {
     List<Metadata> metadata = const [],
     Set<Pipe> pipes = const {},
     Set<ExceptionFilter> exceptionFilters = const {},
+    Set<Guard> guards = const {},
   }) {
     return Route(
       path: path,
@@ -51,6 +56,7 @@ class Route {
       metadata: metadata,
       pipes: pipes,
       exceptionFilters: exceptionFilters,
+      guards: guards,
     );
   }
 
@@ -60,6 +66,7 @@ class Route {
     List<Metadata> metadata = const [],
     Set<Pipe> pipes = const {},
     Set<ExceptionFilter> exceptionFilters = const {},
+    Set<Guard> guards = const {},
   }) {
     return Route(
       path: path,
@@ -67,6 +74,7 @@ class Route {
       metadata: metadata,
       pipes: pipes,
       exceptionFilters: exceptionFilters,
+      guards: guards,
     );
   }
 
@@ -76,6 +84,7 @@ class Route {
     List<Metadata> metadata = const [],
     Set<Pipe> pipes = const {},
     Set<ExceptionFilter> exceptionFilters = const {},
+    Set<Guard> guards = const {},
   }) {
     return Route(
       path: path,
@@ -83,6 +92,7 @@ class Route {
       metadata: metadata,
       pipes: pipes,
       exceptionFilters: exceptionFilters,
+      guards: guards,
     );
   }
 
@@ -92,6 +102,7 @@ class Route {
     List<Metadata> metadata = const [],
     Set<Pipe> pipes = const {},
     Set<ExceptionFilter> exceptionFilters = const {},
+    Set<Guard> guards = const {},
   }) {
     return Route(
       path: path,
@@ -99,6 +110,7 @@ class Route {
       metadata: metadata,
       pipes: pipes,
       exceptionFilters: exceptionFilters,
+      guards: guards,
     );
   }
 
@@ -108,6 +120,7 @@ class Route {
     List<Metadata> metadata = const [],
     Set<Pipe> pipes = const {},
     Set<ExceptionFilter> exceptionFilters = const {},
+    Set<Guard> guards = const {},
   }) {
     return Route(
       path: path,
@@ -115,6 +128,7 @@ class Route {
       metadata: metadata,
       pipes: pipes,
       exceptionFilters: exceptionFilters,
+      guards: guards,
     );
   }
 
@@ -124,6 +138,7 @@ class Route {
     List<Metadata> metadata = const [],
     Set<Pipe> pipes = const {},
     Set<ExceptionFilter> exceptionFilters = const {},
+    Set<Guard> guards = const {},
   }) {
     if (path.contains('<')) {
       throw ArgumentError('"ALL" route cannot contain path parameters');
@@ -134,6 +149,7 @@ class Route {
       metadata: metadata,
       pipes: pipes,
       exceptionFilters: exceptionFilters,
+      guards: guards,
     );
   }
 }
@@ -147,6 +163,7 @@ class RpcRoute extends Route {
     this.transporter,
     super.pipes = const {},
     super.exceptionFilters = const {},
+    super.guards = const {},
   }) : super(path: pattern, method: HttpMethod.get);
 
   /// Specify the transporter to use for this route.

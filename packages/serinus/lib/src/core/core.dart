@@ -6,6 +6,7 @@ export 'application_config.dart';
 export 'controller.dart';
 export 'exception_filter.dart';
 export 'factory.dart';
+export 'guard.dart';
 export 'hook.dart';
 export 'metadata.dart';
 export 'middlewares/middleware.dart';

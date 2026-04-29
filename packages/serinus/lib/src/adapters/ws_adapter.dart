@@ -14,6 +14,7 @@ import '../core/middlewares/middleware_registry.dart';
 import '../core/websockets/ws_exceptions.dart';
 import '../enums/http_method.dart';
 import '../enums/request_event.dart';
+import '../exceptions/built_in_exceptions.dart';
 import '../http/http.dart';
 import '../router/atlas.dart';
 import 'adapters.dart';
@@ -43,6 +44,9 @@ class GatewayScope {
   /// The [pipes] property contains the pipes of the WebSocket gateway.
   final Set<Pipe> pipes;
 
+  /// The [guards] property contains the guards of the WebSocket gateway.
+  final List<Guard> guards;
+
   /// The [GatewayScope] constructor is used to create a new instance of the [GatewayScope] class.
   const GatewayScope(
     this.gateway,
@@ -51,6 +55,7 @@ class GatewayScope {
     this.hooks,
     this.exceptionFilters,
     this.pipes,
+    this.guards,
   );
 
   @override
@@ -289,6 +294,13 @@ class WebSocketAdapter extends WsAdapter {
           ),
         );
         return;
+      }
+    }
+    for (int i = 0; i < gatewayScope.guards.length; i++) {
+      final guard = gatewayScope.guards.elementAt(i);
+      final canActivate = await guard.canActivate(context);
+      if (!canActivate) {
+        throw UnauthorizedException();
       }
     }
     client?.listen((data) async {

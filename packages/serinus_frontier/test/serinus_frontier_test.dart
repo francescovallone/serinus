@@ -18,6 +18,27 @@ class HeaderResult {
   HeaderResult({required this.authenticated});
 }
 
+class HeaderFrontierStrategy
+    extends FrontierStrategy<Map<String, String>, bool?> {
+  HeaderFrontierStrategy(this.headerStrategy);
+
+  final HeaderStrategy headerStrategy;
+
+  @override
+  Strategy get strategy => headerStrategy;
+
+  @override
+  Future<Map<String, String>?> validate(
+    RequestContext context,
+    bool? payload,
+  ) async {
+    if (payload == true) {
+      return {'id': 'user-1'};
+    }
+    return null;
+  }
+}
+
 class HeaderStrategy extends Strategy<HeaderOptions> {
   HeaderStrategy(super.options, super.callback);
 
@@ -49,31 +70,45 @@ final strategy = HeaderStrategy(
   },
 );
 
+final frontierStrategy = HeaderFrontierStrategy(strategy);
+
 class AppModule extends Module {
-  AppModule(FrontierModule module)
-    : super(controllers: [AppController()], imports: [module]);
+  AppModule()
+    : super(
+        controllers: [AppController()],
+        imports: [FrontierModule()],
+        providers: [frontierStrategy],
+      );
 }
 
 class AppController extends Controller {
   AppController() : super('/') {
-    on(Route.get('/pass', metadata: [GuardMeta('Header')]), (context) async {
+    on(Route.get('/pass', guards: {AuthGuard<HeaderFrontierStrategy>()}), (
+      context,
+    ) async {
       return 'pass';
     });
+    on(
+      Route.get('/default-pass', guards: {AuthGuard<HeaderFrontierStrategy>()}),
+      (context) async {
+        final user = context.user<Map<String, String>>();
+        return user['id'];
+      },
+    );
   }
 }
 
 void main() {
   group('$FrontierModule', () {
     setUpAll(() async {
-      final module = FrontierModule([strategy]);
       final app = await serinus.createApplication(
-        entrypoint: AppModule(module),
+        entrypoint: AppModule(),
         logLevels: {LogLevel.none},
       );
       await app.serve();
     });
 
-    test('[GuardMeta] should pass the request', () async {
+    test('[AuthGuard] should pass the request', () async {
       final req = await HttpClient().getUrl(
         Uri.parse('http://localhost:3000/pass'),
       );
@@ -83,7 +118,7 @@ void main() {
       expect(result, 'pass');
     });
 
-    test('[GuardMeta] should fail the request', () async {
+    test('[AuthGuard] should fail the request', () async {
       final req = await HttpClient().getUrl(
         Uri.parse('http://localhost:3000/pass'),
       );
@@ -92,7 +127,7 @@ void main() {
       final result = await res.transform(utf8.decoder).first;
       expect(
         result,
-        '{"message":"Not authorized!","statusCode":401,"uri":"No Uri"}',
+        '{"message":"Unauthorized!","statusCode":401,"uri":"No Uri"}',
       );
       expect(res.statusCode, 401);
     });

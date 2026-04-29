@@ -57,8 +57,18 @@ class WebsocketRegistry extends Provider
             },
             gatewayScope.unifiedValues,
             gateway.hooks.merge([_config.globalHooks]),
-            {...gateway.exceptionFilters, ..._config.globalExceptionFilters},
-            {...gateway.pipes, ..._config.globalPipes},
+            {
+              ..._config.globalExceptionFilters,
+              ...gateway.exceptionFilters,
+            },
+            {
+              ..._config.globalPipes,
+              ...gateway.pipes,
+            },
+            [
+              ..._config.globalGuards,
+              ...gateway.guards,
+            ],
           ),
         );
         gateway.server = wsAdapter;
@@ -118,8 +128,18 @@ class WebsocketRegistry extends Provider
             },
             gatewayScope.unifiedValues,
             gateway.hooks.merge([_config.globalHooks]),
-            gateway.exceptionFilters,
-            gateway.pipes,
+            {
+              ..._config.globalExceptionFilters,
+              ...gateway.exceptionFilters,
+            },
+            {
+              ..._config.globalPipes,
+              ...gateway.pipes,
+            },
+            [
+              ..._config.globalGuards,
+              ...gateway.guards,
+            ],
           ),
         );
         gateway.server = customWsAdapter;
