@@ -9,29 +9,29 @@ import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
 class TestHeaders implements HttpHeaders {
-
   TestHeaders(
-    this._headers,
-    {
-      this.chunkedTransferEncoding = false,
-      this.contentLength = 0,
-      this.contentType,
-      this.date,
-      this.expires,
-      this.host,
-      this.ifModifiedSince,
-      this.persistentConnection = true,
-      this.port,
-    }
-  );
+    this._headers, {
+    this.chunkedTransferEncoding = false,
+    this.contentLength = 0,
+    this.contentType,
+    this.date,
+    this.expires,
+    this.host,
+    this.ifModifiedSince,
+    this.persistentConnection = true,
+    this.port,
+  });
 
   TestHeaders.fromFlatMap(Map<String, String> headers)
-      : _headers = headers.map(
-          (key, value) => MapEntry(key.toLowerCase(), value.split(',').map((e) => e.trim()).toList()),
+    : _headers = headers.map(
+        (key, value) => MapEntry(
+          key.toLowerCase(),
+          value.split(',').map((e) => e.trim()).toList(),
         ),
-        chunkedTransferEncoding = false,
-        contentLength = 0,
-        persistentConnection = true;
+      ),
+      chunkedTransferEncoding = false,
+      contentLength = 0,
+      persistentConnection = true;
 
   final Map<String, List<String>> _headers;
 
@@ -115,7 +115,6 @@ class TestHeaders implements HttpHeaders {
     }
     return values.first;
   }
-
 }
 
 class TestHttpSession extends MapBase<dynamic, dynamic> implements HttpSession {
@@ -363,10 +362,10 @@ class TestRequest extends IncomingMessage {
 
   @override
   String get webSocketKey => _webSocketKey ?? '';
-  
+
   @override
   bool get fresh => true;
-  
+
   @override
   Uri get requestedUri => _requestedUri;
 }
@@ -571,7 +570,7 @@ class TestResponse
       original.close();
     }
   }
-  
+
   @override
   void header(String key, String value, {bool preserveHeaderCase = true}) {
     _headers[preserveHeaderCase ? key : key.toLowerCase()] = value;
