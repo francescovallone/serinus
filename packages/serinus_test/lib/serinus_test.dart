@@ -204,7 +204,7 @@ class TestRequest extends IncomingMessage {
     required int port,
     Session? session,
   }) : _method = method.toUpperCase(),
-       _uri = uri,
+       _requestedUri = uri,
        _headers = headers,
        _bodyBytes = bodyBytes,
        _cookies = List<Cookie>.unmodifiable(cookies),
@@ -217,7 +217,7 @@ class TestRequest extends IncomingMessage {
   static int _counter = 0;
 
   final String _method;
-  final Uri _uri;
+  final Uri _requestedUri;
   final SerinusHeaders _headers;
   final Uint8List _bodyBytes;
   final List<Cookie> _cookies;
@@ -234,10 +234,10 @@ class TestRequest extends IncomingMessage {
   String get id => _id;
 
   @override
-  String get path => _uri.path;
+  String get path => _requestedUri.path;
 
   @override
-  Uri get uri => _uri;
+  Uri get uri => Uri(path: _requestedUri.path, query: _requestedUri.query);
 
   @override
   String get method => _method;
@@ -246,7 +246,7 @@ class TestRequest extends IncomingMessage {
   SerinusHeaders get headers => _headers;
 
   @override
-  Map<String, String> get queryParameters => _uri.queryParameters;
+  Map<String, String> get queryParameters => _requestedUri.queryParameters;
 
   @override
   Session get session => _session;
@@ -270,7 +270,7 @@ class TestRequest extends IncomingMessage {
   int get port => _port;
 
   @override
-  List<String> get segments => _uri.pathSegments;
+  List<String> get segments => _requestedUri.pathSegments;
 
   @override
   String body() {
@@ -366,6 +366,9 @@ class TestRequest extends IncomingMessage {
   
   @override
   bool get fresh => true;
+  
+  @override
+  Uri get requestedUri => _requestedUri;
 }
 
 class TestResponse
@@ -395,6 +398,7 @@ class TestResponse
 
   Redirect? get redirectInfo => _redirect;
 
+  @override
   int get statusCode => _statusCode;
 
   ContentType? get resolvedContentType => _contentType;

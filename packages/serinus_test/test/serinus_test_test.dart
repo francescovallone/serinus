@@ -35,6 +35,7 @@ class AppController extends Controller {
   AppController() : super('/app') {
     on(Route.get('/'), (RequestContext context) async {
       final provider = context.use<TestProvider>();
+      print('${context.request.requestedUri} - ${context.request.uri}');
       return 'Counter: ${provider.counter}';
     });
   }
@@ -62,7 +63,7 @@ void main() {
     final providers = application.getProvider<TestProvider>();
     providers?.counter++;
     final postNotFound = await application.post('/app');
-    postNotFound.expectHttpException(NotFoundException());
+    postNotFound.expectHttpException(MethodNotAllowedException());
     final res2 = await application.get('/app');
     res2.expectStringBody('Counter: 1');
     await application.close();
