@@ -92,11 +92,7 @@ void main() {
             poweredByHeader: 'Powered by Serinus',
           ),
         );
-        final module = TestModule(
-          providers: [
-            TestProvider()
-          ]
-        );
+        final module = TestModule(providers: [TestProvider()]);
         final container = SerinusContainer(config, _MockAdapter());
         final inspector = container.inspector;
         final graph = inspector.graph;

@@ -267,23 +267,25 @@ class ProviderRegistry {
     Type dependency,
     ScopeManager scopeManager,
   ) {
+    final providerDependency = _providerDependencyType(dependency);
+    final valueDependencyToken = _valueDependencyToken(dependency);
     final localProviders = getProvidersForScope(scope);
     final localValues = getValuesForScope(scope);
 
-    if (localProviders.containsKey(dependency)) {
+    if (providerDependency != null &&
+        localProviders.containsKey(providerDependency)) {
       return (
-        provider: localProviders[dependency],
+        provider: localProviders[providerDependency],
         valueToken: null,
         value: null,
       );
     }
 
-    final localValueToken = ValueToken(dependency, null);
-    if (localValues.containsKey(localValueToken)) {
+    if (localValues.containsKey(valueDependencyToken)) {
       return (
         provider: null,
-        valueToken: localValueToken,
-        value: localValues[localValueToken],
+        valueToken: valueDependencyToken,
+        value: localValues[valueDependencyToken],
       );
     }
 
@@ -300,27 +302,21 @@ class ProviderRegistry {
       final importedProviders = getProvidersForScope(importedScope);
       final importedValues = getValuesForScope(importedScope);
 
-      if (importedScope.exports.contains(dependency) &&
-          importedProviders.containsKey(dependency)) {
+      if (providerDependency != null &&
+          _exportsDependency(importedScope.exports, dependency) &&
+          importedProviders.containsKey(providerDependency)) {
         importProviderMatches.add((
           scope: importedScope,
-          provider: importedProviders[dependency]!,
+          provider: importedProviders[providerDependency]!,
         ));
       }
 
-      final valueToken = ValueToken(dependency, null);
-      final exportsValue = importedScope.exports.any((exportType) {
-        if (exportType is Export) {
-          return exportType.toValueToken() == valueToken;
-        }
-        return exportType == dependency;
-      });
-
-      if (exportsValue && importedValues.containsKey(valueToken)) {
+      if (_exportsValue(importedScope.exports, valueDependencyToken) &&
+          importedValues.containsKey(valueDependencyToken)) {
         importValueMatches.add((
           scope: importedScope,
-          token: valueToken,
-          value: importedValues[valueToken],
+          token: valueDependencyToken,
+          value: importedValues[valueDependencyToken],
         ));
       }
     }
@@ -356,32 +352,73 @@ class ProviderRegistry {
       );
     }
 
-    final globalProviderMatches = _globalProviders
-        .where((provider) => provider.runtimeType == dependency)
-        .toList();
-    if (globalProviderMatches.length > 1) {
-      throw InitializationError(
-        'Ambiguous global dependency resolution for $dependency.',
-      );
-    }
-    if (globalProviderMatches.isNotEmpty) {
-      return (
-        provider: globalProviderMatches.first,
-        valueToken: null,
-        value: null,
-      );
+    if (providerDependency != null) {
+      final globalProviderMatches = _globalProviders
+          .where((provider) => provider.runtimeType == providerDependency)
+          .toList();
+      if (globalProviderMatches.length > 1) {
+        throw InitializationError(
+          'Ambiguous global dependency resolution for $dependency.',
+        );
+      }
+      if (globalProviderMatches.isNotEmpty) {
+        return (
+          provider: globalProviderMatches.first,
+          valueToken: null,
+          value: null,
+        );
+      }
     }
 
-    final globalValueToken = ValueToken(dependency, null);
-    if (_globalValueProviders.containsKey(globalValueToken)) {
+    if (_globalValueProviders.containsKey(valueDependencyToken)) {
       return (
         provider: null,
-        valueToken: globalValueToken,
-        value: _globalValueProviders[globalValueToken],
+        valueToken: valueDependencyToken,
+        value: _globalValueProviders[valueDependencyToken],
       );
     }
 
     return null;
+  }
+
+  Type? _providerDependencyType(Type dependency) {
+    if (dependency case Export(:final exportedType, :final name)) {
+      if (name != null) {
+        return null;
+      }
+      return exportedType;
+    }
+    return dependency;
+  }
+
+  ValueToken _valueDependencyToken(Type dependency) {
+    if (dependency case Export()) {
+      return dependency.toValueToken();
+    }
+    return ValueToken(dependency, null);
+  }
+
+  bool _exportsDependency(Set<Type> exports, Type dependency) {
+    final providerDependency = _providerDependencyType(dependency);
+    if (providerDependency == null) {
+      return false;
+    }
+    return exports.any((exportType) {
+      if (exportType is Export) {
+        return exportType.name == null &&
+            exportType.exportedType == providerDependency;
+      }
+      return exportType == providerDependency;
+    });
+  }
+
+  bool _exportsValue(Set<Type> exports, ValueToken valueToken) {
+    return exports.any((exportType) {
+      if (exportType is Export) {
+        return exportType.toValueToken() == valueToken;
+      }
+      return exportType == valueToken.type && valueToken.name == null;
+    });
   }
 
   /// Returns dependency types that cannot be resolved for a scope.

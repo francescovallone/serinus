@@ -114,9 +114,7 @@ void main() async {
         final container = ModulesContainer(config);
 
         final module = TestModule(
-          providers: [
-            Provider.forValue<String>('TestModuleValue'),
-          ]
+          providers: [Provider.forValue<String>('TestModuleValue')],
         );
         final parents = container.getParents(module);
 
@@ -130,9 +128,7 @@ void main() async {
       () async {
         final container = ModulesContainer(config);
         final subModule = TestSubModule(
-          providers: [
-            Provider.forValue<String>('TestSubModuleValue'),
-          ]
+          providers: [Provider.forValue<String>('TestSubModuleValue')],
         );
         final module = TestModule(imports: [subModule]);
 

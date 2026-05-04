@@ -4,7 +4,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:glob/glob.dart';
 import 'package:mason/mason.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:serinus_cli/src/utils/config.dart';
 import 'package:watcher/watcher.dart';
@@ -105,19 +107,7 @@ class RunCommand extends Command<int> {
     final watcherPaths = config.watcher?.whitelist ?? [];
     final subscription =
         _watcher.events.where((_) => _developmentMode).listen((event) async {
-      final shouldRestart = event.path.endsWith('.dart') &&
-          (event.type == ChangeType.REMOVE ||
-              watcherPaths.any((path) {
-                final entity = FileSystemEntity.isDirectorySync(path)
-                    ? Directory(path)
-                    : File(path);
-                return entity.existsSync() &&
-                    File(event.path).existsSync() &&
-                    FileSystemEntity.identicalSync(
-                      event.path,
-                      entity.absolute.path,
-                    );
-              }));
+      final shouldRestart = shouldRestartForEvent(event, watcherPaths);
       if (!shouldRestart) {
         return;
       }
@@ -232,6 +222,61 @@ class RunCommand extends Command<int> {
     if (!restarting) {
       exit(0);
     }
+  }
+
+  @visibleForTesting
+  bool shouldRestartForEvent(WatchEvent event, List<String> watcherPaths) {
+    final normalizedEventPath = path.normalize(event.path);
+    final relativeEventPath = path.normalize(
+      path.relative(normalizedEventPath, from: Directory.current.path),
+    );
+
+    return relativeEventPath.endsWith('.dart') ||
+        watcherPaths.any(
+          (watcherPath) => _matchesWatcherPath(
+            watcherPath,
+            relativeEventPath,
+            normalizedEventPath,
+          ),
+        );
+  }
+
+  bool _matchesWatcherPath(
+    String watcherPath,
+    String relativeEventPath,
+    String absoluteEventPath,
+  ) {
+    final normalizedWatcherPath = path.normalize(watcherPath);
+    final eventPaths = path.isAbsolute(normalizedWatcherPath)
+        ? [absoluteEventPath]
+        : [relativeEventPath, absoluteEventPath];
+
+    if (_isGlobPattern(normalizedWatcherPath)) {
+      final globPattern = _toGlobPath(normalizedWatcherPath);
+      final globContext = path.Context(style: path.Style.posix);
+      final glob = Glob(globPattern, context: globContext);
+      final globEventPaths = path.isAbsolute(normalizedWatcherPath)
+          ? [_toGlobPath(absoluteEventPath)]
+          : [_toGlobPath(relativeEventPath)];
+      return globEventPaths.any(glob.matches);
+    }
+
+    return eventPaths.any(
+      (eventPath) =>
+          eventPath == normalizedWatcherPath ||
+          path.isWithin(normalizedWatcherPath, eventPath),
+    );
+  }
+
+  bool _isGlobPattern(String value) {
+    return value.contains('*') ||
+        value.contains('?') ||
+        value.contains('[') ||
+        value.contains('{');
+  }
+
+  String _toGlobPath(String value) {
+    return path.posix.normalize(value.replaceAll(r'\', '/'));
   }
 
   bool get _developmentMode {

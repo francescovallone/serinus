@@ -38,6 +38,18 @@ class TestProviderWithValue extends Provider {
   String getValue() => value;
 }
 
+class ImportedRepository {
+  final String source;
+
+  ImportedRepository(this.source);
+}
+
+class TestProviderWithImportedRepository extends Provider {
+  final ImportedRepository repository;
+
+  TestProviderWithImportedRepository(this.repository);
+}
+
 class SimpleModuleWithValueProvider extends Module {
   SimpleModuleWithValueProvider()
     : super(
@@ -99,6 +111,102 @@ class ModuleWithComposedProviderUsingValue extends Module {
             final value = ctx.use<String>();
             return TestProviderWithValue(value);
           }, inject: [String]),
+        ],
+        exports: [],
+      );
+}
+
+class ModuleWithExportedRepositoryValue extends Module {
+  ModuleWithExportedRepositoryValue()
+    : super(
+        controllers: [],
+        providers: [
+          Provider.forValue(
+            ImportedRepository('imported'),
+            asType: ImportedRepository,
+          ),
+        ],
+        exports: [ImportedRepository],
+      );
+}
+
+class ModuleWithImportedRepositoryDependency extends Module {
+  ModuleWithImportedRepositoryDependency()
+    : super(
+        imports: [ModuleWithExportedRepositoryValue()],
+        controllers: [],
+        providers: [
+          Provider.composed<TestProviderWithImportedRepository>((
+            CompositionContext ctx,
+          ) async {
+            return TestProviderWithImportedRepository(
+              ctx.use<ImportedRepository>(),
+            );
+          }, inject: [ImportedRepository]),
+        ],
+        exports: [],
+      );
+}
+
+class ModuleWithImportedExportDependency extends Module {
+  ModuleWithImportedExportDependency()
+    : super(
+        imports: [ModuleWithExportedRepositoryValue()],
+        controllers: [],
+        providers: [
+          Provider.composed<TestProviderWithImportedRepository>((
+            CompositionContext ctx,
+          ) async {
+            return TestProviderWithImportedRepository(
+              ctx.use<ImportedRepository>(),
+            );
+          }, inject: [const Export(ImportedRepository)]),
+        ],
+        exports: [],
+      );
+}
+
+class ModuleWithNamedRepositoryValue extends Module {
+  ModuleWithNamedRepositoryValue()
+    : super(
+        controllers: [],
+        providers: [
+          Provider.forValue(
+            ImportedRepository('secondary'),
+            asType: ImportedRepository,
+            name: 'secondary',
+          ),
+        ],
+        exports: [const Export(ImportedRepository, name: 'secondary')],
+      );
+}
+
+class SecondaryRepositoryBranch extends Module {
+  SecondaryRepositoryBranch()
+    : super(
+        imports: [ModuleWithNamedRepositoryValue()],
+        controllers: [],
+        providers: [],
+        exports: [],
+      );
+}
+
+class ModuleWithDefaultAndSecondaryRepositoryImports extends Module {
+  ModuleWithDefaultAndSecondaryRepositoryImports()
+    : super(
+        imports: [
+          ModuleWithExportedRepositoryValue(),
+          SecondaryRepositoryBranch(),
+        ],
+        controllers: [],
+        providers: [
+          Provider.composed<TestProviderWithImportedRepository>((
+            CompositionContext ctx,
+          ) async {
+            return TestProviderWithImportedRepository(
+              ctx.use<ImportedRepository>(),
+            );
+          }, inject: [ImportedRepository]),
         ],
         exports: [],
       );
@@ -215,6 +323,63 @@ void main() {
               as TestProviderWithValue;
       expect(provider.getValue(), 'Base Value');
     });
+
+    test(
+      'ComposedProvider can use imported exported ValueProvider by raw type',
+      () async {
+        final container = ModulesContainer(config);
+        final module = ModuleWithImportedRepositoryDependency();
+        await container.registerModules(module);
+        await container.finalize(module);
+
+        final scope = container.getScope(InjectionToken.fromModule(module));
+        final provider =
+            scope.unifiedProviders.firstWhere(
+                  (p) => p is TestProviderWithImportedRepository,
+                )
+                as TestProviderWithImportedRepository;
+
+        expect(provider.repository.source, 'imported');
+      },
+    );
+
+    test(
+      'ComposedProvider can use imported exported ValueProvider by Export token',
+      () async {
+        final container = ModulesContainer(config);
+        final module = ModuleWithImportedExportDependency();
+        await container.registerModules(module);
+        await container.finalize(module);
+
+        final scope = container.getScope(InjectionToken.fromModule(module));
+        final provider =
+            scope.unifiedProviders.firstWhere(
+                  (p) => p is TestProviderWithImportedRepository,
+                )
+                as TestProviderWithImportedRepository;
+
+        expect(provider.repository.source, 'imported');
+      },
+    );
+
+    test(
+      'ComposedProvider uses the default exported value when a named sibling exists',
+      () async {
+        final container = ModulesContainer(config);
+        final module = ModuleWithDefaultAndSecondaryRepositoryImports();
+        await container.registerModules(module);
+        await container.finalize(module);
+
+        final scope = container.getScope(InjectionToken.fromModule(module));
+        final provider =
+            scope.unifiedProviders.firstWhere(
+                  (p) => p is TestProviderWithImportedRepository,
+                )
+                as TestProviderWithImportedRepository;
+
+        expect(provider.repository.source, 'imported');
+      },
+    );
 
     test('context.canUse<T>() returns true for ValueProvider types', () async {
       final container = ModulesContainer(config);

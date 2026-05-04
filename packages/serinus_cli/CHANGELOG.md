@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.5
+
+- fix: improve check for globs and relative paths to ensure hot restart functionality works correctly when using the `run` command with the `--dev` option. This includes normalizing paths for Windows and ensuring that changes to .dart files are properly detected and trigger a restart of the application.
+
 ## 2.1.4
 
 - fix: add a existence check for the event path in the run command with dev mode enabled to prevent the CLI from crashing when the event path does not exist. This ensures that the CLI can still run even if the event path is missing, and it will simply skip watching for events instead of throwing an error.
