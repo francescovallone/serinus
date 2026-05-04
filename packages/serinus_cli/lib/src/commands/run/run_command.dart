@@ -107,17 +107,17 @@ class RunCommand extends Command<int> {
         _watcher.events.where((_) => _developmentMode).listen((event) async {
       final shouldRestart = event.path.endsWith('.dart') &&
           (event.type == ChangeType.REMOVE ||
-          watcherPaths.any((path) {
-            final entity = FileSystemEntity.isDirectorySync(path)
-                ? Directory(path)
-                : File(path);
-            return entity.existsSync() &&
-                File(event.path).existsSync() &&
-                FileSystemEntity.identicalSync(
-                  event.path,
-                  entity.absolute.path,
-                );
-          }));
+              watcherPaths.any((path) {
+                final entity = FileSystemEntity.isDirectorySync(path)
+                    ? Directory(path)
+                    : File(path);
+                return entity.existsSync() &&
+                    File(event.path).existsSync() &&
+                    FileSystemEntity.identicalSync(
+                      event.path,
+                      entity.absolute.path,
+                    );
+              }));
       if (!shouldRestart) {
         return;
       }
