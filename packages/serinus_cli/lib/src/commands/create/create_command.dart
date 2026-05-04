@@ -64,7 +64,7 @@ class CreateCommand extends Command<int> {
     final projectName = _projectName;
     if (_template == 'base_plugin') {
       await _createPlugin(outputDirectory, projectName);
-    } else if (_template == 'saas'){
+    } else if (_template == 'saas') {
       await _createSaas(outputDirectory, projectName);
     } else {
       await _createApplication(outputDirectory, projectName);
@@ -96,7 +96,8 @@ class CreateCommand extends Command<int> {
     };
     if (outputDirectory.existsSync() && !force) {
       progress?.fail(
-          'Directory already exists at ${outputDirectory.absolute.path}',);
+        'Directory already exists at ${outputDirectory.absolute.path}',
+      );
       return;
     }
     if (!outputDirectory.existsSync()) {
@@ -121,10 +122,9 @@ class CreateCommand extends Command<int> {
     _logger?.success('\nFiles generated successfully');
     progress?.complete('Project generated successfully!');
     _logger?.info('\nRun the following commands to get started:\n\n'
-      '- cd ${outputDirectory.absolute.path}\n'
-      '- dart pub get\n'
-      '- serinus run\n'
-    );
+        '- cd ${outputDirectory.absolute.path}\n'
+        '- dart pub get\n'
+        '- serinus run\n');
   }
 
   Future<void> _createPlugin(
@@ -183,10 +183,9 @@ class CreateCommand extends Command<int> {
     _logger?.success('\nFiles generated successfully');
     progress?.complete('Project generated successfully!');
     _logger?.info('\nRun the following commands to get started:\n\n'
-      '- cd ${outputDirectory.absolute.path}\n'
-      '- dart pub get\n'
-      '- serinus run\n'
-    );
+        '- cd ${outputDirectory.absolute.path}\n'
+        '- dart pub get\n'
+        '- serinus run\n');
   }
 
   Future<void> _createApplication(
@@ -213,7 +212,8 @@ class CreateCommand extends Command<int> {
     };
     if (outputDirectory.existsSync() && !force) {
       progress?.fail(
-          'Directory already exists at ${outputDirectory.absolute.path}',);
+        'Directory already exists at ${outputDirectory.absolute.path}',
+      );
       return;
     }
     if (!outputDirectory.existsSync()) {
@@ -260,8 +260,8 @@ class CreateCommand extends Command<int> {
 
   bool get force => argResults['force'] as bool;
 
-  String get _template => argResults['template'] as String? 
-    ?? 'base_application';
+  String get _template =>
+      argResults['template'] as String? ?? 'base_application';
 
   void _validateOutputDirectoryArg(List<String> args) {
     if (args.isEmpty) {

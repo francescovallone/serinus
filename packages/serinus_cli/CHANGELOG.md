@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.4
+
+- fix: add a existence check for the event path in the run command with dev mode enabled to prevent the CLI from crashing when the event path does not exist. This ensures that the CLI can still run even if the event path is missing, and it will simply skip watching for events instead of throwing an error.
+
 ## 2.1.3
 
 - feat: add `--template` option to the `create` command to allow users to specify a custom template for project generation. The option accepts a path to a local directory containing the template or a URL to a remote repository. If the option is not provided, the CLI will use the default template included in the package. This changes the previous --plugin option, which is now removed.
