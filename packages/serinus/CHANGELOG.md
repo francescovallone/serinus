@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.10
+
+**Released on:** 07-05-2026
+
+### Fixes
+
+- fix(pipe_parsing): defer body conversion to allow pipes to actually transform and validate bodies - [#225](https://github.com/francescovallone/serinus/pull/225) by [francescovallone](https://github.com/francescovallone)
+
 ## 2.1.9
 
 **Released on:** 04-05-2026
