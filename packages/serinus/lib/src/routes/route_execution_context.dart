@@ -116,6 +116,7 @@ class RouteExecutionContext {
           await context.pipes[i].transform(executionContext);
         }
       }
+      requestContext.convertBodyToDeclaredType();
       final middlewares =
           context.compiledMiddlewares; // Instant O(1) cache read
       final activeMiddlewares = <Middleware>[];

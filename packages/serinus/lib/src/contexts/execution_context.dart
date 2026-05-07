@@ -122,7 +122,17 @@ final class ExecutionContext<T extends ArgumentsHost> extends BaseContext {
     if (context == null) {
       throw StateError('The HTTP context has not been initialized');
     }
-    return context;
+    return RequestContext<dynamic>.withBody(
+        context.request,
+        context.rawBody,
+        providers,
+        values,
+        hooksServices,
+        explicitType: dynamic,
+        shouldValidateMultipart: context.shouldValidateMultipart,
+      )
+      ..metadata = metadata
+      ..response = response;
   }
 
   /// Attaches a pre-built [RequestContext] to the current execution context.

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:serinus/serinus.dart';
 import 'package:test/test.dart';
 
@@ -89,21 +88,44 @@ void main() {
           logLevels: {LogLevel.none},
           port: 3001,
         );
+        WebSocket? ws;
+        WebSocket? unexpectedWs;
+        var invalidPathRejected = false;
         await app.serve();
         try {
-          await WebSocket.connect('ws://localhost:3001/');
-        } catch (e) {
-          expect(e, isA<WebSocketException>());
+          try {
+            unexpectedWs = await WebSocket.connect(
+              'ws://localhost:3001/',
+            ).timeout(const Duration(seconds: 5));
+            fail(
+              'Expected invalid websocket path ws://localhost:3001/ to be rejected, but connection succeeded.',
+            );
+          } on WebSocketException {
+            invalidPathRejected = true;
+          }
+
+          expect(invalidPathRejected, isTrue);
+
+          ws = await WebSocket.connect(
+            'ws://localhost:3001/ws',
+          ).timeout(const Duration(seconds: 5));
+          ws.add('Hello from client');
+          final message = await ws.first.timeout(const Duration(seconds: 5));
+          expect(message, 'Hello from client');
+        } finally {
+          if (unexpectedWs != null) {
+            await unexpectedWs.close().timeout(const Duration(seconds: 2));
+          }
+          if (ws != null) {
+            await ws.close().timeout(const Duration(seconds: 2));
+          }
+          await app.close().timeout(const Duration(seconds: 5));
         }
-        final ws = await WebSocket.connect('ws://localhost:3001/ws');
-        ws.add('Hello from client');
-        final message = await ws.firstOrNull;
-        expect(message, 'Hello from client');
       },
     );
 
     test(
-      'when a module import the WsModule and use a WebSocketGateway and the path param is not null then the gateway should only accept connections on the specified path',
+      'when a module import the WsModule and use a WebSocketGatewayMixins then it should trigger connect callback and echo messages',
       () async {
         final gateway = WsGatewayMixins(path: '/ws');
         final app = await serinus.createApplication(

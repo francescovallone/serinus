@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -29,6 +30,19 @@ class TestObject {
   }
 }
 
+class _TestModelProvider extends ModelProvider {
+  @override
+  Map<String, Function> get fromJsonModels => {
+    'TestObject': (json) => TestObject.fromJson(json as Map<String, dynamic>),
+  };
+
+  @override
+  // TODO: implement toJsonModels
+  Map<String, Function> get toJsonModels => {
+    'TestObject': (model) => {'name': (model as TestObject).name},
+  };
+}
+
 class MockHttpHeaders extends Mock implements HttpHeaders {}
 
 Request _buildRequest({ContentType? contentType}) {
@@ -53,6 +67,42 @@ Request _buildRequest({ContentType? contentType}) {
   when(() => incoming.body()).thenReturn('');
   when(() => incoming.json()).thenReturn(null);
   when(() => incoming.bytes()).thenAnswer((_) async => Uint8List(0));
+  when(() => incoming.stream()).thenAnswer((_) => const Stream.empty());
+  when(() => incoming.formData()).thenAnswer(
+    (_) async => FormData(
+      contentType: ContentType('application', 'x-www-form-urlencoded'),
+    ),
+  );
+  return Request(incoming);
+}
+
+Request _buildRequestWithBody({
+  required Object? jsonBody,
+  ContentType? contentType,
+}) {
+  final incoming = _MockIncomingMessage();
+  final effectiveContentType = contentType ?? jsonContentType;
+  when(() => incoming.queryParameters).thenReturn({});
+  when(() => incoming.headers).thenReturn(SerinusHeaders(MockHttpHeaders()));
+  when(() => incoming.contentType).thenReturn(effectiveContentType);
+  when(() => incoming.method).thenReturn('POST');
+  when(() => incoming.path).thenReturn('/');
+  when(() => incoming.uri).thenReturn(Uri.parse('http://localhost'));
+  when(() => incoming.id).thenReturn('req-2');
+  when(() => incoming.host).thenReturn('localhost');
+  when(() => incoming.hostname).thenReturn('localhost');
+  when(() => incoming.port).thenReturn(3000);
+  when(() => incoming.cookies).thenReturn(const []);
+  when(() => incoming.segments).thenReturn(const []);
+  when(() => incoming.clientInfo).thenReturn(null);
+  when(() => incoming.contentLength).thenReturn(1);
+  when(() => incoming.isWebSocket).thenReturn(false);
+  when(() => incoming.webSocketKey).thenReturn('');
+  when(() => incoming.body()).thenReturn(jsonEncode(jsonBody));
+  when(() => incoming.json()).thenReturn(jsonBody);
+  when(
+    () => incoming.bytes(),
+  ).thenAnswer((_) async => Uint8List.fromList(utf8.encode('x')));
   when(() => incoming.stream()).thenAnswer((_) => const Stream.empty());
   when(() => incoming.formData()).thenAnswer(
     (_) async => FormData(
@@ -169,5 +219,112 @@ void main() {
       expect(context.body, isA<TestObject>());
       expect((context.body as TestObject).name, equals('bird'));
     });
+
+    test('defers typed conversion until explicitly requested', () async {
+      final request = _buildRequestWithBody(jsonBody: {'name': 'bird'});
+      final modelProvider = _MockModelProvider();
+      final context = await RequestContext.create<TestObject>(
+        request: request,
+        providers: <Type, Provider>{},
+        values: <ValueToken, Object?>{},
+        hooksServices: <Type, Object>{},
+        modelProvider: modelProvider,
+        rawBody: false,
+        explicitType: TestObject,
+      );
+
+      expect(context.request.body, isA<Map<String, dynamic>>());
+      expect((context.request.body as Map<String, dynamic>)['name'], 'bird');
+
+      context.convertBodyToDeclaredType();
+
+      expect(context.body, isA<TestObject>());
+      expect(context.body.name, equals('bird'));
+      expect(context.request.body, isA<TestObject>());
+    });
+
+    test(
+      'defers typed conversion for create<TBody> without explicitType',
+      () async {
+        final request = _buildRequestWithBody(jsonBody: {'name': 'bird'});
+        final context = await RequestContext.create<TestObject>(
+          request: request,
+          providers: <Type, Provider>{},
+          values: <ValueToken, Object?>{},
+          hooksServices: <Type, Object>{},
+          modelProvider: _TestModelProvider(),
+          rawBody: false,
+        );
+
+        expect(context.rawBody, isA<Map<String, dynamic>>());
+        expect(
+          (context.rawBody as Map<String, dynamic>)['name'],
+          equals('bird'),
+        );
+
+        context.convertBodyToDeclaredType();
+
+        expect(context.body, isA<TestObject>());
+        expect(context.body.name, equals('bird'));
+        expect(context.request.body, isA<TestObject>());
+      },
+    );
+
+    test('switchToHttp exposes raw body before conversion', () async {
+      final request = _buildRequestWithBody(jsonBody: {'name': 'bird'});
+      final context = await RequestContext.create<TestObject>(
+        request: request,
+        providers: <Type, Provider>{},
+        values: <ValueToken, Object?>{},
+        hooksServices: <Type, Object>{},
+        modelProvider: _TestModelProvider(),
+        rawBody: false,
+        explicitType: TestObject,
+      );
+
+      final executionContext = ExecutionContext(
+        HostType.http,
+        <Type, Provider>{},
+        <ValueToken, Object?>{},
+        <Type, Object>{},
+        HttpArgumentsHost(request),
+      );
+      executionContext.attachHttpContext(context);
+
+      final httpContext = executionContext.switchToHttp();
+
+      expect(httpContext.body, isA<Map<String, dynamic>>());
+      expect(
+        (httpContext.body as Map<String, dynamic>)['name'],
+        equals('bird'),
+      );
+
+      context.convertBodyToDeclaredType();
+
+      expect(context.body, isA<TestObject>());
+    });
+
+    test(
+      're-converts typed body when request.body is replaced later',
+      () async {
+        final request = _buildRequestWithBody(jsonBody: {'name': 'bird'});
+        final context = await RequestContext.create<TestObject>(
+          request: request,
+          providers: <Type, Provider>{},
+          values: <ValueToken, Object?>{},
+          hooksServices: <Type, Object>{},
+          modelProvider: _TestModelProvider(),
+          rawBody: false,
+        );
+
+        context.convertBodyToDeclaredType();
+        expect(context.body.name, equals('bird'));
+
+        request.body = {'name': 'hawk'};
+
+        expect(context.body, isA<TestObject>());
+        expect(context.body.name, equals('hawk'));
+      },
+    );
   });
 }

@@ -122,6 +122,19 @@ class MyModelProvider extends ModelProvider {
   };
 }
 
+class MyPipe extends Pipe {
+  @override
+  Future<void> transform(ExecutionContext context) async {
+    print('MyPipe executed');
+    if (context.argumentsHost is HttpArgumentsHost) {
+      final reqContext = context.switchToHttp();
+      print('Request path: ${reqContext.request.path}');
+      print('Request body before transformation: ${reqContext.body}');
+      reqContext.body = {'name': 'bird', 'value': 42};
+    }
+  }
+}
+
 void main(List<String> arguments) async {
   final application = await serinus.createMinimalApplication(
     host: InternetAddress.anyIPv4.address,
@@ -129,9 +142,10 @@ void main(List<String> arguments) async {
     logger: ConsoleLogger(prefix: 'Serinus New Logger'),
     modelProvider: MyModelProvider(),
   );
+  application.use(MyPipe());
   application.provide(TestProvider());
-  application.get('/', (RequestContext context) async {
-    return context.use<TestProvider>().counter;
+  application.post('/', (RequestContext<MyObject> context) async {
+    return context.body;
   });
   await application.serve();
 }

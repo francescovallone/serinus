@@ -131,14 +131,27 @@ class RoutesResolver {
       _container.config.globalHooks.services,
       HttpArgumentsHost(wrappedRequest),
     );
-    final requestContext = await RequestContext.create<dynamic>(
-      request: wrappedRequest,
-      providers: providers,
-      values: values,
-      hooksServices: _container.config.globalHooks.services,
-      modelProvider: _container.config.modelProvider,
-      rawBody: _container.applicationRef.rawBody,
-    );
+    RequestContext requestContext;
+    try {
+      requestContext = await RequestContext.create<dynamic>(
+        request: wrappedRequest,
+        providers: providers,
+        values: values,
+        hooksServices: _container.config.globalHooks.services,
+        modelProvider: _container.config.modelProvider,
+        rawBody: _container.applicationRef.rawBody,
+      );
+    } on SerinusException {
+      requestContext = RequestContext.withBody(
+        wrappedRequest,
+        wrappedRequest.body,
+        providers,
+        values,
+        _container.config.globalHooks.services,
+        modelProvider: _container.config.modelProvider,
+        explicitType: dynamic,
+      );
+    }
     executionContext.attachHttpContext(requestContext);
     executionContext.response.statusCode = exception.statusCode;
     if (request.events.hasListener) {
