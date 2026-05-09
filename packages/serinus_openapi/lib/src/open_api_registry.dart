@@ -220,7 +220,10 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
 
   Future<void> _exploreModules([int? modificationStamp]) async {
     final result = <String, List<RouteDescription>>{};
-    final analyzer = Analyzer(version, includeGeneratedFiles: includeGeneratedFiles);
+    final analyzer = Analyzer(
+      version,
+      includeGeneratedFiles: includeGeneratedFiles,
+    );
     _generatedDefinitions = {};
     _generatedComponentSchemas = {};
     if (analyze) {

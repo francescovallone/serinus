@@ -116,6 +116,7 @@ class Analyzer {
         continue;
       }
       final controllerName = classDeclaration.namePart.typeName.lexeme;
+      // ignore: deprecated_member_use
       for (final member in classDeclaration.members) {
         if (member is MethodDeclaration) {
           methods.add(member);
@@ -353,7 +354,6 @@ class Analyzer {
     }
     return handlers;
   }
-
 
   Map<String, RouteDescription> _analyzeArguments(
     Iterable<Expression> expressions,
