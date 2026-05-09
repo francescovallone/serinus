@@ -24,23 +24,24 @@ paths:
       responses:
         200:
           description: "Successful response"
-          content:
-            application/json:
-              schema:
-                type: "array"
-                maxItems: 100
-                items:
-                  $ref: "#/components/schemas/MyObject"
         400:
           description: "Bad Request"
           content:
             application/json:
-              example:
-                message: "Bad Request!"
-                statusCode: 400
-                uri: "No Uri"
               schema:
-                $ref: "#/components/schemas/SerinusException"
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                  statusCode:
+                    type: "integer"
+                    format: "int32"
+                  uri:
+                    type: "string"
+                example:
+                  message: "Bad Request!"
+                  statusCode: 400
+                  uri: "No Uri"
   /post/{data}:
     post:
       tags:
@@ -68,12 +69,20 @@ paths:
           description: "Name cannot be empty"
           content:
             application/json:
-              example:
-                message: "Name cannot be empty"
-                statusCode: 400
-                uri: "No Uri"
               schema:
-                $ref: "#/components/schemas/SerinusException"
+                type: "object"
+                properties:
+                  message:
+                    type: "string"
+                  statusCode:
+                    type: "integer"
+                    format: "int32"
+                  uri:
+                    type: "string"
+                example:
+                  message: "Name cannot be empty"
+                  statusCode: 400
+                  uri: "No Uri"
   /a/post:
     post:
       tags:
@@ -89,6 +98,8 @@ paths:
       responses:
         201:
           description: "Success response"
+        400:
+          description: "Bad Request"
           content:
             application/json:
               schema:
@@ -96,36 +107,19 @@ paths:
                 properties:
                   message:
                     type: "string"
-        400:
-          description: "Bad Request"
-          content:
-            application/json:
-              example:
-                message: "Bad Request!"
-                statusCode: 400
-                uri: "No Uri"
-              schema:
-                $ref: "#/components/schemas/SerinusException"
+                  statusCode:
+                    type: "integer"
+                    format: "int32"
+                  uri:
+                    type: "string"
+                example:
+                  message: "Bad Request!"
+                  statusCode: 400
+                  uri: "No Uri"
 components:
   schemas:
-    SerinusException:
-      type: "object"
-      properties:
-        message:
-          type: "string"
-        statusCode:
-          type: "integer"
-          format: "int32"
-        uri:
-          type: "string"
-      required:
-        - "message"
-        - "statusCode"
-        - "uri"
     MyObject:
       type: "object"
       properties:
         name:
           type: "string"
-      required:
-        - "name"

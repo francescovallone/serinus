@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- fix: ensure OpenAPI spec is generated correctly and request bodies and exceptions are treated correctly.
+- feat: add `includeGeneratedFiles` option to `OpenApiModule` to allow including generated files in the analysis process, which can be useful for cases where generated code contains relevant annotations or models for OpenAPI documentation.
+
 ## 1.1.0
 
 - feat: add a complete test suite for `serinus_openapi` (annotations, analyzer, routes, schema descriptors, renderers, and module factories).
@@ -11,7 +16,6 @@
 - chore: bump package version to `1.1.0`.
 - chore: update `openapi_types` dependency to `^2.1.0`.
 - docs/example: update package example to use `ScalarUIOptions` and refresh generated `openapi.yaml` output.
-
 
 ## 1.0.14
 

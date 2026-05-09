@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -21,8 +20,11 @@ class Analyzer {
   /// The OpenAPI version being used.
   final OpenApiVersion version;
 
+  /// Whether to include generated files (ending with .g.dart) in the analysis.
+  final bool includeGeneratedFiles;
+
   /// Constructor for [Analyzer].
-  Analyzer(this.version);
+  Analyzer(this.version, {this.includeGeneratedFiles = false});
 
   /// A map of model types to their schema descriptors.
   final Map<InterfaceElement, SchemaDescriptor> modelTypeSchemas = {};
@@ -59,7 +61,7 @@ class Analyzer {
       final analyzedFiles = context.contextRoot.analyzedFiles();
       for (final filePath in analyzedFiles) {
         if (!filePath.endsWith('.dart') ||
-            filePath.endsWith('.g.dart') ||
+            (!includeGeneratedFiles && filePath.endsWith('.g.dart')) ||
             filePath
                 .replaceAll(file.absolute.path, '')
                 .replaceAll('\\', '/')
@@ -106,7 +108,6 @@ class Analyzer {
     }
     for (final classDeclaration in classDeclarations.values) {
       final methods = <MethodDeclaration>[];
-      final constructors = <ConstructorDeclaration>[];
       final handlers = <String, RouteDescription>{};
       final isController =
           classDeclaration.extendsClause?.superclass.name.value() ==
@@ -114,23 +115,16 @@ class Analyzer {
       if (!isController) {
         continue;
       }
-      String controllerName = '';
-      for (final child in classDeclaration.childEntities) {
-        if (child is Token && child.type == TokenType.IDENTIFIER) {
-          controllerName = child.value().toString();
-        }
-        if (child is MethodDeclaration) {
-          methods.add(child);
-        } else if (child is ConstructorDeclaration) {
-          constructors.add(child);
-          final blockFunctionBody = child.childEntities
-              .whereType<BlockFunctionBody>()
-              .firstOrNull;
-          if (blockFunctionBody != null) {
-            final block = blockFunctionBody.block;
-            final statements = block.statements
-                .whereType<ExpressionStatement>();
-            final analyzedHandlers = _analyzeStatements(statements);
+      final controllerName = classDeclaration.namePart.typeName.lexeme;
+      for (final member in classDeclaration.members) {
+        if (member is MethodDeclaration) {
+          methods.add(member);
+        } else if (member is ConstructorDeclaration) {
+          final body = member.body;
+          if (body is BlockFunctionBody) {
+            final analyzedHandlers = _analyzeStatements(
+              body.block.statements.whereType<ExpressionStatement>(),
+            );
             handlers.addAll(analyzedHandlers);
           }
         }
@@ -349,27 +343,17 @@ class Analyzer {
   ) {
     final handlers = <String, RouteDescription>{};
     for (final statement in statements) {
-      if (statement.beginToken.value().toString() == 'ON') {
-        final methods = statement.childEntities.whereType<MethodInvocation>();
-        final analyzedMethods = _analyzeMethods(methods);
-        handlers.addAll(analyzedMethods);
+      final expression = statement.expression;
+      if (expression is MethodInvocation &&
+          expression.methodName.name == 'on') {
+        handlers.addAll(
+          _analyzeArguments(expression.argumentList.arguments),
+        );
       }
     }
     return handlers;
   }
 
-  Map<String, RouteDescription> _analyzeMethods(
-    Iterable<MethodInvocation> methods,
-  ) {
-    final handlers = <String, RouteDescription>{};
-    for (final method in methods) {
-      final arguments = method.argumentList.arguments;
-      if (arguments.isNotEmpty) {
-        handlers.addAll(_analyzeArguments(arguments));
-      }
-    }
-    return handlers;
-  }
 
   Map<String, RouteDescription> _analyzeArguments(
     Iterable<Expression> expressions,

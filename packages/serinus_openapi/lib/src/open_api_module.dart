@@ -84,6 +84,9 @@ class OpenApiModule extends Module {
   /// Remember that paths must be absolute to [Directory.current]
   final List<String> includePaths;
 
+  /// Whether to include generated files (ending with .g.dart) in the analysis.
+  final bool includeGeneratedFiles;
+
   OpenApiModule._(
     this._document, {
     this.path = 'openapi',
@@ -94,6 +97,7 @@ class OpenApiModule extends Module {
     this.parseType = OpenApiParseType.yaml,
     this.optimizedAnalysis = false,
     this.includePaths = const [],
+    this.includeGeneratedFiles = false,
   });
 
   static Map<String, PathItemObjectV3> _defaultV3Paths() {
@@ -114,6 +118,7 @@ class OpenApiModule extends Module {
     OpenApiParseType parseType = OpenApiParseType.yaml,
     bool optimizedAnalysis = false,
     List<String> includePaths = const [],
+    bool includeGeneratedFiles = false,
   }) {
     final DocumentV2 document = DocumentV2(
       info: info,
@@ -133,6 +138,7 @@ class OpenApiModule extends Module {
       parseType: parseType,
       optimizedAnalysis: optimizedAnalysis,
       includePaths: includePaths,
+      includeGeneratedFiles: includeGeneratedFiles,
     );
   }
 
@@ -150,6 +156,7 @@ class OpenApiModule extends Module {
     OpenApiParseType parseType = OpenApiParseType.yaml,
     bool optimizedAnalysis = false,
     List<String> includePaths = const [],
+    bool includeGeneratedFiles = false,
   }) {
     final DocumentV3 document = DocumentV3(
       info: info,
@@ -169,6 +176,7 @@ class OpenApiModule extends Module {
       optimizedAnalysis: optimizedAnalysis,
       parseType: parseType,
       includePaths: includePaths,
+      includeGeneratedFiles: includeGeneratedFiles,
     );
   }
 
@@ -185,6 +193,7 @@ class OpenApiModule extends Module {
     OpenApiParseType parseType = OpenApiParseType.yaml,
     bool optimizedAnalysis = false,
     List<String> includePaths = const [],
+    bool includeGeneratedFiles = false,
   }) {
     final DocumentV31 document = DocumentV31(
       info: info,
@@ -202,6 +211,7 @@ class OpenApiModule extends Module {
       parseType: parseType,
       optimizedAnalysis: optimizedAnalysis,
       includePaths: includePaths,
+      includeGeneratedFiles: includeGeneratedFiles,
     );
   }
 
@@ -223,6 +233,7 @@ class OpenApiModule extends Module {
           parseType: parseType,
           optimizedAnalysis: optimizedAnalysis,
           includePaths: includePaths,
+          includeGeneratedFiles: includeGeneratedFiles,
         ),
       ],
     );

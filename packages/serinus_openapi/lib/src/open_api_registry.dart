@@ -49,6 +49,9 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
   /// Schemas generated from analyzer for OpenAPI v3 components.schemas.
   Map<String, OpenApiObject> _generatedComponentSchemas = {};
 
+  /// Whether to include generated files (ending with .g.dart) in the analysis.
+  final bool includeGeneratedFiles;
+
   /// The generated OpenAPI document content.
   String get content {
     return _content!;
@@ -65,6 +68,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
     this.analyze, {
     this.parseType = OpenApiParseType.yaml,
     this.optimizedAnalysis = false,
+    this.includeGeneratedFiles = false,
     this.includePaths = const [],
   });
 
@@ -216,7 +220,7 @@ class OpenApiRegistry extends Provider with OnApplicationBootstrap {
 
   Future<void> _exploreModules([int? modificationStamp]) async {
     final result = <String, List<RouteDescription>>{};
-    final analyzer = Analyzer(version);
+    final analyzer = Analyzer(version, includeGeneratedFiles: includeGeneratedFiles);
     _generatedDefinitions = {};
     _generatedComponentSchemas = {};
     if (analyze) {
