@@ -110,3 +110,33 @@ Future<void> main() async {
 ```
 
 Once a pipe is added as a global pipe, it will be applied to all incoming requests, regardless of the route or controller.
+
+## Transform the body of a request
+
+Pipes can be used to transform the body of a request before it reaches the route handler. This is useful for scenarios where you want to modify the incoming data or extract specific information from it.
+
+In the `transform` method of a pipe, you can access the request body using the `switchToHttp` method of the `ExecutionContext`. You can then modify the body and replace it using the `replaceRawBody` method. Here's an example:
+
+```dart
+import 'package:serinus/serinus.dart';
+
+class MyPipe extends Pipe {
+  @override
+  Future<void> transform(ExecutionContext context) async {
+    final reqContext = context.switchToHttp();
+    print('Request path: ${reqContext.request.path}');
+    print('Request body before transformation: ${reqContext.body}');
+    final obj = object({
+      'name': string(),
+      'value': number(),
+      'data': string(),
+    });
+    final result = obj.parse(reqContext.body);
+    (result.value).remove('data');
+    reqContext.replaceRawBody(result.value);
+    print('Request body after transformation: ${reqContext.body}');
+  }
+}
+```
+
+In this example, the pipe transforms the incoming request body by parsing it, removing the `data` property, and replacing the original body with the modified version. The transformed body is then available in the route handler when the request is processed.
