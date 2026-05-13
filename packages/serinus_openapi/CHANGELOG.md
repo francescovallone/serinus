@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3
+
+- chore: update analyzer dependency to ^13.0.0 to ensure compatibility with latest Dart SDK versions and improve analysis capabilities for OpenAPI schema generation.
+
 ## 1.1.2
 
 - fix: prevent recursive analysis of the same objects in generatePropertiesFromJsonObject, which could lead to infinite loops when generating OpenAPI schemas from JsonObject-annotated classes that reference themselves or each other.

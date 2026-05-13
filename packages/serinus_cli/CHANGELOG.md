@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.7
+
+- chore: update dependencies.
+
+## 2.1.6
+
+- fix: align the constructor of the generated controllers with the new version of the framework, removing the `path` named parameter and replacing it with a positional parameter. This change ensures that the generated code is compatible with the latest version of the Serinus framework and follows the updated conventions for defining controller paths. The constructor now directly calls `super('/${itemName.getSnakeCase()}')` to set the path for the controller without using a named parameter.
+
 ## 2.1.5
 
 - fix: improve check for globs and relative paths to ensure hot restart functionality works correctly when using the `run` command with the `--dev` option. This includes normalizing paths for Windows and ensuring that changes to .dart files are properly detected and trigger a restart of the application.

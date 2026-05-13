@@ -7,7 +7,6 @@ import 'package:mason/mason.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:serinus_cli/src/commands/generate/builder.dart';
-import 'package:serinus_cli/src/commands/generate/generate_client/generate_client_command.dart';
 import 'package:serinus_cli/src/commands/generate/generate_models/generate_models_command.dart';
 import 'package:serinus_cli/src/commands/generate/generator/generator.dart';
 import 'package:serinus_cli/src/commands/generate/recase.dart';
@@ -25,7 +24,6 @@ class GenerateCommand extends Command<int> {
     Logger? logger,
   }) : _logger = logger {
     addSubcommand(GenerateModelsCommand(logger: _logger));
-    addSubcommand(GenerateClientCommand(logger: _logger));
     addSubcommand(_GenerateResource(logger: _logger));
     addSubcommand(_GenerateModule(logger: _logger));
     addSubcommand(_GenerateController(logger: _logger));
@@ -138,18 +136,19 @@ class _GenerateController extends GenerateItemCommand {
   _GenerateController({
     super.logger,
   }) : super(itemName: 'controller') {
-    argParser.addOption(
-      'name',
-      abbr: 'n',
-      help: 'The name of the $name to generate',
-      valueHelp: 'name',
-      mandatory: true,
-    );
-    argParser.addFlag(
-      'force',
-      abbr: 'f',
-      help: 'Force the generation of the $name even if it already exists.',
-    );
+    argParser
+      ..addOption(
+        'name',
+        abbr: 'n',
+        help: 'The name of the $name to generate',
+        valueHelp: 'name',
+        mandatory: true,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Force the generation of the $name even if it already exists.',
+      );
   }
 
   @override
@@ -169,18 +168,19 @@ class _GenerateModule extends GenerateItemCommand {
   _GenerateModule({
     super.logger,
   }) : super(itemName: 'module') {
-    argParser.addOption(
-      'name',
-      abbr: 'n',
-      help: 'The name of the $name to generate',
-      valueHelp: 'name',
-      mandatory: true,
-    );
-    argParser.addFlag(
-      'force',
-      abbr: 'f',
-      help: 'Force the generation of the $name even if it already exists.',
-    );
+    argParser
+      ..addOption(
+        'name',
+        abbr: 'n',
+        help: 'The name of the $name to generate',
+        valueHelp: 'name',
+        mandatory: true,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Force the generation of the $name even if it already exists.',
+      );
   }
 
   @override
@@ -200,18 +200,19 @@ class _GenerateResource extends GenerateItemCommand {
   _GenerateResource({
     super.logger,
   }) : super(itemName: 'resource') {
-    argParser.addOption(
-      'name',
-      abbr: 'n',
-      help: 'The name of the $name to generate',
-      valueHelp: 'name',
-      mandatory: true,
-    );
-    argParser.addFlag(
-      'force',
-      abbr: 'f',
-      help: 'Force the generation of the $name even if it already exists.',
-    );
+    argParser
+      ..addOption(
+        'name',
+        abbr: 'n',
+        help: 'The name of the $name to generate',
+        valueHelp: 'name',
+        mandatory: true,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Force the generation of the $name even if it already exists.',
+      );
   }
 
   @override
@@ -245,18 +246,19 @@ class _GenerateProvider extends GenerateItemCommand {
   _GenerateProvider({
     super.logger,
   }) : super(itemName: 'provider') {
-    argParser.addOption(
-      'name',
-      abbr: 'n',
-      help: 'The name of the $name to generate',
-      valueHelp: 'name',
-      mandatory: true,
-    );
-    argParser.addFlag(
-      'force',
-      abbr: 'f',
-      help: 'Force the generation of the $name even if it already exists.',
-    );
+    argParser
+      ..addOption(
+        'name',
+        abbr: 'n',
+        help: 'The name of the $name to generate',
+        valueHelp: 'name',
+        mandatory: true,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Force the generation of the $name even if it already exists.',
+      );
   }
 
   @override

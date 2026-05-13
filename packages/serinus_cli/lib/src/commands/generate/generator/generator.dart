@@ -125,7 +125,7 @@ class Generator {
             Constructor((co) {
               co.initializers.add(
                 Code(
-                  "super(path: '/${itemName.getSnakeCase()}')",
+                  "super('/${itemName.getSnakeCase()}')",
                 ),
               );
               co.body = Block.of([

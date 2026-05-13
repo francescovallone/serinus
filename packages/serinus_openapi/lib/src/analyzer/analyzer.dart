@@ -98,11 +98,15 @@ class Analyzer {
           }
         }
       }
-      for (final providerElement in providerCollector.providers) {
-        final declaration = classDeclarations[providerElement];
-        if (declaration != null) {
-          _registerModelProviderDeclaration(providerElement, declaration);
-          classDeclarations.remove(providerElement);
+      for (final clazz in library.element.classes) {
+        final modelProvider = clazz.firstFragment.element.allSupertypes
+            .where((p) => p.getDisplayString() == 'ModelProvider')
+            .firstOrNull;
+        if (modelProvider != null) {
+          final declaration = classDeclarations[clazz.firstFragment.element];
+          if (declaration != null) {
+            _registerModelProviderDeclaration(clazz, declaration);
+          }
         }
       }
     }
@@ -117,7 +121,7 @@ class Analyzer {
       }
       final controllerName = classDeclaration.namePart.typeName.lexeme;
       // ignore: deprecated_member_use
-      for (final member in classDeclaration.members) {
+      for (final member in classDeclaration.body.members) {
         if (member is MethodDeclaration) {
           methods.add(member);
         } else if (member is ConstructorDeclaration) {
@@ -182,8 +186,7 @@ class Analyzer {
       return;
     }
     final modelTypes = <InterfaceType>{};
-    // ignore: deprecated_member_use
-    for (final member in declaration.members) {
+    for (final member in declaration.body.members) {
       if (member is MethodDeclaration && member.isGetter) {
         final name = member.name.lexeme;
         if (name == 'toJsonModels' || name == 'fromJsonModels') {
@@ -235,6 +238,7 @@ class Analyzer {
 
   void _registerModelType(InterfaceType type) {
     final element = type.element;
+    print(type);
     if (!_isRegisterableModelElement(element)) {
       return;
     }
@@ -253,6 +257,29 @@ class Analyzer {
     return element.library.uri.scheme != 'dart';
   }
 
+  /// Finds the class declaration for a given interface element.
+  ClassDeclaration? findClassDeclaration(InterfaceElement element) {
+    final direct = classDeclarations[element];
+    if (direct != null) {
+      return direct;
+    }
+
+    for (final entry in classDeclarations.entries) {
+      if (_matchesInterfaceElement(entry.key, element)) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
+  bool _matchesInterfaceElement(
+    InterfaceElement left,
+    InterfaceElement right,
+  ) {
+    return left.displayName == right.displayName &&
+        left.library.uri == right.library.uri;
+  }
+
   SchemaDescriptor _buildSchemaDescriptorFromClass(
     InterfaceType type,
     Set<InterfaceElement> visited,
@@ -263,10 +290,7 @@ class Analyzer {
     }
     final properties = <String, SchemaDescriptor>{};
     for (final field in element.fields) {
-      if (field.isStatic ||
-          // ignore: deprecated_member_use
-          field.isSynthetic ||
-          field.displayName.startsWith('_')) {
+      if (field.isStatic || field.displayName.startsWith('_')) {
         continue;
       }
       final descriptor =
@@ -290,6 +314,16 @@ class Analyzer {
       final annotationType = expression.type.type;
       if (annotationType is InterfaceType) {
         return annotationType;
+      }
+    }
+    if (expression is InstanceCreationExpression) {
+      final createdType = expression.constructorName.type.type;
+      if (createdType is InterfaceType) {
+        return createdType;
+      }
+      final element = expression.constructorName.type.element;
+      if (element is InterfaceElement) {
+        return element.thisType;
       }
     }
     if (expression is ConstructorReference) {
@@ -334,8 +368,7 @@ class Analyzer {
 
   bool _extendsModelProvider(InterfaceElement element) {
     return element.allSupertypes.any(
-      (superType) =>
-          superType.element.thisType.getDisplayString() == 'ModelProvider',
+      (superType) => superType.element.displayName == 'ModelProvider',
     );
   }
 
@@ -356,7 +389,7 @@ class Analyzer {
   }
 
   Map<String, RouteDescription> _analyzeArguments(
-    Iterable<Expression> expressions,
+    Iterable<Argument> expressions,
   ) {
     final handlers = <String, RouteDescription>{};
     for (final expr in expressions) {
@@ -382,7 +415,7 @@ class Analyzer {
       description.requestBody = requestInfo;
     }
     final contextParameter = parameters.parameters.first;
-    if (contextParameter is SimpleFormalParameter) {
+    if (contextParameter is RegularFormalParameter) {
       final contextType = contextParameter.type as NamedType;
       final typeString = contextType.type?.getDisplayString();
       final genericBody = RegExp(
@@ -786,9 +819,10 @@ class Analyzer {
       }
 
       var required = false;
-      for (final queryArg in queryArgs.whereType<NamedExpression>()) {
-        if (queryArg.name.label.name == 'required') {
-          required = _boolFromExpression(queryArg.expression) ?? required;
+      for (final queryArg in queryArgs.whereType<NamedArgument>()) {
+        if (queryArg.name.stringValue == 'required') {
+          required =
+              _boolFromExpression(queryArg.argumentExpression) ?? required;
         }
       }
 
@@ -1028,8 +1062,8 @@ class Analyzer {
     bool required = true;
 
     for (final arg in args) {
-      if (arg is! NamedExpression) {
-        final resolved = _resolveInterfaceType(arg);
+      if (arg is! NamedArgument) {
+        final resolved = _resolveInterfaceType(arg.argumentExpression);
         if (resolved != null) {
           type = resolved;
         } else {
@@ -1037,15 +1071,15 @@ class Analyzer {
         }
         continue;
       }
-      final label = arg.name.label.name;
+      final label = arg.name.stringValue;
       if (label == 'contentType') {
-        final value = _stringFromExpression(arg.expression);
+        final value = _stringFromExpression(arg.argumentExpression);
         if (value != null) {
           contentType = value;
         }
       }
       if (label == 'required') {
-        final value = _boolFromExpression(arg.expression);
+        final value = _boolFromExpression(arg.argumentExpression);
         if (value != null) {
           required = value;
         }
@@ -1361,7 +1395,7 @@ class Analyzer {
   }
 
   OpenApiObject? _buildResponseFromArguments(
-    Iterable<Expression> arguments, {
+    Iterable<Argument> arguments, {
     String? constructorName,
   }) {
     if (constructorName == 'oneOf') {
@@ -1374,26 +1408,37 @@ class Analyzer {
     var parsedHeaders = <String, String>{};
 
     for (final arg in arguments) {
-      if (arg is! NamedExpression) {
+      if (arg is! NamedArgument) {
         continue;
       }
-      final label = arg.name.label.name;
+      final label = arg.name.stringValue;
       if (label == 'description') {
-        final value = _stringFromExpression(arg.expression);
+        final value = _stringFromExpression(arg.argumentExpression);
         if (value != null) {
           description = value;
         }
       } else if (label == 'type') {
-        responseType = _resolveInterfaceType(arg.expression) ?? responseType;
+        responseType =
+            _resolveInterfaceType(arg.argumentExpression) ?? responseType;
         fallbackSchema =
-            _schemaFromTypeExpression(arg.expression) ?? fallbackSchema;
+            _schemaFromTypeExpression(arg.argumentExpression) ?? fallbackSchema;
       } else if (label == 'contentType') {
-        final value = _stringFromExpression(arg.expression);
+        final value = _stringFromExpression(arg.argumentExpression);
+        if (value != null) {
+          description = value;
+        }
+      } else if (label == 'type') {
+        responseType =
+            _resolveInterfaceType(arg.argumentExpression) ?? responseType;
+        fallbackSchema =
+            _schemaFromTypeExpression(arg.argumentExpression) ?? fallbackSchema;
+      } else if (label == 'contentType') {
+        final value = _stringFromExpression(arg.argumentExpression);
         if (value != null) {
           contentType = value;
         }
       } else if (label == 'headers') {
-        parsedHeaders = _parseHeadersToStringMap(arg.expression);
+        parsedHeaders = _parseHeadersToStringMap(arg.argumentExpression);
       }
     }
 
@@ -1412,7 +1457,7 @@ class Analyzer {
   }
 
   OpenApiObject? _buildOneOfResponseFromArguments(
-    Iterable<Expression> arguments,
+    Iterable<Argument> arguments,
   ) {
     String description = 'Success response';
     String? contentType;
@@ -1420,18 +1465,19 @@ class Analyzer {
     final oneOfSchemas = <SchemaDescriptor>[];
 
     for (final arg in arguments) {
-      if (arg is! NamedExpression) {
+      if (arg is! NamedArgument) {
         continue;
       }
-      final label = arg.name.label.name;
+      final label = arg.name.stringValue;
       if (label == 'description') {
-        final value = _stringFromExpression(arg.expression);
+        final value = _stringFromExpression(arg.argumentExpression);
         if (value != null) {
           description = value;
         }
       } else if (label == 'types') {
-        if (arg.expression is ListLiteral) {
-          for (final element in (arg.expression as ListLiteral).elements) {
+        if (arg.argumentExpression is ListLiteral) {
+          for (final element
+              in (arg.argumentExpression as ListLiteral).elements) {
             if (element is! Expression) {
               continue;
             }
@@ -1448,12 +1494,12 @@ class Analyzer {
           }
         }
       } else if (label == 'contentType') {
-        final value = _stringFromExpression(arg.expression);
+        final value = _stringFromExpression(arg.argumentExpression);
         if (value != null) {
           contentType = value;
         }
       } else if (label == 'headers') {
-        parsedHeaders = _parseHeadersToStringMap(arg.expression);
+        parsedHeaders = _parseHeadersToStringMap(arg.argumentExpression);
       }
     }
 
@@ -1503,7 +1549,8 @@ class Analyzer {
     return result;
   }
 
-  String? _stringFromExpression(Expression expression) {
+  String? _stringFromExpression(Argument argument) {
+    final expression = argument.argumentExpression;
     final normalized = _normalizeExpression(expression);
     if (normalized is SimpleStringLiteral) {
       return normalized.value;
@@ -1511,7 +1558,8 @@ class Analyzer {
     return null;
   }
 
-  bool? _boolFromExpression(Expression expression) {
+  bool? _boolFromExpression(Argument argument) {
+    final expression = argument.argumentExpression;
     final normalized = _normalizeExpression(expression);
     if (normalized is BooleanLiteral) {
       return normalized.value;
@@ -1519,7 +1567,8 @@ class Analyzer {
     return null;
   }
 
-  int? _intFromExpression(Expression expression) {
+  int? _intFromExpression(Argument argument) {
+    final expression = argument.argumentExpression;
     final normalized = _normalizeExpression(expression);
     if (normalized is IntegerLiteral) {
       return normalized.value;
@@ -1527,7 +1576,8 @@ class Analyzer {
     return null;
   }
 
-  SchemaDescriptor? _schemaFromTypeExpression(Expression expression) {
+  SchemaDescriptor? _schemaFromTypeExpression(Argument argument) {
+    final expression = argument.argumentExpression;
     final source = _normalizeTypeSource(expression.toSource());
     if (source.isEmpty) {
       return null;
@@ -2106,10 +2156,7 @@ class Analyzer {
     }
     final properties = <String, SchemaDescriptor>{};
     for (final field in element.fields) {
-      if (field.isStatic ||
-          // ignore: deprecated_member_use
-          field.isSynthetic ||
-          field.displayName.startsWith('_')) {
+      if (field.isStatic || field.displayName.startsWith('_')) {
         continue;
       }
       final descriptor =

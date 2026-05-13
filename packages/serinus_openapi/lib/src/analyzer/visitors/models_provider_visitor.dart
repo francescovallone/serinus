@@ -20,9 +20,9 @@ class ModelProviderInvocationCollector extends RecursiveAstVisitor<void> {
       return;
     }
     for (final argument in node.argumentList.arguments) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == 'modelProvider') {
-        final interfaceType = _typeResolver(argument.expression);
+      if (argument is NamedArgument &&
+          argument.name.stringValue == 'modelProvider') {
+        final interfaceType = _typeResolver(argument.argumentExpression);
         if (interfaceType != null) {
           providers.add(interfaceType.element);
         }

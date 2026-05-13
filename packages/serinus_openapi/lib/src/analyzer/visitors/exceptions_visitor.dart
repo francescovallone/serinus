@@ -160,7 +160,7 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
   }
 
   ClassDeclaration? _findClassDeclaration(InterfaceType type) {
-    final existing = _analyzer.classDeclarations[type.element];
+    final existing = _analyzer.findClassDeclaration(type.element);
     if (existing != null) {
       return existing;
     }
@@ -340,13 +340,13 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
   }
 
   int? _statusCodeFromArgumentList(
-    NodeList<Expression> arguments,
+    NodeList<Argument> arguments,
     ConstructorDeclaration? constructor,
   ) {
     for (final argument in arguments) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == 'statusCode') {
-        final value = _evaluateIntConstant(argument.expression);
+      if (argument is NamedArgument &&
+          argument.name.stringValue == 'statusCode') {
+        final value = _evaluateIntConstant(argument.argumentExpression);
         if (value != null) {
           return value;
         }
@@ -358,7 +358,7 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     final positionalParams = _positionalParameters(constructor);
     var index = 0;
     for (final argument in arguments) {
-      if (argument is NamedExpression) {
+      if (argument is NamedArgument) {
         continue;
       }
       if (index >= positionalParams.length) {
@@ -378,9 +378,9 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
 
   int? _statusCodeFromSuperInvocation(SuperConstructorInvocation invocation) {
     for (final argument in invocation.argumentList.arguments) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == 'statusCode') {
-        final value = _evaluateIntConstant(argument.expression);
+      if (argument is NamedArgument &&
+          argument.name.stringValue == 'statusCode') {
+        final value = _evaluateIntConstant(argument.argumentExpression);
         if (value != null) {
           return value;
         }
@@ -466,7 +466,7 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
       return null;
     }
     // ignore: deprecated_member_use
-    final constructors = classDeclaration.members
+    final constructors = classDeclaration.body.members
         .whereType<ConstructorDeclaration>()
         .toList();
     if (constructors.isEmpty) {
@@ -488,7 +488,7 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
   }
 
   String? _messageFromArgumentList(
-    NodeList<Expression> arguments,
+    NodeList<Argument> arguments,
     ConstructorDeclaration? constructor,
     ConstructorElement? constructorElement,
   ) {
@@ -501,9 +501,8 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
           element.$2.displayName == 'message';
     }).firstOrNull;
     for (final (index, argument) in arguments.indexed) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == 'message') {
-        final value = _evaluateStringConstant(argument.expression);
+      if (argument is NamedArgument && argument.name.stringValue == 'message') {
+        final value = _evaluateStringConstant(argument.argumentExpression);
         if (value != null) {
           return value;
         }
@@ -525,7 +524,7 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     final positionalParams = _positionalParameters(constructor);
     var index = 0;
     for (final argument in arguments) {
-      if (argument is NamedExpression) {
+      if (argument is NamedArgument) {
         continue;
       }
       if (index >= positionalParams.length) {
@@ -548,13 +547,12 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     ConstructorDeclaration constructor,
   ) {
     for (final argument in invocation.argumentList.arguments) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == 'message') {
-        final literal = _evaluateStringConstant(argument.expression);
+      if (argument is NamedArgument && argument.name.stringValue == 'message') {
+        final literal = _evaluateStringConstant(argument.argumentExpression);
         if (literal != null) {
           return literal;
         }
-        final identifier = _identifierName(argument.expression);
+        final identifier = _identifierName(argument.argumentExpression);
         if (identifier != null) {
           final defaultValue = _defaultValueForParameterNamed(
             constructor,
@@ -589,17 +587,11 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     if (fragment != null) {
       return fragment.element.displayName;
     }
-    if (parameter is DefaultFormalParameter) {
-      return _parameterName(parameter.parameter);
-    }
     return null;
   }
 
   Expression? _defaultValueForParameter(FormalParameter parameter) {
-    if (parameter is DefaultFormalParameter) {
-      return parameter.defaultValue;
-    }
-    return null;
+    return parameter.defaultClause?.value;
   }
 
   Expression? _defaultValueForParameterNamed(
@@ -624,20 +616,26 @@ class ExceptionCollectorVisitor extends RecursiveAstVisitor<void> {
     return null;
   }
 
-  int? _evaluateIntConstant(Expression expression) {
-    if (expression is IntegerLiteral) {
-      return expression.value;
+  int? _evaluateIntConstant(Argument expression) {
+    final expr = expression is NamedArgument
+        ? expression.argumentExpression
+        : expression as Expression;
+    if (expr is IntegerLiteral) {
+      return expr.value;
     }
     return null;
   }
 
-  String? _evaluateStringConstant(Expression expression) {
-    if (expression is SimpleStringLiteral) {
-      return expression.value;
+  String? _evaluateStringConstant(Argument expression) {
+    final expr = expression is NamedArgument
+        ? expression.argumentExpression
+        : expression as Expression;
+    if (expr is SimpleStringLiteral) {
+      return expr.value;
     }
-    if (expression is AdjacentStrings) {
+    if (expr is AdjacentStrings) {
       final buffer = StringBuffer();
-      for (final string in expression.strings) {
+      for (final string in expr.strings) {
         final value = _evaluateStringConstant(string);
         if (value == null) {
           return null;
