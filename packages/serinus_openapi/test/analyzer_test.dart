@@ -138,6 +138,39 @@ class UserDto {
   final String name;
   UserDto(this.name);
 }
+
+class RecursiveDto {
+  final String name;
+  final RecursiveDto? child;
+
+  RecursiveDto(this.name, [this.child]);
+
+  Map<String, dynamic> toJson() => {'name': name};
+}
+
+class MutualFirstDto {
+  final MutualSecondDto? second;
+
+  MutualFirstDto([this.second]);
+
+  Map<String, dynamic> toJson() => {};
+}
+
+class MutualSecondDto {
+  final MutualFirstDto? first;
+
+  MutualSecondDto([this.first]);
+
+  Map<String, dynamic> toJson() => {};
+}
+
+class RecursiveMapDto {
+  final Map<String, RecursiveMapDto>? children;
+
+  RecursiveMapDto([this.children]);
+
+  Map<String, dynamic> toJson() => {};
+}
 ''');
 
       File(_join(libDir.path, 'app_controller.dart')).writeAsStringSync('''
@@ -180,6 +213,39 @@ class InlineBodyController extends Controller {
 
   @Body(UserDto, useRefForCustomTypes: false)
   Future<String> handleInline(RequestContext context) async {
+    return 'ok';
+  }
+}
+
+class RecursiveBodyController extends Controller {
+  RecursiveBodyController() : super('/') {
+    on(Route.get('/recursive'), handleRecursive);
+  }
+
+  @Body(RecursiveDto, useRefForCustomTypes: false)
+  Future<String> handleRecursive(RequestContext context) async {
+    return 'ok';
+  }
+}
+
+class MutualBodyController extends Controller {
+  MutualBodyController() : super('/') {
+    on(Route.get('/mutual'), handleMutual);
+  }
+
+  @Body(MutualFirstDto, useRefForCustomTypes: false)
+  Future<String> handleMutual(RequestContext context) async {
+    return 'ok';
+  }
+}
+
+class RecursiveMapBodyController extends Controller {
+  RecursiveMapBodyController() : super('/') {
+    on(Route.get('/recursive-map'), handleRecursiveMap);
+  }
+
+  @Body(RecursiveMapDto, useRefForCustomTypes: false)
+  Future<String> handleRecursiveMap(RequestContext context) async {
     return 'ok';
   }
 }
@@ -275,6 +341,49 @@ void main() {
       expect(schema.type.type, 'object');
       expect(schema.properties, contains('name'));
       expect(schema.properties!['name']!.type.type, 'string');
+    });
+
+    test('stops expanding self-referential inline schemas', () async {
+      final analyzer = Analyzer(OpenApiVersion.v3_0);
+
+      final result = await analyzer.analyze();
+
+      final schema = result['RecursiveBodyController']!.single.requestBody!.schema;
+
+      expect(schema.properties, contains('child'));
+      expect(schema.properties!['child']!.type.type, 'object');
+      expect(schema.properties!['child']!.properties, isNull);
+    });
+
+    test('stops expanding mutually recursive inline schemas', () async {
+      final analyzer = Analyzer(OpenApiVersion.v3_0);
+
+      final result = await analyzer.analyze();
+
+      final schema = result['MutualBodyController']!.single.requestBody!.schema;
+      final second = schema.properties!['second']!;
+
+      expect(second.type.type, 'object');
+      expect(second.properties, contains('first'));
+      expect(second.properties!['first']!.type.type, 'object');
+      expect(second.properties!['first']!.properties, isNull);
+    });
+
+    test('stops expanding recursive map values in inline schemas', () async {
+      final analyzer = Analyzer(OpenApiVersion.v3_0);
+
+      final result = await analyzer.analyze();
+
+      final schema = result['RecursiveMapBodyController']!
+          .single
+          .requestBody!
+          .schema;
+      final children = schema.properties!['children']!;
+
+      expect(children.type.type, 'object');
+      expect(children.additionalProperties, isNotNull);
+      expect(children.additionalProperties!.type.type, 'object');
+      expect(children.additionalProperties!.properties, isNull);
     });
   });
 

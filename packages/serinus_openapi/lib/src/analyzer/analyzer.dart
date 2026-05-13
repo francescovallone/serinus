@@ -2101,6 +2101,9 @@ class Analyzer {
     Set<InterfaceElement> visited,
   ) {
     final element = type.element;
+    if (!visited.add(element)) {
+      return null;
+    }
     final properties = <String, SchemaDescriptor>{};
     for (final field in element.fields) {
       if (field.isStatic ||
@@ -2114,6 +2117,7 @@ class Analyzer {
           SchemaDescriptor(type: OpenApiType.object());
       properties[field.displayName] = descriptor;
     }
+    visited.remove(element);
     return properties.isEmpty ? null : properties;
   }
 }

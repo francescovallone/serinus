@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- fix: prevent recursive analysis of the same objects in generatePropertiesFromJsonObject, which could lead to infinite loops when generating OpenAPI schemas from JsonObject-annotated classes that reference themselves or each other.
+
 ## 1.1.1
 
 - fix: ensure OpenAPI spec is generated correctly and request bodies and exceptions are treated correctly.
