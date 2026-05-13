@@ -1,11 +1,8 @@
 # Changelog
 
-## 2.1.7
-
-- chore: update dependencies.
-
 ## 2.1.6
 
+- chore: update dependencies.
 - fix: align the constructor of the generated controllers with the new version of the framework, removing the `path` named parameter and replacing it with a positional parameter. This change ensures that the generated code is compatible with the latest version of the Serinus framework and follows the updated conventions for defining controller paths. The constructor now directly calls `super('/${itemName.getSnakeCase()}')` to set the path for the controller without using a named parameter.
 
 ## 2.1.5
