@@ -238,7 +238,6 @@ class Analyzer {
 
   void _registerModelType(InterfaceType type) {
     final element = type.element;
-    print(type);
     if (!_isRegisterableModelElement(element)) {
       return;
     }
