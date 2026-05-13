@@ -348,7 +348,8 @@ void main() {
 
       final result = await analyzer.analyze();
 
-      final schema = result['RecursiveBodyController']!.single.requestBody!.schema;
+      final schema =
+          result['RecursiveBodyController']!.single.requestBody!.schema;
 
       expect(schema.properties, contains('child'));
       expect(schema.properties!['child']!.type.type, 'object');
@@ -374,10 +375,8 @@ void main() {
 
       final result = await analyzer.analyze();
 
-      final schema = result['RecursiveMapBodyController']!
-          .single
-          .requestBody!
-          .schema;
+      final schema =
+          result['RecursiveMapBodyController']!.single.requestBody!.schema;
       final children = schema.properties!['children']!;
 
       expect(children.type.type, 'object');
