@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:uuid/v4.dart';
 
 import '../adapters/adapters.dart';
@@ -19,6 +20,8 @@ import 'tracer.dart';
 /// The configuration for the application
 /// This is used to configure the application
 final class ApplicationConfig {
+  bool _isAttachedToApplication = false;
+
   /// The host to be used by the application
   /// Default is 'localhost'
   ///
@@ -112,7 +115,32 @@ final class ApplicationConfig {
   }
 
   /// The http adapter for the application
-  final HttpAdapter serverAdapter;
+  HttpAdapter _serverAdapter;
+
+  /// The active http adapter for the application.
+  HttpAdapter get serverAdapter => _serverAdapter;
+
+  set serverAdapter(HttpAdapter value) {
+    if (_isAttachedToApplication) {
+      throw StateError(
+        'Cannot change server adapter directly after application construction. Pass the adapter in the application constructor instead.',
+      );
+    }
+    replaceServerAdapter(value);
+  }
+
+  @internal
+  /// This method is used to attach the config to the application. It is called by the application constructor.
+  void attachToApplication() {
+    _isAttachedToApplication = true;
+  }
+
+  @internal
+  /// Replaces the configured server adapter before the config is attached to an application.
+  void replaceServerAdapter(HttpAdapter value) {
+    _serverAdapter = value;
+    adapters.replace(AdapterContainer.primaryHttpAdapterKey, value);
+  }
 
   /// The adapters used by the application
   ///
@@ -148,10 +176,10 @@ final class ApplicationConfig {
 
   /// The application config constructor
   ApplicationConfig({
-    required this.serverAdapter,
+    required HttpAdapter serverAdapter,
     this.modelProvider,
     this.keepAliveIdleTimeout,
-  }) {
-    adapters.add(serverAdapter);
+  }) : _serverAdapter = serverAdapter {
+    adapters.addAs(AdapterContainer.primaryHttpAdapterKey, _serverAdapter);
   }
 }

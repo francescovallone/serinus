@@ -1,3 +1,4 @@
+import '../../adapters/http_adapter.dart';
 import '../../contexts/contexts.dart';
 import '../../enums/http_method.dart';
 import '../../enums/log_level.dart';
@@ -66,6 +67,7 @@ class SerinusMinimalApplication extends SerinusApplication {
   SerinusMinimalApplication._(
     this._rootModule, {
     required super.config,
+    super.adapter,
     super.levels,
     super.logger,
   }) : super(entrypoint: _rootModule);
@@ -73,6 +75,7 @@ class SerinusMinimalApplication extends SerinusApplication {
   /// Factory constructor to create a new [SerinusMinimalApplication] instance.
   factory SerinusMinimalApplication({
     required ApplicationConfig config,
+    HttpAdapter? adapter,
     Set<LogLevel>? levels,
     LoggerService? logger,
   }) {
@@ -80,6 +83,7 @@ class SerinusMinimalApplication extends SerinusApplication {
     return SerinusMinimalApplication._(
       rootModule,
       config: config,
+      adapter: adapter,
       levels: levels,
       logger: logger,
     );
