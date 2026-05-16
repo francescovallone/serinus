@@ -157,26 +157,29 @@ class SerinusHttpAdapter
         properties.contentTypeString ??
         properties.contentType?.toString() ??
         'text/plain; charset=utf-8';
-    final Map<String, String> headers = Map.from(properties.headers);
-    headers[io.HttpHeaders.contentTypeHeader] = contentTypeValue;
+    _applyHeaders(response, properties.headers, {
+      io.HttpHeaders.contentTypeHeader: contentTypeValue,
+    });
 
     final bodyData = body.data;
     if (bodyData is io.File) {
       final fileStat = await bodyData.stat();
       final rawFileName = bodyData.uri.pathSegments.last;
       final sanitizedFileName = rawFileName.replaceAll('"', '');
-      headers[io.HttpHeaders.contentTypeHeader] =
-          properties.contentTypeString ??
-          properties.contentType?.toString() ??
-          'application/octet-stream';
-      headers[io.HttpHeaders.dateHeader] = _cachedDate;
+      final frameworkHeaders = <String, String>{
+        io.HttpHeaders.contentTypeHeader:
+            properties.contentTypeString ??
+            properties.contentType?.toString() ??
+            'application/octet-stream',
+        io.HttpHeaders.dateHeader: _cachedDate,
+        io.HttpHeaders.contentDisposition:
+            'attachment; filename*=UTF-8\'\'"$sanitizedFileName"',
+        io.HttpHeaders.contentLengthHeader: fileStat.size.toString(),
+      };
       if (response.currentHeaders.value('etag') == null) {
-        headers[io.HttpHeaders.etagHeader] = fileStat.eTag;
+        frameworkHeaders[io.HttpHeaders.etagHeader] = fileStat.eTag;
       }
-      headers[io.HttpHeaders.contentDisposition] =
-          'attachment; filename*=UTF-8\'\'"$sanitizedFileName"';
-      headers[io.HttpHeaders.contentLengthHeader] = fileStat.size.toString();
-      response.headers(headers, preserveHeaderCase: preserveHeaderCase);
+      _applyHeaders(response, properties.headers, frameworkHeaders);
       response.status(properties.statusCode);
       if (request.fresh) {
         response.status(304);
@@ -204,12 +207,15 @@ class SerinusHttpAdapter
     }
 
     final contentLength = properties.contentLength ?? responseBody.length;
-    headers[io.HttpHeaders.contentLengthHeader] = contentLength.toString();
-    headers[io.HttpHeaders.dateHeader] = _cachedDate;
+    final frameworkHeaders = <String, String>{
+      io.HttpHeaders.contentTypeHeader: contentTypeValue,
+      io.HttpHeaders.contentLengthHeader: contentLength.toString(),
+      io.HttpHeaders.dateHeader: _cachedDate,
+    };
     if (response.currentHeaders.value('etag') == null) {
-      headers[io.HttpHeaders.etagHeader] = body.eTag;
+      frameworkHeaders[io.HttpHeaders.etagHeader] = body.eTag;
     }
-    response.headers(headers, preserveHeaderCase: preserveHeaderCase);
+    _applyHeaders(response, properties.headers, frameworkHeaders);
     response.status(properties.statusCode);
     if (request.fresh) {
       response.status(304);
@@ -230,6 +236,23 @@ class SerinusHttpAdapter
     ResponseContext properties,
   ) {
     return data.toBytes();
+  }
+
+  void _applyHeaders(
+    InternalResponse response,
+    Map<String, String> baseHeaders,
+    Map<String, String> frameworkHeaders,
+  ) {
+    if (baseHeaders.isNotEmpty) {
+      response.headers(baseHeaders, preserveHeaderCase: preserveHeaderCase);
+    }
+    for (final entry in frameworkHeaders.entries) {
+      response.header(
+        entry.key,
+        entry.value,
+        preserveHeaderCase: preserveHeaderCase,
+      );
+    }
   }
 
   @override

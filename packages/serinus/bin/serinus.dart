@@ -2,6 +2,7 @@
 // ignore_for_file: avoid_print
 import 'dart:io';
 
+import 'package:acanthis/acanthis.dart';
 import 'package:serinus/serinus.dart';
 
 class TestProvider extends Provider {
@@ -130,7 +131,11 @@ class MyPipe extends Pipe {
       final reqContext = context.switchToHttp();
       print('Request path: ${reqContext.request.path}');
       print('Request body before transformation: ${reqContext.body}');
-      reqContext.body = {'name': 'bird', 'value': 42};
+      final obj = object({'name': string(), 'value': integer()}).passthrough();
+      final result = obj.parse(reqContext.body);
+      (result.value).remove('data');
+      reqContext.replaceRawBody(result.value);
+      print('Request body after transformation: ${reqContext.body}');
     }
   }
 }
@@ -144,8 +149,9 @@ void main(List<String> arguments) async {
   );
   application.use(MyPipe());
   application.provide(TestProvider());
-  application.post('/', (RequestContext<MyObject> context) async {
-    return context.body;
+  application.post('/', (RequestContext context) async {
+    final body = context.bodyAs<MyObject>();
+    return body;
   });
   await application.serve();
 }

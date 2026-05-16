@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.11
+
+**Released on:** 16-05-2026
+
+### Fixes
+
+- fix: add a check on the default console logger when dealing with multiple implementations of logging library
+
 ## 2.1.10
 
 **Released on:** 07-05-2026

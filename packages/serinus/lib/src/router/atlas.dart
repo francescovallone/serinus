@@ -192,13 +192,11 @@ final class Atlas<T> {
     final segments = _splitPathSegments(path);
     final params = <ParamAndValue>[];
 
-    final matchResult = _matchPath(_root, segments, 0, params, method);
+    final node = _matchPath(_root, segments, 0, params);
 
-    if (matchResult == null) {
+    if (node == null) {
       return AtlasResult.notFound();
     }
-
-    final (node, extractedParams) = matchResult;
 
     // Check for handler with specific method or 'all' method
     final handler = node.handlers[method.index];
@@ -220,6 +218,9 @@ final class Atlas<T> {
       // This should not happen as _matchPath checks for handlers
       return AtlasResult.notFound();
     }
+    final extractedParams = params.isEmpty
+        ? const <ParamAndValue>[]
+        : List<ParamAndValue>.from(params, growable: false);
     final result = FoundRoute(values: handlers, rawParams: extractedParams);
     if (extractedParams.isNotEmpty) {
       return result;
@@ -385,12 +386,11 @@ final class Atlas<T> {
   /// The algorithm backtracks when a partial match fails, trying lower priority
   /// alternatives to ensure the most specific route is found. A match is only
   /// considered successful if the final node has at least one handler.
-  (AtlasNode<T>, List<ParamAndValue>)? _matchPath(
+  AtlasNode<T>? _matchPath(
     AtlasNode<T> node,
     List<String> segments,
     int index,
     List<ParamAndValue> params,
-    HttpMethod method,
   ) {
     // Base case: all segments consumed
     if (index >= segments.length) {
@@ -398,23 +398,21 @@ final class Atlas<T> {
       if (optionalParam != null &&
           optionalParam.optional &&
           _hasAnyHandler(optionalParam)) {
-        final newParams = List<ParamAndValue>.from(params)
-          ..add((name: optionalParam.name, value: null));
-        return (optionalParam, newParams);
+        params.add((name: optionalParam.name, value: null));
+        return optionalParam;
       }
 
       // Only return this node if it has at least one handler
       // This enables backtracking when a path matches structurally but has no handler
       if (_hasAnyHandler(node)) {
-        return (node, params);
+        return node;
       }
 
       // Tail wildcard can also match an empty remaining path.
       final tailWildcard = node.tailWildcardChild;
       if (tailWildcard != null && _hasAnyHandler(tailWildcard)) {
-        final newParams = List<ParamAndValue>.from(params)
-          ..add((name: '**', value: ''));
-        return (tailWildcard, newParams);
+        params.add((name: '**', value: ''));
+        return tailWildcard;
       }
 
       return null;
@@ -424,76 +422,61 @@ final class Atlas<T> {
 
     final staticChild = node.getChild(segment);
     if (staticChild != null) {
-      final result = _matchPath(
-        staticChild,
-        segments,
-        index + 1,
-        params,
-        method,
-      );
+      final paramsLength = params.length;
+      final result = _matchPath(staticChild, segments, index + 1, params);
       if (result != null) {
         return result;
       }
+      params.length = paramsLength;
     }
 
     if (node.paramChild != null) {
       final paramNode = node.paramChild!;
       final paramValue = _extractParamValue(paramNode, segment);
       if (paramValue != null) {
-        final newParams = List<ParamAndValue>.from(params)
-          ..add((name: paramNode.name, value: paramValue));
-        final result = _matchPath(
-          paramNode,
-          segments,
-          index + 1,
-          newParams,
-          method,
-        );
+        final paramsLength = params.length;
+        params.add((name: paramNode.name, value: paramValue));
+        final result = _matchPath(paramNode, segments, index + 1, params);
         if (result != null) {
           return result;
         }
+        params.length = paramsLength;
         // If parametric match path failed, continue to try wildcard alternatives
       }
 
       if (paramNode.optional) {
-        final optionalParams = List<ParamAndValue>.from(params)
-          ..add((name: paramNode.name, value: null));
-        final optionalResult = _matchPath(
-          paramNode,
-          segments,
-          index,
-          optionalParams,
-          method,
-        );
+        final paramsLength = params.length;
+        params.add((name: paramNode.name, value: null));
+        final optionalResult = _matchPath(paramNode, segments, index, params);
         if (optionalResult != null) {
           return optionalResult;
         }
+        params.length = paramsLength;
       }
     }
 
     if (node.wildcardChild != null) {
-      final newParams = List<ParamAndValue>.from(params)
-        ..add((name: '*', value: segment));
+      final paramsLength = params.length;
+      params.add((name: '*', value: segment));
       final result = _matchPath(
         node.wildcardChild!,
         segments,
         index + 1,
-        newParams,
-        method,
+        params,
       );
       if (result != null) {
         return result;
       }
+      params.length = paramsLength;
       // If wildcard match path failed, continue to try tail wildcard
     }
 
     if (node.tailWildcardChild != null) {
       final remainingPath = segments.sublist(index).join('/');
-      final newParams = List<ParamAndValue>.from(params)
-        ..add((name: '**', value: remainingPath));
       // Tail wildcard always consumes remaining segments, so check for handler
       if (_hasAnyHandler(node.tailWildcardChild!)) {
-        return (node.tailWildcardChild!, newParams);
+        params.add((name: '**', value: remainingPath));
+        return node.tailWildcardChild!;
       }
     }
 

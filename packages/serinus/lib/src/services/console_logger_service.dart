@@ -89,6 +89,10 @@ class ConsoleLogger implements LoggerService {
     }
     logging.Logger.root.level = getLowestLevel(Logger.logLevels);
     logging.Logger.root.onRecord.listen((logging.LogRecord rec) {
+      if (rec.object is! AugmentedMessage) {
+        channel.writeln(rec.message);
+        return;
+      }
       final hasError =
           rec.object is AugmentedMessage &&
           (rec.object as AugmentedMessage).params?.error != null;
