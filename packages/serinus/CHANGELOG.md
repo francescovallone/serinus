@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.12
+
+**Released on:** 17-05-2026
+
+### Chores
+
+- chore: update dependencies to the latest version
+- chore: remove comments that could be interprested as HTML
+
 ## 2.1.11
 
 **Released on:** 16-05-2026

@@ -151,7 +151,7 @@ class RequestContext<TBody> extends BaseContext {
   /// Returns the query parameters.
   Map<String, dynamic> get query => request.query;
 
-  /// Returns the unconverted, raw payload (e.g., Map<String, dynamic>).
+  /// Returns the unconverted, raw payload.
   /// Use this inside Pipes for validation before the body is transformed into a DTO.
   Object? get rawBody => request.body;
 
